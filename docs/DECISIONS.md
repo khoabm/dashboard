@@ -10,4 +10,8 @@ Chỉ ghi quyết định có ảnh hưởng scope/kiến trúc; ngày + căn c�
 | D04 / 2026-10-23 | Quy ước vận hành | SPEC giữ đủ yêu cầu; AGENTS + OVERVIEW + STATUS là entry point; đọc mục liên quan, không bắt chat mới đọc toàn code/spec |
 | D05 / 2026-10-23 | Quy ước vận hành | develop phát triển, main dành bản nghiệm thu; repo trống cần bootstrap main. Không tự merge/deploy công khai; kiểm tra snapshot GitHub và Sites thay vì giả định auto-sync |
 
-Chưa chốt: retention xóa mềm, byte threshold, Storage access/revocation, realtime, thumbnail/version behavior và wireframe hình ảnh. Xem STATUS; chỉ thêm quyết định khi có căn cứ, không gắn “đã duyệt” cho đề xuất của agent.
+| D06 / 2026-10-23 | Phạm vi hiện tại | Người dùng giao triển khai source trên develop, không dùng nhà cung cấp hosting cũ; không yêu cầu merge main. Tiếp tục phần độc lập, không phát hành khi thiếu security/cost gate |
+| D07 / 2026-10-23 | Mặc định kỹ thuật triển khai, có thể review | Vite bundle static SDK (không framework), phiên memory; <2 MB = <2.000.000 byte; retention 30 ngày không purge; FK restrict cho cột; thumbnail attachment ID; optimistic transaction/version và atomic reorder |
+| D08 / 2026-10-23 | Mặc định kỹ thuật triển khai, có thể review | Bucket private, immutable paths, signed URL 60 giây với giới hạn thu hồi đã nêu; batch thumbnail; refresh sau ghi/active/manual, không Realtime/polling; ưu tiên quota |
+
+Còn thiếu: ảnh wireframe quản trị để visual acceptance; tạo tài khoản Auth/tắt signup; E2E admin/upload/sync; full backup/restore; xác minh Sites hosting 0 USD/audience trước Phase 6. Các mặc định agent chọn không được gắn nhãn là người dùng đã duyệt ảnh/retention hoặc toàn sản phẩm.

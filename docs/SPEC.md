@@ -548,6 +548,8 @@ Các trạng thái:
 
 Chỉ published được hiển thị công khai.
 
+Mặc định triển khai hiện tại: khôi phục trong 30 ngày, khôi phục về draft; không tự purge. Cột có bất kỳ bài nào (kể cả deleted) bị chặn xóa bằng FK restrict, cần chuyển bài sang cột khác. Đây là mặc định có thể review, không phải yêu cầu mở rộng tính năng.
+
 ### 8.4. Form tạo bài
 
 Các trường:
@@ -606,7 +608,7 @@ Liên kết bên ngoài được mở an toàn, không làm mất trang học li
 
 - JPG, PNG, WebP.
 
-- Giới hạn nhỏ hơn 2 MB mỗi ảnh.
+- Giới hạn nhỏ hơn 2 MB mỗi ảnh; quy ước byte của implementation: <2.000.000 byte, provider maximum 1.999.999 byte.
 
 - Có preview trước upload.
 
@@ -657,6 +659,8 @@ Có thumbnail hoặc placeholder.
 Không upload video gốc lên Supabase trong bản đầu.
 
 Không sử dụng video transcoding trả phí.
+
+Thumbnail implementation tham chiếu attachment ảnh cùng bài; khi thay file dùng path ngẫu nhiên mới. Lưu bài và danh sách metadata là transaction có expected_version, sắp xếp bài là transaction kiểm phiên bản.
 
 ### 8.9. Lưu nháp và chống mất dữ liệu
 
@@ -872,6 +876,8 @@ Khi một bài có nhiều tệp:
 
 Không giả định Storage và Database là một transaction nguyên tử.
 
+Mặc định triển khai: bucket private, file path bất biến; signed URL 60 giây. Sau hidden/deleted, URL đã ký có thể còn dùng tối đa thời hạn đó; bytes đã tải/cached không thu hồi được. Cleanup chỉ xóa path đã xác minh không còn tham chiếu.
+
 <a id="r12"></a>
 
 ## XII. LOCAL STORAGE
@@ -923,6 +929,8 @@ Website phải bảo đảm sau khi quản trị viên đăng bài, thiết bị
 5. Có phương án tải lại hoặc refresh thủ công khi realtime bị ngắt.
 
 Không sử dụng polling liên tục với tần suất cao.
+
+Implementation hiện tại chọn fetch sau ghi, khi mở trang, khi tab active sau ít nhất 30 giây và refresh thủ công; chưa dùng Realtime. Người đang giữ tab mở không tự nhận cập nhật ngay nếu không refresh/quay lại tab.
 
 Chỉ subscribe vào dữ liệu published cần thiết.
 

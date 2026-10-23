@@ -1,6 +1,6 @@
 # Triển khai frontend tĩnh
 
-Nguồn: SPEC R03–04, R17–18, R24–28; quy trình chi tiết ở WORKFLOW. **Hiện chưa có Site, build hoặc deployment.** Không tạo configuration nhà cung cấp khác.
+Nguồn: SPEC R03–04, R17–18, R24–28; quy trình chi tiết ở WORKFLOW. **Đã có build static dist; chưa có Site hoặc deployment.** Không tạo configuration nhà cung cấp khác.
 
 ## Điều kiện
 
@@ -30,4 +30,4 @@ Nguồn: SPEC R03–04, R17–18, R24–28; quy trình chi tiết ở WORKFLOW. 
 
 GitHub SHA, Sites source SHA và đối chiếu nội dung, project_id/version/deployment_id, URL, audience, ngày, public config sử dụng, checks, quota/chi phí, production smoke và giới hạn. Không ghi credential, signed URL nhạy cảm hoặc token.
 
-Cập nhật học liệu Supabase không cần deploy frontend; đổi source/config client mới cần bản phát hành. Giữ hướng dẫn chạy độc lập ngoài Sites và xuất ZIP khi được yêu cầu. Chưa có lệnh chạy thật cho tới khi implementation chọn cấu hình.
+Cập nhật học liệu Supabase không cần deploy frontend; đổi source/config client mới cần bản phát hành. Giữ hướng dẫn chạy độc lập ngoài Sites và xuất ZIP khi được yêu cầu. Lệnh thật: npm ci, npm run dev, npm test, npm run check, npm run build. Static output dist chỉ chứa ứng dụng/placeholder; tests/*.html không nằm trong build. Vite allowedHosts chỉ thêm terminal.local để QA nội bộ. Không có hosting.json giả hoặc auto-deploy.

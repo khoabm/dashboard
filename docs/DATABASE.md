@@ -1,12 +1,12 @@
 # Dữ liệu, migration và backup
 
-Nguồn đầy đủ: SPEC R09, R11–13, R21–22. **Chưa có database/migration thực tế.** Không chạy SQL hoặc chọn project chỉ vì đang đọc tài liệu này.
+Nguồn đầy đủ: SPEC R09, R11–13, R21–22. **Đã apply 4 migrations vào project dashboard/vgciiqtwmxcdqppntgnt.** Không apply lại; kiểm tra history trước thay đổi tiếp.
 
 ## Thiết kế cần giữ
 
 Sáu bảng và mọi trường đề xuất giữ tại SPEC R09: boards → sections → posts → attachments; admin_profiles chỉ định admin active; audit_logs ghi tác nhân/hành động/đích/thời gian. Không lược bỏ version, deleted_at hoặc metadata file. PK/FK/index và constraints được thiết kế cùng truy vấn/policies; không lạm dụng JSONB.
 
-State bài: draft/published/hidden/deleted; khách chỉ đọc published, kể cả attachment và file liên quan. Schema có thể tinh chỉnh nhưng phải giữ ý nghĩa và ghi quyết định. Admin profile không được tự cấp/sửa quyền từ client; audit log không được để client giả danh actor hay sửa lịch sử. Xử lý xóa cột có bài và hạn khôi phục là điểm cần chốt, không tự đặt cascade destructive.
+State bài: draft/published/hidden/deleted; khách chỉ đọc published, kể cả attachment và file liên quan. Schema có thể tinh chỉnh nhưng phải giữ ý nghĩa và ghi quyết định. Admin profile không được tự cấp/sửa quyền từ client; audit log không được để client giả danh actor hay sửa lịch sử. Implementation mặc định chặn xóa cột có bài bằng FK restrict, khôi phục deleted về draft trong 30 ngày, không tự purge.
 
 ## Quy trình thay đổi
 
@@ -32,4 +32,13 @@ State bài: draft/published/hidden/deleted; khách chỉ đọc published, kể 
 
 - Tài liệu nêu rõ thời điểm snapshot, dữ liệu có thể mất từ lần backup gần nhất, giới hạn quota khi backup/restore. Không giả định automatic backup trả phí hoặc thêm automation nếu chưa đo được quota.
 
-Hiện chưa có lệnh backup/restore được kiểm chứng; ghi NOT RUN trong bàn giao, không điền lệnh giả cho đủ tài liệu.
+Hướng dẫn hiện tại: [ADMIN_SETUP](ADMIN_SETUP.md), [BACKUP](BACKUP.md). Chưa kiểm thử full backup/restore; ghi NOT RUN, không dùng SQL rollback làm bằng chứng restore.
+
+## Schema/RPC hiện tại
+
+- 6 bảng đúng R09, thêm posts.thumbnail_id và placeholder_kind (placeholder trình bày local đến khi admin chỉnh bài). Không đặt học liệu thực tế vào source; 6 fixture có nhãn rõ và có thể sửa/xóa qua CMS khi admin được tạo.
+- PK/FK restrict, index query/order, check trạng thái/deleted_at, độ dài/title/color/URL, <2 MB và tối đa 10 attachment bằng trigger khóa parent. Unique một admin active, không tự bootstrap user.
+- save_post nhận post + attachment metadata + expected_version; transaction nguyên tử, UPDATE tăng version; stale save trả 40001. Upload bytes diễn ra trước, không giả Storage và DB là một transaction.
+- reorder_posts khóa các bài trong cột theo ID, kiểm danh sách/phiên bản đầy đủ, cập nhật rank trong một transaction. app_usage chỉ admin, đo bucket storage metadata và database physical estimate; egress null.
+- Tên migration ban đầu được CLI migration new sinh; sau apply MCP đã đối chiếu/đổi prefix theo **version thực trả từ schema_migrations** để không push lại cùng migration. File SQL khớp payload đã apply: 20261023150359_initial_board, 20261023151152_quota_observability, 20261023151459_atomic_post_reorder, 20261023152049_split_write_policies.
+- seed.sql có stable IDs và ON CONFLICT DO NOTHING, không ghi đè bài đã chỉnh khi chạy lại. access.sql tạo user/rows test trong transaction rồi ROLLBACK, không giữ credential/tài khoản thử.

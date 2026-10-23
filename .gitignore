@@ -20,3 +20,6 @@ Thumbs.db
 # Runtime data and backups never belong in source control
 backups/
 local-uploads/
+
+# Supabase CLI checkout-local cache
+supabase/.temp/

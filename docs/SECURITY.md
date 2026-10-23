@@ -1,6 +1,6 @@
 # Bảo mật
 
-Hợp đồng chi tiết: SPEC R08–12, R19. Chưa có runtime/policy để nghiệm thu. Checklist dưới là hướng triển khai, không thay 20 điều kiện tại R10.
+Hợp đồng chi tiết: SPEC R08–12, R19. Đã apply schema/policies và có test anon/SQL roles; xem QA_REPORT. Checklist dưới không thay 20 điều kiện R10 hoặc E2E Auth/file thật còn BLOCKED.
 
 | Đối tượng | Đọc | Ghi |
 | --- | --- | --- |
@@ -29,3 +29,11 @@ Hợp đồng chi tiết: SPEC R08–12, R19. Chưa có runtime/policy để ngh
 - Xóa bài là soft-delete theo R08; hành động phá hủy dữ liệu cần xác nhận đúng lúc. Không tự purge, xóa tài nguyên production hoặc cascade ngoài ý muốn.
 
 Nghiệm thu phải gọi trực tiếp API dưới ba danh tính trên, không chỉ nhìn nút UI. Kiểm tra cả đọc bài/file chưa xuất bản, upload, INSERT/UPDATE/DELETE, sửa quyền và xử lý chuyển trạng thái. Kết quả còn thiếu phải ghi BLOCKED/NOT RUN.
+
+## Implementation hiện tại
+
+Quyền lookup admin nằm trong private.is_admin (SECURITY DEFINER chỉ đọc bảng nội bộ, search_path rỗng, EXECUTE tối thiểu); không dùng user_metadata/JWT claim tự sửa. Chỉ private.audit được quyền ghi audit qua trigger; actor lấy auth.uid, client không có INSERT audit. RPC public save_post/reorder_posts/app_usage đều SECURITY INVOKER, kiểm tra admin và dùng RLS, không có public SECURITY DEFINER. Client không có DELETE post: xóa mềm qua save_post.
+
+Storage private, không cấp UPDATE/upsert; random paths bất biến. Khách chỉ lấy signed URL cho metadata gắn published. URL đã ký có thể còn dùng trong tối đa 60 giây sau khi ẩn/xóa; dữ liệu đã tải/cached không thể thu hồi khỏi máy người xem. Chưa có test file thật chứng minh toàn chuỗi. Bucket giới hạn MIME và 1.999.999 byte; frontend kiểm cả extension/MIME/magic bytes. OOXML kiểm ZIP container, không thay antivirus hoặc xác minh toàn XML; chỉ admin duy nhất tải, không thực thi file trong HTML.
+
+Cleanup luôn SELECT tham chiếu trước xóa để tránh xóa file của transaction đã commit nhưng mất response. Queue local chỉ ghi path, không bí mật; lỗi mạng có thể để orphan cho admin kiểm tra. Không xóa nguyên bucket. SDK persistSession=false, tokens ở memory; nháp không chứa credentials. Chưa có Auth user và chưa xác minh server signup, đây là gate phát hành, không được suy từ việc UI không có signup.

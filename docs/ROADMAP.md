@@ -1,6 +1,6 @@
 # Roadmap
 
-Nguồn đầy đủ: SPEC R24–28. Hiện đang ở **khởi tạo tài liệu trước Phase 0**, chưa hoàn tất audit hoặc triển khai. Không có milestone sản phẩm đã PASS.
+Nguồn đầy đủ: SPEC R24–28. Đã triển khai nền tảng Phase 1–4 trên develop; đang ở **gate Auth admin / kiểm thử đầy đủ Phase 2–5**, chưa đạt nghiệm thu sản phẩm. Xem STATUS và IMPLEMENTATION_PLAN cho phần đã có bằng chứng và blocker; Phase 6 chưa bắt đầu.
 
 | Phase | Kết quả phải có | Gate chuyển tiếp |
 | --- | --- | --- |

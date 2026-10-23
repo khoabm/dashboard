@@ -1,6 +1,6 @@
 # Kiểm thử và browser QA
 
-Nguồn tiêu chí đầy đủ: SPEC R05–08, R10–14, R19–22, R25. Không thay danh sách test của SPEC bằng bản rút gọn này. **Chưa có ứng dụng: mọi test runtime hiện NOT RUN.**
+Nguồn tiêu chí đầy đủ: SPEC R05–08, R10–14, R19–22, R25. Không thay danh sách test của SPEC bằng bản rút gọn này. **Đã có ứng dụng và bằng chứng tại [QA_REPORT](QA_REPORT.md); các gate chưa chạy vẫn NOT RUN/BLOCKED, không được coi là Done.**
 
 ## Quy tắc bằng chứng
 
@@ -31,8 +31,12 @@ Khi không thể mô phỏng offline, hết quota, pause hoặc expired session 
 
 Theo WORKFLOW và reference preview của skill Sites. Kiểm tra browser/preview thực tế; tương tác nhập/click/keyboard rồi quan sát state, ảnh và log phù hợp. Phân biệt lỗi app với extension của môi trường, không giấu lỗi có ảnh hưởng. Không tuyên bố đã kiểm tra request/network nếu công cụ không hỗ trợ quan sát tương ứng.
 
-Trong môi trường hiện tại chưa triển khai tool resize/network độc lập; đánh giá lại capability lúc test. Quyền đăng nhập đi qua cơ chế browser authentication được hỗ trợ, không nhập credential bằng script không an toàn.
+Môi trường browser không có resize/network độc lập; đã kiểm tra responsive bằng iframe viewport thật tại tests/viewport.html. Cách này không thay kiểm thử thiết bị. Quyền đăng nhập đi qua cơ chế browser authentication được hỗ trợ, không nhập credential bằng script không an toàn.
 
 ## Gate hoàn tất
 
 Phase UI cần browser QA các luồng/viewport liên quan. Done sản phẩm cần toàn R25 (20 điều kiện), tests R19, bảo mật R10/Storage và backend thật. Nếu thiếu điều kiện, bàn giao rõ trạng thái tạm thời; không gọi hoàn tất. Chỉ chạy lại/bổ sung test khi thay đổi mới, lỗi hoặc nghi ngờ chưa giải quyết cần kiểm chứng, tránh chạy lặp toàn bộ không có lý do.
+
+## Lệnh hiện có
+
+`npm test` chạy unit regression không gọi backend; `npm run check` kiểm tra syntax/credential scan/diff; `npm run build` bundle static. `npm run test:api` gọi API bằng publishable key, không lấy token admin. `supabase/tests/access.sql` chạy owner SQL Editor với fixtures rollback (SET LOCAL role và JWT sub), không phải phiên login thật. Xem QA_REPORT trước khi mở rộng ma trận; không chạy destructive test trên dữ liệu thật.

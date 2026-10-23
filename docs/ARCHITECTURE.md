@@ -1,6 +1,6 @@
 # Kiến trúc và cách code
 
-Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Thiết kế dưới đây là quy ước triển khai, chưa phải code đang tồn tại.
+Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dưới đây phản ánh implementation trên develop; nghiệm thu runtime xem STATUS/QA_REPORT.
 
 ## Ranh giới
 
@@ -28,7 +28,7 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Thiết kế dưới đây là
 | supabase/migrations/, seed.sql | Schema/policy có version và seed chạy lại không trùng |
 | tests/ | Regression, integration và bằng chứng QA tương ứng |
 
-Chưa tạo các thư mục trên cho đến khi có code thực tế. Không buộc một file/component nếu ghép module nhỏ rõ nghĩa tiết kiệm hơn; vẫn đáp ứng đủ hành vi các component trong SPEC.
+Các thư mục code trong bảng đã có implementation. Không buộc một file/component nếu ghép module nhỏ rõ nghĩa tiết kiệm hơn; vẫn đáp ứng đủ hành vi các component trong SPEC.
 
 ## Cách viết
 
@@ -50,4 +50,20 @@ Chưa tạo các thư mục trên cho đến khi có code thực tế. Không bu
 
 ## Code map thực tế
 
-Hiện chỉ có README, AGENTS và docs; chưa có entrypoint, services, components, scripts hay migration. Khi triển khai, thay đoạn này bằng bảng module thực tế → đường dẫn → trách nhiệm → test liên quan. Không liệt kê mọi file hoặc chép code vào docs; chỉ map giúp phiên sau mở đúng chỗ.
+| Module thực tế | Đường dẫn / trách nhiệm | Test |
+| --- | --- | --- |
+| Bootstrap / refresh / hành động | src/main.js | QA_REPORT public + editor fixture |
+| Header/Search/AdminToolbar/Board/Column/Card/Preview | src/components/board.js | public UI + viewport |
+| Gallery/Document/Video | src/components/media.js | ảnh/PDF/YouTube UI |
+| PostEditorDrawer/AttachmentUploader | src/components/post-editor.js | editor fixture + drafts/validation unit |
+| Login / SectionEditor | src/components/auth.js, section-editor.js | login UI; E2E thật BLOCKED |
+| Confirm/Toast/Loading/Empty/Error/Sync | src/components/primitives.js | browser search/modal/error |
+| QuotaStatus | src/components/quota.js | quota unit + SQL RPC |
+| Supabase client/query/Auth/export | src/services/client.js, board.js | anon API + SQL role regression |
+| File upload/sign/cleanup | src/services/storage.js | file validation unit; authenticated upload BLOCKED |
+| Text / Blob nháp | src/services/drafts.js | tests/drafts.test.js + browser IndexedDB |
+| URL/file/search/order/retention/quota/ID/DOM | src/utils/ | tests/*.test.js; preview UUID fallback verified |
+| Public config / placeholder fixtures | src/config/public.js, src/data/placeholders.js, public/placeholders/ | public board/media |
+| Schema/RLS/atomic RPC | supabase/migrations/, seed.sql | supabase/tests/access.sql |
+
+Vite chỉ bundle SDK và cấu hình public, output static dist. Không có server app hoặc framework SPA. Session Supabase ở memory (không persistence), còn text draft localStorage và File draft IndexedDB có key theo UID/post. Private Storage dùng signed URL 60 giây; thumbnail được ký theo batch metadata, không fetch tất cả file bytes. Refresh sau ghi/active/manual, không đăng ký Realtime. Chi tiết quyết định ở SPEC/DECISIONS, không nhân bản cấu hình ở nhiều file.

@@ -1,26 +1,25 @@
 # Ràng buộc chi phí 0 USD
 
-Nguồn: SPEC R02, R15, R20–21, R25–28. Ngân sách dịch vụ phát sinh 0 USD ưu tiên hơn tính năng. Không tự upgrade, thẻ, domain, add-on, API AI tính phí, trial chuyển trả phí, analytics/email/CI/storage trả phí; không tạo project/deployment dư hoặc lưu lượng giả để tránh pause.
+Nguồn SPEC R02/R15/R20–21/R25–28. Không nâng gói, trial/thẻ, domain, add-on, API AI, email/analytics/CI/storage trả phí hoặc lưu lượng giả để tránh pause. Hết quota ưu tiên chặn/tạm dừng, không trả phí. Không cam kết 24/7.
 
-## Dữ liệu lịch sử từ brief, chưa xác minh cho triển khai
+## Xác minh ngày 2026-10-23
 
-Brief nêu Supabase Free: 500 MB database, 1 GB Storage, 5 GB egress thường và 5 GB cached egress; có thể pause do ít hoạt động. Brief cũng nêu Free không tính overage và Spend Cap thuộc Pro. Đây là thông tin đầu vào, không phải xác minh ngày 2026-10-23. Không dùng các số này làm cấu hình quota hoặc cam kết hiện hành trước khi kiểm tra nguồn chính thức và project thực tế.
+| Thành phần | Bằng chứng / giới hạn |
+| --- | --- |
+| Supabase | Plugin get_organization: org qvosfzztldzaxxodxzlx plan=free, tier=tier_free; project dashboard/vgciiqtwmxcdqppntgnt hiện có, không tạo thêm. Pricing chính thức: 500 MB DB, 1 GB Storage, 5 GB egress thường + 5 GB cached egress; Free có thể pause sau 1 tuần ít hoạt động, tối đa 2 active projects |
+| Sử dụng thực tế | Database physical estimate ~11,55 MB (không phải số đo billing chính xác), Storage learning-resources 0 byte/0 object; 1 board/3 cột/6 posts. Băng thông/MAU/CI usage UNKNOWN, không bịa dashboard. Placeholder SVG/PDF nằm trong frontend source, không phải runtime uploads |
+| GitHub | Repo public khoabm/dashboard đã có, quyền push/maintain/admin từ plugin. Chỉ ghi source, không tạo repo/Actions/Pages/LFS/trial mới; không có công cụ xác nhận subscription/CI quota của toàn tài khoản |
+| Sites / Work | Chỉ dùng Sites managed preview nội bộ được môi trường cung cấp; không create Site, deploy, mua domain hoặc resource. Chưa xác minh phí hosting/audience/anonymous access, nên Phase 6 BLOCKED; không suy từ plugin khả dụng ra quyền hosting miễn phí |
+| Dependency | Supabase JS 2.118.0 và Vite 8.3.5 MIT từ npm metadata; khóa package-lock. Node test runner miễn phí có sẵn, không cài paid test service. Không AI API trả phí/CDN latest |
 
-Chưa xác minh quyền sử dụng/chi phí Sites hoặc công cụ Work theo gói ChatGPT của người dùng; không suy rằng có plugin là tất cả thao tác miễn phí. Không yêu cầu nâng gói ChatGPT để lách ràng buộc. Nếu không xác minh được hosting 0 USD, tiếp tục phần source/QA làm được và báo blocker, không deploy theo mặc định.
+Nguồn chính thức: https://supabase.com/pricing ; https://supabase.com/docs/guides/platform/billing-on-supabase . Changelog https://supabase.com/changelog.md đã đọc; thay đổi Node20 support cần Node22+, project dùng Node24. Postgres17.11 minor breaking-change liên quan ltree/btree_gist/legacy encryption không được ứng dụng dùng: https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes .
 
-## Phase 0 phải ghi bằng chứng
+## Cơ chế trong ứng dụng
 
-| Thành phần | Bằng chứng cần có | Hiện tại |
-| --- | --- | --- |
-| GitHub Free / CI | Plan, quyền repo, giới hạn liên quan nếu chạy CI | Repo truy cập được; plan/quota CI chưa xác minh |
-| Supabase | Free Plan đúng project; quota DB/Storage/egress/Realtime; pause và hành vi vượt hạn mức | Chưa xác minh |
-| Sites / Work | Quyền dùng, khả năng static/source export, hosting và truy cập ẩn danh nếu phát hành public; không phát sinh phí | Chưa xác minh |
-| Dependency/CDN/test | Version, license, nguồn chính thức; không dịch vụ trả phí | Chưa chọn |
+app_usage chỉ admin: tổng metadata object trong bucket học liệu, pg_database_size là physical estimate. UI cảnh báo 70%, critical từ 90%; upload mới kiểm usage và từ chối nếu tổng dự kiến đạt 90% Storage hoặc không lấy được số đo. Database chỉ ước tính nên cần đối chiếu provider; egress không đo được từ app và hiển thị chưa đo.
 
-Khi xác minh, ghi ngày, URL chính thức, project/account liên quan ở mức không lộ bí mật, giới hạn và kết quả. Không kiểm tra lại mọi dịch vụ mỗi lượt; kiểm tra khi bắt đầu dùng, thông tin có thể đổi hoặc tác vụ làm tăng tài nguyên.
+Provider bucket enforce 1.999.999 byte và MIME allowlist; DB enforce tối đa 10 tài nguyên/bài. App không bảo đảm tuyệt đối quota toàn tài khoản: concurrent uploads, bucket khác hoặc egress ngoài app không bị các ngưỡng này quản lý đầy đủ. Provider Free là ranh giới cuối, không tự upgrade. Backup/download cũng dùng egress.
 
-## Quota trong ứng dụng
+Không dùng Realtime/polling hoặc keepalive giả. Fetch khi mở/ghi/active/manual; thumbnail ký theo batch/lazy-load, file bytes chỉ tải khi mở. Một admin vẫn có nhiều người xem tải học liệu; phải theo dõi Dashboard khi vận hành thật.
 
-Cảnh báo 70%, nghiêm trọng 85–90%; chặn chức năng nguy cơ cao khi có số đo đáng tin. Theo dõi DB, Storage, bandwidth, tài nguyên, uploads, Realtime connections/messages, build/deploy. Dùng thêm giới hạn provider; frontend không bảo đảm quota tuyệt đối. Quota không đo được miễn phí phải ghi UNKNOWN, không tạo dashboard số giả.
-
-Một admin vẫn có thể có nhiều người đọc/tải học liệu, đặc biệt bandwidth file. Giảm tải bằng thumbnail/lazy-load/fetch metadata, không polling dày, realtime có chọn lọc. Quota hết/Free pause: thông báo, hạn chế/tạm dừng và giữ phần hoạt động; không tự nâng cấp. Không hứa 24/7. Backup/restore/CI cũng dùng tài nguyên và phải tính vào hạn mức.
+Lượt triển khai này không kích hoạt dịch vụ trả phí; không suy ra hoặc bảo đảm mọi dịch vụ khác của toàn tài khoản đều 0 USD. Chỉ xác minh lại dịch vụ khi bắt đầu dùng/chuyển gói hoặc thông tin có khả năng thay đổi.
