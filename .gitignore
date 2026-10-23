@@ -1,0 +1,22 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependencies and generated output
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.log
+
+# Local editor / OS
+.DS_Store
+Thumbs.db
+
+# Runtime data and backups never belong in source control
+backups/
+local-uploads/
