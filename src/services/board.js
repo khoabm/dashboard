@@ -2,24 +2,31 @@
 
 import { requireClient, result } from './client.js';
 import { config } from '../config/public.js';
+import { readAllRows } from './pagination.js';
 
 /**
  * Loads the board, ordered sections, posts, and their attachment metadata.
  * Signs image thumbnail URLs in a batch; text remains available if signing fails.
  *
+ * @param {object} db - The shared client, or an isolated client for offline regression.
  * @returns {Promise<object>} The board, section list, and enriched post list.
  */
-export async function loadBoard() {
-  const db = requireClient();
-  const [boards, sections, posts, attachments] = await Promise.all([
+export async function loadBoard(db = requireClient()) {
+  const [boards, sections, posts] = await Promise.all([
     result(db.from('boards').select('*').order('created_at').limit(1)),
-    result(db.from('sections').select('*').order('sort_order').order('created_at')),
-    result(db.from('posts').select('*').order('sort_order').order('created_at')),
-    result(db.from('attachments').select('*').order('sort_order')),
+    readAllRows(db, 'sections', ['sort_order', 'created_at']),
+    readAllRows(db, 'posts', ['sort_order', 'created_at']),
   ]);
+  // Read versions before attachments so a concurrent edit cannot pair a new version with old files.
+  const attachments = await readAllRows(db, 'attachments', ['sort_order']);
+  const byPost = new Map();
+  for (const attachment of attachments) {
+    if (!byPost.has(attachment.post_id)) byPost.set(attachment.post_id, []);
+    byPost.get(attachment.post_id).push(attachment);
+  }
   const enriched = posts.map((post) => ({
     ...post,
-    attachments: attachments.filter((a) => a.post_id === post.id),
+    attachments: byPost.get(post.id) || [],
   }));
   const thumbnails = enriched
     .map((post) => {
@@ -108,13 +115,13 @@ export async function isAdmin() {
 /**
  * Exports board metadata and audit rows without Storage file bytes.
  *
+ * @param {object} db - The shared client, or an isolated client for offline regression.
  * @returns {Promise<object>} The versioned metadata snapshot for download.
  */
-export async function exportMetadata() {
-  const db = requireClient();
+export async function exportMetadata(db = requireClient()) {
   const [boards, sections, posts, attachments, audit_logs] = await Promise.all(
     ['boards', 'sections', 'posts', 'attachments', 'audit_logs'].map((table) =>
-      result(db.from(table).select('*')),
+      readAllRows(db, table),
     ),
   );
   return {

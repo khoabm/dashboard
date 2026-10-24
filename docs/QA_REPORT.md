@@ -1,4 +1,33 @@
-# Bằng chứng kiểm thử — 2026-10-23
+# Bằng chứng kiểm thử
+
+<a id="audit-2026-10-24"></a>
+
+## 2026-10-24 — regression sau audit PR #1
+
+Source: `fix/audit-reliability-20261024`, parent `e5605d87ab5106f5b41d491b970aec68b744fc91`; nội dung ứng dụng trong commit chứa phần báo cáo này. Đã đọc AGENTS, OVERVIEW, STATUS, ARCHITECTURE, CODE_STYLE, COMMENTING_GUIDELINES, SECURITY, DATABASE, TESTING và các mục SPEC R08/10–14/19 liên quan trước sửa. Node 24, Vite 8.3.5, Supabase JS 2.118.0; không thêm dependency. Sửa cụ thể và root cause: [BUG_FIX_LOG](BUG_FIX_LOG.md).
+
+Browser: Chrome cloud desktop, ảnh 1348×926, Sites preview nội bộ. `tests/audit.html` nhập module app thật; fixture chỉ ở dev, thay transport/identity bằng dữ liệu giả lập rõ nhãn, không tạo token/password. Fetch ngoài origin không được forward tới mạng; CSP chỉ cho connect cùng origin. Con số liveRequests=0 là invariant của fixture, không phải phép đo Network tab hoặc bằng chứng backend. Các bài và danh tính QA đều synthetic.
+
+| Case / Rxx | Bước / mong đợi → thực tế | Trạng thái |
+| --- | --- | --- |
+| QA-A01 / R08/21 | Unit tạo 121 posts/1.210 attachments, cap provider 200 dù yêu cầu 500, sort_order trùng. loadBoard đủ 10 tài nguyên/bài; export đủ attachments/audit_logs. Kiểm 1.000 hàng đúng page boundary, table rỗng; fault count thiếu/đổi, trang thiếu, ID trùng, lỗi page → reject, không trả snapshot dở | PASS offline |
+| QA-A02 / R08.1/10/19 | Nạp quản trị giả lập có bài PRIVATE; giữ response posts khi refresh; bật lỗi public; Đăng xuất → toolbar/bài riêng/count xóa ngay. Trả response cũ → public ErrorState, không còn bài riêng. Unit bảo đảm finally cũ không giải phóng slot mới | PASS mock + unit; [ảnh](qa/audit-logout-network-failure-20261024.jpg) |
+| QA-A03 / R08.9/12 | Bật lỗi text store; tạo tiêu đề, đóng và xác nhận rời form → editor vẫn mở, tiêu đề giữ đúng, có thông báo nháp chưa lưu được. Không báo đã lưu nháp | PASS fault injection; [ảnh](qa/audit-draft-storage-failure-20261024.jpg) |
+| QA-A04 / R08.9/12 | Lặp riêng với IndexedDB không mở được → không đóng, báo lỗi đúng. Tắt lỗi ở ca riêng; soạn text → đóng/xác nhận → inspect có đúng tiêu đề; mở lại/xác nhận restore → đúng tiêu đề. Dùng IndexedDB thật của browser cho ca thành công, không cần API | PASS; [ảnh](qa/audit-indexeddb-failure-20261024.jpg) |
+| QA-A05 / R08.4/19 | Giữ response save giả lập; soạn tiêu đề “Snapshot bất biến khi đang lưu”, thêm 1 link và save. Form biến mất khỏi accessibility tree khi inert, close disabled; Tab/x/Escape không đổi tiêu đề/đóng dialog. Trả response → payload đúng tiêu đề và 1 attachment; inspect drafts=[] sau success. Ca riêng RPC 503 → editor mở khóa, giữ tiêu đề và báo QA save failed + nháp local, không báo success | PASS mock UI; không chứng minh lưu Supabase thật |
+| QA-A06 / R11/19 | Unit Storage response lost ở file thứ hai + reference lookup fail: queue chứa cả 2 path đã thử. Retry chỉ xóa path không tham chiếu; truncated lookup không xóa. Queue 1.201 paths chia nhóm vẫn bảo vệ mọi referenced path | PASS offline, không upload/xóa file thật |
+| QA-A07 / R09–11/19 | Chạy access.sql một batch thành công trên `dashboard`: anon/non-admin visibility/write denial, admin publish/conflict/FK/quota/reorder/audit không raise lỗi. Dùng admin đang có, fixture board/section riêng, ROLLBACK. Query sau rollback: active_admins=1, confirmed_active_admins=1, fixtures_remaining=0 | PASS SQL role simulation; không phải login JWT/file bytes thật |
+| QA-A08 / R08.6/12 | Thử chọn PDF qua filechooser của công cụ → timeout, runtime browser và preview bị dừng; phục hồi preview để hoàn tất các ca text/logout. Không retry filechooser liên tục; không có bằng chứng PDF đã được chọn/lưu/khôi phục trong revision này | BLOCKED công cụ; không ghi PASS từ bằng chứng cũ |
+| QA-A09 / source | npm test: 14 tests (7 cũ + 7 regression mới). npm run check, npm run build, npm run format:check toàn code. dist chỉ có entry app/assets/placeholders; không có fixture hoặc QA identity/fault strings | PASS cục bộ; GitHub CI branch fix NOT RUN |
+
+Ngân sách test: toàn bộ debug browser/unit ở trên không gọi Supabase thật. Hai lần gọi execute_sql: lần đầu lỗi connector `Invalid or expired requestState` không có kết quả SQL; kiểm tra project ACTIVE_HEALTHY rồi thử lại một lần, batch rollback PASS. Không chạy test:api, login loop, upload thật, polling, realtime hoặc provider fault trên project thật. Không thay schema/policy/migration, Auth settings, account, hosting hay dữ liệu runtime bền vững. SQL audit identity sequence có thể tăng dù transaction rollback; đây không phải artifact nội dung test còn lại.
+
+Console quan sát có lỗi `chrome-extension://...content-script.bundle.js` gửi metadata; không phải source app. Không dùng kết quả mock làm bằng chứng RLS hoặc JWT thật. Không chạy lại matrix responsive/device hay full restore trong lượt này. Pagination nhiều REST request không phải transaction snapshot; dùng version check và hướng dẫn backup nhất quán riêng.
+
+Auth snapshot hiện tại đã thay đổi so với báo cáo 2026-10-23 dưới đây: admin active có email confirmed đã tồn tại. Server signup/anonymous chưa xác minh bằng công cụ. E2E Auth thật vẫn chưa có bằng chứng mới; không cần tạo thêm admin.
+
+## 2026-10-23 — bằng chứng lịch sử
+
 
 Source: develop, baseline `f145d555759af98e311c22b91f1433cf8890cbe1`; HEAD của commit chứa báo cáo là implementation được kiểm tra. Node 24.19.0, Vite 8.3.5, Supabase JS 2.118.0, Supabase PostgreSQL 17.11.0.003. Browser: Chrome cloud qua Sites managed preview `terminal.local:4173`; không phải deployment công khai.
 

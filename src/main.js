@@ -25,14 +25,16 @@ import { QuotaStatus } from './components/quota.js';
 import { LoginScreen } from './components/auth.js';
 import { SectionEditor } from './components/section-editor.js';
 import { PostEditorDrawer } from './components/post-editor.js';
+import { createRequestGate } from './utils/request-gate.js';
 const root = document.querySelector('#app');
+const requests = createRequestGate();
+let authRefreshTimer;
 
 // Shared board snapshot, admin session, filters, and synchronization flags.
 let data = { sections: [], posts: [] },
   admin = false,
   userId = null,
   dirty = false,
-  loading = false,
   filter = 'all',
   selected = 'all',
   query = '',
@@ -251,28 +253,35 @@ function render() {
 
 /**
  * Loads the latest board while preserving the previous snapshot on failure.
- * Prevents overlapping refresh requests and clears the loading flag afterward.
+ * Commits results only within the authentication generation that started the request.
  */
 async function refresh() {
-  if (loading) return;
-  loading = true;
+  const ticket = requests.begin();
+  if (!ticket) return;
   if (!lastSync) boardRegion.replaceChildren(LoadingState());
   try {
-    data = await loadBoard();
+    const snapshot = await loadBoard();
+    if (!requests.isCurrent(ticket)) return;
+    data = snapshot;
     lastSync = new Date();
     render();
   } catch (e) {
+    if (!requests.isCurrent(ticket)) return;
     if (!lastSync) boardRegion.replaceChildren(ErrorState(errorMessage(e), refresh));
     else ToastNotification('Chưa đồng bộ được. Đang giữ dữ liệu đã tải; hãy thử lại.', true);
   } finally {
-    loading = false;
+    requests.finish(ticket);
   }
 }
 
 /** Rechecks the admin profile and signed-in user before refreshing board data. */
-async function refreshAuth() {
-  admin = await isAdmin();
+export async function refreshAuth() {
+  requests.invalidate();
+  const generation = requests.generation();
+  const nextAdmin = await isAdmin();
   const { data: auth } = await client.auth.getUser();
+  if (generation !== requests.generation()) return;
+  admin = nextAdmin;
   userId = auth.user?.id;
   await refresh();
 }
@@ -367,20 +376,42 @@ async function logout() {
     dirty &&
     !(await ConfirmDialog(
       'Đăng xuất?',
-      'Nháp cục bộ được giữ, nhưng thay đổi chưa lưu sẽ không xuất hiện trên thiết bị khác.',
+      'Sẽ thử lưu nháp trên thiết bị trước khi đăng xuất. Thay đổi chưa đồng bộ không xuất hiện trên thiết bị khác.',
     ))
   )
     return;
+  for (const dialog of document.querySelectorAll('dialog')) {
+    if (dialog.preserveDraft && !(await dialog.preserveDraft())) {
+      ToastNotification('Chưa lưu được nháp. Hãy giữ trình soạn thảo mở.', true);
+      return;
+    }
+  }
   const { error } = await client.auth.signOut();
   if (error) {
     ToastNotification(errorMessage(error), true);
     return;
   }
-  document.querySelectorAll('dialog').forEach((d) => d.close());
+  if (admin || userId) clearSession();
+  schedulePublicRefresh();
+}
+
+/** Clears private UI synchronously, even if the subsequent anonymous read fails. */
+function clearSession() {
+  requests.invalidate();
+  document.querySelectorAll('dialog').forEach((dialog) => dialog.close());
   admin = false;
   userId = null;
+  dirty = false;
   filter = 'all';
-  await refresh();
+  data = { sections: [], posts: [] };
+  lastSync = null;
+  render();
+}
+
+/** Defers SDK reads until the Auth event callback has released its internal lock. */
+function schedulePublicRefresh() {
+  clearTimeout(authRefreshTimer);
+  authRefreshTimer = setTimeout(refresh, 0);
 }
 
 /** Downloads a JSON metadata snapshot without Storage file bytes. */
@@ -437,10 +468,8 @@ document.addEventListener('visibilitychange', () => {
 matchMedia('(max-width:700px)').addEventListener('change', renderBoard);
 client?.auth.onAuthStateChange((event) => {
   if (event === 'SIGNED_OUT') {
-    admin = false;
-    userId = null;
-    filter = 'all';
-    refresh();
+    clearSession();
+    schedulePublicRefresh();
   }
 });
 refresh();

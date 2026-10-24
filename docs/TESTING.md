@@ -56,3 +56,11 @@ GitHub yêu cầu workflow có trên default branch (`main`) trước khi nút *
 ## Lệnh hiện có
 
 `npm test` chạy unit regression không gọi backend; `npm run check` kiểm tra syntax/credential scan/diff; `npm run build` bundle static. `npm run test:api` gọi API bằng publishable key, không lấy token admin. `supabase/tests/access.sql` chạy owner SQL Editor với fixtures rollback (SET LOCAL role và JWT sub), không phải phiên login thật. Xem QA_REPORT trước khi mở rộng ma trận; không chạy destructive test trên dữ liệu thật.
+
+## Kiểm thử sau audit không hao quota
+
+- Bắt đầu bằng `npm test` (14 tests), `npm run check`, `npm run build`, `npm run format:check`. Service regression nhận client fixture riêng; mọi fetch thật trong test file bị chặn. Không thêm API/SQL live vào CI.
+- Browser mở `/tests/audit.html` trên preview local: dữ liệu synthetic và nhãn QA rõ ràng, transport/CSP chặn kết nối ngoài origin. Có fault text store, IndexedDB, save chờ/lỗi, public refresh lỗi và response quản trị trả muộn. Dùng các nút/fields thật để tái hiện QA-A02–A05 trong QA_REPORT. Không mở `tests/editor.html` hoặc `viewport.html` cũ để debug lặp vì chúng gọi Supabase thật.
+- Sau khi diff và regression offline ổn mới gom backend tests thành batch có mục tiêu. `supabase/tests/access.sql` chọn admin active hiện có hoặc fixture rollback khi chưa có, dùng board/section riêng, quota so với baseline, ROLLBACK. Không cần seed; không deactivate admin thật hoặc reorder cột nội dung thật. Nếu lỗi SQL: đọc/điều tra trước, không retry nguyên batch liên tục. Nếu lỗi connector: xác minh kết nối rồi chỉ thử lại có giới hạn.
+- Mock PASS chứng minh nhánh xử lý client; SQL role PASS chứng minh assertions dưới SET LOCAL role/sub. Cả hai không thay login JWT, upload/private file thật hoặc full restore. Case thiếu môi trường ghi BLOCKED/NOT RUN. Filechooser timeout trong QA-A08 không được suy thành blob recovery PASS.
+- Mỗi bug mới/bug tái mở phải có trace trong [BUG_FIX_LOG](BUG_FIX_LOG.md); QA_REPORT giữ evidence và STATUS chỉ giữ snapshot ngắn. Không đưa PII, token, file runtime hoặc backup vào log/Git.

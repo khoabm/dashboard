@@ -24,13 +24,16 @@ import { PostPreviewModal } from './board.js';
  * @param {Array<object>} options.attachments - The current attachment entries.
  * @param {Function} options.onChange - Receives the updated attachment list.
  * @param {Function} options.onError - Receives a validation error message.
- * @returns {HTMLElement} The uploader root with cleanup() and setAttachments() helpers.
+ * @returns {HTMLElement} The uploader root with cleanup(), whenReady(), and setAttachments().
  */
 export function AttachmentUploader({ attachments, onChange, onError }) {
   // The uploader root owns a reorderable attachment list and temporary image previews.
   const root = el('div');
   const list = el('div', { class: 'editor-attachments' });
   const objectUrls = [];
+  // File signature checks finish before submission or local draft dismissal can proceed.
+  let pending = Promise.resolve(),
+    destroyed = false;
 
   /**
    * Rebuilds attachment controls and revokes previews from the previous render.
@@ -88,25 +91,37 @@ export function AttachmentUploader({ attachments, onChange, onError }) {
     accept: '.jpg,.jpeg,.png,.webp,.pdf,.docx,.pptx,.xlsx',
     'aria-label': 'Chọn ảnh hoặc tài liệu',
   });
-  files.addEventListener('change', async () => {
-    for (const file of files.files) {
-      const error = validateFile(file, attachments.length);
-      if (error || !(await verifyFileSignature(file))) {
-        onError(error || `Tệp ${file.name} có nội dung không đúng định dạng.`);
-        continue;
-      }
-      attachments.push({
-        id: newId(),
-        type: file.type.startsWith('image/') ? 'image' : 'document',
-        file,
-        file_name: file.name,
-        mime_type: file.type,
-        size_bytes: file.size,
-      });
-    }
+  files.addEventListener('change', () => {
+    const selectedFiles = [...files.files];
     files.value = '';
-    onChange(attachments);
-    render();
+    pending = pending
+      .then(async () => {
+        for (const file of selectedFiles) {
+          if (destroyed) return;
+          const error = validateFile(file, attachments.length);
+          if (error || !(await verifyFileSignature(file))) {
+            onError(error || `Tệp ${file.name} có nội dung không đúng định dạng.`);
+            continue;
+          }
+          if (destroyed) return;
+          if (attachments.length >= 10) {
+            onError('Mỗi bài tối đa 10 tài nguyên.');
+            continue;
+          }
+          attachments.push({
+            id: newId(),
+            type: file.type.startsWith('image/') ? 'image' : 'document',
+            file,
+            file_name: file.name,
+            mime_type: file.type,
+            size_bytes: file.size,
+          });
+        }
+        if (destroyed) return;
+        onChange(attachments);
+        render();
+      })
+      .catch((error) => onError(errorMessage(error)));
   });
   const link = el('input', {
     type: 'url',
@@ -159,7 +174,11 @@ export function AttachmentUploader({ attachments, onChange, onError }) {
     ),
   );
   render();
-  root.cleanup = () => objectUrls.forEach((url) => URL.revokeObjectURL(url));
+  root.whenReady = () => pending;
+  root.cleanup = () => {
+    destroyed = true;
+    objectUrls.forEach((url) => URL.revokeObjectURL(url));
+  };
   root.setAttachments = (value) => {
     attachments = value;
     render();
@@ -201,6 +220,8 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
     dirty = false,
     busy = false,
     closing = false;
+  // Serialize local writes so a delayed autosave cannot recreate a remotely saved draft.
+  let draftWrites = Promise.resolve(true);
   const original = post?.attachments || [];
   const { dialog, content, close } = openDialog(post ? 'Chỉnh sửa bài đăng' : 'Tạo bài đăng', {
     drawer: true,
@@ -270,26 +291,37 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
     };
   }
 
-  /** Saves dirty text and pending files locally without marking the post as synced. */
+  /**
+   * Serializes text and file draft writes without marking the post as synced.
+   *
+   * @returns {Promise<boolean>} Whether both stores accepted this draft snapshot.
+   */
   async function persist() {
-    if (!dirty) return;
-    try {
-      saveDraft(key, read());
-      await filesDraft(
-        key,
-        attachments.filter((a) => a.file),
-      );
-      if (dialog.isConnected)
-        draftStatus.textContent = 'Đã lưu nháp trên thiết bị này · chưa đồng bộ.';
-    } catch {
-      if (dialog.isConnected)
-        draftStatus.textContent = 'Không đủ bộ nhớ để lưu nháp cục bộ. Hãy giữ trang mở.';
-    }
+    if (!dirty) return true;
+    const snapshot = structuredClone(read());
+    draftWrites = draftWrites.then(async () => {
+      try {
+        await filesDraft(
+          key,
+          snapshot.attachments.filter((a) => a.file),
+        );
+        saveDraft(key, snapshot);
+        if (dialog.isConnected)
+          draftStatus.textContent = 'Đã lưu nháp trên thiết bị này · chưa đồng bộ.';
+        return true;
+      } catch {
+        if (dialog.isConnected)
+          draftStatus.textContent = 'Không thể lưu nháp cục bộ. Hãy giữ trang mở và thử lại.';
+        return false;
+      }
+    });
+    return draftWrites;
   }
   const autosave = debounce(persist, 450);
 
   /** Marks the form dirty, informs its owner, and schedules local autosave. */
   function changed() {
+    if (busy || closing) return;
     dirty = true;
     onDirty(true);
     draftStatus.textContent = 'Có thay đổi chưa lưu lên Supabase.';
@@ -319,6 +351,21 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
   form.append(uploader, error, draftStatus);
   const saveDraftButton = button('Lưu nháp', () => submit('draft'));
   const publish = el('button', { type: 'submit', class: 'button primary' }, 'Lưu thay đổi');
+  const closeButton = button('×', requestClose, 'icon-button', {
+    'aria-label': 'Đóng trình soạn thảo',
+  });
+  close.replaceWith(closeButton);
+
+  /** Locks keyboard, pointer, and close actions while a stable snapshot is being saved. */
+  function setBusy(value) {
+    busy = value;
+    form.inert = value;
+    form.setAttribute('aria-busy', String(value));
+    closeButton.disabled = value;
+    publish.disabled = value;
+    saveDraftButton.disabled = value;
+    form.classList.toggle('form-busy', value);
+  }
   // Footer actions support cancellation, draft save, preview, and final submit.
   form.append(
     el(
@@ -355,27 +402,32 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
    */
   async function submit(nextStatus) {
     if (busy || !form.reportValidity()) return;
-    const value = { ...read(), status: nextStatus, placeholder_kind: null };
+    setBusy(true);
+    autosave.cancel();
+    await uploader.whenReady();
+    const value = {
+      ...read(),
+      attachments: [...attachments],
+      status: nextStatus,
+      placeholder_kind: null,
+    };
     if (!value.title) {
       error.textContent = 'Vui lòng nhập tiêu đề.';
+      setBusy(false);
       return;
     }
     if (!Number.isInteger(value.sort_order)) {
       error.textContent = 'Vị trí phải là số nguyên.';
+      setBusy(false);
       return;
     }
-    busy = true;
-    close.disabled = true;
-    publish.disabled = true;
-    saveDraftButton.disabled = true;
     error.textContent = '';
-    form.classList.add('form-busy');
     let uploaded;
     try {
       if (!navigator.onLine) throw Error('Bạn đang ngoại tuyến. Nháp vẫn được giữ trên thiết bị.');
       uploaded = await uploadAttachments(
         value.id,
-        attachments,
+        value.attachments,
         (done, total) => (draftStatus.textContent = `Đang tải tệp ${done}/${total}…`),
       );
       await savePost(value, uploaded.attachments);
@@ -392,6 +444,7 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
         ),
       );
       autosave.cancel();
+      await draftWrites;
       dirty = false;
       onDirty(false);
       removeDraft(key);
@@ -407,11 +460,7 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
       error.textContent = errorMessage(e);
       await persist();
     } finally {
-      busy = false;
-      close.disabled = false;
-      publish.disabled = false;
-      saveDraftButton.disabled = false;
-      form.classList.remove('form-busy');
+      setBusy(false);
     }
   }
 
@@ -422,17 +471,24 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
       dirty &&
       !(await ConfirmDialog(
         'Rời trình soạn thảo?',
-        'Thay đổi chưa được lưu lên Supabase. Nháp sẽ được giữ trên thiết bị này để khôi phục.',
+        'Thay đổi chưa được lưu lên Supabase. Chỉ đóng sau khi lưu nháp trên thiết bị thành công.',
       ))
     )
       return;
-    await persist();
+    setBusy(true);
+    autosave.cancel();
+    await uploader.whenReady();
+    if (!(await persist())) {
+      setBusy(false);
+      error.textContent =
+        'Chưa đóng trình soạn thảo vì nháp chưa được lưu. Hãy thử lại hoặc lưu lên Supabase.';
+      title.focus();
+      return;
+    }
     closing = true;
     dialog.close();
   }
-  close.replaceWith(
-    button('×', requestClose, 'icon-button', { 'aria-label': 'Đóng trình soạn thảo' }),
-  );
+  dialog.preserveDraft = persist;
   dialog.addEventListener('cancel', (event) => {
     if (!closing) {
       event.preventDefault();
@@ -443,6 +499,8 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
     'close',
     () => {
       autosave.cancel();
+      // Session expiry must clear private UI immediately; preserve the last edit if possible.
+      if (dirty && !closing) void persist();
       onDirty(false);
       uploader.cleanup();
     },

@@ -32,15 +32,21 @@ export async function attachmentUrl(attachment) {
  * @param {string} postId - The post that owns new Storage paths.
  * @param {Array<object>} attachments - Existing entries and pending local files.
  * @param {Function} onProgress - Receives completed and total item counts.
+ * @param {object} db - The shared client, or an isolated client for offline regression.
  * @returns {Promise<{attachments: object[], paths: string[]}>} Metadata and new paths.
  * @throws {Error} A failed upload may include orphanPaths for later cleanup.
  */
-export async function uploadAttachments(postId, attachments, onProgress = () => {}) {
+export async function uploadAttachments(
+  postId,
+  attachments,
+  onProgress = () => {},
+  db = requireClient(),
+) {
   const uploaded = [],
     paths = [];
   const incoming = attachments.reduce((sum, a) => sum + (a.file?.size || 0), 0);
   if (incoming) {
-    const usage = await result(requireClient().rpc('app_usage'));
+    const usage = await result(db.rpc('app_usage'));
     assertUploadBudget(usage.storage_bytes, incoming);
   }
   try {
@@ -54,12 +60,13 @@ export async function uploadAttachments(postId, attachments, onProgress = () => 
       if (error || !(await verifyFileSignature(a.file)))
         throw Error(error || 'Nội dung tệp không khớp định dạng.');
       const path = `${postId}/${newId()}.${a.file.name.split('.').pop().toLowerCase()}`;
+      // A rejected response may follow a committed upload; retain the attempted path too.
+      paths.push(path);
       await result(
-        requireClient()
-          .storage.from(config.bucket)
+        db.storage
+          .from(config.bucket)
           .upload(path, a.file, { contentType: a.file.type, upsert: false, cacheControl: '60' }),
       );
-      paths.push(path);
       uploaded.push({
         ...a,
         file: undefined,
@@ -71,7 +78,7 @@ export async function uploadAttachments(postId, attachments, onProgress = () => 
     }
     return { attachments: uploaded, paths };
   } catch (error) {
-    await cleanup(paths).catch(() => {});
+    await cleanup(paths, db).catch(() => {});
     error.orphanPaths = paths;
     throw error;
   }
@@ -84,7 +91,8 @@ export async function uploadAttachments(postId, attachments, onProgress = () => 
  */
 function pendingPaths() {
   try {
-    return JSON.parse(localStorage.getItem('khtn8:cleanup') || '[]');
+    const paths = JSON.parse(localStorage.getItem('khtn8:cleanup') || '[]');
+    return Array.isArray(paths) ? paths.filter((path) => typeof path === 'string') : [];
   } catch {
     return [];
   }
@@ -95,25 +103,39 @@ function pendingPaths() {
  * Records candidates locally so interrupted cleanup can be retried.
  *
  * @param {string[]} paths - Potentially orphaned Storage paths.
+ * @param {object} db - The shared client, or an isolated client for offline regression.
  */
-export async function cleanup(paths) {
+export async function cleanup(paths, db = requireClient()) {
   if (!paths.length) return;
   const pending = [...new Set([...pendingPaths(), ...paths])];
   try {
     localStorage.setItem('khtn8:cleanup', JSON.stringify(pending));
   } catch {}
   // A response can be lost after a successful commit. Never remove referenced objects.
-  const referenced = await result(
-    requireClient().from('attachments').select('storage_path').in('storage_path', paths),
-  );
-  const unused = paths.filter((path) => !referenced.some((a) => a.storage_path === path));
-  if (unused.length) await result(requireClient().storage.from(config.bucket).remove(unused));
-  try {
-    localStorage.setItem(
-      'khtn8:cleanup',
-      JSON.stringify(pending.filter((p) => !paths.includes(p))),
-    );
-  } catch {}
+  for (let offset = 0; offset < paths.length; offset += 100) {
+    const batch = paths.slice(offset, offset + 100);
+    const {
+      data: referenced,
+      error,
+      count,
+    } = await db
+      .from('attachments')
+      .select('storage_path', { count: 'exact' })
+      .in('storage_path', batch);
+    if (error) throw error;
+    // Never infer absence from a truncated reference lookup.
+    if (!Array.isArray(referenced) || count !== referenced.length) {
+      throw Error('Không xác minh được tham chiếu tệp. Chưa xóa tệp nào trong nhóm này.');
+    }
+    const unused = batch.filter((path) => !referenced.some((a) => a.storage_path === path));
+    if (unused.length) await result(db.storage.from(config.bucket).remove(unused));
+    try {
+      localStorage.setItem(
+        'khtn8:cleanup',
+        JSON.stringify(pendingPaths().filter((p) => !batch.includes(p))),
+      );
+    } catch {}
+  }
 }
 
 /** Retries cleanup of orphaned paths retained on this device. */

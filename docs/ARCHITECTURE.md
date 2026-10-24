@@ -74,12 +74,13 @@ Các vùng dưới đây được lắp trong `src/main.js` bằng helper `el(..
 | Bootstrap / refresh / hành động | src/main.js | QA_REPORT public + editor fixture |
 | Header/Search/AdminToolbar/Board/Column/Card/Preview | src/components/board.js | public UI + viewport |
 | Gallery/Document/Video | src/components/media.js | ảnh/PDF/YouTube UI |
-| PostEditorDrawer/AttachmentUploader | src/components/post-editor.js | editor fixture + drafts/validation unit |
+| PostEditorDrawer/AttachmentUploader | src/components/post-editor.js | tests/audit.html: draft faults, inert busy form, recovery, save failure; drafts/validation unit |
 | Login / SectionEditor | src/components/auth.js, section-editor.js | login UI; E2E thật BLOCKED |
 | Confirm/Toast/Loading/Empty/Error/Sync | src/components/primitives.js | browser search/modal/error |
 | QuotaStatus | src/components/quota.js | quota unit + SQL RPC |
-| Supabase client/query/Auth/export | src/services/client.js, board.js | anon API + SQL role regression |
-| File upload/sign/cleanup | src/services/storage.js | file validation unit; authenticated upload BLOCKED |
+| Supabase client/query/Auth/export/pagination | src/services/client.js, board.js, pagination.js | tests/reliability.test.js: complete pages/count/failure; anon API + SQL role regression |
+| Session request generation | src/utils/request-gate.js; src/main.js xóa snapshot khi SIGNED_OUT | unit late-response race + tests/audit.html logout/failure |
+| File upload/sign/cleanup | src/services/storage.js | offline uncertain upload + guarded/batched cleanup; upload bytes thật chưa chạy |
 | Text / Blob nháp | src/services/drafts.js | tests/drafts.test.js + browser IndexedDB |
 | URL/file/search/order/retention/quota/ID/DOM | src/utils/ | tests/*.test.js; preview UUID fallback verified |
 | Public config / placeholder fixtures | src/config/public.js, src/data/placeholders.js, public/placeholders/ | public board/media |

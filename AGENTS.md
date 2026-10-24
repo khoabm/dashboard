@@ -51,4 +51,6 @@ Trước khi công bố hoàn tất UI phải có browser QA theo TESTING. Chưa
 
 ## Kết thúc nhiệm vụ
 
+Các lần khắc phục bug từ 2026-10-24 phải có entry trong [BUG_FIX_LOG](docs/BUG_FIX_LOG.md): ID ổn định, điều kiện lỗi/nguyên nhân, file và cách sửa, regression/bằng chứng, baseline/branch và trạng thái. Không ghi secret/PII; không dùng STATUS thay nhật ký này. Ghi rõ mock, backend thật, BLOCKED hoặc NOT RUN.
+
 Cập nhật STATUS (ngắn, thay trạng thái cũ), CODE MAP trong ARCHITECTURE khi thêm/đổi module, DECISIONS chỉ khi có quyết định thực sự, ROADMAP khi phase đổi. Khi yêu cầu đổi, cập nhật SPEC một chỗ và REQUIREMENTS_MAP nếu cần; tránh sao chép spec ra nhiều bản. Ghi kết quả theo mẫu WORKFLOW, kèm branch/SHA, checks và hạn chế. Không lặp toàn bộ roadmap/spec trong câu trả lời.
