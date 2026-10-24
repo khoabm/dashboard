@@ -37,6 +37,50 @@ Môi trường browser không có resize/network độc lập; đã kiểm tra r
 
 Phase UI cần browser QA các luồng/viewport liên quan. Done sản phẩm cần toàn R25 (20 điều kiện), tests R19, bảo mật R10/Storage và backend thật. Nếu thiếu điều kiện, bàn giao rõ trạng thái tạm thời; không gọi hoàn tất. Chỉ chạy lại/bổ sung test khi thay đổi mới, lỗi hoặc nghi ngờ chưa giải quyết cần kiểm chứng, tránh chạy lặp toàn bộ không có lý do.
 
+## CI offline (GitHub Actions)
+
+Workflow `.github/workflows/ci.yml`: `workflow_dispatch`, PR hướng tới `develop/main`, push (gồm merge) vào `develop/main`. Một job trên Ubuntu + Node 24, checkout full history, quyền `contents: read`, không token/secret của Supabase.
+
+| Check CI | Phạm vi | Trạng thái chứng minh |
+| --- | --- | --- |
+| `npm ci` | Cài dependency từ lockfile | Chỉ đánh giá khi workflow chạy |
+| `npm run check` | Syntax JS, scan secret/JWT hardcode, git diff whitespace | Offline |
+| `npm test` | Toàn bộ unit regression dưới `tests/*.test.js` | Offline; chạy tất cả test hiện tại |
+| `npm run build` | Static bundling Vite | Offline, không deploy |
+| `npm run format:check` | Prettier 3.6.2; kiểm tra toàn bộ code JS/CSS/HTML thực thi và tests | Không còn baseline miễn trừ; đầy đủ file trong phạm vi script |
+
+Theo yêu cầu tránh quota: **không đưa** `npm run test:api`, `supabase/tests/access.sql`, test Auth/RLS/Storage live hay browser E2E vào CI. Chúng vẫn thuộc ma trận nghiệm thu thủ công khi được giao riêng; một CI PASS không tương đương backend/browser PASS. `npm run format:check:all` là alias của gate format hiện tại; source code thực thi đã được format trong commit `4058de8`, không có baseline miễn trừ.
+
+GitHub yêu cầu workflow có trên default branch (`main`) trước khi nút **Run workflow**/`workflow_dispatch` hoạt động. Trước đó có thể dùng PR checks; không merge vào main chỉ để kích hoạt manual.
+
 ## Lệnh hiện có
 
 `npm test` chạy unit regression không gọi backend; `npm run check` kiểm tra syntax/credential scan/diff; `npm run build` bundle static. `npm run test:api` gọi API bằng publishable key, không lấy token admin. `supabase/tests/access.sql` chạy owner SQL Editor với fixtures rollback (SET LOCAL role và JWT sub), không phải phiên login thật. Xem QA_REPORT trước khi mở rộng ma trận; không chạy destructive test trên dữ liệu thật.
+
+## Kiểm thử sau audit không hao quota
+
+- Bắt đầu bằng `npm test` (27 tests), `npm run check`, `npm run build`, `npm run format:check`. Service regression nhận client fixture riêng; mọi fetch thật trong test file bị chặn. Không thêm API/SQL live vào CI.
+- Browser mở `/tests/audit.html` trên preview local: dữ liệu synthetic và nhãn QA rõ ràng, transport/CSP chặn kết nối ngoài origin. Có fault text store, IndexedDB, save chờ/lỗi, public refresh lỗi và response quản trị trả muộn. Dùng các nút/fields thật để tái hiện QA-A02–A05 trong QA_REPORT.
+- QA-A10/AUD-009 dùng fixture barrier để không phụ thuộc tốc độ filechooser: nạp quản trị giả lập, sửa bài, bấm **QA: chọn PDF và giữ xác minh**. Đây là File/DataTransfer/change bubbling từ placeholder local, không phải native picker. Bấm close/logout/save trong lúc file chờ; chỉ dùng **QA: hoàn tất xác minh** để cho phép đi tiếp. Kiểm nháp qua nút fixture: tên File, header %PDF-, số lượng/thứ tự; mở lại và restore. Các nhánh close, logout, SIGNED_OUT, IndexedDB fail, RPC conflict/success và Auth race đã PASS trong QA_REPORT.
+- Để kiểm forced SIGNED_OUT, bấm **QA: hết phiên giả lập** khi signature còn chờ: UI riêng phải xóa ngay. Dùng **Trả kết quả xác minh file** ở ngoài editor rồi inspect; không mở lại dirty/confirm của phiên cũ. Hàng đợi phải flush trước cleanup. Native filechooser/OS vẫn cần ca riêng; ghi NOT RUN/BLOCKED nếu không chọn được, không suy PASS picker từ File API. Không mở tests/editor.html hoặc viewport.html cũ để debug lặp vì chúng gọi Supabase thật.
+- Sau khi diff và regression offline ổn mới gom backend tests thành batch có mục tiêu. `supabase/tests/access.sql` chọn admin active hiện có hoặc fixture rollback khi chưa có, dùng board/section riêng, quota so với baseline, ROLLBACK. Không cần seed; không deactivate admin thật hoặc reorder cột nội dung thật. Nếu lỗi SQL: đọc/điều tra trước, không retry nguyên batch liên tục. Nếu lỗi connector: xác minh kết nối rồi chỉ thử lại có giới hạn.
+- Mock PASS chứng minh nhánh xử lý client; SQL role PASS chứng minh assertions dưới SET LOCAL role/sub. Cả hai không thay login JWT, upload/private file thật hoặc full restore. Case thiếu môi trường ghi BLOCKED/NOT RUN. Filechooser timeout trong QA-A08 không được suy thành blob recovery PASS.
+- Mỗi bug mới/bug tái mở phải có trace trong [BUG_FIX_LOG](BUG_FIX_LOG.md); QA_REPORT giữ evidence và STATUS chỉ giữ snapshot ngắn. Không đưa PII, token, file runtime hoặc backup vào log/Git.
+
+### Regression khôi phục và save hết hiệu lực
+
+Dùng tests/audit.html và chỉ dữ liệu synthetic của UID audit-fixture. Nút **Tạo nháp PDF để kiểm tra khôi phục** tạo đúng text + blob cho bài PRIVATE QA, ghi snapshot để inspect so sánh byte-for-byte metadata. Không seed hoặc xóa nháp tài khoản thật.
+
+- QA-A12a/d: mở câu hỏi restore; phát SIGNED_OUT bằng nút QA trong dialog hoặc bấm X → snapshot/file phải giữ nguyên. Chỉ **Bỏ bản nháp** mới cho phép xóa. **Khôi phục** chỉ mở editor đầy đủ sau khi đọc đủ file.
+- QA-A12b: bật **Chỉ lỗi đọc IndexedDB**, restore → form phải inert, có retry/giữ nháp. Tắt fault bằng nút QA trong editor rồi inspect trước retry: textUnchanged=true và files=1. Retry thành công mới cho phép ghi. Fault chỉ-read giữ write khỏe để phát hiện autosave ghi đè; không dùng lỗi toàn store che khuất lỗi này.
+- QA-A12c: **QA: đặt lại bộ đếm dịch vụ**, chọn PDF đang chờ, save → SIGNED_OUT → release file ngoài editor → inspect. usage/upload/save/remove phải đều 0 và File vẫn ở nháp. Các read public sau logout là luồng riêng, được phép. Unit guard còn kiểm cancellation khi quota/upload/reference lookup đã bắt đầu.
+- Request đã gửi trước khi cancel không thể được coi là đã hoàn tác; không thử gây expiry thật hay lặp upload debug trên Supabase để chứng minh điều đó. Native File API/mock không thay native picker, JWT hoặc RLS thật.
+
+### Regression AUD-013/014 — ghi một phần và response muộn
+
+Chạy offline trước; không lặp API/Supabase để debug. Bằng chứng [QA-A14](QA_REPORT.md#partial-draft-late-save-2026-10-24). `npm test` chứa hai test snapshot mới; browser dùng `tests/audit.html` với transport/Auth mock và IndexedDB thật.
+
+- AUD-013: seed PDF, bật **Lỗi lưu nháp văn bản** trước restore để chặn cả autosave, rồi đổi tập file/tiêu đề. Bỏ file cũ, chọn PDF synthetic, release signature; inspect phải giữ title/file/header cũ dù ghi blob vẫn hoạt động. SIGNED_OUT → tắt fault → nạp admin → mở/restore phải đủ file cũ. Khi fault bật trước restore, seedState.textUnchanged phải true. Nếu bật sau một restore khỏe, autosave có thể đã đổi saved_at nên không dùng snapshot seed làm mốc byte-for-byte. Unit so sánh byte-for-byte metadata và bytes qua lỗi ghi một phần, sau retry phải đọc đúng snapshot mới.
+- AUD-014 success: gắn file Storage cũ giả lập, mở editor và discard draft thử nghiệm nếu có; thay file cũ bằng PDF mới, bật **Giữ response lưu bài**, reset counters, save. Inspect xác nhận save=1 rồi SIGNED_OUT; dùng **Trả response lưu bài sau hết phiên** ngoài editor. Queue phải có file cũ + mới, metadata mock chỉ giữ file mới, remove=0. Không coi chờ signature là chờ RPC; đây là hai race khác nhau.
+- AUD-014 rejection: lặp với **Lỗi lưu bài giả lập**; response lỗi sau hết phiên vẫn giữ candidate cũ. Phiên admin mock tiếp theo Dọn tệp thừa phải giữ file vẫn được metadata tham chiếu; removedPaths không có file đó. Chạy một save hợp lệ để kiểm dọn đúng file cũ và xóa toàn bộ version local: drafts=[], draftFileRecords=0.
+- Chỉ thao tác dữ liệu synthetic. inspect chỉ đọc/count record thuộc UID audit-fixture; removedPaths là đường dẫn transport mock, không phải bằng chứng xóa Storage thật. File picker, Safari, JWT/Storage thật và hai context vẫn cần lượt nghiệm thu riêng.

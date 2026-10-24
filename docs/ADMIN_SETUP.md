@@ -2,17 +2,21 @@
 
 Project đã chọn: `dashboard` — `vgciiqtwmxcdqppntgnt`, tổ chức Free. Không cần project mới hoặc backend riêng.
 
-## Hai bước còn cần chủ tài khoản
+## Trạng thái hiện tại và các bước chỉ dùng nếu cần
 
-1. Trong Supabase Dashboard → Authentication → Users, tạo duy nhất tài khoản email/password của bạn bằng luồng của Dashboard. Tự nhập và giữ mật khẩu; không gửi mật khẩu, OTP hoặc token vào chat. Đánh dấu email confirmed nếu Dashboard cung cấp tùy chọn phù hợp. Tắt **Allow new users to sign up** trong cấu hình Authentication; tên/vị trí mục có thể đổi. Không bật anonymous sign-in hoặc đăng ký công khai. Plugin hiện tại không có công cụ cập nhật Auth settings hay tạo Auth user an toàn, nên các bước này chưa được thực hiện.
-2. Copy User UID vừa tạo. Chạy SQL sau trong SQL Editor với UID thật (UID không phải mật khẩu). Nếu muốn trợ lý cấp quyền sau khi bạn tạo user, chỉ cần báo đã tạo và chỉ định tài khoản; không cần đưa credential.
+SQL ngày 2026-10-24 đã xác nhận **một admin active có email confirmed**; không tạo thêm user hoặc INSERT `admin_profiles` vào project hiện tại. Chưa có bằng chứng đã tắt server signup/anonymous sign-ins. Chủ tài khoản cần kiểm tra hai cài đặt này trong Supabase Dashboard → Authentication; không gửi mật khẩu, OTP hoặc token vào chat. Giao diện website không có chức năng signup không đồng nghĩa signup phía server đã tắt.
+
+Các bước dưới đây chỉ áp dụng cho **project mới chưa có admin** hoặc khi tái thiết lập theo quy trình được phê duyệt:
+
+1. Trong Supabase Dashboard → Authentication → Users, tạo duy nhất tài khoản email/password bằng luồng của Dashboard, xác nhận email nếu cần. Tắt **Allow new users to sign up**, giữ anonymous sign-in tắt. Tên/vị trí mục có thể thay đổi.
+2. Dùng User UID của tài khoản đã tạo để cấp quyền trong SQL Editor, chỉ khi bảng chưa có active admin. Không công khai UID hoặc credential.
 
 ```sql
 insert into public.admin_profiles(user_id, role, active)
 values ('THAY-BANG-USER-UID'::uuid, 'admin', true);
 ```
 
-Unique index chỉ cho phép một admin active; client không có quyền tự thêm/sửa profile. Không ghi câu lệnh chứa UID thật vào repo nếu không cần thiết. Không chạy câu lệnh mẫu khi chưa thay UID.
+Unique index chỉ cho phép một admin active; client không có quyền tự thêm/sửa profile. Không ghi UID thật vào repo. **Không chạy câu lệnh mẫu trên project hiện tại vì đã có active admin.**
 
 ## Chạy và cập nhật nội dung
 
@@ -26,4 +30,4 @@ Nút ↑/↓ thay đổi thứ tự nguyên tử và kiểm tra phiên bản. Ch
 
 ## Gate trước phát hành
 
-Sau khi có tài khoản thật: kiểm tra login/logout; draft/publish/hide/delete/restore; ảnh/PDF upload và mở ở client ẩn danh; sắp xếp/chuyển cột; non-admin denial qua JWT thật; hai browser context độc lập nhận published qua refresh/active. Cần kiểm tra tắt signup qua cấu hình/Auth API. Test SQL rollback không thay thế các test end-to-end này.
+Admin hiện đã tồn tại; bước chưa nghiệm thu là kiểm tra login/logout thật; draft/publish/hide/delete/restore; ảnh/PDF upload và mở ở client ẩn danh; sắp xếp/chuyển cột; non-admin denial qua JWT thật; hai browser context độc lập nhận published qua refresh/active. Cần kiểm tra tắt signup qua cấu hình/Auth API. Test SQL rollback không thay thế các test end-to-end này.

@@ -1,6 +1,6 @@
 # Kiến trúc và cách code
 
-Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dưới đây phản ánh implementation trên develop; nghiệm thu runtime xem STATUS/QA_REPORT.
+Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dưới đây áp dụng cho implementation của branch đang đọc (nhánh audit xuất phát từ refactor, chưa merge vào `develop`); nghiệm thu runtime xem STATUS/QA_REPORT.
 
 ## Ranh giới
 
@@ -32,6 +32,8 @@ Các thư mục code trong bảng đã có implementation. Không buộc một f
 
 ## Cách viết
 
+Khi tạo/chỉnh sửa source, tuân theo [CODE_STYLE](CODE_STYLE.md) về format JS/CSS/HTML/JSON, và [COMMENTING_GUIDELINES](COMMENTING_GUIDELINES.md) về comment tiếng Anh cho file/function/component/state. Source thực thi đã được format bằng Prettier ở branch refactor và comment convention đã được áp dụng ở các module liên quan. Giữ format-only/comment-only tách biệt với sửa hành vi.
+
 - ES Modules, tên rõ nghĩa, một nguồn xử lý cho một quy tắc; không global state tùy tiện, không abstraction trước nhu cầu. Ghi chú giải thích lý do, tránh comment lặp lại code.
 
 - UI gọi service qua hàm có đầu vào/đầu ra rõ. Chỉ báo lưu thành công sau khi backend xác nhận; giữ editor/nháp khi lỗi, không xóa nội dung trước khi lưu xong.
@@ -48,6 +50,23 @@ Các thư mục code trong bảng đã có implementation. Không buộc một f
 
 - Thư viện tùy chọn theo R15; chọn tối thiểu, kiểm tra docs/license/version, pin version và lockfile nếu dùng npm. CDN không dùng latest; không tự đổi sang framework khi Sites đề xuất starter server.
 
+## Bản đồ DOM ở giao diện board
+
+Các vùng dưới đây được lắp trong `src/main.js` bằng helper `el(...)`; component trong `src/components/` cung cấp nội dung cho từng vùng. Tên CSS class mô tả cách style, còn vai trò và vòng đời render được ghi rõ tại code dựng UI.
+
+| Vùng DOM | Được tạo/cập nhật ở đâu | Vai trò |
+| --- | --- | --- |
+| `#app` | `index.html` → `src/main.js` | Root chứa header, hero giới thiệu và `board-shell` |
+| `.app-header` | `AppHeader` | Logo/home, SearchBar, refresh và login/admin entry |
+| `.hero` / `.hero-copy` | `src/main.js` | Tiêu đề, mô tả, số chủ đề/bài công khai; ảnh orbit trang trí |
+| `.board-shell` / `shell` | `src/main.js` | Container căn giữa, bao adminRegion → controls → boardRegion → footer |
+| `adminRegion` (div không class) | `render()` | Trống với khách; admin có toolbar, dọn tệp và trạng thái quota |
+| `.board-controls` / `controls` | `renderControls()` | Tab desktop, bộ chọn chủ đề mobile, nhãn bảng và thời điểm đồng bộ |
+| `boardRegion` (div không class) | `renderBoard()`, `refresh()` | Vùng nội dung được thay bằng `BoardContainer`, loading hoặc error |
+| `#board` / `.section-column` / `.post-card` | `BoardContainer`, `SectionColumn`, `PostCard` | Bảng chính → cột chủ đề → thẻ học liệu và action quản trị tùy quyền |
+| `dialog` / `.dialog-content` | `openDialog()` và các editor/preview | Tiêu đề/đóng dialog, vùng form hoặc preview được caller thêm vào |
+| `#toast` | `index.html` → `ToastNotification` | Live region thông báo độc lập với `#board` |
+
 ## Code map thực tế
 
 | Module thực tế | Đường dẫn / trách nhiệm | Test |
@@ -55,15 +74,24 @@ Các thư mục code trong bảng đã có implementation. Không buộc một f
 | Bootstrap / refresh / hành động | src/main.js | QA_REPORT public + editor fixture |
 | Header/Search/AdminToolbar/Board/Column/Card/Preview | src/components/board.js | public UI + viewport |
 | Gallery/Document/Video | src/components/media.js | ảnh/PDF/YouTube UI |
-| PostEditorDrawer/AttachmentUploader | src/components/post-editor.js | editor fixture + drafts/validation unit |
+| PostEditorDrawer/AttachmentUploader | src/components/post-editor.js | tests/audit.html: draft faults, inert busy form, pending-file barrier/close/logout/expired event/restore, save failure; drafts/validation unit |
 | Login / SectionEditor | src/components/auth.js, section-editor.js | login UI; E2E thật BLOCKED |
-| Confirm/Toast/Loading/Empty/Error/Sync | src/components/primitives.js | browser search/modal/error |
+| DraftRecovery/Confirm/Toast/Loading/Empty/Error/Sync | src/components/primitives.js | browser search/modal/error |
 | QuotaStatus | src/components/quota.js | quota unit + SQL RPC |
-| Supabase client/query/Auth/export | src/services/client.js, board.js | anon API + SQL role regression |
-| File upload/sign/cleanup | src/services/storage.js | file validation unit; authenticated upload BLOCKED |
-| Text / Blob nháp | src/services/drafts.js | tests/drafts.test.js + browser IndexedDB |
+| Supabase client/query/Auth/export/pagination | src/services/client.js, board.js, pagination.js | tests/reliability.test.js: complete pages/count/failure; anon API + SQL role regression |
+| Session request generation | src/utils/request-gate.js; src/main.js xóa snapshot khi SIGNED_OUT | unit late-response race + tests/audit.html logout/failure |
+| File upload/sign/cleanup | src/services/storage.js | offline uncertain upload + guarded/batched cleanup; upload bytes thật chưa chạy |
+| Text / Blob nháp / flush queue | src/services/drafts.js: createDraftWriter chờ file, ghi snapshot blob bất biến rồi publish files_key trong text; reuse blob cho cùng tập ID file; đọc legacy, recover đủ order/blob hoặc báo lỗi; serialize write/fence cleanup, discard/confirmed save xóa các version cùng draft | tests/drafts.test.js (pending/write failure/serial) + QA-A10 File API/IndexedDB |
 | URL/file/search/order/retention/quota/ID/DOM | src/utils/ | tests/*.test.js; preview UUID fallback verified |
 | Public config / placeholder fixtures | src/config/public.js, src/data/placeholders.js, public/placeholders/ | public board/media |
 | Schema/RLS/atomic RPC | supabase/migrations/, seed.sql | supabase/tests/access.sql |
 
 Vite chỉ bundle SDK và cấu hình public, output static dist. Không có server app hoặc framework SPA. Session Supabase ở memory (không persistence), còn text draft localStorage và File draft IndexedDB có key theo UID/post. Private Storage dùng signed URL 60 giây; thumbnail được ký theo batch metadata, không fetch tất cả file bytes. Refresh sau ghi/active/manual, không đăng ký Realtime. Chi tiết quyết định ở SPEC/DECISIONS, không nhân bản cấu hình ở nhiều file.
+
+Editor phân biệt file selection/result với input khi busy: markDirty vẫn nhận kết quả đã xếp hàng, nhưng không cập nhật dirty toàn cục sau khi dialog đóng. Close và preserveDraft chờ signature trước flush; logout flush trước confirm, hủy luồng cũ nếu Auth generation đổi. SIGNED_OUT xóa UI ngay, để local flush hoàn tất trước uploader cleanup; không chờ network hoặc giữ UI quản trị mở.
+
+DraftRecoveryDialog tách restore/discard/cancel; dismissal không cho phép xóa. Editor khóa mọi ghi khi recovery chưa hoàn tất, giữ model cũ cho đến khi đọc đủ blobs và cho phép retry. main truyền owner/Auth generation; canContinue kiểm cả dialog và generation qua các await của submit. Storage nhận isCurrent để dừng bước quota/upload/delete kế tiếp; queueCleanup chỉ ghi path cục bộ khi thao tác đã hết hiệu lực, không cam kết rollback request đã gửi.
+
+Nháp publish bằng localStorage sau khi IndexedDB transaction hoàn tất, không ghi đè blob của snapshot đã commit. Nếu text fail thì metadata cũ tiếp tục trỏ tới blob cũ; snapshot chưa publish vẫn giữ đến explicit discard/confirmed save. Storage snapshot key bị giới hạn cùng namespace UID/post. Các version thay tập file có thể tăng dung lượng cục bộ; chỉ sửa text/retry không sao chép blob lại. Đây chưa phải bằng chứng đồng bộ hai context độc lập.
+
+Editor tính candidate file cũ bị thay trước save RPC, queue sau response trước mọi cancellation exit; response lỗi/không rõ commit cũng giữ candidate để phiên admin sau kiểm tham chiếu. SIGNED_OUT không bắt đầu remote cleanup. Chi tiết điều tra AUD-013/014 trong BUG_FIX_LOG, không thay điều kiện RLS/JWT.

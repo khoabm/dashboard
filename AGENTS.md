@@ -17,6 +17,7 @@
 | Database / Auth / upload | DATABASE, SECURITY; SPEC R08–13, R21; ZERO_COST |
 | Sites / preview / hosting | WORKFLOW, DEPLOYMENT; TESTING; ZERO_COST |
 | Review / bug / refactor | File thay đổi + tiêu chí SPEC liên quan + TESTING; không mở rộng tính năng |
+| Viết/sửa code, format/comment-only | CODE_STYLE + COMMENTING_GUIDELINES + file đích + ARCHITECTURE; giữ diff đúng phạm vi |
 
 Các đường dẫn viết tắt trên thuộc `docs/`. Bản tóm tắt không thay thế tiêu chí chi tiết: đọc đúng Rxx trước khi triển khai/nghiệm thu phần đó.
 
@@ -44,10 +45,12 @@ Yêu cầu mới của người dùng > SPEC + DECISIONS đã chốt > hướng 
 
 ## Cách code và kiểm chứng
 
-Theo ARCHITECTURE. Thay đổi tập trung; không tạo abstraction, dependency, mock backend thành công hoặc test chỉ lặp implementation. Kiểm thử có ý nghĩa cho luồng bị thay đổi; regression bắt buộc khi sửa logic lưu/xuất bản, phân quyền, upload, thứ tự, chống mất nháp. Docs-only: kiểm tra liên kết, đủ yêu cầu, đúng trạng thái; không chạy browser QA vô nghĩa.
+Theo ARCHITECTURE, [CODE_STYLE](docs/CODE_STYLE.md) và [COMMENTING_GUIDELINES](docs/COMMENTING_GUIDELINES.md) khi viết/sửa code. Prettier đã có config và CI kiểm tra toàn bộ code thực thi (không còn baseline miễn trừ); ESLint chưa cài. Chỉ chạy format toàn repo khi nhiệm vụ cho phép; không trộn format-only với sửa logic. Thay đổi tập trung; không tạo abstraction, dependency, mock backend thành công hoặc test chỉ lặp implementation. Kiểm thử có ý nghĩa cho luồng bị thay đổi; regression bắt buộc khi sửa logic lưu/xuất bản, phân quyền, upload, thứ tự, chống mất nháp. Docs-only: kiểm tra liên kết, đủ yêu cầu, đúng trạng thái; không chạy browser QA vô nghĩa.
 
 Trước khi công bố hoàn tất UI phải có browser QA theo TESTING. Chưa chạy = NOT RUN; bị chặn = BLOCKED. Không suy rộng Chrome desktop thành Safari/iPhone hoặc mobile thực. Không báo backend đã lưu, RLS đã an toàn hoặc deploy thành công khi chưa có bằng chứng.
 
 ## Kết thúc nhiệm vụ
+
+Các lần khắc phục bug từ 2026-10-24 phải có entry trong [BUG_FIX_LOG](docs/BUG_FIX_LOG.md): ID ổn định, điều kiện lỗi/nguyên nhân, file và cách sửa, regression/bằng chứng, baseline/branch và trạng thái. Không ghi secret/PII; không dùng STATUS thay nhật ký này. Ghi rõ mock, backend thật, BLOCKED hoặc NOT RUN.
 
 Cập nhật STATUS (ngắn, thay trạng thái cũ), CODE MAP trong ARCHITECTURE khi thêm/đổi module, DECISIONS chỉ khi có quyết định thực sự, ROADMAP khi phase đổi. Khi yêu cầu đổi, cập nhật SPEC một chỗ và REQUIREMENTS_MAP nếu cần; tránh sao chép spec ra nhiều bản. Ghi kết quả theo mẫu WORKFLOW, kèm branch/SHA, checks và hạn chế. Không lặp toàn bộ roadmap/spec trong câu trả lời.

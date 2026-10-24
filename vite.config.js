@@ -1,2 +1,7 @@
-import {defineConfig} from 'vite';
-export default defineConfig({server:{host:'0.0.0.0',port:4173,strictPort:true,allowedHosts:['terminal.local']},build:{target:'es2022'}});
+/** Configures the local Vite server and static ES2022 production output. */
+
+import { defineConfig } from 'vite';
+export default defineConfig({
+  server: { host: '0.0.0.0', port: 4173, strictPort: true, allowedHosts: ['terminal.local'] },
+  build: { target: 'es2022' },
+});

@@ -2,7 +2,7 @@
 
 Bảng học liệu Khoa học tự nhiên lớp 8: HTML/CSS/Vanilla JavaScript ES Modules, Supabase Free, một admin được chỉ định, khách ẩn danh chỉ đọc published. Source chính: `khoabm/dashboard`, nhánh `develop`; chưa merge main hoặc deploy công khai.
 
-Có giao diện 3 cột/6 bài placeholder từ database thật, tìm kiếm, ảnh/PDF/YouTube/link và source CMS. **Chưa nghiệm thu toàn sản phẩm:** cần tạo Auth admin, tắt signup, chạy E2E admin/upload/sync và backup/restore. Xem [STATUS](docs/STATUS.md), [QA_REPORT](docs/QA_REPORT.md), [ADMIN_SETUP](docs/ADMIN_SETUP.md).
+Có giao diện 3 cột/6 bài placeholder từ database thật, tìm kiếm, ảnh/PDF/YouTube/link và source CMS. **Chưa nghiệm thu toàn sản phẩm:** SQL 2026-10-24 đã xác nhận có một admin active/email confirmed; không tạo thêm admin. Cần xác minh cài đặt server signup/anonymous, chạy E2E Auth/admin/upload/sync và backup/restore trước khi công bố hoàn tất. Xem [STATUS](docs/STATUS.md), [QA_REPORT](docs/QA_REPORT.md), [ADMIN_SETUP](docs/ADMIN_SETUP.md).
 
 ## Chạy độc lập
 
@@ -24,11 +24,17 @@ npm run build
 
 `test:api` gọi project Supabase đã chọn bằng publishable key, kiểm tra public read và denial; không phải test login thật. `build` xuất `dist/` để phục vụ bằng bất kỳ static HTTPS host phù hợp; không cần Node backend khi vận hành. Vite dùng để bundle SDK, khóa dependency/lockfile và tách cấu hình; không dùng React/Next/Vue. Không có cấu hình deployment của nhà cung cấp cũ.
 
+## CI và format code
+
+`npm run format:check` kiểm tra Prettier trên **toàn bộ JS/CSS/HTML thực thi và test scripts** (không còn baseline miễn trừ); `npm run format:check:all` là alias tương thích, `npm run format` chỉ dùng khi chủ động làm task format-only. Công cụ dùng Prettier 3.6.2 cố định qua `npx` (cần truy cập npm registry), không tự đổi logic.
+
+GitHub Actions `.github/workflows/ci.yml` chạy khi PR/merge vào `develop` hoặc `main`, và hỗ trợ `workflow_dispatch` khi workflow có trên default branch `main`. CI chỉ `npm ci`, syntax/secret scan, unit tests, static build và format check; **không gọi** `npm run test:api` hay Supabase. Xem [CODE_STYLE](docs/CODE_STYLE.md) và [TESTING](docs/TESTING.md).
+
 ## Backend
 
 Bốn migrations trong `supabase/migrations/` đã apply vào project `dashboard` (`vgciiqtwmxcdqppntgnt`). **Không apply lại vào project hiện tại.** Project mới an toàn: dùng migration theo thứ tự, rồi `supabase/seed.sql` nếu cần dữ liệu mẫu. Seed chạy lại không ghi đè bài đã chỉnh hoặc tạo trùng cùng ID. [DATABASE](docs/DATABASE.md) mô tả quyền, lịch sử và RPC.
 
-Tạo tài khoản/cấp quyền theo [ADMIN_SETUP](docs/ADMIN_SETUP.md); không có signup trên website. Client session ở memory, refresh cần đăng nhập lại. Nháp localStorage/IndexedDB là bản cục bộ, không thay Supabase và không tự xuất bản. [BACKUP](docs/BACKUP.md) phân biệt DB, metadata export và bytes Storage.
+Admin đang tồn tại; dùng [ADMIN_SETUP](docs/ADMIN_SETUP.md) để đối chiếu quyền và cài đặt server, chỉ tạo tài khoản nếu thực sự thiếu. Giao diện không cung cấp signup; trạng thái tắt signup phía server chưa được xác minh. Client session ở memory, refresh cần đăng nhập lại. Nháp localStorage/IndexedDB là bản cục bộ, không thay Supabase và không tự xuất bản. [BACKUP](docs/BACKUP.md) phân biệt DB, metadata export và bytes Storage.
 
 ## Bắt đầu một phiên ChatGPT Work
 

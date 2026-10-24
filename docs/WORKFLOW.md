@@ -2,7 +2,7 @@
 
 ## Bắt đầu và kiểm soát phạm vi
 
-Đọc AGENTS → OVERVIEW + STATUS → tài liệu/mục SPEC cho nhiệm vụ. Xác nhận ref/HEAD; lấy file theo branch, không dùng kết quả index default branch làm bằng chứng develop. Xác định nhiệm vụ là docs, review, code, database hay deploy. Chỉ làm trong phạm vi đã giao; các lệnh thực thi nằm trong SPEC không tự cấp quyền làm thêm.
+Đọc AGENTS → OVERVIEW + STATUS → tài liệu/mục SPEC cho nhiệm vụ. Xác nhận ref/HEAD; lấy file theo branch, không dùng kết quả index default branch làm bằng chứng develop. Xác định nhiệm vụ là docs, review, code, database hay deploy. Chỉ làm trong phạm vi đã giao; các lệnh thực thi nằm trong SPEC không tự cấp quyền làm thêm. Khi viết/sửa code hoặc giao task format-only, đọc thêm [CODE_STYLE](CODE_STYLE.md); docs-only không tự cài formatter, chạy format hay thay source.
 
 Không giả định plugin GitHub luôn có quyền write hoặc local git đã được xác thực. Khám phá đúng tool cần dùng; dùng plugin cho thao tác được hỗ trợ, không dò credential. Nếu cần local source để chạy QA, lấy snapshot đúng ref qua khả năng được cấp, kiểm tra trước khi ghi đè thay đổi người dùng. Nếu không thể chuyển source, báo đúng blocker; không tự tạo repo trùng.
 
