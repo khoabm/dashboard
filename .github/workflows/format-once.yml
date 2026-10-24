@@ -1,0 +1,51 @@
+name: One-time Prettier formatting
+
+on:
+  push:
+    branches:
+      - refactor/code-formatting-guidelines
+    paths:
+      - .github/workflows/format-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    name: Format executable code and verify offline
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Confirm Prettier preserves parsed structure
+        run: npx --yes prettier@3.6.2 --debug-check "src/**/*.{js,mjs,css,html,json}" "tests/**/*.{js,mjs,html,json}" "scripts/**/*.{js,mjs,json}" "index.html" "vite.config.js"
+      - name: Apply only Prettier to executable code
+        run: npx --yes prettier@3.6.2 --write "src/**/*.{js,mjs,css,html,json}" "tests/**/*.{js,mjs,html,json}" "scripts/**/*.{js,mjs,json}" "index.html" "vite.config.js"
+      - name: Verify formatted files
+        run: npx --yes prettier@3.6.2 --check "src/**/*.{js,mjs,css,html,json}" "tests/**/*.{js,mjs,html,json}" "scripts/**/*.{js,mjs,json}" "index.html" "vite.config.js"
+      - name: Syntax and credential checks
+        run: npm run check
+      - name: Offline unit tests
+        run: npm test
+      - name: Production build
+        run: npm run build
+      - name: Review scope and commit formatting
+        run: |
+          git add -- src tests scripts index.html vite.config.js
+          git diff --cached --check
+          git diff --cached --name-only
+          if git diff --cached --quiet; then
+            echo "No formatting changes required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "style: format executable files with Prettier"
+          git push origin HEAD:refs/heads/refactor/code-formatting-guidelines
