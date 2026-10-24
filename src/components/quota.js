@@ -3,6 +3,7 @@
 import { el } from '../utils/dom.js';
 import { requireClient, result } from '../services/client.js';
 import { quotaLevel, STORAGE_LIMIT } from '../utils/quota.js';
+import { PulseIndicator } from './pending.js';
 
 /**
  * Loads quota estimates and updates the attached status element.
@@ -11,6 +12,7 @@ import { quotaLevel, STORAGE_LIMIT } from '../utils/quota.js';
  * @param {HTMLElement} root - The status container to update.
  */
 export async function QuotaStatus(root) {
+  root.replaceChildren(PulseIndicator('Đang kiểm tra dung lượng…'));
   try {
     const usage = await result(requireClient().rpc('app_usage'));
     if (!root.isConnected) return;

@@ -228,7 +228,7 @@ Nếu tích hợp Supabase khả dụng:
 
 - Không tạo dịch vụ hoặc add-on trả phí.
 
-Không xuất hiện database password, service_role key, refresh token hoặc bí mật khác trong output, repository hay frontend.
+Không hardcode hoặc đưa database password, service_role key, refresh token hay bí mật khác vào output/repository/source frontend. Phiên Auth runtime do SDK quản lý theo R08.1; không xuất token ra log, nháp hoặc bản sao lưu source.
 
 ### ChatGPT Work và Sites
 
@@ -491,6 +491,12 @@ Chỉ một tài khoản được chỉ định có quyền biên tập.
 - Các thao tác ghi bắt buộc được RLS kiểm soát.
 
 - Người dùng chưa đăng nhập chỉ được xem dữ liệu công khai.
+
+- F5/reload trong cùng tab khôi phục phiên bằng Supabase SDK, sau đó xác minh user bằng Auth server và kiểm tra `admin_profiles` có `active=true`, `role=admin` trước khi bật giao diện quản trị. Không tin user/role trong dữ liệu lưu cục bộ. Chưa xác minh hoặc xác minh lỗi thì không mở quyền quản trị; lỗi có hướng thử lại, không tải bảng bằng JWT chưa xác minh.
+
+- Phiên SDK được lưu riêng trong `sessionStorage`, với key/kênh Auth riêng cho mỗi tab độc lập; không lưu token vào `localStorage`, nháp hay IndexedDB. Giữ auto-refresh, tắt phát hiện phiên từ URL. Khi trình duyệt không cho đọc/ghi sessionStorage lúc khởi tạo, dùng phiên memory và thông báo cần đăng nhập lại sau reload. Không cam kết đăng nhập qua lần đóng/mở browser hoặc tự chia sẻ phiên giữa tab.
+
+- Đăng xuất/hết phiên xóa UI riêng ngay và vô hiệu hóa kết quả Auth/board đang chờ. SDK xóa phiên đã lưu khi đăng xuất thành công. `sessionStorage` vẫn đọc được bởi JavaScript cùng origin; phải giữ chống XSS/CSP và RLS/Storage policies. Browser restore/duplicate tab có thể giữ/sao chép page session, vì vậy admin phải đăng xuất trên thiết bị dùng chung, không dùng đóng tab làm cơ chế thu hồi phiên.
 
 ### 8.2. Quản lý cột
 
@@ -810,7 +816,7 @@ Dùng migration SQL có thể version control.
 
 7. Chỉ đưa public anon/publishable key vào client.
 
-8. Không lưu thông tin nhạy cảm trong localStorage.
+8. Không lưu thông tin nhạy cảm trong localStorage. Riêng phiên SDK runtime sử dụng sessionStorage theo R08.1; không coi storage phía client là căn cứ cấp quyền.
 
 9. Storage upload/delete chỉ được admin thực hiện.
 
@@ -896,6 +902,8 @@ Sử dụng localStorage cho:
 
 Sử dụng IndexedDB khi cần lưu Blob/File tạm.
 
+Vòng đời và phạm vi lưu phiên Auth được quy định riêng tại R08.1; không trộn phiên vào các kho nháp/tùy chọn trên.
+
 Không lưu:
 
 - Tệp lớn dưới dạng Base64 trong localStorage.
@@ -975,6 +983,8 @@ Yêu cầu:
 - Độ tương phản dễ đọc.
 
 - Loading, success, error rõ ràng.
+
+- Thao tác chờ backend hoặc tải tài nguyên có pulse kèm mô tả công việc; tắt khi hoàn tất/lỗi. Với reduced motion, giữ nhãn trạng thái và tắt hiệu ứng động. Khóa thao tác xung đột/gửi lặp trong lúc đang chờ.
 
 - Có trạng thái disabled khi thao tác chưa hợp lệ.
 

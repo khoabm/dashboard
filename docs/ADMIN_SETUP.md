@@ -20,7 +20,9 @@ Unique index chỉ cho phép một admin active; client không có quyền tự 
 
 ## Chạy và cập nhật nội dung
 
-Theo README để chạy local. Mở “Đăng nhập quản trị” → email/password. Phiên ở bộ nhớ; refresh trang cần đăng nhập lại. Mọi thao tác ghi phải qua RLS; quyền owner ChatGPT/Sites không thay quyền Supabase admin.
+Theo README để chạy local. Mở “Đăng nhập quản trị” → email/password. F5 trong cùng tab giữ phiên và kiểm tra lại danh tính/quyền trước khi hiện quản trị (SPEC R08.1, quyết định D09). Nếu xác minh lỗi, dùng “Thử lại” sau khi có mạng; UI quản trị vẫn khóa. Nếu browser chặn sessionStorage, form báo cần đăng nhập lại sau reload. Tab độc lập cần đăng nhập riêng.
+
+Đăng xuất khi dùng xong, nhất là trên máy chung; không chỉ đóng tab vì browser có thể khôi phục hoặc sao chép phiên khi restore/duplicate tab. Không xem, sao chép hay gửi token qua chat. Nháp cục bộ có thể vẫn còn sau đăng xuất theo cơ chế chống mất nháp; không coi đăng xuất là xóa dữ liệu thiết bị. Mọi thao tác ghi phải qua RLS; quyền owner ChatGPT/Sites không thay quyền Supabase admin.
 
 Toolbar: tạo chủ đề, tạo bài, xem thùng rác, xuất metadata, dọn tệp thừa được ghi nhận. Trong bài: chỉnh tiêu đề/nội dung, chọn cột, trạng thái, vị trí, nhiều ảnh/tài liệu hoặc liên kết; chọn thumbnail, xem trước; “Lưu nháp” lưu lên Supabase với trạng thái draft, còn autosave chỉ lưu trên thiết bị. “Lưu thay đổi” theo trạng thái đang chọn.
 
