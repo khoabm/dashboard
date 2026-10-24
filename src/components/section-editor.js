@@ -3,6 +3,8 @@
 import { el, button, field, errorMessage } from '../utils/dom.js';
 import { saveSection, deleteSection } from '../services/board.js';
 import { openDialog, ConfirmDialog, ToastNotification } from './primitives.js';
+import { PulseIndicator, setPendingMessage } from './pending.js';
+import { createPendingTask } from '../utils/pending-task.js';
 
 /**
  * Opens a dialog to create, update, or delete a section.
@@ -13,7 +15,10 @@ import { openDialog, ConfirmDialog, ToastNotification } from './primitives.js';
  * @param {Function} onSaved - Refreshes the board after a successful change.
  */
 export function SectionEditor(section, data, onSaved) {
-  const { dialog, content } = openDialog(section ? 'Sửa chủ đề' : 'Thêm chủ đề');
+  const { dialog, content, close } = openDialog(section ? 'Sửa chủ đề' : 'Thêm chủ đề');
+  const progress = PulseIndicator();
+  progress.classList.add('dialog-progress');
+  dialog.querySelector('.dialog-heading').append(progress);
   const title = el('input', { required: true, maxlength: 100, value: section?.title || '' });
   const description = el('textarea', { maxlength: 1000, rows: 3 }, section?.description || '');
   const color = el('input', { type: 'color', value: section?.color || '#dcece5' });
@@ -40,33 +45,45 @@ export function SectionEditor(section, data, onSaved) {
       submit,
     ),
   );
+  const saving = createPendingTask((message) => {
+    setPendingMessage(progress, message);
+    form.inert = !!message;
+    form.setAttribute('aria-busy', String(!!message));
+    form.classList.toggle('form-busy', !!message);
+    submit.disabled = close.disabled = !!message;
+  });
+  dialog.addEventListener('cancel', (event) => {
+    if (saving.pending()) event.preventDefault();
+  });
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    submit.disabled = true;
-    try {
-      if (!title.value.trim()) throw Error('Vui lòng nhập tên chủ đề.');
-      await saveSection({
-        ...section,
-        board_id: data.board.id,
-        title: title.value.trim(),
-        description: description.value,
-        color: color.value,
-        sort_order: Number(order.value),
-      });
-      dialog.close();
-      await onSaved();
-      ToastNotification('Đã lưu chủ đề.');
-    } catch (e) {
-      error.textContent = errorMessage(e);
-    } finally {
-      submit.disabled = false;
-    }
+    await saving.run('Đang lưu chủ đề…', async () => {
+      error.textContent = '';
+      try {
+        if (!title.value.trim()) throw Error('Vui lòng nhập tên chủ đề.');
+        await saveSection({
+          ...section,
+          board_id: data.board.id,
+          title: title.value.trim(),
+          description: description.value,
+          color: color.value,
+          sort_order: Number(order.value),
+        });
+        if (!dialog.open) return;
+        dialog.close();
+        await onSaved();
+        ToastNotification('Đã lưu chủ đề.');
+      } catch (e) {
+        if (dialog.open) error.textContent = errorMessage(e);
+      }
+    });
   });
   if (section)
     form.append(
       button(
         'Xóa chủ đề',
         async () => {
+          if (saving.pending()) return;
           const count = data.posts.filter((p) => p.section_id === section.id).length;
           if (count) {
             error.textContent = `Chủ đề còn ${count} bài (gồm nháp/thùng rác). Hãy chuyển các bài sang chủ đề khác trước.`;
@@ -79,13 +96,17 @@ export function SectionEditor(section, data, onSaved) {
             ))
           )
             return;
-          try {
-            await deleteSection(section.id);
-            dialog.close();
-            await onSaved();
-          } catch (e) {
-            error.textContent = errorMessage(e);
-          }
+          if (!dialog.open) return;
+          await saving.run('Đang xóa chủ đề…', async () => {
+            try {
+              await deleteSection(section.id);
+              if (!dialog.open) return;
+              dialog.close();
+              await onSaved();
+            } catch (e) {
+              if (dialog.open) error.textContent = errorMessage(e);
+            }
+          });
         },
         'button danger subtle',
       ),

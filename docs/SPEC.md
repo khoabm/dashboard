@@ -976,6 +976,8 @@ Yêu cầu:
 
 - Loading, success, error rõ ràng.
 
+- Thao tác chờ backend hoặc tải tài nguyên có pulse kèm mô tả công việc; tắt khi hoàn tất/lỗi. Với reduced motion, giữ nhãn trạng thái và tắt hiệu ứng động. Khóa thao tác xung đột/gửi lặp trong lúc đang chờ.
+
 - Có trạng thái disabled khi thao tác chưa hợp lệ.
 
 - Hỗ trợ reduced motion cơ bản.

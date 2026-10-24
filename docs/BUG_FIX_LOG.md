@@ -50,3 +50,13 @@ Baseline được review: `e98da62bdf442d983f3dd7692588f3b9c1848606`; cả hai f
 Bằng chứng [QA-A14](QA_REPORT.md#partial-draft-late-save-2026-10-24): 27 unit offline PASS, check/build/format PASS và browser Chrome dùng File/IndexedDB thật với Auth/transport mock. Không request Supabase thật, không đổi migration, server signup/anonymous, không merge/deploy.
 
 Snapshot cũ và version chưa publish được giữ cho đến khi người dùng bỏ nháp hoặc save remote được xác nhận trong thao tác còn hiệu lực; thay tập file nhiều lần có thể tăng dung lượng IndexedDB cục bộ. Đây là đánh đổi giữ dữ liệu khi ghi một phần; text-only/retry không sao chép file lại. Không bảo đảm dữ liệu khi browser xóa/evict storage, đóng máy giữa ghi, hoặc localStorage không nhận được cleanup queue. Không tự dọn remote bằng phiên đã hết hạn.
+
+## 2026-10-24 — hoàn thiện phản hồi thao tác (AUD-015)
+
+Branch `enhancement/acceptance-refinements`, tạo từ `develop` tại `ad8c78c9a8e285d96465753ff65942b78b98ccba`. Tên branch dành cho các hạng mục hoàn thiện nghiệm thu tiếp nối; lượt này chỉ triển khai phản hồi đang chờ. Commit chứa entry là mốc sửa; không sửa develop/main hoặc branch audit cũ.
+
+| ID / mức độ | Điều kiện / nguyên nhân | File / cách sửa | Xác minh / trạng thái |
+| --- | --- | --- | --- |
+| AUD-015 / P2 UX | Re-order/xóa/khôi phục/refresh sau lần đầu/export/cleanup không có pending feedback; save bài chỉ làm mờ form, chủ đề/login chỉ disable nút. Người dùng khó phân biệt đã gửi hay chưa. Trong QA, indicator ở đầu content còn có thể nằm ngoài viewport khi cuộn tới nút lưu | `pending.js` + `pending-task.js`: pulse/live label, gate một task, clear trong finally/reset. `main.js`: status tồn tại qua render, khóa controls và chặn read chen giữa write/refresh cuối. Post/section/auth đặt pulse trong sticky heading, autosave inline; media/quota có nhãn tải phù hợp; CSS reduced motion. Giữ các guard chống mất nháp/Auth cũ | **FIXED**, 30 unit PASS; 3 regression mới cho duplicate/failure/retry/reset + late completion. QA-A16 kiểm pulse giữ-response, lỗi mở khóa, CRUD, file validation, viewport 360–1440 và SIGNED_OUT bằng transport/Auth mock; File/IndexedDB thật, 0 Supabase live. Ảnh sticky header được chụp sau sửa vị trí |
+
+Đồng bộ SPEC R14, ARCHITECTURE, STATUS, TESTING và QA_REPORT. Không thêm dependency, request/polling hay artificial minimum delay; không đổi schema/RLS/Auth server. Pulse phản ánh Promise đang chờ, không bảo đảm backend thành công; chỉ báo kết quả theo response như luồng hiện có. Các gate backend/Safari/thiết bị thật và reduced-motion ở OS vẫn chưa nghiệm thu riêng.

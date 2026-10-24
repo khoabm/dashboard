@@ -2,6 +2,7 @@
 
 import '/src/styles/main.css';
 import { el, button } from '/src/utils/dom.js';
+import { newId } from '/src/utils/id.js';
 
 // This fixture is a dev entry only; index.html never imports it and Vite does not bundle it.
 const nativeFetch = window.fetch.bind(window);
@@ -20,6 +21,8 @@ let admin = false,
 let lastSaved = null;
 let seededDraft = null;
 const removedPaths = [];
+const operationCalls = {};
+const operationWaiters = [];
 const serviceCalls = { usage: 0, upload: 0, save: 0, remove: 0 };
 let attachments = [];
 // Each synthetic selection has a manually released signature check, independent of filechooser.
@@ -70,6 +73,26 @@ const sections = [
 /** Returns the current fault toggle without reading production application state. */
 const enabled = (id) => document.getElementById(id).checked;
 
+/**
+ * Holds one selected synthetic transport until the visible fixture control releases it.
+ *
+ * @param {string} kind - The synthetic operation category.
+ * @returns {Promise<boolean>} Whether the released request should fail.
+ */
+async function waitForOperation(kind) {
+  operationCalls[kind] = (operationCalls[kind] || 0) + 1;
+  if (document.querySelector('#pending-target').value !== kind) return false;
+  if (enabled('hold-operation')) await new Promise((resolve) => operationWaiters.push(resolve));
+  return enabled('fail-operation');
+}
+
+/** Releases held synthetic requests and lets subsequent steps run without another artificial wait. */
+function releaseOperation() {
+  document.querySelector('#hold-operation').checked = false;
+  operationWaiters.splice(0).forEach((resolve) => resolve());
+}
+document.querySelector('#release-operation').onclick = releaseOperation;
+
 /** Encodes one synthetic SDK response, including the total visible row count. */
 function response(data, status = 200, count = Array.isArray(data) ? data.length : 0) {
   return new Response(JSON.stringify(data), {
@@ -107,6 +130,43 @@ window.fetch = async (input, init) => {
   }
   requests++;
   const path = url.pathname;
+  const method = init?.method || 'GET';
+  const kind = path.endsWith('/rpc/app_usage')
+    ? 'quota'
+    : path.endsWith('/rpc/save_post') ||
+        path.endsWith('/rpc/reorder_posts') ||
+        (path.endsWith('/sections') && method !== 'GET')
+      ? 'write'
+      : path.endsWith('/posts')
+        ? 'read'
+        : path.endsWith('/audit_logs')
+          ? 'export'
+          : path.endsWith('/attachments')
+            ? 'cleanup'
+            : 'other';
+  if (await waitForOperation(kind)) return response({ message: 'QA operation failed' }, 503);
+  if (path.endsWith('/rpc/reorder_posts')) {
+    const { p_ids } = JSON.parse(init.body);
+    p_ids.forEach((id, index) => {
+      const post = posts.find((post) => post.id === id);
+      if (post) Object.assign(post, { sort_order: index, version: post.version + 1 });
+    });
+    return response(null);
+  }
+  if (path.endsWith('/sections') && method !== 'GET') {
+    const body = init.body ? JSON.parse(init.body) : {};
+    const id = url.searchParams.get('id')?.replace('eq.', '');
+    if (method === 'POST') {
+      const section = { ...body, id: newId() };
+      sections.push(section);
+      return response(section);
+    }
+    const index = sections.findIndex((section) => section.id === id);
+    if (method === 'PATCH') Object.assign(sections[index], body);
+    const row = sections[index];
+    if (method === 'DELETE') sections.splice(index, 1);
+    return response(row);
+  }
   if (path.endsWith('/rpc/save_post')) {
     serviceCalls.save++;
     const payload = JSON.parse(init.body);
@@ -121,7 +181,11 @@ window.fetch = async (input, init) => {
       ...payload.p_attachments.map((attachment) => ({ ...attachment, post_id: payload.p_post.id })),
     );
     const existing = posts.find((post) => post.id === payload.p_post.id);
-    if (existing) Object.assign(existing, payload.p_post, { version: existing.version + 1 });
+    if (existing)
+      Object.assign(existing, payload.p_post, {
+        version: existing.version + 1,
+        deleted_at: payload.p_post.status === 'deleted' ? new Date().toISOString() : null,
+      });
     else posts.push({ ...payload.p_post, version: 1 });
     return response(payload.p_post);
   }
@@ -155,6 +219,23 @@ window.fetch = async (input, init) => {
               )
             : [];
   rows = structuredClone(rows);
+  const orders = (url.searchParams.get('order') || '').split(',').filter(Boolean);
+  rows.sort((left, right) => {
+    for (const order of orders) {
+      const [column, direction] = order.split('.');
+      if (left[column] < right[column]) return direction === 'desc' ? 1 : -1;
+      if (left[column] > right[column]) return direction === 'desc' ? -1 : 1;
+    }
+    return 0;
+  });
+  const paths = url.searchParams.get('storage_path');
+  if (table === 'attachments' && paths?.startsWith('in.')) {
+    const selected = paths
+      .slice(4, -1)
+      .split(',')
+      .map((path) => path.replaceAll('"', ''));
+    rows = rows.filter((row) => selected.includes(row.storage_path));
+  }
   if (table === 'posts' && admin && holdNext) {
     holdNext = false;
     await new Promise((resolve) => {
@@ -178,11 +259,48 @@ client.auth.onAuthStateChange = (callback) => {
   return { data: { subscription: { unsubscribe() {} } } };
 };
 client.auth.signOut = async () => {
+  if (await waitForOperation('auth')) return { error: Error('QA sign-out failed') };
   admin = false;
   callbacks.forEach((callback) => callback('SIGNED_OUT'));
   return { error: null };
 };
+client.auth.signInWithPassword = async () => {
+  if (await waitForOperation('auth')) return { error: Error('QA sign-in failed') };
+  admin = true;
+  return { data: { session: null }, error: null };
+};
+const bucketClient = client.storage.from.bind(client.storage);
+client.storage.from = (...args) => {
+  const bucket = bucketClient(...args);
+  bucket.createSignedUrl = async () => {
+    if (await waitForOperation('media')) return { data: null, error: Error('QA media failed') };
+    return { data: { signedUrl: `${location.origin}/placeholders/science.svg` }, error: null };
+  };
+  return bucket;
+};
 const main = await import('/src/main.js');
+document.querySelector('#seed-cleanup').onclick = async () => {
+  const { queueCleanup } = await import('/src/services/storage.js');
+  queueCleanup(['qa-fixture/unused.pdf']);
+};
+document.querySelector('#preview-media').onclick = async () => {
+  const { PostPreviewModal } = await import('/src/components/board.js');
+  PostPreviewModal({
+    title: 'Ảnh QA local',
+    body: 'Transport ký URL giả lập; bytes SVG local.',
+    attachments: [
+      { id: 'qa-image', type: 'image', file_name: 'Ảnh QA', storage_path: 'qa-fixture/image.svg' },
+    ],
+  });
+};
+document.querySelector('#mock-login').onclick = async () => {
+  const { LoginScreen } = await import('/src/components/auth.js');
+  LoginScreen(main.refreshAuth);
+  const form = document.querySelector('dialog form');
+  // No credentials are entered or generated; the mock accepts this intentionally empty form.
+  form.noValidate = true;
+  form.requestSubmit();
+};
 document.querySelector('#seed-recovery').onclick = async () => {
   const { filesDraft, saveDraft, draftKey } = await import('/src/services/drafts.js');
   const key = draftKey('audit-fixture', posts[1].id);
@@ -311,6 +429,8 @@ async function inspectDrafts() {
       remotePaths: attachments.map((attachment) => attachment.storage_path),
       removedPaths,
       draftFileRecords,
+      operationCalls,
+      heldOperations: operationWaiters.length,
     },
     null,
     2,
@@ -352,6 +472,10 @@ new MutationObserver(() => {
     const controls = el(
       'div',
       { class: 'qa-expiry' },
+      button('QA: trả phản hồi thao tác', releaseOperation),
+      button('QA: tắt lỗi thao tác', () => {
+        document.querySelector('#fail-operation').checked = false;
+      }),
       button('QA: hết phiên giả lập', () => {
         admin = false;
         callbacks.forEach((callback) => callback('SIGNED_OUT'));
@@ -369,6 +493,10 @@ new MutationObserver(() => {
   const controls = el(
     'div',
     { class: 'qa-release' },
+    button('QA: trả phản hồi thao tác', releaseOperation),
+    button('QA: tắt lỗi thao tác', () => {
+      document.querySelector('#fail-operation').checked = false;
+    }),
     button('QA: trả response lưu giả lập', () => releaseSave?.()),
     button('QA: chọn PDF và giữ xác minh', () => stagePendingFile(dialog)),
     button('QA: hoàn tất xác minh', () => {
