@@ -13,6 +13,7 @@
   background: #203b3866;
   backdrop-filter: blur(3px);
 }
+/* dialog-heading contains the modal title and dismissal button; dialog-content holds the caller's UI. */
 .dialog-heading {
   position: sticky;
   top: 0;

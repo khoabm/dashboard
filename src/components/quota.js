@@ -17,6 +17,7 @@ export async function QuotaStatus(root) {
     const storageLevel = quotaLevel(usage.storage_bytes, STORAGE_LIMIT);
     const dbLevel = quotaLevel(usage.database_bytes_estimate, 500_000_000);
     const level = storageLevel === 'normal' ? dbLevel : storageLevel;
+    // Replace the quota region with measured usage and a warning level for this session.
     root.replaceChildren(
       el(
         'div',

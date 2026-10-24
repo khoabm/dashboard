@@ -27,6 +27,39 @@
 
 Các callback inline, arrow expression đơn giản, getter một dòng và biến có tên tự giải thích **không** cần block JSDoc riêng. Điều này không miễn trách nhiệm document hợp đồng cho các function/class/component có tên; chỉ tránh spam comment vào chi tiết không có hợp đồng độc lập.
 
+### DOM được dựng bằng `el(...)` và layout containers
+
+Các component tạo DOM bằng `el(tag, attrs, ...children)` thường có `div` không mang ngữ nghĩa riêng; tên CSS class chỉ là hook để style, **không tự mô tả vai trò của vùng UI**. Vì vậy áp dụng thêm các quy tắc sau:
+
+1. **Vùng giao diện có trách nhiệm riêng:** comment trước **cụm khai báo** DOM để nói vùng đó xuất hiện ở đâu, chứa gì, nối với phần tử cha nào và được caller cập nhật khi nào. Đặc biệt cần làm rõ `el('div')` không có class, `*-shell`, `*-region`, `*-wrap`, `*-controls`, `*-body` khi tên chưa đủ hiểu. Không chỉ viết `Creates a div` hoặc diễn giải từng tag.
+2. **Thứ bậc và luồng render:** với `append(...)` hoặc `replaceChildren(...)` dài, thêm một comment trước **cụm ghép UI** để giải thích thứ tự các vùng chính, nơi render động, và phần chỉ hiện cho admin/khách. Không cần ghi chú mọi `span`, `p`, icon hay text hiển nhiên.
+3. **Callback có side effect:** comment ngắn trước callback/biến chứa callback **khi có thay đổi state, debounce, localStorage, gọi service, cleanup hoặc trigger render gián tiếp**. Nêu trigger và hiệu ứng thực tế; nếu lưu cục bộ có thể thất bại thì không khẳng định chắc chắn đã lưu. Callback chỉ nối một action rõ tên không cần chú thích riêng.
+4. **DOM class và CSS:** ưu tiên giải thích vai trò ở code nơi tạo vùng, nhóm CSS chỉ thêm comment khi cần làm rõ layout/cascade/responsive. Không biến comment thành danh sách selector; không khẳng định CSS class hoặc `div` tự tạo ý nghĩa semantic/accessibility.
+5. **Chính xác theo source:** đối chiếu DOM tạo ra với nơi gọi `append`, `replaceChildren`, class được dùng trong CSS và điều kiện render trước khi ghi comment. Nếu DOM được điều khiển từ file khác, mô tả đúng ranh giới caller/component, không tự suy đoán tính năng.
+
+**Good case — mô tả vùng DOM và cách cập nhật (minh họa):**
+
+```js
+// The board shell contains admin actions, section filters, the board, and the footer.
+// controls hosts section selectors; boardRegion is replaced when the board renders.
+// adminRegion is populated only for authenticated administrators.
+const shell = el('div', { class: 'board-shell' }),
+  controls = el('div', { class: 'board-controls' }),
+  boardRegion = el('div'),
+  adminRegion = el('div');
+```
+
+**Bad case — chỉ lặp lại cú pháp, bỏ sót mục đích:**
+
+```js
+// Creates a div.
+const shell = el('div', { class: 'board-shell' });
+// Another div.
+const boardRegion = el('div');
+```
+
+Ví dụ không buộc mỗi biến một comment. Một comment nhóm phải đủ để developer lần ra **trách nhiệm + quan hệ cha–con + nơi cập nhật**; nếu tên đã đủ rõ và không có lifecycle đáng chú ý thì không thêm comment.
+
 ## 3. Hợp đồng JSDoc
 
 Một JSDoc tốt nên trả lời nhanh: **What? How/why? Inputs? How to use? Output?** Không nhất thiết tách thành năm đoạn nếu một câu đã đủ. Quy tắc:
@@ -99,13 +132,15 @@ Các ví dụ trên **chỉ là comment mẫu**, không tạo hoặc thay đổi
 | Function contract | `Validates file size and MIME type before upload.` | `Handles the file.` |
 | State group | `// Dirty and busy flags prevent duplicate saves and unsafe dismissal.` | `// State variables.` |
 | Failure path | `// Keep local drafts when a remote save fails.` | `// Error handling.` |
+| DOM/layout region | `// boardRegion is replaced with the filtered board on every render.` | `// Create div for board.` |
+| Search callback | `// Debounce filtering and attempt to store the query locally.` | `// Search callback.` |
 
 Good case mô tả mục đích hoặc invariant có thật; bad case mơ hồ, lặp tên hoặc không giúp developer quyết định cách sử dụng.
 
 ## 4. Review checklist cho AI agent
 
 - Đọc `AGENTS.md`, `ARCHITECTURE.md`, `CODE_STYLE.md` và **file đích**; xác nhận đúng ref/HEAD. Không comment dựa trên suy đoán từ tên hàm.
-- Chọn trách nhiệm chính mỗi file; comment theo **module → named contracts → state/section/risk**. Không bắt buộc comment từng UI element/callback.
+- Chọn trách nhiệm chính mỗi file; comment theo **module → named contracts → state/section/risk**. Với UI dựng động, kiểm tra thêm vai trò DOM container, cây cha–con, nơi render lại và side effect callback. Không bắt buộc comment từng UI element/callback.
 - Kiểm tra English grammar, động từ chính xác, parameter/default/return/promise/error và cách sử dụng/lifecycle. Không mô tả function async là synchronous hoặc UI state là backend persistence.
 - Không đưa secret, credential, PII, internal token hay file người dùng vào comment. Không thêm TODO mơ hồ; TODO thật cần mô tả hành động còn thiếu và issue/reference nếu có.
 - **Task chỉ viết comment:** diff chỉ được thêm/sửa comment và cập nhật docs liên quan; không đổi identifier, type, logic, UI text, CSS selector/order, database policy, file format hay dependency. Kiểm tra diff/whitespace; chạy offline syntax, unit, build khi có môi trường. Không gọi API/Supabase test để tránh quota. PASS chỉ khi thực chạy.

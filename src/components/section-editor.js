@@ -25,6 +25,7 @@ export function SectionEditor(section, data, onSaved) {
   });
   const error = el('p', { class: 'form-error', role: 'alert' });
   const submit = el('button', { type: 'submit', class: 'button primary' }, 'Lưu chủ đề');
+  // Section form: editable metadata, validation feedback, and save/cancel actions.
   const form = el(
     'form',
     {},

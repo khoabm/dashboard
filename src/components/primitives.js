@@ -81,6 +81,7 @@ export const SyncIndicator = (text) =>
  */
 export function openDialog(title, { drawer = false } = {}) {
   const previous = document.activeElement;
+  // The dialog owns a heading/close control and a content region filled by its caller.
   const dialog = el('dialog', { class: drawer ? 'dialog drawer' : 'dialog', 'aria-label': title });
   const content = el('div', { class: 'dialog-content' });
   const heading = el('div', { class: 'dialog-heading' }, el('h2', {}, title));
@@ -110,6 +111,7 @@ export function openDialog(title, { drawer = false } = {}) {
 export function ConfirmDialog(message, description = '') {
   return new Promise((resolve) => {
     const { dialog, content } = openDialog(message);
+    // The confirmation actions resolve true only when confirmed; dismissal resolves false.
     content.append(
       el('p', {}, description),
       el(

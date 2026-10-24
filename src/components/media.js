@@ -14,6 +14,7 @@ import { openDialog, ToastNotification } from './primitives.js';
  */
 export function VideoEmbed(url, title) {
   const id = youtubeId(url);
+  // video-wrap is a click-to-load placeholder until an iframe replaces the button.
   const wrap = el('div', { class: 'video-wrap' });
   if (id)
     wrap.append(
@@ -45,6 +46,7 @@ export function VideoEmbed(url, title) {
  * @returns {HTMLElement} The document preview.
  */
 export function DocumentPreview(url, a) {
+  // document-preview groups an optional inline PDF viewer with its open/download link.
   const wrap = el('div', { class: 'document-preview' });
   if (a.mime_type === 'application/pdf')
     wrap.append(el('iframe', { src: url, title: `Xem PDF: ${a.file_name}`, loading: 'lazy' }));
@@ -66,6 +68,7 @@ export function DocumentPreview(url, a) {
  * @returns {HTMLElement} The gallery root with a cleanup() helper.
  */
 export function AttachmentGallery(attachments) {
+  // The gallery groups per-attachment headings and user-triggered previews.
   const wrap = el('div', { class: 'attachment-gallery' });
   const blobs = [];
   for (const a of attachments) {

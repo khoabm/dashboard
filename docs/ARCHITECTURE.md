@@ -50,6 +50,23 @@ Khi tạo/chỉnh sửa source, tuân theo [CODE_STYLE](CODE_STYLE.md) về form
 
 - Thư viện tùy chọn theo R15; chọn tối thiểu, kiểm tra docs/license/version, pin version và lockfile nếu dùng npm. CDN không dùng latest; không tự đổi sang framework khi Sites đề xuất starter server.
 
+## Bản đồ DOM ở giao diện board
+
+Các vùng dưới đây được lắp trong `src/main.js` bằng helper `el(...)`; component trong `src/components/` cung cấp nội dung cho từng vùng. Tên CSS class mô tả cách style, còn vai trò và vòng đời render được ghi rõ tại code dựng UI.
+
+| Vùng DOM | Được tạo/cập nhật ở đâu | Vai trò |
+| --- | --- | --- |
+| `#app` | `index.html` → `src/main.js` | Root chứa header, hero giới thiệu và `board-shell` |
+| `.app-header` | `AppHeader` | Logo/home, SearchBar, refresh và login/admin entry |
+| `.hero` / `.hero-copy` | `src/main.js` | Tiêu đề, mô tả, số chủ đề/bài công khai; ảnh orbit trang trí |
+| `.board-shell` / `shell` | `src/main.js` | Container căn giữa, bao adminRegion → controls → boardRegion → footer |
+| `adminRegion` (div không class) | `render()` | Trống với khách; admin có toolbar, dọn tệp và trạng thái quota |
+| `.board-controls` / `controls` | `renderControls()` | Tab desktop, bộ chọn chủ đề mobile, nhãn bảng và thời điểm đồng bộ |
+| `boardRegion` (div không class) | `renderBoard()`, `refresh()` | Vùng nội dung được thay bằng `BoardContainer`, loading hoặc error |
+| `#board` / `.section-column` / `.post-card` | `BoardContainer`, `SectionColumn`, `PostCard` | Bảng chính → cột chủ đề → thẻ học liệu và action quản trị tùy quyền |
+| `dialog` / `.dialog-content` | `openDialog()` và các editor/preview | Tiêu đề/đóng dialog, vùng form hoặc preview được caller thêm vào |
+| `#toast` | `index.html` → `ToastNotification` | Live region thông báo độc lập với `#board` |
+
 ## Code map thực tế
 
 | Module thực tế | Đường dẫn / trách nhiệm | Test |

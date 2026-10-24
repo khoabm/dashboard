@@ -21,6 +21,7 @@ export function SearchBar(onSearch, value = '') {
     value,
   });
   input.addEventListener('input', () => onSearch(input.value));
+  // The search wrapper places the input between a search glyph and its '/' shortcut hint.
   return el(
     'div',
     { class: 'search-bar' },
@@ -37,6 +38,7 @@ export function SearchBar(onSearch, value = '') {
  * @returns {HTMLElement} The header element.
  */
 export function AppHeader({ onLogin, onRefresh, search, admin }) {
+  // Header layout: home/brand link, injected search field, and refresh/admin navigation.
   return el(
     'header',
     { class: 'app-header' },
@@ -68,6 +70,7 @@ export function AdminToolbar({ onNew, onSection, onLogout, onExport, onTrash, fi
   return el(
     'div',
     { class: 'admin-toolbar' },
+    // A status badge precedes the admin-only post, section, export, trash, and session actions.
     SyncIndicator('Chế độ quản trị'),
     el(
       'div',
@@ -100,8 +103,10 @@ export function PostCard(post, { admin, onOpen, onEdit, onMove, onDelete, onRest
   const kind = post.thumbnail_url
     ? 'image'
     : post.placeholder_kind || post.attachments[0]?.type || 'text';
+  // The article represents one post; its full-width button opens the preview.
   const card = el('article', { class: `post-card kind-${kind}` });
   const open = button('', () => onOpen(post), 'card-open', { 'aria-label': `Mở ${post.title}` });
+  // Media art previews the resource type; post metadata remains in the card body.
   if (kind === 'image')
     open.append(
       el(
@@ -137,6 +142,7 @@ export function PostCard(post, { admin, onOpen, onEdit, onMove, onDelete, onRest
         el('span', {}, 'VIDEO MẪU'),
       ),
     );
+  // The card body groups resource kind, title, summary, and attachment count.
   const body = el(
     'div',
     { class: 'card-body' },
@@ -159,6 +165,7 @@ export function PostCard(post, { admin, onOpen, onEdit, onMove, onDelete, onRest
   );
   open.append(body);
   card.append(open);
+  // Admin-only controls expose status, ordering, editing, and delete/restore actions.
   if (admin)
     card.append(
       el(
@@ -195,6 +202,7 @@ export function PostCard(post, { admin, onOpen, onEdit, onMove, onDelete, onRest
  * @returns {HTMLElement} The section column.
  */
 export function SectionColumn(section, posts, actions) {
+  // One board column groups a section heading, description, and its filtered post list.
   const column = el('section', { class: 'section-column', 'aria-label': section.title });
   column.style.setProperty('--section-color', section.color);
   const heading = el(
@@ -231,6 +239,7 @@ export function SectionColumn(section, posts, actions) {
  * @returns {HTMLElement} The board container.
  */
 export function BoardContainer(data, { query = '', selected = 'all', filter = 'all', ...actions }) {
+  // The semantic main element arranges section columns and replaces the boardRegion contents.
   const board = el('main', {
     id: 'board',
     class: 'board',
@@ -268,6 +277,7 @@ export function BoardContainer(data, { query = '', selected = 'all', filter = 'a
  */
 export function PostPreviewModal(post, section) {
   const { dialog, content } = openDialog('Chi tiết học liệu');
+  // The preview dialog puts section/title/body context above its attachment gallery.
   content.append(
     el(
       'div',

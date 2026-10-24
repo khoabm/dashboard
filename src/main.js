@@ -43,6 +43,7 @@ try {
 } catch {
   /* Preferences are optional. */
 }
+// The header search debounces board filtering and attempts to persist the query locally.
 const search = SearchBar(
   debounce((value) => {
     query = value;
@@ -53,11 +54,15 @@ const search = SearchBar(
   }, 200),
   query,
 );
+// Page regions: shell centers the board area beneath the introductory hero.
+// controls hosts section tabs/mobile selection; boardRegion holds replaceable board content.
+// adminRegion stays empty for readers and hosts admin actions and quota status after login.
 const shell = el('div', { class: 'board-shell' }),
   controls = el('div', { class: 'board-controls' }),
   boardRegion = el('div'),
   adminRegion = el('div');
 const countText = el('span');
+// Page composition: global header, introductory hero with a live post count, then the board shell.
 root.append(
   AppHeader({
     onLogin: () => {
@@ -94,6 +99,7 @@ root.append(
   ),
   shell,
 );
+// Inside the shell, administrative tools precede section filters and the board; the footer follows.
 shell.append(
   adminRegion,
   controls,
@@ -127,6 +133,7 @@ function renderControls() {
     renderControls();
     renderBoard();
   };
+  // Desktop section tabs and the mobile select offer the same selection behavior.
   const tabs = el(
     'div',
     { class: 'tabs', role: 'group', 'aria-label': 'Lọc chủ đề' },
@@ -148,6 +155,7 @@ function renderControls() {
     ),
   );
   mobile.addEventListener('change', () => select(mobile.value));
+  // The controls region also shows the board title and most recent successful sync time.
   controls.replaceChildren(
     tabs,
     mobile,
@@ -199,6 +207,7 @@ function renderBoard() {
 function render() {
   if (!data.sections.some((s) => s.id === selected)) selected = 'all';
   countText.textContent = `${data.sections.length} chủ đề · ${data.posts.filter((p) => p.status === 'published').length} học liệu`;
+  // Clear the previous admin-only toolbar and quota before rebuilding this region.
   adminRegion.replaceChildren();
   if (admin)
     adminRegion.append(
@@ -227,6 +236,7 @@ function render() {
       ),
     );
   if (admin) {
+    // The quota container is populated asynchronously by QuotaStatus.
     const quota = el('div', { class: 'quota-status' });
     adminRegion.append(quota);
     QuotaStatus(quota);

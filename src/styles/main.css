@@ -281,6 +281,7 @@ kbd {
   height: 175px;
   opacity: 0.55;
 }
+/* The shell centers the page body; its controls row contains section filters and sync text. */
 .board-shell {
   max-width: 1140px;
   margin: 0 auto;
@@ -326,6 +327,7 @@ kbd {
 }
 /* Horizontal board columns and resource cards. */
 
+/* The board element inside boardRegion arranges columns horizontally on desktop. */
 .board {
   display: grid;
   grid-auto-flow: column;

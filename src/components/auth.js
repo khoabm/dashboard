@@ -26,6 +26,7 @@ export function LoginScreen(onSuccess) {
   });
   const error = el('p', { class: 'form-error', role: 'alert' });
   const submit = el('button', { type: 'submit', class: 'button primary' }, 'Đăng nhập');
+  // Login form: admin-only guidance, credentials, inline error, and submit action.
   const form = el(
     'form',
     {},

@@ -27,6 +27,7 @@ import { PostPreviewModal } from './board.js';
  * @returns {HTMLElement} The uploader root with cleanup() and setAttachments() helpers.
  */
 export function AttachmentUploader({ attachments, onChange, onError }) {
+  // The uploader root owns a reorderable attachment list and temporary image previews.
   const root = el('div');
   const list = el('div', { class: 'editor-attachments' });
   const objectUrls = [];
@@ -37,6 +38,7 @@ export function AttachmentUploader({ attachments, onChange, onError }) {
   function render() {
     objectUrls.splice(0).forEach((url) => URL.revokeObjectURL(url));
     list.replaceChildren();
+    // Each row displays an attachment with reorder and remove controls.
     attachments.forEach((a, i) => {
       const row = el('div', { class: 'editor-attachment' });
       if (a.file?.type.startsWith('image/')) {
@@ -135,6 +137,7 @@ export function AttachmentUploader({ attachments, onChange, onError }) {
     onChange(attachments);
     render();
   };
+  // Uploader layout: file selection area, current attachments, then external-link entry.
   root.append(
     el(
       'div',
@@ -179,6 +182,7 @@ export function AttachmentUploader({ attachments, onChange, onError }) {
  */
 export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved, onDirty }) {
   const key = draftKey(userId, post?.id || 'new');
+  // Clone an existing post or initialize a draft model before building the editor form.
   let model = post
     ? structuredClone(post)
     : {
@@ -201,6 +205,7 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
   const { dialog, content, close } = openDialog(post ? 'Chỉnh sửa bài đăng' : 'Tạo bài đăng', {
     drawer: true,
   });
+  // Form controls hold unsaved values; only submit() attempts remote persistence.
   const title = el('input', {
     required: true,
     maxlength: 200,
@@ -232,8 +237,10 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
     ),
   );
   const thumbnail = el('select', { 'aria-label': 'Ảnh đại diện' });
+  // error reports validation/save failures; draftStatus reports local draft and upload progress.
   const error = el('p', { class: 'form-error', role: 'alert' }),
     draftStatus = el('p', { class: 'draft-status', role: 'status' });
+  // The form groups post metadata, publication settings, and the attachment section.
   const form = el(
     'form',
     {},
@@ -308,9 +315,11 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
     },
     onError: (message) => (error.textContent = message),
   });
+  // The uploader and both feedback regions follow the post fields inside the form.
   form.append(uploader, error, draftStatus);
   const saveDraftButton = button('Lưu nháp', () => submit('draft'));
   const publish = el('button', { type: 'submit', class: 'button primary' }, 'Lưu thay đổi');
+  // Footer actions support cancellation, draft save, preview, and final submit.
   form.append(
     el(
       'div',
