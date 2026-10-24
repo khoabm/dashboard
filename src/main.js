@@ -4,7 +4,8 @@ import './styles/main.css';
 import { el, button, errorMessage } from './utils/dom.js';
 import { debounce, canRestore, moveItem } from './utils/validation.js';
 import { client } from './services/client.js';
-import { loadBoard, isAdmin, savePost, exportMetadata, reorderPosts } from './services/board.js';
+import { loadBoard, savePost, exportMetadata, reorderPosts } from './services/board.js';
+import { verifyAdminSession } from './services/auth-session.js';
 import { cleanupPending } from './services/storage.js';
 import {
   AppHeader,
@@ -31,6 +32,8 @@ import { PulseIndicator, setPendingMessage } from './components/pending.js';
 const root = document.querySelector('#app');
 const requests = createRequestGate();
 let authRefreshTimer,
+  authChecking = false,
+  authFailed = false,
   logoutPending = false;
 
 // Shared board snapshot, admin session, filters, and synchronization flags.
@@ -296,6 +299,8 @@ function render() {
  * @param {object} options - afterWrite permits the owning action's final refresh while controls lock.
  */
 async function refresh({ afterWrite = false } = {}) {
+  if (authChecking) return;
+  if (authFailed) return refreshAuth();
   if (operations.pending() && !afterWrite) return;
   const ticket = requests.begin();
   if (!ticket) return;
@@ -323,20 +328,31 @@ async function refresh({ afterWrite = false } = {}) {
 
 /** Rechecks the admin profile and signed-in user before refreshing board data. */
 export async function refreshAuth() {
-  requests.invalidate();
-  operations.reset();
+  clearSession();
   const generation = requests.generation();
+  authChecking = true;
   syncMessage = 'Đang kiểm tra quyền quản trị…';
   updatePendingUI();
   try {
-    const nextAdmin = await isAdmin();
-    const { data: auth } = await client.auth.getUser();
+    const identity = client ? await verifyAdminSession(client) : null;
     if (generation !== requests.generation()) return;
-    admin = nextAdmin;
-    userId = auth.user?.id;
+    admin = !!identity;
+    userId = identity?.userId ?? null;
+    authChecking = false;
     await refresh();
+  } catch {
+    if (generation !== requests.generation()) return;
+    // Do not read with an unverified stored JWT or unlock private UI after an Auth failure.
+    authFailed = true;
+    boardRegion.replaceChildren(
+      ErrorState(
+        'Chưa thể xác minh phiên đăng nhập. Hãy kiểm tra kết nối và thử lại.',
+        refreshAuth,
+      ),
+    );
   } finally {
-    if (generation === requests.generation() && syncMessage === 'Đang kiểm tra quyền quản trị…') {
+    if (generation === requests.generation()) {
+      authChecking = false;
       syncMessage = '';
       updatePendingUI();
     }
@@ -470,6 +486,8 @@ export async function logout() {
 /** Clears private UI synchronously, even if the subsequent anonymous read fails. */
 function clearSession() {
   requests.invalidate();
+  authChecking = false;
+  authFailed = false;
   syncMessage = '';
   operations.reset();
   document.querySelectorAll('dialog').forEach((dialog) => dialog.close());
@@ -545,4 +563,6 @@ client?.auth.onAuthStateChange((event) => {
     schedulePublicRefresh();
   }
 });
-refresh();
+// Explicit bootstrap also handles persisted sessions without relying on Auth callback timing.
+// SDK reads stay outside the synchronous Auth event callback to avoid its internal lock.
+refreshAuth();

@@ -1,5 +1,26 @@
 # Bằng chứng kiểm thử
 
+<a id="auth-reload-2026-10-24"></a>
+
+## 2026-10-24 — phiên qua reload / AUD-016 / QA-A18
+
+Baseline `b24acc19648badfbcfc641ce88555b2000d95678`, working tree branch `enhancement/acceptance-refinements`. Windows, Node 25.2.1, Supabase JS 2.118.0; IAB của desktop app, viewport quan sát ban đầu 1265×720, form hẹp qua iframe width360 (content345 vì scrollbar). Không suy thành Chrome desktop/Safari hoặc thiết bị thật. Cơ chế override viewport IAB không cho kích thước yêu cầu trong lần kiểm này, đã reset và dùng iframe có kích thước thật.
+
+`tests/session.html` dùng SDK/Auth lifecycle và sessionStorage thật, transport Auth/REST synthetic; tất cả fetch ngoài origin bị mock/chặn, CSP không cho Supabase live. Không dùng user/token/file runtime thật. Các counter Inspect chỉ xuất số lượng/cờ, không xuất token. `tests/viewport.html?fixture=audit` dùng Auth/transport mock của audit, chỉ xác nhận bố cục form.
+
+| Case | Mong đợi / thực tế quan sát | Kết quả |
+| --- | --- | --- |
+| QA-A18a | Login qua form với credential synthetic → admin; reload cùng tab → toolbar và PRIVATE QA; storedSessions=1, authInLocalStorage=false. Tab mới độc lập → khách, storedSessions=0/privateVisible=false | PASS browser |
+| QA-A18b | Giữ profile verification qua reload → pulse, boardReads=0, chưa có private/toolbar. SIGNED_OUT rồi release profile cũ → khách, storedSessions=0, privateVisible=false; kết quả cũ không hồi sinh admin | PASS browser |
+| QA-A18c | Profile bị thu hồi dù phiên còn lưu → khách, chỉ PUBLIC QA. Verification trả 503 → boardReads=0, UI khóa và có Thử lại; bỏ lỗi/retry → admin trở lại | PASS browser |
+| QA-A18d | Toolbar Đăng xuất → reload → khách, storedSessions=0/privateVisible=false. Không chỉ ẩn toolbar trong khi token còn được restore | PASS browser |
+| QA-A18e | Getter sessionStorage bị chặn trước tạo client → form báo mất phiên sau reload; login memory vẫn được; F5 → khách, sessionPersistent=false, authInLocalStorage=false | PASS browser, fault injection |
+| QA-A18f | Form/ghi chú ở desktop và iframe360 có CSS; không tràn ngang iframe (clientWidth=scrollWidth=345). Fixture session cho phép style inline để Vite inject CSS, production CSP giữ nguyên | PASS visual/DOM; thiết bị thật NOT RUN |
+| QA-A18g | 35/35 unit; 5 test Auth mới dùng SDK/transport synthetic, kiểm refresh expired session, restore, logout, isolation, deny/profile error/mismatched identity và không chạm localStorage. Syntax/credential scan/build PASS | PASS offline |
+| QA-A18h | Gate Prettier nguyên bản FAIL ở 32 file không sửa dùng CRLF checkout; cùng toàn scope với `--end-of-line auto` PASS. File code thay đổi đã format theo LF; không format toàn repo | FAIL nguyên bản do checkout; nội dung PASS, CI đúng commit NOT RUN |
+
+Ảnh chỉ dữ liệu synthetic: [Khôi phục sau reload](qa/auth-reload-20261024.png), [Form iframe360](qa/auth-login-360-20261024.png). Bước chạy lại tại [TESTING](TESTING.md#phiên-qua-reload--aud-016). Không gọi SQL/API project thật, không sửa schema/policy/Auth settings, không deploy/merge hoặc kích hoạt dịch vụ trả phí. Session/JWT/RLS/Storage thật, browser restore/duplicate, cross-tab revoke, storage mất quyền giữa phiên và Safari/iPhone/Android vẫn **NOT RUN**. Không đánh dấu Definition of Done sản phẩm.
+
 <a id="pulse-feedback-2026-10-24"></a>
 
 ## 2026-10-24 — pulse feedback / AUD-015
