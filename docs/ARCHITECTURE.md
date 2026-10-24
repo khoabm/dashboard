@@ -32,6 +32,8 @@ Các thư mục code trong bảng đã có implementation. Không buộc một f
 
 ## Cách viết
 
+Khi tạo/chỉnh sửa source, tuân theo [CODE_STYLE](CODE_STYLE.md) về indent, xuống dòng, tên, format JS/CSS/HTML/JSON và SQL mới. Quy ước đã được ghi thành tài liệu nhưng **chưa** áp dụng formatter/linter hay format lại source cũ; giữ thay đổi format thuần tách biệt hành vi.
+
 - ES Modules, tên rõ nghĩa, một nguồn xử lý cho một quy tắc; không global state tùy tiện, không abstraction trước nhu cầu. Ghi chú giải thích lý do, tránh comment lặp lại code.
 
 - UI gọi service qua hàm có đầu vào/đầu ra rõ. Chỉ báo lưu thành công sau khi backend xác nhận; giữ editor/nháp khi lỗi, không xóa nội dung trước khi lưu xong.

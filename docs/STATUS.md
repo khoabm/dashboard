@@ -5,6 +5,7 @@ Cập nhật 2026-10-23. Repo `khoabm/dashboard`, `develop`. Baseline docs `f145
 | Thành phần | Bằng chứng hiện tại |
 | --- | --- |
 | Frontend | HTML/CSS/Vanilla JS + Vite 8.3.5 / Supabase JS 2.118.0; npm lockfile; build dist thành công. 1 board/3 cột/6 bài placeholder đọc Supabase thật, search/modal/media/responsive |
+| Code style (docs-only, 2026-10-24) | Có [CODE_STYLE](CODE_STYLE.md) hướng dẫn format code mới/cũ cho agent; chưa thêm Prettier/ESLint, scripts hoặc format source; không đổi trạng thái nghiệm thu runtime |
 | Supabase | `dashboard` / `vgciiqtwmxcdqppntgnt`, PostgreSQL 17.11; tổ chức `qvosfzztldzaxxodxzlx` plan/tier Free theo plugin. 4 migrations đã apply; private bucket, RLS, audit, optimistic save/reorder và quota RPC |
 | Auth / CMS | Source login/CRUD/status/upload/thumbnail/nháp/sort/soft-delete/restore/export. Auth users=0, admin_profiles=0; chưa tạo credential, chưa cấp admin, chưa xác minh/tắt server signup. E2E admin thật BLOCKED |
 | QA | 7 unit PASS; check/build PASS; SQL transaction role regression PASS; anon REST write/RPC/upload denied PASS. Chrome public UI + 5 iframe viewport PASS, editor fixture nháp/PDF/XSS/lỗi quyền PASS. Xem QA_REPORT |
