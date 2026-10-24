@@ -131,6 +131,44 @@ export function ConfirmDialog(message, description = '') {
     dialog.addEventListener('close', () => resolve(false), { once: true });
   });
 }
+
+/**
+ * Offers recovery or explicit discard without treating dismissal as deletion consent.
+ *
+ * @param {string} description - The saved draft timestamp and recovery context.
+ * @returns {Promise<'restore'|'discard'|'cancel'>} The explicit choice, or cancel on close/expiry.
+ */
+export function DraftRecoveryDialog(description) {
+  return new Promise((resolve) => {
+    const { dialog, content } = openDialog('Có bản nháp trên thiết bị');
+    // Only the discard button authorizes deletion; Escape, X, and external close keep the draft.
+    content.append(
+      el('p', {}, description),
+      el('p', {}, 'Đóng hộp thoại để giữ nháp và quyết định sau.'),
+      el(
+        'div',
+        { class: 'form-actions' },
+        button(
+          'Bỏ bản nháp',
+          () => {
+            resolve('discard');
+            dialog.close();
+          },
+          'button danger',
+        ),
+        button(
+          'Khôi phục',
+          () => {
+            resolve('restore');
+            dialog.close();
+          },
+          'button primary',
+        ),
+      ),
+    );
+    dialog.addEventListener('close', () => resolve('cancel'), { once: true });
+  });
+}
 export const statusLabels = {
   draft: 'Bản nháp',
   published: 'Đã xuất bản',

@@ -11,15 +11,16 @@ import {
   debounce,
 } from '../utils/validation.js';
 import { savePost } from '../services/board.js';
-import { uploadAttachments, cleanup } from '../services/storage.js';
+import { uploadAttachments, cleanup, queueCleanup } from '../services/storage.js';
 import {
   draftKey,
   createDraftWriter,
   readDraft,
   removeDraft,
   filesDraft,
+  recoverAttachments,
 } from '../services/drafts.js';
-import { openDialog, ConfirmDialog, ToastNotification } from './primitives.js';
+import { openDialog, ConfirmDialog, DraftRecoveryDialog, ToastNotification } from './primitives.js';
 import { PostPreviewModal } from './board.js';
 
 /**
@@ -206,10 +207,22 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
  * @param {string} options.userId - The user identifier used to isolate drafts.
  * @param {Function} options.onSaved - Refreshes the board after a successful save.
  * @param {Function} options.onDirty - Reports whether unsaved changes remain.
+ * @param {Function} options.isCurrent - Checks the owning authentication generation.
  * @returns {Promise<HTMLDialogElement>} The editor dialog, if still open.
  */
-export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved, onDirty }) {
+export async function PostEditorDrawer({
+  post,
+  sectionId,
+  data,
+  userId,
+  onSaved,
+  onDirty,
+  isCurrent = () => true,
+}) {
   const key = draftKey(userId, post?.id || 'new');
+  const saved = readDraft(key);
+  // Pending or failed recovery is read-only: the original draft must not be rewritten.
+  let recoveryReady = !saved;
   // Clone an existing post or initialize a draft model before building the editor form.
   let model = post
     ? structuredClone(post)
@@ -233,6 +246,10 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
   const { dialog, content, close } = openDialog(post ? 'Chỉnh sửa bài đăng' : 'Tạo bài đăng', {
     drawer: true,
   });
+  /** Checks the editor and Auth generation after each asynchronous remote-save boundary. */
+  const canContinue = () => dialog.open && isCurrent();
+  // Recovery feedback remains accessible while the editable form is inert.
+  const recoveryNotice = el('div', { role: 'status' });
   // Form controls hold unsaved values; only submit() attempts remote persistence.
   const title = el('input', {
     required: true,
@@ -304,6 +321,7 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
    * @returns {Promise<boolean>} Whether both stores accepted this draft snapshot.
    */
   async function persist() {
+    if (!recoveryReady) return false;
     const saved = await draftWriter.save();
     if (dirty && dialog.open)
       draftStatus.textContent = saved
@@ -315,6 +333,7 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
 
   /** Tracks file selections and results while busy, without reviving a closed session's dirty flag. */
   function markDirty() {
+    if (!recoveryReady) return;
     dirty = true;
     if (!dialog.open || closing) return;
     onDirty(true);
@@ -348,7 +367,7 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
     onError: (message) => (error.textContent = message),
   });
   const draftWriter = createDraftWriter(key, {
-    read: () => (dirty ? read() : null),
+    read: () => (recoveryReady && dirty ? read() : null),
     whenReady: () => uploader.whenReady(),
   });
   // The uploader and both feedback regions follow the post fields inside the form.
@@ -363,11 +382,11 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
   /** Locks keyboard, pointer, and close actions while a stable snapshot is being saved. */
   function setBusy(value) {
     busy = value;
-    form.inert = value;
+    form.inert = value || !recoveryReady;
     form.setAttribute('aria-busy', String(value));
     closeButton.disabled = value;
-    publish.disabled = value;
-    saveDraftButton.disabled = value;
+    publish.disabled = value || !recoveryReady;
+    saveDraftButton.disabled = value || !recoveryReady;
     form.classList.toggle('form-busy', value);
   }
   // Footer actions support cancellation, draft save, preview, and final submit.
@@ -405,10 +424,14 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
    * @param {string} nextStatus - The requested post publication state.
    */
   async function submit(nextStatus) {
-    if (busy || !form.reportValidity()) return;
+    if (busy || !recoveryReady || !canContinue() || !form.reportValidity()) return;
     setBusy(true);
     autosave.cancel();
     await uploader.whenReady();
+    if (!canContinue()) {
+      if (dialog.open) setBusy(false);
+      return;
+    }
     const value = {
       ...read(),
       attachments: [...attachments],
@@ -433,26 +456,40 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
         value.id,
         value.attachments,
         (done, total) => (draftStatus.textContent = `Đang tải tệp ${done}/${total}…`),
+        undefined,
+        canContinue,
       );
+      if (!canContinue()) {
+        queueCleanup(uploaded.paths);
+        return;
+      }
       await savePost(value, uploaded.attachments);
+      if (!canContinue()) {
+        queueCleanup(uploaded.paths);
+        return;
+      }
       const unused = original
         .filter(
           (a) =>
             a.storage_path && !uploaded.attachments.some((b) => a.storage_path === b.storage_path),
         )
         .map((a) => a.storage_path);
-      await cleanup(unused).catch(() =>
-        ToastNotification(
-          'Bài đã lưu. Một số tệp cũ chưa dọn được; có thể thử “Dọn tệp thừa”.',
-          true,
-        ),
-      );
+      await cleanup(unused, undefined, canContinue).catch(() => {
+        if (canContinue())
+          ToastNotification(
+            'Bài đã lưu. Một số tệp cũ chưa dọn được; có thể thử “Dọn tệp thừa”.',
+            true,
+          );
+      });
+      if (!canContinue()) return;
       autosave.cancel();
       await draftWriter.settled();
+      if (!canContinue()) return;
       dirty = false;
       if (dialog.open) onDirty(false);
       removeDraft(key);
       await filesDraft(key, null).catch(() => {});
+      if (!canContinue()) return;
       closing = true;
       dialog.close();
       await onSaved();
@@ -460,17 +497,26 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
         nextStatus === 'published' ? 'Đã xuất bản bài đăng.' : 'Đã lưu bài đăng trên Supabase.',
       );
     } catch (e) {
-      if (uploaded) await cleanup(uploaded.paths).catch(() => {});
+      if (uploaded) {
+        if (canContinue()) await cleanup(uploaded.paths, undefined, canContinue).catch(() => {});
+        else queueCleanup(uploaded.paths);
+      }
+      if (!canContinue()) return;
       error.textContent = errorMessage(e);
       await persist();
     } finally {
-      setBusy(false);
+      if (dialog.open) setBusy(false);
     }
   }
 
   /** Confirms unsaved changes and attempts to persist the local draft before closing. */
   async function requestClose() {
     if (busy || closing) return;
+    if (!recoveryReady) {
+      closing = true;
+      dialog.close();
+      return;
+    }
     setBusy(true);
     autosave.cancel();
     try {
@@ -500,6 +546,7 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
   }
   // Logout flushes a stable selection before its own confirmation and Auth request.
   dialog.preserveDraft = async () => {
+    if (!recoveryReady) return true;
     if (busy || closing) return false;
     setBusy(true);
     autosave.cancel();
@@ -521,7 +568,7 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
       autosave.cancel();
       onDirty(false);
       // Clear private UI immediately, but let local file checks finish before destroying the queue.
-      if (!closing) {
+      if (!closing && recoveryReady) {
         void persist()
           .then((saved) => {
             if (!saved)
@@ -536,43 +583,73 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
     { once: true },
   );
   renderThumbnail();
-  content.append(form);
+  content.append(recoveryNotice, form);
 
-  // Offer local recovery before allowing edits when a stored draft exists.
-  const saved = readDraft(key);
-  if (saved) form.inert = true;
-  if (
-    saved &&
-    (await ConfirmDialog(
-      'Có bản nháp trên thiết bị',
-      `Khôi phục nội dung đã lưu lúc ${new Date(saved.saved_at).toLocaleString('vi-VN')}? Tệp nháp được giữ riêng trên thiết bị này.`,
-    ))
-  ) {
-    model = { ...model, ...saved };
-    title.value = model.title || '';
-    body.value = model.body || '';
-    section.value = model.section_id;
-    order.value = model.sort_order;
-    status.value = model.status === 'deleted' ? 'draft' : model.status;
-    let fileDraft = [];
-    try {
-      fileDraft = (await filesDraft(key)) || [];
-    } catch {
-      error.textContent = 'Không thể đọc tệp nháp. Vui lòng chọn lại tệp.';
-    }
-    if (!dialog.isConnected) return dialog;
-    const recovered = [...(saved.attachments || []), ...fileDraft];
-    attachments = (saved.attachment_order || recovered.map((a) => a.id))
-      .map((id) => recovered.find((a) => a.id === id))
-      .filter(Boolean);
-    uploader.setAttachments(attachments);
-    renderThumbnail();
-    changed();
-  } else if (saved) {
-    removeDraft(key);
-    await filesDraft(key, null).catch(() => {});
+  /** Shows a safe retry while both original draft stores remain untouched. */
+  function recoveryFailed(message) {
+    recoveryNotice.replaceChildren(
+      el('p', { class: 'form-error' }, `${message} Bản nháp đã lưu vẫn được giữ nguyên.`),
+      button('Thử khôi phục lại', restoreSaved),
+      button('Giữ nháp và đóng', () => {
+        closing = true;
+        dialog.close();
+      }),
+    );
   }
-  form.inert = false;
-  if (dialog.isConnected) title.focus();
+
+  /** Restores fields only after every promised blob has been read successfully. */
+  async function restoreSaved() {
+    if (busy || !canContinue()) return;
+    setBusy(true);
+    let restored = false;
+    try {
+      const recovered = await recoverAttachments(key, saved);
+      if (!canContinue()) return;
+      model = { ...model, ...saved };
+      title.value = model.title || '';
+      body.value = model.body || '';
+      section.value = model.section_id;
+      order.value = model.sort_order;
+      status.value = model.status === 'deleted' ? 'draft' : model.status;
+      attachments = recovered;
+      uploader.setAttachments(attachments);
+      renderThumbnail();
+      recoveryReady = true;
+      recoveryNotice.replaceChildren();
+      restored = true;
+    } catch {
+      if (canContinue()) recoveryFailed('Chưa đọc đủ tệp nháp. Hãy thử lại hoặc đóng để giữ nháp.');
+    } finally {
+      if (dialog.open) setBusy(false);
+    }
+    if (restored && canContinue()) markDirty();
+  }
+
+  setBusy(false);
+  if (saved) {
+    const decision = await DraftRecoveryDialog(
+      `Khôi phục nội dung đã lưu lúc ${new Date(saved.saved_at).toLocaleString('vi-VN')}? Tệp nháp được giữ riêng trên thiết bị này.`,
+    );
+    if (!canContinue()) return dialog;
+    if (decision === 'restore') await restoreSaved();
+    else if (decision === 'discard') {
+      setBusy(true);
+      try {
+        // Only the explicit discard button authorizes deletion, never an external close.
+        await filesDraft(key, null);
+        removeDraft(key);
+        if (!canContinue()) return dialog;
+        recoveryReady = true;
+      } catch {
+        if (canContinue()) recoveryFailed('Không thể bỏ tệp nháp trên thiết bị.');
+      } finally {
+        if (dialog.open) setBusy(false);
+      }
+    } else {
+      closing = true;
+      dialog.close();
+    }
+  }
+  if (canContinue() && recoveryReady) title.focus();
   return dialog;
 }

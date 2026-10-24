@@ -121,6 +121,30 @@ export async function filesDraft(key, files) {
 }
 
 /**
+ * Reads the complete saved attachment order without modifying either draft store.
+ * Missing blobs fail recovery rather than silently replacing the saved draft with fewer files.
+ *
+ * @param {string} key - The scoped draft key.
+ * @param {object} draft - The saved text metadata and attachment order.
+ * @param {Function} readFiles - The IndexedDB reader, or an isolated regression adapter.
+ * @returns {Promise<object[]>} Every saved attachment in its original order.
+ * @throws {Error} When file storage fails or any promised attachment is missing.
+ */
+export async function recoverAttachments(key, draft, readFiles = filesDraft) {
+  const storedFiles = (await readFiles(key)) || [];
+  if (!Array.isArray(storedFiles) || storedFiles.some((entry) => !entry?.id || !entry.file)) {
+    throw Error('Tệp nháp không đầy đủ. Bản nháp đã lưu vẫn được giữ nguyên.');
+  }
+  const recovered = [...(draft.attachments || []), ...storedFiles];
+  const byId = new Map(recovered.map((entry) => [entry.id, entry]));
+  const order = draft.attachment_order || recovered.map((entry) => entry.id);
+  if (order.some((id) => !byId.has(id)) || storedFiles.some((entry) => !order.includes(entry.id))) {
+    throw Error('Chưa đọc đủ tệp nháp. Bản nháp đã lưu vẫn được giữ nguyên.');
+  }
+  return order.map((id) => byId.get(id));
+}
+
+/**
  * Serializes draft writes after selected files settle, then reads the latest state.
  * The read callback returns null for a clean editor; failures remain retryable.
  *

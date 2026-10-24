@@ -8,6 +8,7 @@ const nativeFetch = window.fetch.bind(window);
 const setItem = Storage.prototype.setItem;
 const openDB = indexedDB.open.bind(indexedDB);
 const fileSlice = File.prototype.slice;
+const getRecord = IDBObjectStore.prototype.get;
 const evidence = document.querySelector('#evidence');
 const sectionId = '20000000-0000-4000-8000-000000000001';
 let admin = false,
@@ -17,6 +18,8 @@ let admin = false,
   requests = 0,
   blocked = 0;
 let lastSaved = null;
+let seededDraft = null;
+const serviceCalls = { usage: 0, upload: 0, save: 0, remove: 0 };
 let attachments = [];
 // Each synthetic selection has a manually released signature check, independent of filechooser.
 let verificationGate = null;
@@ -87,6 +90,11 @@ indexedDB.open = (...args) => {
   if (enabled('fail-files')) throw Error('QA IndexedDB unavailable');
   return openDB(...args);
 };
+// Read-only faults leave writes healthy, exposing accidental autosave after failed recovery.
+IDBObjectStore.prototype.get = function (...args) {
+  if (this.name === 'files' && enabled('fail-read')) throw Error('QA draft read unavailable');
+  return getRecord.apply(this, args);
+};
 
 // The SDK still builds real queries; this transport serves synthetic responses locally.
 window.fetch = async (input, init) => {
@@ -99,6 +107,7 @@ window.fetch = async (input, init) => {
   requests++;
   const path = url.pathname;
   if (path.endsWith('/rpc/save_post')) {
+    serviceCalls.save++;
     const payload = JSON.parse(init.body);
     if (enabled('delay-save'))
       await new Promise((resolve) => {
@@ -115,8 +124,12 @@ window.fetch = async (input, init) => {
     else posts.push({ ...payload.p_post, version: 1 });
     return response(payload.p_post);
   }
-  if (path.endsWith('/rpc/app_usage'))
+  if (path.includes('/storage/v1/object/') && init?.method === 'POST') serviceCalls.upload++;
+  if (path.includes('/storage/v1/object/') && init?.method === 'DELETE') serviceCalls.remove++;
+  if (path.endsWith('/rpc/app_usage')) {
+    serviceCalls.usage++;
     return response({ storage_bytes: 0, database_bytes_estimate: 1000, egress_bytes: null });
+  }
   if (path.endsWith('/admin_profiles'))
     return response(admin ? [{ role: 'admin', active: true }] : []);
   if (!admin && enabled('fail-public')) return response({ message: 'QA public offline' }, 503);
@@ -166,6 +179,21 @@ client.auth.signOut = async () => {
   return { error: null };
 };
 const main = await import('/src/main.js');
+document.querySelector('#seed-recovery').onclick = async () => {
+  const { filesDraft, saveDraft, draftKey } = await import('/src/services/drafts.js');
+  const key = draftKey('audit-fixture', posts[1].id);
+  const bytes = await (await nativeFetch('/placeholders/sample.pdf')).blob();
+  const attachment = {
+    id: '90000000-0000-4000-8000-000000000123',
+    type: 'document',
+    file_name: 'recovery-qa.pdf',
+    file: new File([bytes], 'recovery-qa.pdf', { type: 'application/pdf' }),
+  };
+  await filesDraft(key, [attachment]);
+  saveDraft(key, { ...posts[1], title: 'Nháp được giữ nguyên', attachments: [attachment] });
+  seededDraft = { key, text: localStorage.getItem(key) };
+  evidence.textContent = 'Đã tạo đúng 1 PDF và snapshot nháp synthetic cho bài PRIVATE QA.';
+};
 document.querySelector('#release-file').onclick = () => verificationGate?.release();
 document.querySelector('#admin').onclick = async () => {
   admin = true;
@@ -208,6 +236,21 @@ async function inspectDrafts() {
   }
   const leave = new Event('beforeunload', { cancelable: true });
   window.dispatchEvent(leave);
+  let seedState = null;
+  if (seededDraft) {
+    const current = localStorage.getItem(seededDraft.key);
+    let files;
+    try {
+      files = ((await filesDraft(seededDraft.key)) || []).length;
+    } catch {
+      files = 'unavailable';
+    }
+    seedState = {
+      textExists: current !== null,
+      textUnchanged: current === seededDraft.text,
+      files,
+    };
+  }
   evidence.textContent = JSON.stringify(
     {
       mockRequests: requests,
@@ -218,6 +261,8 @@ async function inspectDrafts() {
       savedAttachments: lastSaved?.p_attachments.length,
       verificationPending: verificationGate?.pending || false,
       beforeunloadGuarded: leave.defaultPrevented,
+      seedState,
+      serviceCalls,
     },
     null,
     2,
@@ -254,6 +299,21 @@ async function stagePendingFile(dialog) {
 
 // A fixture-only response release button remains operable outside the editor's inert form.
 new MutationObserver(() => {
+  document.querySelectorAll('dialog:not(.drawer)').forEach((modal) => {
+    if (modal.querySelector('.qa-expiry')) return;
+    const controls = el(
+      'div',
+      { class: 'qa-expiry' },
+      button('QA: hết phiên giả lập', () => {
+        admin = false;
+        callbacks.forEach((callback) => callback('SIGNED_OUT'));
+      }),
+      button('QA: tắt lỗi đọc', () => {
+        document.querySelector('#fail-read').checked = false;
+      }),
+    );
+    modal.querySelector('.dialog-content').prepend(controls);
+  });
   const dialog = document.querySelector('dialog.drawer');
   if (!dialog || dialog.querySelector('.qa-release')) return;
   // Controls stay outside the inert production form; all injected identities and files are synthetic.
@@ -281,6 +341,15 @@ new MutationObserver(() => {
     button('QA: tắt lỗi IndexedDB', () => {
       document.querySelector('#fail-files').checked = false;
       state.textContent = 'Đã tắt lỗi IndexedDB.';
+    }),
+    button('QA: tắt lỗi đọc', () => {
+      document.querySelector('#fail-read').checked = false;
+    }),
+    button('QA: đặt lại bộ đếm dịch vụ', () => {
+      Object.keys(serviceCalls).forEach((key) => {
+        serviceCalls[key] = 0;
+      });
+      state.textContent = 'Bộ đếm dịch vụ = 0.';
     }),
     button('QA: kiểm tra nháp', async () => {
       state.textContent = await inspectDrafts();

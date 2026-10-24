@@ -298,6 +298,8 @@ function editPost(post = null, sectionId) {
     ToastNotification('Hãy tạo chủ đề trước khi tạo bài.', true);
     return;
   }
+  const generation = requests.generation(),
+    owner = userId;
   PostEditorDrawer({
     post,
     sectionId,
@@ -305,6 +307,7 @@ function editPost(post = null, sectionId) {
     userId,
     onSaved: refresh,
     onDirty: (value) => (dirty = value),
+    isCurrent: () => admin && userId === owner && requests.generation() === generation,
   }).catch((e) => ToastNotification(errorMessage(e), true));
 }
 

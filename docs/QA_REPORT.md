@@ -1,5 +1,24 @@
 # Bằng chứng kiểm thử
 
+<a id="draft-recovery-review-2026-10-24"></a>
+
+## 2026-10-24 — review AUD-010/011/012
+
+Source: commit tiếp nối `306958ff7d3df59bbc648af778ab79b2fa58f456` trên `fix/audit-reliability-20261024`. Trước sửa production source, fixture được bổ sung seed PDF synthetic, fault chỉ-read IndexedDB và bộ đếm dịch vụ để tái hiện cả ba lỗi. Sau sửa dùng cùng các điều kiện để kiểm regression. Chrome cloud desktop 1348×926, File/IndexedDB thật, Auth event và transport SDK mock; không Supabase/API thật hoặc OS filechooser. Không thêm dependency hay sửa migration/CI/config Auth.
+
+| Case | Baseline và kết quả sau sửa | Trạng thái |
+| --- | --- | --- |
+| QA-A12a / AUD-010 | Seed text + 1 PDF; mở câu hỏi restore rồi SIGNED_OUT. Baseline textExists=false, files=0. Sau sửa textExists=true, textUnchanged=true, files=1; UI riêng đã đóng. Bấm X ở câu hỏi trong phiên hợp lệ cũng giữ nguyên snapshot và file | PASS mock Auth + local persistence |
+| QA-A12b / AUD-011 | Bật fault **chỉ get** IndexedDB, write vẫn khỏe; chọn restore. Baseline tiếp tục editor thiếu file và autosave đổi snapshot/files=0. Sau sửa form inert, không autosave; tắt fault rồi inspect vẫn snapshot nguyên văn và 1 File/header %PDF-. Retry thành công mới cho phép sửa và autosave đủ file | PASS read fault injection + IndexedDB; [ảnh](qa/audit-recovery-read-failure-20261024.jpg) |
+| QA-A12c / AUD-012 | Reset bộ đếm sau khi nạp admin; chọn PDF giữ signature, save, SIGNED_OUT, release signature. Baseline usage/upload/save/remove=1/1/1/1. Sau sửa 0/0/0/0; nháp vẫn chứa File/header %PDF-, beforeunloadGuarded=false. Public refresh metadata vẫn được phép, không tính là bước save. Không suy việc gọi RPC baseline là bằng chứng ghi sai quyền | PASS client cancellation; không JWT/RLS E2E |
+| QA-A12d / explicit discard | Restore đầy đủ PDF rồi đóng/confirm; mở lại và bấm đúng Bỏ bản nháp → textExists=false, files=0. Editor sạch hiển thị dữ liệu gốc. X/SIGNED_OUT được kiểm riêng ở QA-A12a, không coi là consent xóa | PASS synthetic disposable draft |
+| QA-A12e / normal save | Trong phiên mới, restore PDF được giữ sau save bị hủy; save bình thường → mock nhận 1 attachment, board hiện 1 tài nguyên, draft của bài đã lưu được dọn, draft fixture khác vẫn giữ | PASS transport mock |
+| QA-A13 / offline regression | 25/25 unit: thêm 3 recovery tests cho lỗi đọc/retry, blob thiếu hoặc không thuộc order, thứ tự metadata + blob; thêm 4 guard tests kiểm trước usage, sau usage, sau upload đầu và sau reference lookup. Không lặp remote cleanup sau cancellation | PASS offline |
+
+Không có app error/warn trong 100 log gần nhất sau khi loại chrome-extension. Fixture chặn chuyển tiếp request ngoài origin và dùng CSP; liveRequests=0 là invariant của transport, không phải Network-tab measurement. Không chạy lại SQL/REST/Auth/Storage live hoặc đổi dữ liệu runtime. Check/build/format PASS cục bộ, dist không có QA fixture/fault injection. CI phải xem trên đúng HEAD PR; run 40064785504 SUCCESS thuộc baseline 306958f, không dùng thay kết quả mới.
+
+Các giới hạn còn giữ: native picker/OS, Safari/thiết bị, server signup/anonymous, JWT/Storage/signed URL thật, sync hai context và full backup–restore chưa nghiệm thu. Guard không thể hoàn tác request đã gửi và có thể đã commit trước SIGNED_OUT; chỉ chặn bước remote kế tiếp và giữ candidate cleanup cục bộ để kiểm tham chiếu sau.
+
 <a id="pending-files-2026-10-24"></a>
 
 ## 2026-10-24 — điều tra và khắc phục AUD-009

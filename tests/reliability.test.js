@@ -251,3 +251,105 @@ test('cleanup batches large queues and preserves every referenced object', async
   assert.ok(db.removed.every((path) => !referenced.includes(path)));
   assert.deepEqual(JSON.parse(local.get('khtn8:cleanup')), []);
 });
+
+test('cancelled upload before it starts makes no usage or Storage request', async () => {
+  local.clear();
+  const db = storageClient();
+  let calls = 0;
+  db.rpc = async () => {
+    calls++;
+    return { data: { storage_bytes: 0 }, error: null };
+  };
+  const file = new File(['%PDF-test'], 'lesson.pdf', { type: 'application/pdf' });
+  await assert.rejects(
+    uploadAttachments(
+      'post',
+      [{ file }],
+      () => {},
+      db,
+      () => false,
+    ),
+    { name: 'AbortError' },
+  );
+  assert.equal(calls, 0);
+  assert.deepEqual(db.attempts, []);
+});
+
+test('expiry while usage is pending stops the first upload', async () => {
+  local.clear();
+  const db = storageClient();
+  let active = true;
+  db.rpc = async () => {
+    active = false;
+    return { data: { storage_bytes: 0 }, error: null };
+  };
+  const file = new File(['%PDF-test'], 'lesson.pdf', { type: 'application/pdf' });
+  await assert.rejects(
+    uploadAttachments(
+      'post',
+      [{ file }],
+      () => {},
+      db,
+      () => active,
+    ),
+    { name: 'AbortError' },
+  );
+  assert.deepEqual(db.attempts, []);
+  assert.deepEqual(db.removed, []);
+});
+
+test('expiry after the first upload stops the batch and queues its path without remote cleanup', async () => {
+  local.clear();
+  const db = storageClient();
+  let active = true,
+    references = 0;
+  const from = db.from;
+  db.from = (...args) => {
+    references++;
+    return from(...args);
+  };
+  const storage = db.storage.from();
+  db.storage.from = () => ({
+    ...storage,
+    upload: async (path) => {
+      const result = await storage.upload(path);
+      active = false;
+      return result;
+    },
+  });
+  const file = new File(['%PDF-test'], 'lesson.pdf', { type: 'application/pdf' });
+  await assert.rejects(
+    uploadAttachments(
+      'post',
+      [{ file }, { file }],
+      () => {},
+      db,
+      () => active,
+    ),
+    { name: 'AbortError' },
+  );
+  assert.equal(db.attempts.length, 1);
+  assert.equal(references, 0);
+  assert.deepEqual(db.removed, []);
+  assert.deepEqual(JSON.parse(local.get('khtn8:cleanup')), db.attempts);
+});
+
+test('expiry after a reference lookup does not start Storage deletion', async () => {
+  local.clear();
+  const db = storageClient();
+  let active = true;
+  db.from = () => ({
+    select: () => ({
+      in: async () => {
+        active = false;
+        return { data: [], count: 0, error: null };
+      },
+    }),
+  });
+  await assert.rejects(
+    cleanup(['post/possible-orphan.pdf'], db, () => active),
+    { name: 'AbortError' },
+  );
+  assert.deepEqual(db.removed, []);
+  assert.deepEqual(JSON.parse(local.get('khtn8:cleanup')), ['post/possible-orphan.pdf']);
+});

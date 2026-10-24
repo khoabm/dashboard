@@ -8,6 +8,7 @@ import {
   draftKey,
   removeDraft,
   createDraftWriter,
+  recoverAttachments,
 } from '../src/services/drafts.js';
 const map = new Map();
 globalThis.localStorage = {
@@ -36,6 +37,63 @@ test('text draft survives recovery without files or auth credentials', () => {
   assert.notEqual(draftKey('user-b', 'post-a'), key);
   removeDraft(key);
   assert.equal(readDraft(key), null);
+});
+
+test('recovery read failure preserves saved text and the original blob for a later retry', async () => {
+  const key = draftKey('recovery-test', 'post');
+  const file = {
+    id: 'file',
+    file_name: 'lesson.pdf',
+    file: new File(['%PDF-test'], 'lesson.pdf', { type: 'application/pdf' }),
+  };
+  saveDraft(key, { title: 'Original draft', attachments: [file] });
+  const original = map.get(key),
+    saved = readDraft(key);
+  const files = [file];
+  await assert.rejects(
+    recoverAttachments(key, saved, async () => {
+      throw Error('Temporary read failure');
+    }),
+    /Temporary/,
+  );
+  assert.equal(map.get(key), original);
+  assert.equal(await files[0].file.text(), '%PDF-test');
+  const recovered = await recoverAttachments(key, saved, async () => files);
+  assert.equal(recovered[0].id, 'file');
+  assert.equal(map.get(key), original);
+});
+
+test('recovery rejects missing or unlisted blobs instead of silently dropping saved files', async () => {
+  const saved = { attachments: [], attachment_order: ['expected'] };
+  await assert.rejects(
+    recoverAttachments('missing', saved, async () => undefined),
+    /đủ tệp/,
+  );
+  await assert.rejects(
+    recoverAttachments('missing', saved, async () => [{ id: 'expected' }]),
+    /đầy đủ/,
+  );
+  await assert.rejects(
+    recoverAttachments('extra', { attachments: [], attachment_order: [] }, async () => [
+      { id: 'unexpected', file: new Blob(['%PDF-test']) },
+    ]),
+    /đủ tệp/,
+  );
+  assert.deepEqual(saved.attachment_order, ['expected']);
+});
+
+test('complete recovery preserves the mixed metadata/blob order and leaves both stores untouched', async () => {
+  const link = { id: 'link', external_url: 'https://example.org/lesson' };
+  const first = { id: 'one', file: new Blob(['%PDF-one']) },
+    second = { id: 'two', file: new Blob(['%PDF-two']) };
+  const saved = { attachments: [link], attachment_order: ['two', 'link', 'one'] };
+  const recovered = await recoverAttachments('ordered', saved, async () => [first, second]);
+  assert.deepEqual(
+    recovered.map((entry) => entry.id),
+    saved.attachment_order,
+  );
+  assert.equal(await recovered[0].file.text(), '%PDF-two');
+  assert.deepEqual(saved.attachments, [link]);
 });
 
 test('draft flush waits for pending validation before reading dirty state and file bytes', async () => {
