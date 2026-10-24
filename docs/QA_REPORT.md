@@ -1,5 +1,23 @@
 # Bằng chứng kiểm thử
 
+<a id="partial-draft-late-save-2026-10-24"></a>
+
+## 2026-10-24 — review AUD-013/014 tại e98da62
+
+Source: commit tiếp nối `e98da62bdf442d983f3dd7692588f3b9c1848606` trên `fix/audit-reliability-20261024`. Hai finding được xác nhận bằng source; AUD-013 còn tái hiện bằng hai test mới chạy riêng trên bản module baseline (đều FAIL vì không đọc đủ file cũ). Cùng tests PASS sau sửa. Không sửa hay mở lại AUD-010/011/012.
+
+Chrome cloud desktop 1348×926, Sites preview nội bộ. File/DataTransfer và IndexedDB là thật; file lấy từ placeholder local, Auth event và RPC/Storage transport là mock trong `tests/audit.html`. Không dùng native picker, không token hoặc request Supabase thật. Fixture có CSP và không forward fetch ngoài origin; liveRequests=0 là invariant của fixture, không phải số đo Network tab.
+
+| Case | Kết quả quan sát / assertion | Trạng thái |
+| --- | --- | --- |
+| QA-A14a / AUD-013 | Seed legacy recovery-qa.pdf, restore; bật lỗi text trước restore để chặn cả autosave, bỏ file cũ/thêm pending-qa.pdf và đổi tiêu đề. Blob write vẫn khỏe, text báo lỗi. Inspect còn tiêu đề cũ + recovery-qa.pdf/header %PDF-; SIGNED_OUT rồi mở lại/restore vẫn đúng file cũ. Unit so sánh nguyên văn metadata, bytes cũ; thêm ca snapshot versioned → bỏ hết file → text fail, retry không copy blob lại | PASS offline + IndexedDB thật; kiểm lại trên source cuối: textUnchanged=true, files=1, draftFileRecords=3 (gồm version chưa publish), mở lại recovery-qa.pdf. [Ảnh snapshot cũ còn nguyên](qa/audit-013-partial-write-20261024.jpg) |
+| QA-A14b / AUD-014 | Gắn old-qa.pdf synthetic vào bài; thay bằng PDF mới, reset counters, giữ response RPC. Khi usage/upload/save/remove=1/1/1/0, phát SIGNED_OUT rồi trả success. Metadata mock chỉ tham chiếu file mới; queue có đủ old-qa.pdf và path mới, remove vẫn 0; không editor/private UI, beforeunloadGuarded=false | PASS client + transport mock; [ảnh queue sau response muộn](qa/audit-014-late-response-20261024.jpg) |
+| QA-A14c / response lỗi | Giữ RPC và bật fail-save; bỏ file cũ rồi save, xác nhận save=1 trước SIGNED_OUT/release. Response 409 trả muộn: queue giữ old-qa.pdf, remove=0. Nạp lại admin và Dọn tệp thừa: queue hết sau reference check, removedPaths=[] và remotePaths vẫn có old-qa.pdf. Assertion trên JSON bằng chứng đều PASS | PASS mock; kiểm cả nhánh rejection, không giả thành server commit |
+| QA-A14d / luồng hợp lệ | Explicit discard sau các snapshot legacy/staged/versioned: drafts=[], draftFileRecords=0. Save hợp lệ sau đó có 1 PDF/header %PDF-, 2 bản ghi file cục bộ trước save; sau success còn đúng 1 attachment mới, removedPaths chỉ old-qa.pdf, queue=[], drafts=[], draftFileRecords=0. Assertion PASS | PASS local persistence + mock save/cleanup |
+| QA-A15 / checks | 27/27 unit PASS; npm run check, build, format:check PASS. Hai test mới bảo vệ snapshot legacy và versioned qua partial write, retry/recovery và từ chối pointer sang draft khác. Browser regression response muộn dùng handler editor/main thật và fixture release ngoài dialog. CI xem đúng HEAD PR sau commit | PASS offline cục bộ |
+
+Không thêm dependency, không đổi schema/Auth/CI. Không có app error/warn trong 20 log gần nhất đã xem; các log này chỉ từ chrome-extension. Dist không bundle audit fixture. Bản ghi snapshot cũ/staged được giữ đến discard hoặc confirmed save, có thể tăng dung lượng IndexedDB nếu đổi tập file nhiều lần; text-only/retry reuse blob. Cleanup queue vẫn phụ thuộc localStorage thiết bị. Chưa nghiệm thu JWT/Storage thật, native picker, Safari/thiết bị, hai context, full backup/restore, server signup/anonymous; không coi các mục đó là lỗi mới hay đã PASS.
+
 <a id="draft-recovery-review-2026-10-24"></a>
 
 ## 2026-10-24 — review AUD-010/011/012

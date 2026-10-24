@@ -19,6 +19,7 @@ let admin = false,
   blocked = 0;
 let lastSaved = null;
 let seededDraft = null;
+const removedPaths = [];
 const serviceCalls = { usage: 0, upload: 0, save: 0, remove: 0 };
 let attachments = [];
 // Each synthetic selection has a manually released signature check, independent of filechooser.
@@ -125,7 +126,10 @@ window.fetch = async (input, init) => {
     return response(payload.p_post);
   }
   if (path.includes('/storage/v1/object/') && init?.method === 'POST') serviceCalls.upload++;
-  if (path.includes('/storage/v1/object/') && init?.method === 'DELETE') serviceCalls.remove++;
+  if (path.includes('/storage/v1/object/') && init?.method === 'DELETE') {
+    serviceCalls.remove++;
+    removedPaths.push(...JSON.parse(init.body).prefixes);
+  }
   if (path.endsWith('/rpc/app_usage')) {
     serviceCalls.usage++;
     return response({ storage_bytes: 0, database_bytes_estimate: 1000, egress_bytes: null });
@@ -189,12 +193,30 @@ document.querySelector('#seed-recovery').onclick = async () => {
     file_name: 'recovery-qa.pdf',
     file: new File([bytes], 'recovery-qa.pdf', { type: 'application/pdf' }),
   };
+  await filesDraft(key, null);
   await filesDraft(key, [attachment]);
   saveDraft(key, { ...posts[1], title: 'Nháp được giữ nguyên', attachments: [attachment] });
   seededDraft = { key, text: localStorage.getItem(key) };
   evidence.textContent = 'Đã tạo đúng 1 PDF và snapshot nháp synthetic cho bài PRIVATE QA.';
 };
 document.querySelector('#release-file').onclick = () => verificationGate?.release();
+document.querySelector('#release-save').onclick = () => releaseSave?.();
+document.querySelector('#seed-remote').onclick = async () => {
+  attachments = [
+    {
+      id: '90000000-0000-4000-8000-000000000456',
+      post_id: posts[1].id,
+      type: 'document',
+      storage_path: `${posts[1].id}/old-qa.pdf`,
+      file_name: 'old-qa.pdf',
+      mime_type: 'application/pdf',
+      size_bytes: 100,
+      sort_order: 0,
+    },
+  ];
+  await main.refreshAuth();
+  evidence.textContent = 'Đã gắn 1 file Storage synthetic old-qa.pdf. Không upload thật.';
+};
 document.querySelector('#admin').onclick = async () => {
   admin = true;
   await main.refreshAuth();
@@ -251,6 +273,28 @@ async function inspectDrafts() {
       files,
     };
   }
+  // Count only synthetic records, including unpublished snapshots left after a failed text write.
+  const draftFileRecords = await new Promise((resolve) => {
+    const request = openDB('khtn8-drafts', 1);
+    request.onupgradeneeded = () => request.result.createObjectStore('files');
+    request.onerror = () => resolve('unavailable');
+    request.onsuccess = () => {
+      const db = request.result;
+      const tx = db.transaction('files', 'readonly');
+      const keys = tx.objectStore('files').getAllKeys();
+      keys.onsuccess = () =>
+        resolve(
+          keys.result.filter(
+            (key) => typeof key === 'string' && key.startsWith('khtn8:draft:audit-fixture:'),
+          ).length,
+        );
+      tx.oncomplete = () => db.close();
+      tx.onerror = () => {
+        db.close();
+        resolve('unavailable');
+      };
+    };
+  });
   evidence.textContent = JSON.stringify(
     {
       mockRequests: requests,
@@ -263,6 +307,10 @@ async function inspectDrafts() {
       beforeunloadGuarded: leave.defaultPrevented,
       seedState,
       serviceCalls,
+      cleanupCandidates: JSON.parse(localStorage.getItem('khtn8:cleanup') || '[]'),
+      remotePaths: attachments.map((attachment) => attachment.storage_path),
+      removedPaths,
+      draftFileRecords,
     },
     null,
     2,
@@ -344,6 +392,12 @@ new MutationObserver(() => {
     }),
     button('QA: tắt lỗi đọc', () => {
       document.querySelector('#fail-read').checked = false;
+    }),
+    button('QA: bật lỗi text', () => {
+      document.querySelector('#fail-text').checked = true;
+    }),
+    button('QA: tắt lỗi text', () => {
+      document.querySelector('#fail-text').checked = false;
     }),
     button('QA: đặt lại bộ đếm dịch vụ', () => {
       Object.keys(serviceCalls).forEach((key) => {

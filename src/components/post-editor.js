@@ -450,6 +450,8 @@ export async function PostEditorDrawer({
     }
     error.textContent = '';
     let uploaded;
+    let unused = [];
+    let saveAttempted = false;
     try {
       if (!navigator.onLine) throw Error('Bạn đang ngoại tuyến. Nháp vẫn được giữ trên thiết bị.');
       uploaded = await uploadAttachments(
@@ -463,17 +465,20 @@ export async function PostEditorDrawer({
         queueCleanup(uploaded.paths);
         return;
       }
-      await savePost(value, uploaded.attachments);
-      if (!canContinue()) {
-        queueCleanup(uploaded.paths);
-        return;
-      }
-      const unused = original
+      unused = original
         .filter(
           (a) =>
             a.storage_path && !uploaded.attachments.some((b) => a.storage_path === b.storage_path),
         )
         .map((a) => a.storage_path);
+      saveAttempted = true;
+      await savePost(value, uploaded.attachments);
+      // The RPC may commit after SIGNED_OUT. Keep replaced paths before the cancellation exit.
+      queueCleanup(unused);
+      if (!canContinue()) {
+        queueCleanup(uploaded.paths);
+        return;
+      }
       await cleanup(unused, undefined, canContinue).catch(() => {
         if (canContinue())
           ToastNotification(
@@ -497,6 +502,8 @@ export async function PostEditorDrawer({
         nextStatus === 'published' ? 'Đã xuất bản bài đăng.' : 'Đã lưu bài đăng trên Supabase.',
       );
     } catch (e) {
+      // A lost response cannot establish whether the RPC committed; later cleanup checks references.
+      if (saveAttempted) queueCleanup(unused);
       if (uploaded) {
         if (canContinue()) await cleanup(uploaded.paths, undefined, canContinue).catch(() => {});
         else queueCleanup(uploaded.paths);

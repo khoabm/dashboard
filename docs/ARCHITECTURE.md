@@ -81,7 +81,7 @@ Các vùng dưới đây được lắp trong `src/main.js` bằng helper `el(..
 | Supabase client/query/Auth/export/pagination | src/services/client.js, board.js, pagination.js | tests/reliability.test.js: complete pages/count/failure; anon API + SQL role regression |
 | Session request generation | src/utils/request-gate.js; src/main.js xóa snapshot khi SIGNED_OUT | unit late-response race + tests/audit.html logout/failure |
 | File upload/sign/cleanup | src/services/storage.js | offline uncertain upload + guarded/batched cleanup; upload bytes thật chưa chạy |
-| Text / Blob nháp / flush queue | src/services/drafts.js: createDraftWriter chờ file rồi đọc snapshot; recoverAttachments chỉ đọc đủ order/blob hoặc báo lỗi; serialize write và fence cleanup | tests/drafts.test.js (pending/write failure/serial) + QA-A10 File API/IndexedDB |
+| Text / Blob nháp / flush queue | src/services/drafts.js: createDraftWriter chờ file, ghi snapshot blob bất biến rồi publish files_key trong text; reuse blob cho cùng tập ID file; đọc legacy, recover đủ order/blob hoặc báo lỗi; serialize write/fence cleanup, discard/confirmed save xóa các version cùng draft | tests/drafts.test.js (pending/write failure/serial) + QA-A10 File API/IndexedDB |
 | URL/file/search/order/retention/quota/ID/DOM | src/utils/ | tests/*.test.js; preview UUID fallback verified |
 | Public config / placeholder fixtures | src/config/public.js, src/data/placeholders.js, public/placeholders/ | public board/media |
 | Schema/RLS/atomic RPC | supabase/migrations/, seed.sql | supabase/tests/access.sql |
@@ -91,3 +91,7 @@ Vite chỉ bundle SDK và cấu hình public, output static dist. Không có ser
 Editor phân biệt file selection/result với input khi busy: markDirty vẫn nhận kết quả đã xếp hàng, nhưng không cập nhật dirty toàn cục sau khi dialog đóng. Close và preserveDraft chờ signature trước flush; logout flush trước confirm, hủy luồng cũ nếu Auth generation đổi. SIGNED_OUT xóa UI ngay, để local flush hoàn tất trước uploader cleanup; không chờ network hoặc giữ UI quản trị mở.
 
 DraftRecoveryDialog tách restore/discard/cancel; dismissal không cho phép xóa. Editor khóa mọi ghi khi recovery chưa hoàn tất, giữ model cũ cho đến khi đọc đủ blobs và cho phép retry. main truyền owner/Auth generation; canContinue kiểm cả dialog và generation qua các await của submit. Storage nhận isCurrent để dừng bước quota/upload/delete kế tiếp; queueCleanup chỉ ghi path cục bộ khi thao tác đã hết hiệu lực, không cam kết rollback request đã gửi.
+
+Nháp publish bằng localStorage sau khi IndexedDB transaction hoàn tất, không ghi đè blob của snapshot đã commit. Nếu text fail thì metadata cũ tiếp tục trỏ tới blob cũ; snapshot chưa publish vẫn giữ đến explicit discard/confirmed save. Storage snapshot key bị giới hạn cùng namespace UID/post. Các version thay tập file có thể tăng dung lượng cục bộ; chỉ sửa text/retry không sao chép blob lại. Đây chưa phải bằng chứng đồng bộ hai context độc lập.
+
+Editor tính candidate file cũ bị thay trước save RPC, queue sau response trước mọi cancellation exit; response lỗi/không rõ commit cũng giữ candidate để phiên admin sau kiểm tham chiếu. SIGNED_OUT không bắt đầu remote cleanup. Chi tiết điều tra AUD-013/014 trong BUG_FIX_LOG, không thay điều kiện RLS/JWT.
