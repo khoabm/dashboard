@@ -167,7 +167,7 @@ function renderControls() {
       { class: 'board-label' },
       '▦  Bảng học liệu',
       lastSync
-        ? ` · cập nhật ${lastSync.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`
+        ? ` · Tải lần cuối lúc ${lastSync.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`
         : '',
     ),
   );
@@ -230,7 +230,7 @@ function render() {
         async () => {
           try {
             await cleanupPending();
-            ToastNotification('Đã kiểm tra và dọn các tệp thừa được ghi nhận.');
+            ToastNotification('Đã hoàn tất kiểm tra các tệp đang chờ dọn.');
           } catch (e) {
             ToastNotification(errorMessage(e), true);
           }
@@ -340,7 +340,7 @@ async function deletePost(post) {
  */
 async function restorePost(post) {
   if (!canRestore(post)) {
-    ToastNotification('Đã hết thời hạn khôi phục 30 ngày. Không tự động xóa tệp.', true);
+    ToastNotification('Bài đăng này đã quá thời hạn khôi phục 30 ngày.', true);
     return;
   }
   try {

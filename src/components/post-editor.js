@@ -326,7 +326,7 @@ export async function PostEditorDrawer({
     if (dirty && dialog.open)
       draftStatus.textContent = saved
         ? 'Bản nháp đã được lưu trên thiết bị này, nhưng chưa được lưu vào bài đăng.'
-        : 'Không thể lưu nháp cục bộ. Hãy giữ trang mở và thử lại.';
+        : 'Chưa thể lưu bản nháp trên thiết bị này. Hãy giữ trang mở và thử lại.';
     return saved;
   }
   const autosave = debounce(persist, 450);
@@ -373,7 +373,7 @@ export async function PostEditorDrawer({
   // The uploader and both feedback regions follow the post fields inside the form.
   form.append(uploader, error, draftStatus);
   const saveDraftButton = button('Lưu bản nháp lên hệ thống', () => submit('draft'));
-  const publish = el('button', { type: 'submit', class: 'button primary' }, 'Lưu thay đổi');
+  const publish = el('button', { type: 'submit', class: 'button primary' }, 'Lưu bài đăng');
   const closeButton = button('×', requestClose, 'icon-button', {
     'aria-label': 'Đóng trình soạn thảo',
   });

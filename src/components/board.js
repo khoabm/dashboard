@@ -130,7 +130,7 @@ export function PostCard(post, { admin, onOpen, onEdit, onMove, onDelete, onRest
         'div',
         { class: 'card-art document-art' },
         el('span', { class: 'paper' }, 'PDF', el('i'), el('i'), el('i')),
-        el('span', {}, 'TÀI LIỆU MẪU'),
+        el('span', {}, post.placeholder_kind ? 'TÀI LIỆU MẪU' : 'TÀI LIỆU ĐÍNH KÈM'),
       ),
     );
   if (kind === 'youtube')
@@ -139,7 +139,7 @@ export function PostCard(post, { admin, onOpen, onEdit, onMove, onDelete, onRest
         'div',
         { class: 'card-art video-art' },
         el('span', { class: 'play' }, '▶'),
-        el('span', {}, 'VIDEO MẪU'),
+        el('span', {}, post.placeholder_kind ? 'VIDEO MẪU' : 'VIDEO'),
       ),
     );
   // The card body groups resource kind, title, summary, and attachment count.
@@ -185,7 +185,7 @@ export function PostCard(post, { admin, onOpen, onEdit, onMove, onDelete, onRest
               }),
               button('Sửa', () => onEdit(post), 'button tiny'),
               button('×', () => onDelete(post), 'icon-button small', {
-                'aria-label': `Xóa ${post.title}`,
+                'aria-label': `Chuyển ${post.title} vào thùng rác`,
               }),
             ),
       ),

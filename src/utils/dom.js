@@ -48,18 +48,51 @@ export function field(label, control) {
   return el('label', { class: 'field' }, el('span', {}, label), control);
 }
 
+// Only explicitly reviewed app messages may reach the UI verbatim.
+// Backend messages can contain internal table names, request details, or English diagnostics.
+const userFacingErrors = new Set([
+  'Hệ thống chưa được thiết lập đầy đủ. Vui lòng liên hệ người quản lý.',
+  'Đăng nhập không thành công. Kiểm tra thông tin hoặc thử lại sau.',
+  'Tài khoản này chưa được cấp quyền quản trị.',
+  'Vui lòng nhập tên chủ đề.',
+  'Bạn đang ngoại tuyến. Nháp vẫn được giữ trên thiết bị.',
+  'Không xác minh được đầy đủ dữ liệu. Hãy tải lại trước khi chỉnh sửa.',
+  'Dữ liệu thay đổi khi đang tải. Hãy tải lại trước khi chỉnh sửa.',
+  'Trang dữ liệu không nhất quán. Hãy tải lại trước khi chỉnh sửa.',
+  'Số lượng dữ liệu không nhất quán. Hãy tải lại.',
+  'Mỗi bài tối đa 10 tài nguyên.',
+  'Mỗi tệp phải nhỏ hơn 2 MB (2.000.000 byte).',
+  'Chỉ nhận JPG, PNG, WebP, PDF, DOCX, PPTX, XLSX đúng định dạng.',
+  'Nội dung tệp không khớp định dạng.',
+  'Chưa kiểm tra được dung lượng lưu trữ. Để tránh vượt giới hạn, việc tải tệp mới đang tạm dừng.',
+  'Dung lượng lưu trữ đã gần giới hạn an toàn (90%). Vui lòng giải phóng dung lượng hoặc thêm liên kết thay thế.',
+  'Chưa thể xác định tệp nào có thể xóa an toàn trong nhóm này. Nhóm tệp này được giữ nguyên.',
+  'Chưa thể mở tệp trong bản nháp. Nội dung đã lưu vẫn được giữ nguyên.',
+  'Ghi tệp nháp bị hủy.',
+  'Tệp nháp không đầy đủ. Bản nháp đã lưu vẫn được giữ nguyên.',
+  'Chưa đọc đủ tệp nháp. Bản nháp đã lưu vẫn được giữ nguyên.',
+]);
+
 /**
  * Converts known backend and session failures into actionable UI messages.
+ * Never display unknown backend text directly, even when it resembles a friendly message.
  *
  * @param {object} error - The error returned or thrown by a service.
  * @returns {string} A localized message, with a fallback for unknown errors.
  */
 export function errorMessage(error) {
+  const message = typeof error?.message === 'string' ? error.message : '';
   if (error?.code === '40001')
     return 'Bài đăng đã có thay đổi từ nơi khác. Bản nháp của bạn vẫn được giữ; hãy tải lại bài để xem phiên bản mới nhất.';
   if (error?.code === '23503')
-    return 'Cột còn bài đăng (kể cả nháp và thùng rác). Hãy chuyển các bài sang cột khác trước.';
-  if (error?.code === '42501' || /JWT|session/i.test(error?.message || ''))
+    return 'Chủ đề này vẫn có bài đăng, bao gồm cả bài nháp và bài trong thùng rác. Hãy chuyển các bài sang chủ đề khác trước.';
+  if (error?.code === '42501' || /JWT|session/i.test(message))
     return 'Phiên đăng nhập hoặc quyền quản trị không còn hợp lệ. Nội dung nháp vẫn được giữ.';
-  return error?.message || 'Không kết nối được dữ liệu. Hãy kiểm tra mạng rồi thử lại.';
+  if (error?.status === 429 || error?.code === '429')
+    return 'Có quá nhiều yêu cầu cùng lúc. Vui lòng thử lại sau.';
+  if (error?.name === 'AbortError') return 'Thao tác đã dừng. Vui lòng thử lại nếu cần.';
+  if (userFacingErrors.has(message)) return message;
+  if (/Failed to fetch|NetworkError|Load failed/i.test(message))
+    return 'Không thể kết nối. Vui lòng kiểm tra mạng rồi thử lại.';
+  return 'Không thể hoàn tất thao tác. Vui lòng thử lại sau.';
 }

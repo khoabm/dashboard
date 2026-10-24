@@ -69,13 +69,13 @@ export function SectionEditor(section, data, onSaved) {
         async () => {
           const count = data.posts.filter((p) => p.section_id === section.id).length;
           if (count) {
-            error.textContent = `Chủ đề còn ${count} bài (gồm nháp/thùng rác). Hãy chuyển các bài sang chủ đề khác trước.`;
+            error.textContent = `Chủ đề này vẫn còn ${count} bài đăng, bao gồm cả bài nháp và bài trong thùng rác. Hãy chuyển chúng sang chủ đề khác trước.`;
             return;
           }
           if (
             !(await ConfirmDialog(
               'Xóa chủ đề trống?',
-              'Thao tác này xóa cột trống. Không có bài đăng nào bị xóa.',
+              'Chủ đề trống này sẽ bị xóa. Không có bài đăng nào bị xóa.',
             ))
           )
             return;
