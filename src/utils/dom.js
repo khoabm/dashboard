@@ -1,6 +1,5 @@
 /** Builds DOM controls and translates service errors into user-facing messages. */
 
-
 /**
  * Creates a DOM element with attributes, event handlers, and flattened child nodes.
  * Text children use text nodes rather than HTML parsing.
