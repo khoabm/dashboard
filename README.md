@@ -26,7 +26,7 @@ npm run build
 
 ## CI và format code
 
-`npm run format:check` kiểm tra Prettier cho file code mới/đã thay đổi so với baseline trước quy ước; `npm run format:check:all` kiểm tra toàn bộ source (legacy chưa format có thể FAIL); `npm run format` chỉ dùng khi chủ động làm một đợt format-only. Công cụ dùng Prettier 3.6.2 cố định qua `npx` (cần truy cập npm registry), không tự đổi logic.
+`npm run format:check` kiểm tra Prettier trên **toàn bộ JS/CSS/HTML thực thi và test scripts** (không còn baseline miễn trừ); `npm run format:check:all` là alias tương thích, `npm run format` chỉ dùng khi chủ động làm task format-only. Công cụ dùng Prettier 3.6.2 cố định qua `npx` (cần truy cập npm registry), không tự đổi logic.
 
 GitHub Actions `.github/workflows/ci.yml` chạy khi PR/merge vào `develop` hoặc `main`, và hỗ trợ `workflow_dispatch` khi workflow có trên default branch `main`. CI chỉ `npm ci`, syntax/secret scan, unit tests, static build và format check; **không gọi** `npm run test:api` hay Supabase. Xem [CODE_STYLE](docs/CODE_STYLE.md) và [TESTING](docs/TESTING.md).
 

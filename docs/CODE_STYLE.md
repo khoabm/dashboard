@@ -4,8 +4,8 @@ Tài liệu này là nguồn chuẩn **về cách trình bày source** cho devel
 
 ## Trạng thái và phạm vi
 
-- **Có hiệu lực như quy ước viết code:** áp dụng cho file mới và phần code được chỉnh sửa về sau. Code cũ trên `develop` chưa tuân thủ đồng đều, đặc biệt JS/CSS/HTML đang viết nén.
-- **CI giai đoạn đầu:** đã có Prettier config + scripts + GitHub Actions, nhưng chưa format hàng loạt source cũ. CI kiểm tra file mới hoặc file có nội dung khác với baseline `e075f0c`; file cũ giữ nguyên byte được miễn trừ tạm thời. Không cài ESLint, không sửa logic, không chạm SQL migration đã apply.
+- **Áp dụng cho code hiện tại và tương lai:** source JS/CSS/HTML trong `src/`, `tests/`, `scripts/`, `index.html` và `vite.config.js` đã chạy Prettier 3.6.2 tại commit `4058de8`. Unit tests, syntax check, build và kiểm tra AST của Prettier đều đi qua workflow format-only trước khi commit.
+- **CI hiện hành:** `npm run format:check` kiểm tra **toàn bộ file code thuộc phạm vi trên**, không còn baseline miễn trừ. Không cài ESLint, không sửa logic, không chạm SQL migration đã apply.
 - Trước khi sửa một file, đọc nó và giữ nguyên logic, public API, thứ tự side effect, CSS cascade, HTML/CSP, dữ liệu và hành vi. Định dạng code cũ phải là nhiệm vụ/commit riêng có phạm vi rõ và có diff + regression checks.
 - Không áp dụng formatter lên `package-lock.json`, `dist/`, tệp nhị phân, dữ liệu do người dùng upload, hay migration SQL **đã áp dụng**. Không đưa secret vào output/tooling.
 
@@ -37,19 +37,19 @@ Sử dụng **Prettier 3.6.2 (pin exact version)** cho JS/MJS, CSS, HTML, JSON v
 | JSON | Indent 2 spaces; key và chuỗi nháy kép; JSON hợp lệ (không comment/trailing comma); không chỉnh sửa lockfile vì lý do format |
 | Markdown | Heading và code fence có language; link tương đối còn hoạt động; bảng/list dễ đọc; tránh nhân bản tài liệu chuẩn |
 
-## Lệnh hiện có và baseline chuyển tiếp
+## Lệnh format và phạm vi CI
 
 ```bash
-npm run format:check       # CI: kiểm tra file code mới / đã đổi từ baseline
-npm run format:check:all   # Toàn bộ code; có thể FAIL với legacy chưa format
-npm run format             # Format toàn bộ code; chỉ chạy trong task format-only
+npm run format:check       # CI: Prettier trên toàn bộ JS/CSS/HTML code và tests
+npm run format:check:all   # Alias cho kiểm tra toàn bộ
+npm run format             # Chỉ chạy khi chủ động thực hiện format-only
 ```
 
-- CI chỉ thực thi `npm ci`, `npm run check`, `npm test`, `npm run build`, `npm run format:check`. **Không** chạy `npm run test:api`, `supabase/tests/`, browser QA hoặc truy cập Supabase; giữ quota backend bằng 0 cho CI.
-- Mốc `e075f0c` là snapshot source trước khi áp dụng style. `scripts/format-check.mjs` so sánh Git blob SHA-1 của từng file đã theo dõi: file cũ **không đổi byte** được miễn, file mới/file đã thay đổi phải đạt Prettier toàn file. CI cần checkout full history. Không miễn trừ file mới hoặc file cũ đã sửa, kể cả khi lỗi format nằm ở đoạn chưa chạm.
-- Quy tắc chuyển tiếp cho agent: khi cần sửa một file legacy, cân nhắc commit format-only chính file đó trước rồi commit logic riêng và chạy regression. Không tự format tất cả file chỉ vì một thay đổi nhỏ. Khi tất cả legacy đã format, bỏ cơ chế baseline và dùng `format:check:all` trong CI.
-- Prettier được gọi qua `npx --yes prettier@3.6.2` với phiên bản cố định, chưa thêm devDependency/lockfile cho formatter. Khi có môi trường cài npm và tác vụ công cụ riêng, ưu tiên đưa Prettier vào devDependencies với lockfile đồng bộ. ESLint vẫn là lựa chọn về chất lượng code, không nằm trong CI hiện tại.
-- Với GitHub Actions: `pull_request` đích `develop/main` kiểm tra trước merge; `push` vào `develop/main` kiểm tra sau merge; `workflow_dispatch` cho chạy thủ công. GitHub chỉ hiển thị/chấp nhận lần chạy thủ công khi workflow file đã có trên **default branch `main`**. Không tự merge để kích hoạt.
+- Check scope: `src/**/*.{js,mjs,css,html,json}`, `tests/**/*.{js,mjs,html,json}`, `scripts/**/*.{js,mjs,json}`, `index.html` và `vite.config.js`. Không dùng baseline `e075f0c` nữa; file mới và file cũ đều phải đạt Prettier. Các file docs, workflow YAML, lockfile và SQL migration nằm ngoài **gate code format** này.
+- CI chính chạy `npm ci`, `npm run check`, `npm test`, `npm run build`, `npm run format:check`. **Không** gọi `npm run test:api`, `supabase/tests/`, browser QA hoặc Supabase. CI code không phụ thuộc quota backend.
+- Prettier CLI được pin ở `3.6.2` và gọi qua `npx --yes`; chưa thêm devDependency/lockfile riêng cho formatter. Khi thay đổi công cụ trong task khác, cần giữ version cố định và lockfile đồng bộ. ESLint chưa được cài.
+- Sau commit format-only, tránh trộn reformat với sửa logic. Có thể review diff bằng `git diff --ignore-all-space` nhưng không dùng so sánh whitespace như bằng chứng duy nhất cho JS; khi sửa nghiệp vụ phải chạy regression tương ứng.
+- `pull_request` vào `develop/main` kiểm tra trước merge; `push` vào `develop/main` kiểm tra sau merge; `workflow_dispatch` cho chạy thủ công khi workflow có trên default branch `main`. Không tự merge để kích hoạt.
 
 ## Quy tắc dễ đọc khi viết/sửa code
 
@@ -82,7 +82,7 @@ Ví dụ chỉ minh họa cách trình bày, **không phải API mới** hoặc 
 
 ### SQL / Supabase
 
-Prettier **không có parser SQL PostgreSQL mặc định**; không dùng Prettier trực tiếp cho `*.sql` và không tự cài plugin SQL ở lượt docs-only. Với **migration mới**:
+Prettier **không có parser SQL PostgreSQL mặc định**; không dùng Prettier trực tiếp cho `*.sql` và không tự cài plugin SQL chỉ để format. Với **migration mới**:
 
 - Indent 2 spaces; mỗi mệnh đề SQL chính một dòng; tên schema/table/column theo `snake_case` hiện có; keyword SQL dùng chữ hoa nhất quán để dễ quét.
 - Chia rõ `CREATE`, `ALTER`, `SELECT`, `WHERE`, `JOIN`, `ON`, `GRANT`, `REVOKE` và các nhánh PL/pgSQL khi câu lệnh phức tạp. Chú thích lý do của RLS/privilege/transaction thay vì lặp tên lệnh.
@@ -91,7 +91,7 @@ Prettier **không có parser SQL PostgreSQL mặc định**; không dùng Pretti
 ## Quy trình cho agent
 
 1. Đọc `AGENTS.md` → `OVERVIEW.md` + `STATUS.md` → tài liệu theo nhiệm vụ. Khi định **viết/sửa code**, đọc thêm file này và các file đích; đừng quét toàn codebase.
-2. Trước khi thay đổi, xác định đây là `docs-only`, `format-only` hay `behavior change`. Trong lượt docs-only chỉ sửa tài liệu. Với file mới áp dụng toàn bộ quy ước; với file cũ áp dụng cho phần thay đổi mà không kéo theo diff lớn.
-3. Công cụ đang có: `.prettierrc.json`, `npm run format`, `npm run format:check`, `npm run format:check:all` và `.github/workflows/ci.yml`. Không giả định file legacy đã đạt Prettier; xem mục baseline bên trên. Chỉ cân nhắc ESLint để phát hiện lỗi/chất lượng JS, **không** trùng trách nhiệm format của Prettier.
+2. Trước khi thay đổi, xác định đây là `docs-only`, `format-only` hay `behavior change`. Trong lượt docs-only chỉ sửa tài liệu. Với file mới hay file đã có, áp dụng quy ước format và giữ diff logic tập trung.
+3. Công cụ đang có: `.prettierrc.json`, `npm run format`, `npm run format:check`, `npm run format:check:all` và `.github/workflows/ci.yml`. Gate CI kiểm tra toàn bộ code thực thi thuộc phạm vi nêu trên; không có baseline. Chỉ cân nhắc ESLint để phát hiện lỗi/chất lượng JS, **không** trùng trách nhiệm format của Prettier.
 4. Với format-only, review diff để xác nhận **chỉ whitespace/line wrapping/quote/semi hợp lệ**, chạy syntax/test/build và regression phù hợp khi có môi trường; ghi PASS/FAIL/BLOCKED/NOT RUN trung thực. Với docs-only, kiểm tra link và phạm vi file; không cần browser QA.
 5. Bàn giao kèm branch/SHA, danh sách file, trạng thái formatter/linter thực tế và checks theo [WORKFLOW](WORKFLOW.md). Không tự merge `develop`/`main` hoặc deploy.

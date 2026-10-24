@@ -47,9 +47,9 @@ Workflow `.github/workflows/ci.yml`: `workflow_dispatch`, PR hướng tới `dev
 | `npm run check` | Syntax JS, scan secret/JWT hardcode, git diff whitespace | Offline |
 | `npm test` | Toàn bộ unit regression dưới `tests/*.test.js` | Offline; chạy tất cả test hiện tại |
 | `npm run build` | Static bundling Vite | Offline, không deploy |
-| `npm run format:check` | Prettier 3.6.2; kiểm tra file mới/đã đổi từ baseline trước style | Không miễn trừ file mới; legacy bất biến được miễn tạm thời |
+| `npm run format:check` | Prettier 3.6.2; kiểm tra toàn bộ code JS/CSS/HTML thực thi và tests | Không còn baseline miễn trừ; đầy đủ file trong phạm vi script |
 
-Theo yêu cầu tránh quota: **không đưa** `npm run test:api`, `supabase/tests/access.sql`, test Auth/RLS/Storage live hay browser E2E vào CI. Chúng vẫn thuộc ma trận nghiệm thu thủ công khi được giao riêng; một CI PASS không tương đương backend/browser PASS. `npm run format:check:all` cho biết nợ format của code cũ, không phải gate CI giai đoạn này.
+Theo yêu cầu tránh quota: **không đưa** `npm run test:api`, `supabase/tests/access.sql`, test Auth/RLS/Storage live hay browser E2E vào CI. Chúng vẫn thuộc ma trận nghiệm thu thủ công khi được giao riêng; một CI PASS không tương đương backend/browser PASS. `npm run format:check:all` là alias của gate format hiện tại; source code thực thi đã được format trong commit `4058de8`, không có baseline miễn trừ.
 
 GitHub yêu cầu workflow có trên default branch (`main`) trước khi nút **Run workflow**/`workflow_dispatch` hoạt động. Trước đó có thể dùng PR checks; không merge vào main chỉ để kích hoạt manual.
 

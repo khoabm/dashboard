@@ -5,7 +5,7 @@ Cập nhật 2026-10-23. Repo `khoabm/dashboard`, `develop`. Baseline docs `f145
 | Thành phần | Bằng chứng hiện tại |
 | --- | --- |
 | Frontend | HTML/CSS/Vanilla JS + Vite 8.3.5 / Supabase JS 2.118.0; npm lockfile; build dist thành công. 1 board/3 cột/6 bài placeholder đọc Supabase thật, search/modal/media/responsive |
-| CI / Code style (2026-10-24) | Đã thêm workflow CI offline (unit/syntax/build/Prettier), config và scripts; legacy chưa được format đồng loạt, dùng baseline chuyển tiếp theo [CODE_STYLE](CODE_STYLE.md); chưa có bằng chứng GitHub Actions PASS; không kiểm tra API/Supabase |
+| CI / Code style (2026-10-24) | Prettier 3.6.2 đã format toàn bộ 28 file thực thi/test tại `4058de8`; bước debug-check AST, unit, syntax, build và format-check hoàn tất trước commit của GitHub runner. CI chính kiểm tra toàn bộ code, không còn baseline; CI chính chưa chạy qua PR/merge. Không kiểm tra API/Supabase |
 | Supabase | `dashboard` / `vgciiqtwmxcdqppntgnt`, PostgreSQL 17.11; tổ chức `qvosfzztldzaxxodxzlx` plan/tier Free theo plugin. 4 migrations đã apply; private bucket, RLS, audit, optimistic save/reorder và quota RPC |
 | Auth / CMS | Source login/CRUD/status/upload/thumbnail/nháp/sort/soft-delete/restore/export. Auth users=0, admin_profiles=0; chưa tạo credential, chưa cấp admin, chưa xác minh/tắt server signup. E2E admin thật BLOCKED |
 | QA | 7 unit PASS; check/build PASS; SQL transaction role regression PASS; anon REST write/RPC/upload denied PASS. Chrome public UI + 5 iframe viewport PASS, editor fixture nháp/PDF/XSS/lỗi quyền PASS. Xem QA_REPORT |
