@@ -1,6 +1,6 @@
 # Kiến trúc và cách code
 
-Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dưới đây phản ánh implementation trên develop; nghiệm thu runtime xem STATUS/QA_REPORT.
+Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dưới đây áp dụng cho implementation của branch đang đọc (nhánh audit xuất phát từ refactor, chưa merge vào `develop`); nghiệm thu runtime xem STATUS/QA_REPORT.
 
 ## Ranh giới
 
