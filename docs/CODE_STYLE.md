@@ -1,6 +1,6 @@
 # Quy ước định dạng code (Code Style)
 
-Tài liệu này là nguồn chuẩn **về cách trình bày source** cho developer và AI agent của KHTN8 Board. Đọc [AGENTS](../AGENTS.md) và [ARCHITECTURE](ARCHITECTURE.md) để biết phạm vi, kiến trúc và trách nhiệm module; tài liệu này không thay thế [SPEC](SPEC.md), quy tắc bảo mật hay kiểm thử.
+Tài liệu này là nguồn chuẩn **về cách trình bày source** cho developer và AI agent của KHTN8 Board. Quy ước viết comment nằm tại [COMMENTING_GUIDELINES](COMMENTING_GUIDELINES.md), không lặp lại ở đây. Đọc [AGENTS](../AGENTS.md) và [ARCHITECTURE](ARCHITECTURE.md) để biết phạm vi, kiến trúc và trách nhiệm module; tài liệu này không thay thế [SPEC](SPEC.md), quy tắc bảo mật hay kiểm thử.
 
 ## Trạng thái và phạm vi
 

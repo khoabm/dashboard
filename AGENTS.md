@@ -17,7 +17,7 @@
 | Database / Auth / upload | DATABASE, SECURITY; SPEC R08–13, R21; ZERO_COST |
 | Sites / preview / hosting | WORKFLOW, DEPLOYMENT; TESTING; ZERO_COST |
 | Review / bug / refactor | File thay đổi + tiêu chí SPEC liên quan + TESTING; không mở rộng tính năng |
-| Viết/sửa code, format-only | CODE_STYLE + file đích + ARCHITECTURE; tuân thủ phạm vi diff, không auto-format toàn repo |
+| Viết/sửa code, format/comment-only | CODE_STYLE + COMMENTING_GUIDELINES + file đích + ARCHITECTURE; giữ diff đúng phạm vi |
 
 Các đường dẫn viết tắt trên thuộc `docs/`. Bản tóm tắt không thay thế tiêu chí chi tiết: đọc đúng Rxx trước khi triển khai/nghiệm thu phần đó.
 
@@ -45,7 +45,7 @@ Yêu cầu mới của người dùng > SPEC + DECISIONS đã chốt > hướng 
 
 ## Cách code và kiểm chứng
 
-Theo ARCHITECTURE và [CODE_STYLE](docs/CODE_STYLE.md) khi viết/sửa code. Prettier đã có config và CI kiểm tra toàn bộ code thực thi (không còn baseline miễn trừ); ESLint chưa cài. Chỉ chạy format toàn repo khi nhiệm vụ cho phép; không trộn format-only với sửa logic. Thay đổi tập trung; không tạo abstraction, dependency, mock backend thành công hoặc test chỉ lặp implementation. Kiểm thử có ý nghĩa cho luồng bị thay đổi; regression bắt buộc khi sửa logic lưu/xuất bản, phân quyền, upload, thứ tự, chống mất nháp. Docs-only: kiểm tra liên kết, đủ yêu cầu, đúng trạng thái; không chạy browser QA vô nghĩa.
+Theo ARCHITECTURE, [CODE_STYLE](docs/CODE_STYLE.md) và [COMMENTING_GUIDELINES](docs/COMMENTING_GUIDELINES.md) khi viết/sửa code. Prettier đã có config và CI kiểm tra toàn bộ code thực thi (không còn baseline miễn trừ); ESLint chưa cài. Chỉ chạy format toàn repo khi nhiệm vụ cho phép; không trộn format-only với sửa logic. Thay đổi tập trung; không tạo abstraction, dependency, mock backend thành công hoặc test chỉ lặp implementation. Kiểm thử có ý nghĩa cho luồng bị thay đổi; regression bắt buộc khi sửa logic lưu/xuất bản, phân quyền, upload, thứ tự, chống mất nháp. Docs-only: kiểm tra liên kết, đủ yêu cầu, đúng trạng thái; không chạy browser QA vô nghĩa.
 
 Trước khi công bố hoàn tất UI phải có browser QA theo TESTING. Chưa chạy = NOT RUN; bị chặn = BLOCKED. Không suy rộng Chrome desktop thành Safari/iPhone hoặc mobile thực. Không báo backend đã lưu, RLS đã an toàn hoặc deploy thành công khi chưa có bằng chứng.
 
