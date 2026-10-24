@@ -44,7 +44,7 @@ export function VideoEmbed(url, title) {
   if (id)
     wrap.append(
       button(
-        '▶  Tải video YouTube',
+        '▶  Xem video',
         () => {
           wrap.replaceChildren();
           appendFrame(

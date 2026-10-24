@@ -54,7 +54,7 @@ export function LoginScreen(onSuccess) {
     el(
       'p',
       { class: 'fine-print' },
-      'Chưa có tài khoản? Chủ dự án cần tạo người dùng trong Supabase Auth và cấp quyền theo hướng dẫn ADMIN_SETUP.md. Website không mở đăng ký.',
+      'Chưa có tài khoản quản trị? Vui lòng liên hệ người quản lý. Trang này không hỗ trợ đăng ký tài khoản.',
     ),
   );
   const signingIn = createPendingTask((message) => {
