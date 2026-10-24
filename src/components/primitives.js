@@ -1,4 +1,13 @@
+/** Provides reusable feedback states, dialogs, and status labels for the UI. */
+
 import { el, button } from '../utils/dom.js';
+
+/**
+ * Shows a temporary toast, replacing any previously scheduled dismissal.
+ *
+ * @param {string} message - The visible notification.
+ * @param {boolean} error - Whether to use the error presentation.
+ */
 export function ToastNotification(message, error = false) {
   const root = document.querySelector('#toast');
   root.textContent = message;
@@ -9,6 +18,12 @@ export function ToastNotification(message, error = false) {
     root.textContent = '';
   }, 6500);
 }
+
+/**
+ * Builds the loading indicator used while the board first loads.
+ *
+ * @returns {HTMLElement} The status element.
+ */
 export const LoadingState = () =>
   el(
     'div',
@@ -16,6 +31,13 @@ export const LoadingState = () =>
     el('span', { class: 'spinner' }),
     'Đang mở không gian học liệu…',
   );
+
+/**
+ * Builds the empty-state message for a board without visible posts.
+ *
+ * @param {string} message - The main empty-state heading.
+ * @returns {HTMLElement} The empty-state element.
+ */
 export const EmptyState = (message = 'Chưa có học liệu ở đây.') =>
   el(
     'div',
@@ -24,6 +46,14 @@ export const EmptyState = (message = 'Chưa có học liệu ở đây.') =>
     el('h3', {}, message),
     el('p', {}, 'Hãy thử chủ đề khác hoặc thay đổi từ khóa tìm kiếm.'),
   );
+
+/**
+ * Builds an error state with a retry action.
+ *
+ * @param {string} message - The failure details.
+ * @param {Function} retry - The callback to retry loading.
+ * @returns {HTMLElement} The error-state element.
+ */
 export const ErrorState = (message, retry) =>
   el(
     'div',
@@ -32,8 +62,23 @@ export const ErrorState = (message, retry) =>
     el('p', {}, message),
     button('Thử lại', retry),
   );
+
+/**
+ * Builds a compact synchronization or admin-status indicator.
+ *
+ * @param {string} text - The status label.
+ * @returns {HTMLElement} The indicator element.
+ */
 export const SyncIndicator = (text) =>
   el('span', { class: 'sync', role: 'status' }, el('i', { 'aria-hidden': 'true' }), text);
+
+/**
+ * Opens a modal dialog and restores focus after it closes.
+ *
+ * @param {string} title - The dialog heading and accessible label.
+ * @param {object} options - Set drawer to use the side-panel layout.
+ * @returns {object} The dialog, content container, and close button.
+ */
 export function openDialog(title, { drawer = false } = {}) {
   const previous = document.activeElement;
   const dialog = el('dialog', { class: drawer ? 'dialog drawer' : 'dialog', 'aria-label': title });
@@ -54,6 +99,14 @@ export function openDialog(title, { drawer = false } = {}) {
   dialog.showModal();
   return { dialog, content, close };
 }
+
+/**
+ * Requests confirmation and resolves false when the dialog is dismissed.
+ *
+ * @param {string} message - The confirmation question.
+ * @param {string} description - Optional context for the decision.
+ * @returns {Promise<boolean>} True only when the user confirms.
+ */
 export function ConfirmDialog(message, description = '') {
   return new Promise((resolve) => {
     const { dialog, content } = openDialog(message);

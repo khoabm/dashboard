@@ -1,6 +1,17 @@
+/** Opens the section editor and delegates persistence to board services. */
+
 import { el, button, field, errorMessage } from '../utils/dom.js';
 import { saveSection, deleteSection } from '../services/board.js';
 import { openDialog, ConfirmDialog, ToastNotification } from './primitives.js';
+
+/**
+ * Opens a dialog to create, update, or delete a section.
+ * Refuses deletion while posts still reference the section.
+ *
+ * @param {object|null} section - The section to edit, or null for a new section.
+ * @param {object} data - Current board and post data for validation.
+ * @param {Function} onSaved - Refreshes the board after a successful change.
+ */
 export function SectionEditor(section, data, onSaved) {
   const { dialog, content } = openDialog(section ? 'Sửa chủ đề' : 'Thêm chủ đề');
   const title = el('input', { required: true, maxlength: 100, value: section?.title || '' });

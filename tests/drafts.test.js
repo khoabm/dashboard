@@ -1,3 +1,5 @@
+/** Tests local draft recovery and exclusion of files and credentials from text storage. */
+
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { saveDraft, readDraft, draftKey, removeDraft } from '../src/services/drafts.js';

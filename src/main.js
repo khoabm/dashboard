@@ -1,3 +1,5 @@
+/** Boots the board UI and coordinates rendering, admin actions, and refresh lifecycle. */
+
 import './styles/main.css';
 import { el, button, errorMessage } from './utils/dom.js';
 import { debounce, canRestore, moveItem } from './utils/validation.js';
@@ -24,6 +26,8 @@ import { LoginScreen } from './components/auth.js';
 import { SectionEditor } from './components/section-editor.js';
 import { PostEditorDrawer } from './components/post-editor.js';
 const root = document.querySelector('#app');
+
+// Shared board snapshot, admin session, filters, and synchronization flags.
 let data = { sections: [], posts: [] },
   admin = false,
   userId = null,
@@ -101,8 +105,20 @@ shell.append(
     el('span', {}, 'Cùng học hỏi, cùng khám phá ', el('span', { 'aria-hidden': 'true' }, '↗')),
   ),
 );
+
+// Board rendering and interaction callbacks.
+
+/**
+ * Rebuilds desktop tabs and the mobile section picker from current board state.
+ */
 function renderControls() {
   const options = [{ id: 'all', title: 'Tất cả chủ đề' }, ...data.sections];
+
+  /**
+   * Selects a section, remembers it locally, and refreshes visible board controls.
+   *
+   * @param {string} id - The selected section identifier.
+   */
   const select = (id) => {
     selected = id;
     try {
@@ -145,6 +161,12 @@ function renderControls() {
     ),
   );
 }
+
+/**
+ * Supplies BoardContainer with action callbacks and the responsive section selection.
+ *
+ * @returns {object} The current board action configuration.
+ */
 function actions() {
   return {
     admin,
@@ -167,9 +189,13 @@ function actions() {
     onMove: movePost,
   };
 }
+
+/** Replaces the visible board with its latest filtered representation. */
 function renderBoard() {
   boardRegion.replaceChildren(BoardContainer(data, actions()));
 }
+
+/** Updates counts, admin controls, quota, filters, and board after state changes. */
 function render() {
   if (!data.sections.some((s) => s.id === selected)) selected = 'all';
   countText.textContent = `${data.sections.length} chủ đề · ${data.posts.filter((p) => p.status === 'published').length} học liệu`;
@@ -210,6 +236,13 @@ function render() {
   renderControls();
   renderBoard();
 }
+
+// Remote refresh and editor persistence.
+
+/**
+ * Loads the latest board while preserving the previous snapshot on failure.
+ * Prevents overlapping refresh requests and clears the loading flag afterward.
+ */
 async function refresh() {
   if (loading) return;
   loading = true;
@@ -225,12 +258,21 @@ async function refresh() {
     loading = false;
   }
 }
+
+/** Rechecks the admin profile and signed-in user before refreshing board data. */
 async function refreshAuth() {
   admin = await isAdmin();
   const { data: auth } = await client.auth.getUser();
   userId = auth.user?.id;
   await refresh();
 }
+
+/**
+ * Opens the editor with callbacks for saving and unsaved-change tracking.
+ *
+ * @param {object|null} post - The post to edit, or null for a new post.
+ * @param {string} sectionId - The preferred section for a new post.
+ */
 function editPost(post = null, sectionId) {
   if (!data.sections.length) {
     ToastNotification('Hãy tạo chủ đề trước khi tạo bài.', true);
@@ -245,6 +287,12 @@ function editPost(post = null, sectionId) {
     onDirty: (value) => (dirty = value),
   }).catch((e) => ToastNotification(errorMessage(e), true));
 }
+
+/**
+ * Soft-deletes a post only after confirmation, then refreshes the board.
+ *
+ * @param {object} post - The post to move to the trash.
+ */
 async function deletePost(post) {
   if (
     !(await ConfirmDialog(
@@ -261,6 +309,12 @@ async function deletePost(post) {
     ToastNotification(errorMessage(e), true);
   }
 }
+
+/**
+ * Restores an eligible deleted post to draft status, not public visibility.
+ *
+ * @param {object} post - The deleted post to restore.
+ */
 async function restorePost(post) {
   if (!canRestore(post)) {
     ToastNotification('Đã hết thời hạn khôi phục 30 ngày. Không tự động xóa tệp.', true);
@@ -274,6 +328,13 @@ async function restorePost(post) {
     ToastNotification(errorMessage(e), true);
   }
 }
+
+/**
+ * Reorders posts within the same section using the version-checked RPC.
+ *
+ * @param {object} post - The post to move.
+ * @param {number} delta - The relative position change.
+ */
 async function movePost(post, delta) {
   const peers = data.posts.filter(
     (p) => p.section_id === post.section_id && p.status !== 'deleted',
@@ -289,6 +350,8 @@ async function movePost(post, delta) {
     ToastNotification(errorMessage(e), true);
   }
 }
+
+/** Confirms unsaved edits, signs out, and clears the visible admin session. */
 async function logout() {
   if (
     dirty &&
@@ -309,6 +372,8 @@ async function logout() {
   filter = 'all';
   await refresh();
 }
+
+/** Downloads a JSON metadata snapshot without Storage file bytes. */
 async function downloadMetadata() {
   try {
     const metadata = await exportMetadata();
@@ -326,6 +391,8 @@ async function downloadMetadata() {
     ToastNotification(errorMessage(e), true);
   }
 }
+
+// Browser lifecycle, keyboard navigation, and connectivity notifications.
 window.addEventListener('beforeunload', (event) => {
   if (dirty) {
     event.preventDefault();

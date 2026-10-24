@@ -1,3 +1,4 @@
+/* Global UI tokens, board layout, and responsive presentation. */
 @import './editor.css';
 :root {
   font-family: Inter, 'Segoe UI', Arial, sans-serif;
@@ -132,6 +133,8 @@ button {
 .skip-link:focus {
   top: 5px;
 }
+/* Header, navigation, and search controls. */
+
 .app-header {
   height: 83px;
   padding: 0 44px;
@@ -321,6 +324,8 @@ kbd {
   align-items: center;
   gap: 7px;
 }
+/* Horizontal board columns and resource cards. */
+
 .board {
   display: grid;
   grid-auto-flow: column;
@@ -557,6 +562,8 @@ kbd {
   text-align: center;
   color: var(--muted);
 }
+/* Admin tools and synchronization feedback. */
+
 .admin-toolbar {
   border: 1px solid #cbded2;
   border-radius: 12px;
@@ -720,6 +727,8 @@ kbd {
     max-width: 75%;
   }
 }
+
+/* Stack board sections and enlarge key controls on narrow viewports. */
 @media (max-width: 700px) {
   .app-header {
     height: auto;
@@ -843,6 +852,8 @@ kbd {
     min-height: 42px;
   }
 }
+
+/* Respect reduced-motion preferences across animations and transitions. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *:before,

@@ -1,8 +1,18 @@
+/** Renders board navigation, cards, sections, and previews using supplied data and callbacks. */
+
 import { el, button } from '../utils/dom.js';
 import { matches } from '../utils/validation.js';
 import { EmptyState, SyncIndicator, openDialog, statusLabels } from './primitives.js';
 import { AttachmentGallery } from './media.js';
 import { placeholderMedia } from '../data/placeholders.js';
+
+/**
+ * Builds a search control that reports each input change to the caller.
+ *
+ * @param {Function} onSearch - Receives the current search text.
+ * @param {string} value - The initial search text.
+ * @returns {HTMLElement} The search control.
+ */
 export function SearchBar(onSearch, value = '') {
   const input = el('input', {
     type: 'search',
@@ -19,6 +29,13 @@ export function SearchBar(onSearch, value = '') {
     el('kbd', {}, '/'),
   );
 }
+
+/**
+ * Renders the site header with search, refresh, and admin entry actions.
+ *
+ * @param {object} options - The header callbacks, search element, and admin state.
+ * @returns {HTMLElement} The header element.
+ */
 export function AppHeader({ onLogin, onRefresh, search, admin }) {
   return el(
     'header',
@@ -40,6 +57,13 @@ export function AppHeader({ onLogin, onRefresh, search, admin }) {
     ),
   );
 }
+
+/**
+ * Renders admin controls for post, section, export, trash, and session actions.
+ *
+ * @param {object} options - The action callbacks and current trash filter.
+ * @returns {HTMLElement} The toolbar element.
+ */
 export function AdminToolbar({ onNew, onSection, onLogout, onExport, onTrash, filter }) {
   return el(
     'div',
@@ -63,6 +87,15 @@ const kindLabels = {
   youtube: 'Video',
   link: 'Liên kết',
 };
+
+/**
+ * Builds a resource card and adds editing controls for an admin.
+ * Uses media type and placeholder metadata to select the card preview.
+ *
+ * @param {object} post - The post and its attachment metadata.
+ * @param {object} actions - Admin visibility and card action callbacks.
+ * @returns {HTMLElement} The post card.
+ */
 export function PostCard(post, { admin, onOpen, onEdit, onMove, onDelete, onRestore }) {
   const kind = post.thumbnail_url
     ? 'image'
@@ -152,6 +185,15 @@ export function PostCard(post, { admin, onOpen, onEdit, onMove, onDelete, onRest
     );
   return card;
 }
+
+/**
+ * Renders one section column with its post cards and optional admin controls.
+ *
+ * @param {object} section - The section title, color, and metadata.
+ * @param {Array<object>} posts - Posts displayed in this section.
+ * @param {object} actions - Board actions and admin visibility.
+ * @returns {HTMLElement} The section column.
+ */
 export function SectionColumn(section, posts, actions) {
   const column = el('section', { class: 'section-column', 'aria-label': section.title });
   column.style.setProperty('--section-color', section.color);
@@ -179,6 +221,15 @@ export function SectionColumn(section, posts, actions) {
     column.append(button('+  Thêm bài đăng', () => actions.onNew(section.id), 'add-post'));
   return column;
 }
+
+/**
+ * Builds the board from visible sections and posts matching current filters.
+ * Public views include published posts; admin views can include other states.
+ *
+ * @param {object} data - The loaded sections and posts.
+ * @param {object} options - Search, section, status filters, and action callbacks.
+ * @returns {HTMLElement} The board container.
+ */
 export function BoardContainer(data, { query = '', selected = 'all', filter = 'all', ...actions }) {
   const board = el('main', {
     id: 'board',
@@ -206,6 +257,15 @@ export function BoardContainer(data, { query = '', selected = 'all', filter = 'a
   else if (!sections.length) board.append(EmptyState('Bảng chưa có chủ đề.'));
   return board;
 }
+
+/**
+ * Opens the post preview dialog with its attachment gallery.
+ * Registers gallery cleanup when the dialog closes.
+ *
+ * @param {object} post - The post being previewed.
+ * @param {object} section - The owning section, when available.
+ * @returns {HTMLDialogElement} The open preview dialog.
+ */
 export function PostPreviewModal(post, section) {
   const { dialog, content } = openDialog('Chi tiết học liệu');
   content.append(

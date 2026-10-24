@@ -1,3 +1,8 @@
+/**
+ * Defines public Supabase client settings.
+ * Secret or service-role keys must never be stored here.
+ */
+
 export const config = {
   url: import.meta.env.VITE_SUPABASE_URL || 'https://vgciiqtwmxcdqppntgnt.supabase.co',
   key:

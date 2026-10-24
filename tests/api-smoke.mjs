@@ -1,8 +1,20 @@
 // Read-only/denial smoke against the selected project; public publishable key only.
 import assert from 'node:assert/strict';
+
+// Run manually against a live project; offline CI excludes this test to preserve quota.
 const base = process.env.SUPABASE_URL || 'https://vgciiqtwmxcdqppntgnt.supabase.co';
 const key =
   process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_A0kgJlsUnLFL_wrtJpkvtQ_GyBAf0UY';
+
+/**
+ * Sends a JSON request as an anonymous client and returns its response.
+ *
+ * @param {string} path - The API path.
+ * @param {string} method - The HTTP method.
+ * @param {object} body - Optional JSON request body.
+ * @param {object} extra - Additional HTTP headers.
+ * @returns {Promise<{status: number, body: *}>} The status and parsed JSON response.
+ */
 async function call(path, method = 'GET', body, extra = {}) {
   const response = await fetch(`${base}${path}`, {
     method,

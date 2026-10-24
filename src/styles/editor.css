@@ -1,3 +1,4 @@
+/* Dialog, form, attachment preview, and editor drawer styles. */
 .dialog {
   border: 1px solid #dfe7e2;
   border-radius: 17px;
@@ -104,6 +105,8 @@
   color: #5f7167;
   overflow-wrap: anywhere;
 }
+/* Attachment previews, links, and pending upload controls. */
+
 .attachment-gallery {
   display: flex;
   flex-direction: column;
@@ -254,6 +257,8 @@
   font-size: 11px;
   color: #9c703e;
 }
+
+/* Expand the editor drawer and preserve usable touch targets on mobile. */
 @media (max-width: 700px) {
   .dialog {
     width: calc(100% - 24px);

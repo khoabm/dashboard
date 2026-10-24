@@ -1,6 +1,15 @@
+/** Checks source syntax, accidental client secrets, and whitespace in the current diff. */
+
 import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+
+/**
+ * Lists files recursively for syntax and credential scanning.
+ *
+ * @param {string} dir - The directory to traverse.
+ * @returns {string[]} Descendant file paths.
+ */
 function files(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
     e.isDirectory() ? files(path.join(dir, e.name)) : [path.join(dir, e.name)],

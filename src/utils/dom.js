@@ -1,3 +1,15 @@
+/** Builds DOM controls and translates service errors into user-facing messages. */
+
+
+/**
+ * Creates a DOM element with attributes, event handlers, and flattened child nodes.
+ * Text children use text nodes rather than HTML parsing.
+ *
+ * @param {string} tag - The HTML element name.
+ * @param {object} attrs - Attributes and on-prefixed event listeners.
+ * @param {...*} children - Nested nodes or values to append.
+ * @returns {HTMLElement} The newly created element.
+ */
 export function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
   for (const [key, value] of Object.entries(attrs)) {
@@ -13,11 +25,36 @@ export function el(tag, attrs = {}, ...children) {
       node.append(child instanceof Node ? child : document.createTextNode(String(child)));
   return node;
 }
+
+/**
+ * Creates a non-submit button with a click callback.
+ *
+ * @param {string} text - The visible button label.
+ * @param {Function} onClick - The click handler.
+ * @param {string} className - Optional CSS classes.
+ * @param {object} attrs - Additional attributes.
+ * @returns {HTMLButtonElement} The configured button.
+ */
 export const button = (text, onClick, className = 'button', attrs = {}) =>
   el('button', { type: 'button', class: className, onClick, ...attrs }, text);
+
+/**
+ * Associates a form control with its visible label.
+ *
+ * @param {string} label - The field label.
+ * @param {HTMLElement} control - The input or other control.
+ * @returns {HTMLLabelElement} The containing label.
+ */
 export function field(label, control) {
   return el('label', { class: 'field' }, el('span', {}, label), control);
 }
+
+/**
+ * Converts known backend and session failures into actionable UI messages.
+ *
+ * @param {object} error - The error returned or thrown by a service.
+ * @returns {string} A localized message, with a fallback for unknown errors.
+ */
 export function errorMessage(error) {
   if (error?.code === '40001')
     return 'Bài đã được sửa ở tab khác. Nháp vẫn được giữ; hãy tải lại bản mới.';

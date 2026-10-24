@@ -1,5 +1,14 @@
+/** Reads and writes board metadata through the shared Supabase client. */
+
 import { requireClient, result } from './client.js';
 import { config } from '../config/public.js';
+
+/**
+ * Loads the board, ordered sections, posts, and their attachment metadata.
+ * Signs image thumbnail URLs in a batch; text remains available if signing fails.
+ *
+ * @returns {Promise<object>} The board, section list, and enriched post list.
+ */
 export async function loadBoard() {
   const db = requireClient();
   const [boards, sections, posts, attachments] = await Promise.all([
@@ -35,6 +44,14 @@ export async function loadBoard() {
   }
   return { board: boards[0], sections, posts: enriched };
 }
+
+/**
+ * Saves a post and its attachment metadata through the version-checked RPC.
+ *
+ * @param {object} post - The post fields and expected version.
+ * @param {Array<object>} attachments - The ordered attachment metadata.
+ * @returns {Promise<*>} The save RPC response.
+ */
 export async function savePost(post, attachments) {
   const saved = await result(
     requireClient().rpc('save_post', {
@@ -45,6 +62,13 @@ export async function savePost(post, attachments) {
   );
   return saved;
 }
+
+/**
+ * Inserts a new section or updates an existing one based on its ID.
+ *
+ * @param {object} section - The section fields to persist.
+ * @returns {Promise<object>} The saved section row.
+ */
 export async function saveSection(section) {
   const db = requireClient();
   return result(
@@ -53,9 +77,23 @@ export async function saveSection(section) {
       : db.from('sections').insert(section).select().single(),
   );
 }
+
+/**
+ * Deletes a section by ID and lets database constraints reject unsafe removal.
+ *
+ * @param {string} id - The section identifier.
+ * @returns {Promise<object>} The deleted section row.
+ */
 export async function deleteSection(id) {
   return result(requireClient().from('sections').delete().eq('id', id).select().single());
 }
+
+/**
+ * Checks whether the current Auth user has an active admin profile.
+ * This drives UI access; database and Storage policies still enforce writes.
+ *
+ * @returns {Promise<boolean>} Whether the signed-in user is an active admin.
+ */
 export async function isAdmin() {
   const db = requireClient();
   const {
@@ -66,6 +104,12 @@ export async function isAdmin() {
   const rows = await result(db.from('admin_profiles').select('active,role').eq('user_id', user.id));
   return rows.some((p) => p.active && p.role === 'admin');
 }
+
+/**
+ * Exports board metadata and audit rows without Storage file bytes.
+ *
+ * @returns {Promise<object>} The versioned metadata snapshot for download.
+ */
 export async function exportMetadata() {
   const db = requireClient();
   const [boards, sections, posts, attachments, audit_logs] = await Promise.all(
@@ -84,6 +128,13 @@ export async function exportMetadata() {
   };
 }
 
+
+/**
+ * Reorders posts atomically using their IDs and expected versions.
+ *
+ * @param {Array<object>} posts - Posts in the intended order.
+ * @returns {Promise<*>} The reorder RPC result.
+ */
 export const reorderPosts = (posts) =>
   result(
     requireClient().rpc('reorder_posts', {

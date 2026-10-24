@@ -1,7 +1,16 @@
+/** Presents admin login and verifies the active profile before enabling editor actions. */
+
 import { el, button, field, errorMessage } from '../utils/dom.js';
 import { requireClient } from '../services/client.js';
 import { isAdmin } from '../services/board.js';
 import { openDialog } from './primitives.js';
+
+/**
+ * Opens the admin login dialog and checks the profile after password sign-in.
+ * Clears password input and calls the owner only after admin access is confirmed.
+ *
+ * @param {Function} onSuccess - Refreshes the authenticated app state after login.
+ */
 export function LoginScreen(onSuccess) {
   const { dialog, content } = openDialog('Đăng nhập quản trị');
   const email = el('input', {

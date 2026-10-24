@@ -32,7 +32,7 @@ Các thư mục code trong bảng đã có implementation. Không buộc một f
 
 ## Cách viết
 
-Khi tạo/chỉnh sửa source, tuân theo [CODE_STYLE](CODE_STYLE.md) về format JS/CSS/HTML/JSON, và [COMMENTING_GUIDELINES](COMMENTING_GUIDELINES.md) về comment tiếng Anh cho file/function/component/state. Source thực thi đã được format bằng Prettier ở branch refactor; comment convention hiện là **docs-only**, chưa được thêm vào source. Giữ format-only/comment-only tách biệt với sửa hành vi.
+Khi tạo/chỉnh sửa source, tuân theo [CODE_STYLE](CODE_STYLE.md) về format JS/CSS/HTML/JSON, và [COMMENTING_GUIDELINES](COMMENTING_GUIDELINES.md) về comment tiếng Anh cho file/function/component/state. Source thực thi đã được format bằng Prettier ở branch refactor và comment convention đã được áp dụng ở các module liên quan. Giữ format-only/comment-only tách biệt với sửa hành vi.
 
 - ES Modules, tên rõ nghĩa, một nguồn xử lý cho một quy tắc; không global state tùy tiện, không abstraction trước nhu cầu. Ghi chú giải thích lý do, tránh comment lặp lại code.
 

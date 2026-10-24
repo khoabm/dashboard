@@ -1,3 +1,5 @@
+/** Provides local demo media when a post uses an explicit placeholder type. */
+
 export const placeholderMedia = {
   image: {
     type: 'image',

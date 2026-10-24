@@ -1,4 +1,10 @@
 // getRandomValues also supports local HTTP QA; production should always use HTTPS.
+
+/**
+ * Generates a UUID for client-created records.
+ *
+ * @returns {string} A version 4 UUID.
+ */
 export function newId() {
   if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
   const bytes = crypto.getRandomValues(new Uint8Array(16));

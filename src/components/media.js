@@ -1,7 +1,17 @@
+/** Displays external media and attachment previews only when the viewer opens them. */
+
 import { el, button } from '../utils/dom.js';
 import { safeUrl, youtubeId } from '../utils/validation.js';
 import { attachmentUrl } from '../services/storage.js';
 import { openDialog, ToastNotification } from './primitives.js';
+
+/**
+ * Creates a YouTube preview that loads its iframe only after a click.
+ *
+ * @param {string} url - The YouTube URL to validate.
+ * @param {string} title - The accessible iframe title.
+ * @returns {HTMLElement} The lazy video container.
+ */
 export function VideoEmbed(url, title) {
   const id = youtubeId(url);
   const wrap = el('div', { class: 'video-wrap' });
@@ -26,6 +36,14 @@ export function VideoEmbed(url, title) {
     );
   return wrap;
 }
+
+/**
+ * Builds a document link and an inline viewer when the attachment is a PDF.
+ *
+ * @param {string} url - The resolved document URL.
+ * @param {object} a - Attachment name and MIME metadata.
+ * @returns {HTMLElement} The document preview.
+ */
 export function DocumentPreview(url, a) {
   const wrap = el('div', { class: 'document-preview' });
   if (a.mime_type === 'application/pdf')
@@ -39,6 +57,14 @@ export function DocumentPreview(url, a) {
   );
   return wrap;
 }
+
+/**
+ * Renders attachment entries and resolves protected file URLs on demand.
+ * The caller must invoke cleanup() to revoke created blob URLs.
+ *
+ * @param {Array<object>} attachments - Media entries to preview.
+ * @returns {HTMLElement} The gallery root with a cleanup() helper.
+ */
 export function AttachmentGallery(attachments) {
   const wrap = el('div', { class: 'attachment-gallery' });
   const blobs = [];

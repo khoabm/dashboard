@@ -2,7 +2,7 @@
 
 **Mục tiêu:** Giúp developer và AI agent hiểu trách nhiệm của từng file, hợp đồng của function/component và các state/luồng khó nhận ra khi chỉ đọc code. Chỉ mô tả hành vi **đã có thật** tại ref đang làm việc; không suy đoán hoặc chép lại SPEC.
 
-**Phạm vi:** JS/MJS trong `src/`, `scripts/`, `tests/`; comment section có chủ đích trong CSS/HTML và trong SQL mới nếu liên quan. Tài liệu này **chỉ định nghĩa quy ước**: chưa thêm/chỉnh sửa comment trong source. Tuân thủ [ARCHITECTURE](ARCHITECTURE.md) về ranh giới module và [CODE_STYLE](CODE_STYLE.md) về format; không đổi logic chỉ để viết comment.
+**Phạm vi:** JS/MJS trong `src/`, `scripts/`, `tests/`; comment section có chủ đích trong CSS/HTML và trong SQL mới nếu liên quan. Quy ước này đã được áp dụng cho các module code trên branch refactor; comment không thay đổi hành vi thực thi. Tuân thủ [ARCHITECTURE](ARCHITECTURE.md) về ranh giới module và [CODE_STYLE](CODE_STYLE.md) về format; không đổi logic chỉ để viết comment.
 
 ## 1. Ngôn ngữ và ngữ pháp
 
@@ -92,6 +92,16 @@ Các ví dụ trên **chỉ là comment mẫu**, không tạo hoặc thay đổi
 
 Đặt trước nhóm khai báo/liên quan thực tế; không đặt cả hai comment cạnh nhau khi không có code giữa chúng.
 
+## Good case / Bad case khi review comment
+
+| Trường hợp | Good case | Bad case |
+| --- | --- | --- |
+| Function contract | `Validates file size and MIME type before upload.` | `Handles the file.` |
+| State group | `// Dirty and busy flags prevent duplicate saves and unsafe dismissal.` | `// State variables.` |
+| Failure path | `// Keep local drafts when a remote save fails.` | `// Error handling.` |
+
+Good case mô tả mục đích hoặc invariant có thật; bad case mơ hồ, lặp tên hoặc không giúp developer quyết định cách sử dụng.
+
 ## 4. Review checklist cho AI agent
 
 - Đọc `AGENTS.md`, `ARCHITECTURE.md`, `CODE_STYLE.md` và **file đích**; xác nhận đúng ref/HEAD. Không comment dựa trên suy đoán từ tên hàm.
@@ -99,4 +109,4 @@ Các ví dụ trên **chỉ là comment mẫu**, không tạo hoặc thay đổi
 - Kiểm tra English grammar, động từ chính xác, parameter/default/return/promise/error và cách sử dụng/lifecycle. Không mô tả function async là synchronous hoặc UI state là backend persistence.
 - Không đưa secret, credential, PII, internal token hay file người dùng vào comment. Không thêm TODO mơ hồ; TODO thật cần mô tả hành động còn thiếu và issue/reference nếu có.
 - **Task chỉ viết comment:** diff chỉ được thêm/sửa comment và cập nhật docs liên quan; không đổi identifier, type, logic, UI text, CSS selector/order, database policy, file format hay dependency. Kiểm tra diff/whitespace; chạy offline syntax, unit, build khi có môi trường. Không gọi API/Supabase test để tránh quota. PASS chỉ khi thực chạy.
-- Tài liệu này chưa được triển khai vào code. Khi được giao comment implementation trong lượt riêng, chia theo module và review độ chính xác trước khi merge; không tự động comment hàng loạt để đủ số lượng.
+- Khi bổ sung comment mới, chia theo module và review độ chính xác trước khi merge; không tự động comment hàng loạt để đủ số lượng.

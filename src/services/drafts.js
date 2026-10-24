@@ -1,7 +1,25 @@
+/** Keeps recoverable editor drafts in local text storage and IndexedDB file storage. */
+
 const prefix = 'khtn8:draft:';
+
+/**
+ * Scopes a draft key to the current admin and post.
+ *
+ * @param {string} userId - The current user identifier.
+ * @param {string} id - The post ID or new-post marker.
+ * @returns {string} The local draft storage key.
+ */
 export function draftKey(userId, id = 'new') {
   return `${prefix}${userId}:${id}`;
 }
+
+/**
+ * Persists selected text draft fields for recovery on this device.
+ * File blobs are stored separately and never serialized into localStorage.
+ *
+ * @param {string} key - The scoped draft key.
+ * @param {object} draft - The current editor fields and attachment metadata.
+ */
 export function saveDraft(key, draft) {
   // Explicit allowlist keeps Files, passwords and tokens out of localStorage.
   const clean = {
@@ -29,6 +47,13 @@ export function saveDraft(key, draft) {
   };
   localStorage.setItem(key, JSON.stringify(clean));
 }
+
+/**
+ * Reads a recoverable text draft without failing on invalid local JSON.
+ *
+ * @param {string} key - The scoped draft key.
+ * @returns {object|null} The saved draft, or null when unavailable.
+ */
 export function readDraft(key) {
   try {
     return JSON.parse(localStorage.getItem(key) || 'null');
@@ -36,6 +61,12 @@ export function readDraft(key) {
     return null;
   }
 }
+
+/**
+ * Removes a local text draft without masking a confirmed remote save.
+ *
+ * @param {string} key - The scoped draft key.
+ */
 export const removeDraft = (key) => {
   try {
     localStorage.removeItem(key);
@@ -44,6 +75,12 @@ export const removeDraft = (key) => {
   }
 };
 // Blob drafts are isolated per admin/post and never serialized to localStorage.
+
+/**
+ * Opens the IndexedDB store used for pending attachment files.
+ *
+ * @returns {Promise<IDBDatabase>} The draft database connection.
+ */
 function openDB() {
   return new Promise((resolve, reject) => {
     const r = indexedDB.open('khtn8-drafts', 1);
@@ -52,6 +89,15 @@ function openDB() {
     r.onerror = () => reject(r.error);
   });
 }
+
+/**
+ * Reads, writes, or removes pending file drafts in IndexedDB.
+ * Omit files to read, pass null to delete, or pass files to write.
+ *
+ * @param {string} key - The scoped draft key.
+ * @param {Array<object>|null} files - Pending attachment entries or the deletion marker.
+ * @returns {Promise<*>} Stored files for reads or completion data for writes.
+ */
 export async function filesDraft(key, files) {
   const db = await openDB();
   try {

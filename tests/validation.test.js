@@ -1,3 +1,5 @@
+/** Covers URL, upload, search, ordering, restore, and quota boundary cases offline. */
+
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {

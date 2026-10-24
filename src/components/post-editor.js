@@ -1,3 +1,5 @@
+/** Builds the post editor, validates attachments, and preserves recoverable local drafts. */
+
 import { newId } from '../utils/id.js';
 import { el, button, field, errorMessage } from '../utils/dom.js';
 import {
@@ -13,10 +15,25 @@ import { uploadAttachments, cleanup } from '../services/storage.js';
 import { draftKey, saveDraft, readDraft, removeDraft, filesDraft } from '../services/drafts.js';
 import { openDialog, ConfirmDialog, ToastNotification } from './primitives.js';
 import { PostPreviewModal } from './board.js';
+
+/**
+ * Builds an attachment list with file, link, and ordering controls.
+ * Rebuilds previews after changes; callers must release object URLs on teardown.
+ *
+ * @param {object} options - The uploader configuration.
+ * @param {Array<object>} options.attachments - The current attachment entries.
+ * @param {Function} options.onChange - Receives the updated attachment list.
+ * @param {Function} options.onError - Receives a validation error message.
+ * @returns {HTMLElement} The uploader root with cleanup() and setAttachments() helpers.
+ */
 export function AttachmentUploader({ attachments, onChange, onError }) {
   const root = el('div');
   const list = el('div', { class: 'editor-attachments' });
   const objectUrls = [];
+
+  /**
+   * Rebuilds attachment controls and revokes previews from the previous render.
+   */
   function render() {
     objectUrls.splice(0).forEach((url) => URL.revokeObjectURL(url));
     list.replaceChildren();
@@ -94,6 +111,8 @@ export function AttachmentUploader({ attachments, onChange, onError }) {
     placeholder: 'https://…',
     'aria-label': 'Địa chỉ liên kết',
   });
+
+  /** Adds a validated HTTPS link or YouTube attachment to the working list. */
   const addLink = () => {
     const url = safeUrl(link.value);
     if (!url) {
@@ -144,6 +163,20 @@ export function AttachmentUploader({ attachments, onChange, onError }) {
   };
   return root;
 }
+
+/**
+ * Opens the post editor and offers recovery of a locally saved draft.
+ * Uploads files before the version-checked post save and retains drafts after failure.
+ *
+ * @param {object} options - The editor configuration.
+ * @param {object|null} options.post - Existing post, or null for creation.
+ * @param {string} options.sectionId - The section chosen for a new post.
+ * @param {object} options.data - Current board data for section and ordering controls.
+ * @param {string} options.userId - The user identifier used to isolate drafts.
+ * @param {Function} options.onSaved - Refreshes the board after a successful save.
+ * @param {Function} options.onDirty - Reports whether unsaved changes remain.
+ * @returns {Promise<HTMLDialogElement>} The editor dialog, if still open.
+ */
 export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved, onDirty }) {
   const key = draftKey(userId, post?.id || 'new');
   let model = post
@@ -158,6 +191,8 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
         attachments: [],
         thumbnail_id: null,
       };
+
+  // Editor-local attachments and dirty/busy/closing flags guard saving and dismissal.
   let attachments = [...model.attachments],
     dirty = false,
     busy = false,
@@ -209,6 +244,12 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
     field('Ảnh đại diện', thumbnail),
     el('h3', { class: 'editor-section-label' }, 'Tài nguyên đính kèm'),
   );
+
+  /**
+   * Collects the current form values and pending attachments into one post model.
+   *
+   * @returns {object} The unsaved post state.
+   */
   function read() {
     return {
       ...model,
@@ -221,6 +262,8 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
       attachments,
     };
   }
+
+  /** Saves dirty text and pending files locally without marking the post as synced. */
   async function persist() {
     if (!dirty) return;
     try {
@@ -237,12 +280,16 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
     }
   }
   const autosave = debounce(persist, 450);
+
+  /** Marks the form dirty, informs its owner, and schedules local autosave. */
   function changed() {
     dirty = true;
     onDirty(true);
     draftStatus.textContent = 'Có thay đổi chưa lưu lên Supabase.';
     autosave();
   }
+
+  /** Rebuilds image thumbnail choices while keeping the current selection. */
   function renderThumbnail() {
     const value = thumbnail.value || model.thumbnail_id;
     thumbnail.replaceChildren(
@@ -290,6 +337,13 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
     event.preventDefault();
     submit(status.value);
   });
+
+  /**
+   * Validates and saves the post, then clears drafts only after remote success.
+   * On failure, attempts uploaded-file cleanup and retains the recoverable draft.
+   *
+   * @param {string} nextStatus - The requested post publication state.
+   */
   async function submit(nextStatus) {
     if (busy || !form.reportValidity()) return;
     const value = { ...read(), status: nextStatus, placeholder_kind: null };
@@ -351,6 +405,8 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
       form.classList.remove('form-busy');
     }
   }
+
+  /** Confirms unsaved changes and attempts to persist the local draft before closing. */
   async function requestClose() {
     if (busy) return;
     if (
@@ -385,6 +441,8 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
   );
   renderThumbnail();
   content.append(form);
+
+  // Offer local recovery before allowing edits when a stored draft exists.
   const saved = readDraft(key);
   if (saved) form.inert = true;
   if (
