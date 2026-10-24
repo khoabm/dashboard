@@ -28,7 +28,8 @@ import { PostEditorDrawer } from './components/post-editor.js';
 import { createRequestGate } from './utils/request-gate.js';
 const root = document.querySelector('#app');
 const requests = createRequestGate();
-let authRefreshTimer;
+let authRefreshTimer,
+  logoutPending = false;
 
 // Shared board snapshot, admin session, filters, and synchronization flags.
 let data = { sections: [], posts: [] },
@@ -370,29 +371,41 @@ async function movePost(post, delta) {
   }
 }
 
-/** Confirms unsaved edits, signs out, and clears the visible admin session. */
-async function logout() {
-  if (
-    dirty &&
-    !(await ConfirmDialog(
-      'Đăng xuất?',
-      'Sẽ thử lưu nháp trên thiết bị trước khi đăng xuất. Thay đổi chưa đồng bộ không xuất hiện trên thiết bị khác.',
-    ))
-  )
-    return;
-  for (const dialog of document.querySelectorAll('dialog')) {
-    if (dialog.preserveDraft && !(await dialog.preserveDraft())) {
-      ToastNotification('Chưa lưu được nháp. Hãy giữ trình soạn thảo mở.', true);
+/** Flushes pending files before confirming logout, without waiting to clear an expired session. */
+export async function logout() {
+  if (logoutPending) return;
+  logoutPending = true;
+  const generation = requests.generation();
+  try {
+    for (const dialog of document.querySelectorAll('dialog')) {
+      if (dialog.preserveDraft && !(await dialog.preserveDraft())) {
+        ToastNotification(
+          'Chưa thể đăng xuất. Hãy chờ thao tác hoàn tất hoặc kiểm tra nháp trong trình soạn thảo.',
+          true,
+        );
+        return;
+      }
+    }
+    if (generation !== requests.generation()) return;
+    if (
+      dirty &&
+      !(await ConfirmDialog(
+        'Đăng xuất?',
+        'Nháp đã lưu trên thiết bị này. Thay đổi chưa đồng bộ không xuất hiện trên thiết bị khác.',
+      ))
+    )
+      return;
+    if (generation !== requests.generation()) return;
+    const { error } = await client.auth.signOut();
+    if (error) {
+      ToastNotification(errorMessage(error), true);
       return;
     }
+    if (admin || userId) clearSession();
+    schedulePublicRefresh();
+  } finally {
+    logoutPending = false;
   }
-  const { error } = await client.auth.signOut();
-  if (error) {
-    ToastNotification(errorMessage(error), true);
-    return;
-  }
-  if (admin || userId) clearSession();
-  schedulePublicRefresh();
 }
 
 /** Clears private UI synchronously, even if the subsequent anonymous read fails. */

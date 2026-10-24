@@ -119,3 +119,44 @@ export async function filesDraft(key, files) {
     db.close();
   }
 }
+
+/**
+ * Serializes draft writes after selected files settle, then reads the latest state.
+ * The read callback returns null for a clean editor; failures remain retryable.
+ *
+ * @param {string} key - The scoped draft storage key.
+ * @param {object} options - State readers and optional isolated storage adapters.
+ * @param {Function} options.read - Reads the dirty draft only after file validation settles.
+ * @param {Function} options.whenReady - Waits for pending file validation.
+ * @param {Function} options.writeFiles - Writes pending blobs, defaulting to IndexedDB.
+ * @param {Function} options.writeText - Writes text metadata, defaulting to localStorage.
+ * @returns {object} save() reports durability; settled() fences cleanup after remote success.
+ */
+export function createDraftWriter(
+  key,
+  { read, whenReady, writeFiles = filesDraft, writeText = saveDraft },
+) {
+  let pending = Promise.resolve(true);
+  return {
+    save: () => {
+      pending = pending.then(async () => {
+        try {
+          await whenReady();
+          const draft = read();
+          if (!draft) return true;
+          const snapshot = structuredClone(draft);
+          await writeFiles(
+            key,
+            snapshot.attachments.filter((attachment) => attachment.file),
+          );
+          writeText(key, snapshot);
+          return true;
+        } catch {
+          return false;
+        }
+      });
+      return pending;
+    },
+    settled: () => pending,
+  };
+}

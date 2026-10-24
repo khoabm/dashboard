@@ -12,7 +12,13 @@ import {
 } from '../utils/validation.js';
 import { savePost } from '../services/board.js';
 import { uploadAttachments, cleanup } from '../services/storage.js';
-import { draftKey, saveDraft, readDraft, removeDraft, filesDraft } from '../services/drafts.js';
+import {
+  draftKey,
+  createDraftWriter,
+  readDraft,
+  removeDraft,
+  filesDraft,
+} from '../services/drafts.js';
 import { openDialog, ConfirmDialog, ToastNotification } from './primitives.js';
 import { PostPreviewModal } from './board.js';
 
@@ -24,9 +30,10 @@ import { PostPreviewModal } from './board.js';
  * @param {Array<object>} options.attachments - The current attachment entries.
  * @param {Function} options.onChange - Receives the updated attachment list.
  * @param {Function} options.onError - Receives a validation error message.
+ * @param {Function} options.onPending - Marks a nonempty selection dirty before validation.
  * @returns {HTMLElement} The uploader root with cleanup(), whenReady(), and setAttachments().
  */
-export function AttachmentUploader({ attachments, onChange, onError }) {
+export function AttachmentUploader({ attachments, onChange, onError, onPending = () => {} }) {
   // The uploader root owns a reorderable attachment list and temporary image previews.
   const root = el('div');
   const list = el('div', { class: 'editor-attachments' });
@@ -94,6 +101,7 @@ export function AttachmentUploader({ attachments, onChange, onError }) {
   files.addEventListener('change', () => {
     const selectedFiles = [...files.files];
     files.value = '';
+    if (!selectedFiles.length) return;
     pending = pending
       .then(async () => {
         for (const file of selectedFiles) {
@@ -122,6 +130,7 @@ export function AttachmentUploader({ attachments, onChange, onError }) {
         render();
       })
       .catch((error) => onError(errorMessage(error)));
+    onPending();
   });
   const link = el('input', {
     type: 'url',
@@ -220,8 +229,6 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
     dirty = false,
     busy = false,
     closing = false;
-  // Serialize local writes so a delayed autosave cannot recreate a remotely saved draft.
-  let draftWrites = Promise.resolve(true);
   const original = post?.attachments || [];
   const { dialog, content, close } = openDialog(post ? 'Chỉnh sửa bài đăng' : 'Tạo bài đăng', {
     drawer: true,
@@ -297,35 +304,27 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
    * @returns {Promise<boolean>} Whether both stores accepted this draft snapshot.
    */
   async function persist() {
-    if (!dirty) return true;
-    const snapshot = structuredClone(read());
-    draftWrites = draftWrites.then(async () => {
-      try {
-        await filesDraft(
-          key,
-          snapshot.attachments.filter((a) => a.file),
-        );
-        saveDraft(key, snapshot);
-        if (dialog.isConnected)
-          draftStatus.textContent = 'Đã lưu nháp trên thiết bị này · chưa đồng bộ.';
-        return true;
-      } catch {
-        if (dialog.isConnected)
-          draftStatus.textContent = 'Không thể lưu nháp cục bộ. Hãy giữ trang mở và thử lại.';
-        return false;
-      }
-    });
-    return draftWrites;
+    const saved = await draftWriter.save();
+    if (dirty && dialog.open)
+      draftStatus.textContent = saved
+        ? 'Đã lưu nháp trên thiết bị này · chưa đồng bộ.'
+        : 'Không thể lưu nháp cục bộ. Hãy giữ trang mở và thử lại.';
+    return saved;
   }
   const autosave = debounce(persist, 450);
 
-  /** Marks the form dirty, informs its owner, and schedules local autosave. */
-  function changed() {
-    if (busy || closing) return;
+  /** Tracks file selections and results while busy, without reviving a closed session's dirty flag. */
+  function markDirty() {
     dirty = true;
+    if (!dialog.open || closing) return;
     onDirty(true);
     draftStatus.textContent = 'Có thay đổi chưa lưu lên Supabase.';
-    autosave();
+    if (!busy) autosave();
+  }
+
+  /** Marks editable form events dirty; in-flight file callbacks use markDirty directly. */
+  function changed() {
+    if (!busy && !closing) markDirty();
   }
 
   /** Rebuilds image thumbnail choices while keeping the current selection. */
@@ -343,9 +342,14 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
     onChange: (value) => {
       attachments = value;
       renderThumbnail();
-      changed();
+      markDirty();
     },
+    onPending: markDirty,
     onError: (message) => (error.textContent = message),
+  });
+  const draftWriter = createDraftWriter(key, {
+    read: () => (dirty ? read() : null),
+    whenReady: () => uploader.whenReady(),
   });
   // The uploader and both feedback regions follow the post fields inside the form.
   form.append(uploader, error, draftStatus);
@@ -444,9 +448,9 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
         ),
       );
       autosave.cancel();
-      await draftWrites;
+      await draftWriter.settled();
       dirty = false;
-      onDirty(false);
+      if (dialog.open) onDirty(false);
       removeDraft(key);
       await filesDraft(key, null).catch(() => {});
       closing = true;
@@ -466,29 +470,45 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
 
   /** Confirms unsaved changes and attempts to persist the local draft before closing. */
   async function requestClose() {
-    if (busy) return;
-    if (
-      dirty &&
-      !(await ConfirmDialog(
-        'Rời trình soạn thảo?',
-        'Thay đổi chưa được lưu lên Supabase. Chỉ đóng sau khi lưu nháp trên thiết bị thành công.',
-      ))
-    )
-      return;
+    if (busy || closing) return;
     setBusy(true);
     autosave.cancel();
-    await uploader.whenReady();
-    if (!(await persist())) {
-      setBusy(false);
-      error.textContent =
-        'Chưa đóng trình soạn thảo vì nháp chưa được lưu. Hãy thử lại hoặc lưu lên Supabase.';
-      title.focus();
-      return;
+    try {
+      await uploader.whenReady();
+      if (!dialog.open) return;
+      if (
+        dirty &&
+        !(await ConfirmDialog(
+          'Rời trình soạn thảo?',
+          'Thay đổi chưa được lưu lên Supabase. Chỉ đóng sau khi lưu nháp trên thiết bị thành công.',
+        ))
+      ) {
+        if (dialog.open) autosave();
+        return;
+      }
+      if (!dialog.open) return;
+      if (!(await persist())) {
+        error.textContent =
+          'Chưa đóng trình soạn thảo vì nháp chưa được lưu. Hãy thử lại hoặc lưu lên Supabase.';
+        return;
+      }
+      closing = true;
+      dialog.close();
+    } finally {
+      if (dialog.open) setBusy(false);
     }
-    closing = true;
-    dialog.close();
   }
-  dialog.preserveDraft = persist;
+  // Logout flushes a stable selection before its own confirmation and Auth request.
+  dialog.preserveDraft = async () => {
+    if (busy || closing) return false;
+    setBusy(true);
+    autosave.cancel();
+    try {
+      return await persist();
+    } finally {
+      if (dialog.open) setBusy(false);
+    }
+  };
   dialog.addEventListener('cancel', (event) => {
     if (!closing) {
       event.preventDefault();
@@ -499,10 +519,19 @@ export async function PostEditorDrawer({ post, sectionId, data, userId, onSaved,
     'close',
     () => {
       autosave.cancel();
-      // Session expiry must clear private UI immediately; preserve the last edit if possible.
-      if (dirty && !closing) void persist();
       onDirty(false);
-      uploader.cleanup();
+      // Clear private UI immediately, but let local file checks finish before destroying the queue.
+      if (!closing) {
+        void persist()
+          .then((saved) => {
+            if (!saved)
+              ToastNotification(
+                'Phiên đã kết thúc nhưng chưa lưu được nháp trên thiết bị này.',
+                true,
+              );
+          })
+          .finally(() => uploader.cleanup());
+      } else uploader.cleanup();
     },
     { once: true },
   );

@@ -1,8 +1,33 @@
 # Bằng chứng kiểm thử
 
+<a id="pending-files-2026-10-24"></a>
+
+## 2026-10-24 — điều tra và khắc phục AUD-009
+
+Source: commit tiếp nối `bb30da0120443ddefdb146a025c8880bc68b0853` trên `fix/audit-reliability-20261024`; code/test trong commit chứa mục này. Đã giữ các cập nhật tài liệu của bb30da0. Chrome cloud desktop 1348×926 qua Sites preview; không gọi API/Supabase thật, không đổi Auth/schema/migration, không merge/deploy, không thêm dependency.
+
+Fixture `tests/audit.html` nay tạo **File PDF từ placeholder local**, gán qua DataTransfer và phát change bubbling vào input thực; giữ `File.slice().arrayBuffer()` bằng barrier có nút release. Đây là fault injection File API, **không phải thao tác native filechooser/OS**. Native File/IndexedDB và các handler editor/main là thật; transport SDK và Auth event là giả lập. “Đăng xuất có lưu nháp” gọi đúng handler logout của app; nút hết phiên phát SIGNED_OUT giả lập. Không đọc token hoặc tạo session thật.
+
+| Case | Bước và kết quả quan sát | Trạng thái |
+| --- | --- | --- |
+| QA-A10a — baseline | Production source vẫn bb30da0 khi thêm fixture. Chỉ chọn PDF, chưa sửa text: beforeunload guarded=true, chứng minh change đã đánh dấu dirty. Hết phiên trước release rồi trả signature → bản nháp của bài chỉ có text, files=0. Root cause là flush/cleanup quá sớm, không phải mọi file selection đều thiếu dirty | FAIL tái hiện baseline; root cause được sửa |
+| QA-A10b — close | Chọn PDF đang chờ → bấm đóng: form inert/close disabled, chưa hỏi xác nhận. Release → mới hỏi rời form. Xác nhận → đóng; inspect đọc được 1 File tên pending-qa.pdf, header %PDF-, attachment_order đúng | PASS File API + IndexedDB |
+| QA-A10c — hết phiên | Chọn PDF đang chờ → SIGNED_OUT: editor/private card/toolbar biến mất ngay. Inspect lúc chờ: verificationPending=true, beforeunloadGuarded=false. Release → nháp có 1 File/header %PDF-, không bật lại dirty toàn cục; mở lại editor và restore có PDF | PASS Auth event mock; không chứng minh token expiry thật |
+| QA-A10d — logout/local failure | Giữ signature, bật lỗi IndexedDB, gọi logout → chờ file; release → không gọi sign-out, editor vẫn mở và file còn trong form. Bấm close/xác nhận cũng bị chặn. Tắt lỗi, logout → flush thành công mới hiện xác nhận; Hủy giữ form. Thêm file thứ hai đang chờ, logout/release/xác nhận → đăng xuất, nháp có đủ 2 File, header và thứ tự | PASS fault injection; IndexedDB thật khi không bật fault |
+| QA-A10e — save failure/restore | Restore 1 PDF; chọn thêm PDF đang chờ, save → busy. Release → RPC conflict giả lập 409/40001; editor mở khóa, báo conflict và giữ nháp. Đóng/mở lại restore đúng 2 PDF; đọc IndexedDB có hai header %PDF- và ID thứ tự tương ứng | PASS client failure branch; [ảnh khôi phục](qa/audit-009-pdf-restored-20261024.jpg) |
+| QA-A10f — save success/cleanup | Restore 2 PDF, thêm file thứ ba đang chờ, save/release signature; giữ response save rồi trả → payload có 3 attachments, board fixture hiện 3 tài nguyên. Inspect không còn draft của bài đó sau success; các draft fixture khác vẫn giữ | PASS transport mock; không chứng minh upload/save backend thật |
+| QA-A10g — Auth race | Bắt đầu logout đang chờ signature rồi phát SIGNED_OUT trước release. UI riêng xóa ngay; release → file vẫn được flush, dialogs=0, beforeunloadGuarded=false; luồng logout cũ không mở lại confirm sau khi generation đổi | PASS Auth event mock |
+| QA-A11 — offline regression | 18/18 Node tests; check/build/format PASS cục bộ, dist không có fixture/barrier/QA identity. Gồm 4 test mới cho writer: đợi signature trước khi đọc dirty/blob; lỗi blob/text/validation không báo success và có thể retry; queue settled chặn cleanup vượt các write đang chờ | PASS offline |
+
+CI lịch sử bb30da0: run 40062401858 SUCCESS đã được đối chiếu qua GitHub. Kết quả này không chứng minh commit sửa tiếp; xem Checks trên đúng HEAD PR #2. Lượt này không rerun backend SQL/REST/Auth/Storage. Fixture chặn chuyển tiếp request ngoài origin và có CSP; liveRequests=0 là invariant của fixture, không phải đo Network tab. Không có app error/warn trong 100 log gần nhất sau khi loại chrome-extension; không suy là toàn bộ browser không có lỗi.
+
+QA-A10 đã PASS trong phạm vi File API/barrier và IndexedDB trên Chrome. QA-A08 native filechooser vẫn BLOCKED/NOT RUN cho revision mới; JWT/Storage thật, server signup/anonymous, sync hai ngữ cảnh, Safari/thiết bị thật và full restore vẫn chưa nghiệm thu. Nếu browser đóng/crash hoặc không ghi được local storage, không hứa giữ được blob đang chờ.
+
 <a id="audit-2026-10-24"></a>
 
 ## 2026-10-24 — regression sau audit PR #1
+
+Bằng chứng lịch sử tại 16e8663 và ghi nhận docs bb30da0; phần AUD-009/QA-A10 hiện hành xem mục điều tra phía trên.
 
 Source: `fix/audit-reliability-20261024`, parent `e5605d87ab5106f5b41d491b970aec68b744fc91`; nội dung ứng dụng trong commit chứa phần báo cáo này. Đã đọc AGENTS, OVERVIEW, STATUS, ARCHITECTURE, CODE_STYLE, COMMENTING_GUIDELINES, SECURITY, DATABASE, TESTING và các mục SPEC R08/10–14/19 liên quan trước sửa. Node 24, Vite 8.3.5, Supabase JS 2.118.0; không thêm dependency. Sửa cụ thể và root cause: [BUG_FIX_LOG](BUG_FIX_LOG.md).
 
@@ -19,7 +44,7 @@ Browser: Chrome cloud desktop, ảnh 1348×926, Sites preview nội bộ. `tests
 | QA-A07 / R09–11/19 | Chạy access.sql một batch thành công trên `dashboard`: anon/non-admin visibility/write denial, admin publish/conflict/FK/quota/reorder/audit không raise lỗi. Dùng admin đang có, fixture board/section riêng, ROLLBACK. Query sau rollback: active_admins=1, confirmed_active_admins=1, fixtures_remaining=0 | PASS SQL role simulation; không phải login JWT/file bytes thật |
 | QA-A08 / R08.6/12 | Thử chọn PDF qua filechooser của công cụ → timeout, runtime browser và preview bị dừng; phục hồi preview để hoàn tất các ca text/logout. Không retry filechooser liên tục; không có bằng chứng PDF đã được chọn/lưu/khôi phục trong revision này | BLOCKED công cụ; không ghi PASS từ bằng chứng cũ |
 | QA-A09 / source | Tại commit audit đầu tiên `16e8663`: npm test 14 tests (7 cũ + 7 regression), check/build/format-check toàn source; dist không có fixture/identity QA. Không chuyển kết quả đó thành PASS cho các commit tiếp theo | PASS cục bộ ở `16e8663`; CI ở HEAD PR là nguồn kết quả sau khi sửa |
-| QA-A10 / R08.9/12 | Regression cần chạy trên browser offline: chọn PDF hợp lệ đang đợi xác minh chữ ký, lập tức đóng editor/đăng xuất hoặc bắt đầu save lỗi. Mong đợi: chờ hàng đợi tệp; phát hiện dirty, không bỏ bản nháp/file; khi lưu local thất bại phải giữ editor; không báo backend đã lưu từ fixture. Source hiện tại chưa bảo đảm callback tệp hoàn tất trong `busy` đánh dấu dirty; cần sửa theo AUD-009 trước khi chạy case | **NOT RUN** browser/filechooser tại revision này; kiểm chứng bằng đọc source, không coi là PASS từ mock |
+| QA-A10 / R08.9/12 | Tại bb30da0 chưa chạy browser pending-file; sau đó đã điều tra lại root cause và kiểm chứng có barrier theo QA-A10a–g phía trên | Lịch sử NOT RUN tại bb30da0; hiện PASS trong phạm vi File API, không native filechooser |
 
 Ngân sách test: toàn bộ debug browser/unit ở trên không gọi Supabase thật. Hai lần gọi execute_sql: lần đầu lỗi connector `Invalid or expired requestState` không có kết quả SQL; kiểm tra project ACTIVE_HEALTHY rồi thử lại một lần, batch rollback PASS. Không chạy test:api, login loop, upload thật, polling, realtime hoặc provider fault trên project thật. Không thay schema/policy/migration, Auth settings, account, hosting hay dữ liệu runtime bền vững. SQL audit identity sequence có thể tăng dù transaction rollback; đây không phải artifact nội dung test còn lại.
 
@@ -54,7 +79,7 @@ Console có lỗi từ `chrome-extension://...content-script.bundle.js` gửi me
 ## Chưa đủ bằng chứng nghiệm thu
 
 - BLOCKED/NOT RUN: SQL 2026-10-24 đã xác nhận một admin active có email confirmed; không cần tạo thêm admin. Chưa xác minh server signup/anonymous; login/logout thực, CMS/upload thật/thumbnail/signed URLs published→hidden, non-admin JWT thật và hai context độc lập sync chưa chạy. Test anon, mock và SQL role simulation không thay các bước này.
-- NOT RUN: QA-A10 pending file/close/logout/save failure với browser filechooser; mất mạng lúc soạn/upload, session expiry thật, upload một phần fail + orphan cleanup thực, quota provider thực, project pause, Safari/iPhone/Android thật, full backup/restore và production smoke. Ngưỡng quota đã có unit test, không phải mô phỏng provider hết quota.
+- NOT RUN: native filechooser/OS cho pending file (File API/barrier đã PASS QA-A10); mất mạng lúc soạn/upload, session expiry thật, upload một phần fail + orphan cleanup thực, quota provider thực, project pause, Safari/iPhone/Android thật, full backup/restore và production smoke. Ngưỡng quota đã có unit test, không phải mô phỏng provider hết quota.
 - Thiếu ảnh wireframe quản trị đã duyệt; UI bám mô tả chữ, cần visual acceptance.
 - Chưa deploy hoặc tạo Site vì chưa đạt gate bảo mật/chi phí/audience. Không dùng preview URL làm URL public.
 

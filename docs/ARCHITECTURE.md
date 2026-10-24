@@ -74,16 +74,18 @@ Các vùng dưới đây được lắp trong `src/main.js` bằng helper `el(..
 | Bootstrap / refresh / hành động | src/main.js | QA_REPORT public + editor fixture |
 | Header/Search/AdminToolbar/Board/Column/Card/Preview | src/components/board.js | public UI + viewport |
 | Gallery/Document/Video | src/components/media.js | ảnh/PDF/YouTube UI |
-| PostEditorDrawer/AttachmentUploader | src/components/post-editor.js | tests/audit.html: draft faults, inert busy form, recovery, save failure; drafts/validation unit |
+| PostEditorDrawer/AttachmentUploader | src/components/post-editor.js | tests/audit.html: draft faults, inert busy form, pending-file barrier/close/logout/expired event/restore, save failure; drafts/validation unit |
 | Login / SectionEditor | src/components/auth.js, section-editor.js | login UI; E2E thật BLOCKED |
 | Confirm/Toast/Loading/Empty/Error/Sync | src/components/primitives.js | browser search/modal/error |
 | QuotaStatus | src/components/quota.js | quota unit + SQL RPC |
 | Supabase client/query/Auth/export/pagination | src/services/client.js, board.js, pagination.js | tests/reliability.test.js: complete pages/count/failure; anon API + SQL role regression |
 | Session request generation | src/utils/request-gate.js; src/main.js xóa snapshot khi SIGNED_OUT | unit late-response race + tests/audit.html logout/failure |
 | File upload/sign/cleanup | src/services/storage.js | offline uncertain upload + guarded/batched cleanup; upload bytes thật chưa chạy |
-| Text / Blob nháp | src/services/drafts.js | tests/drafts.test.js + browser IndexedDB |
+| Text / Blob nháp / flush queue | src/services/drafts.js: createDraftWriter chờ file rồi đọc snapshot, serialize write và fence cleanup | tests/drafts.test.js (pending/write failure/serial) + QA-A10 File API/IndexedDB |
 | URL/file/search/order/retention/quota/ID/DOM | src/utils/ | tests/*.test.js; preview UUID fallback verified |
 | Public config / placeholder fixtures | src/config/public.js, src/data/placeholders.js, public/placeholders/ | public board/media |
 | Schema/RLS/atomic RPC | supabase/migrations/, seed.sql | supabase/tests/access.sql |
 
 Vite chỉ bundle SDK và cấu hình public, output static dist. Không có server app hoặc framework SPA. Session Supabase ở memory (không persistence), còn text draft localStorage và File draft IndexedDB có key theo UID/post. Private Storage dùng signed URL 60 giây; thumbnail được ký theo batch metadata, không fetch tất cả file bytes. Refresh sau ghi/active/manual, không đăng ký Realtime. Chi tiết quyết định ở SPEC/DECISIONS, không nhân bản cấu hình ở nhiều file.
+
+Editor phân biệt file selection/result với input khi busy: markDirty vẫn nhận kết quả đã xếp hàng, nhưng không cập nhật dirty toàn cục sau khi dialog đóng. Close và preserveDraft chờ signature trước flush; logout flush trước confirm, hủy luồng cũ nếu Auth generation đổi. SIGNED_OUT xóa UI ngay, để local flush hoàn tất trước uploader cleanup; không chờ network hoặc giữ UI quản trị mở.
