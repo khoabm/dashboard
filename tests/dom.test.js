@@ -16,15 +16,23 @@ test('unknown backend diagnostics never appear verbatim', () => {
 });
 
 test('known app guidance remains actionable', () => {
-  assert.equal(
-    errorMessage(Error('Chưa kiểm tra được dung lượng lưu trữ. Để tránh vượt giới hạn, việc tải tệp mới đang tạm dừng.')),
-    'Chưa kiểm tra được dung lượng lưu trữ. Để tránh vượt giới hạn, việc tải tệp mới đang tạm dừng.',
-  );
+  const expected =
+    'Chưa kiểm tra được dung lượng lưu trữ. Để tránh vượt giới hạn, việc tải tệp mới đang tạm dừng.';
+  assert.equal(errorMessage(Error(expected)), expected);
 });
 
 test('recognized service errors are localized instead of exposed', () => {
-  assert.match(errorMessage({ code: '23503', message: 'violates foreign key constraint' }), /Chủ đề này vẫn có bài đăng/);
-  assert.match(errorMessage({ code: '42501', message: 'permission denied' }), /Phiên đăng nhập/);
-  assert.match(errorMessage({ status: 429, message: 'Too Many Requests' }), /quá nhiều yêu cầu/);
+  assert.match(
+    errorMessage({ code: '23503', message: 'violates foreign key constraint' }),
+    /Chủ đề này vẫn có bài đăng/,
+  );
+  assert.match(
+    errorMessage({ code: '42501', message: 'permission denied' }),
+    /Phiên đăng nhập/,
+  );
+  assert.match(
+    errorMessage({ status: 429, message: 'Too Many Requests' }),
+    /quá nhiều yêu cầu/,
+  );
   assert.match(errorMessage({ message: 'Failed to fetch' }), /Không thể kết nối/);
 });
