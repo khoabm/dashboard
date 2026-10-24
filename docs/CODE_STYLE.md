@@ -5,13 +5,13 @@ Tài liệu này là nguồn chuẩn **về cách trình bày source** cho devel
 ## Trạng thái và phạm vi
 
 - **Có hiệu lực như quy ước viết code:** áp dụng cho file mới và phần code được chỉnh sửa về sau. Code cũ trên `develop` chưa tuân thủ đồng đều, đặc biệt JS/CSS/HTML đang viết nén.
-- **Lượt thay đổi tài liệu này:** chỉ quy định chuẩn và chỉ dẫn agent; **không** cài Prettier/ESLint, thêm scripts/CI, sửa application code, format toàn repo hoặc chạy lại migration.
+- **CI giai đoạn đầu:** đã có Prettier config + scripts + GitHub Actions, nhưng chưa format hàng loạt source cũ. CI kiểm tra file mới hoặc file có nội dung khác với baseline `e075f0c`; file cũ giữ nguyên byte được miễn trừ tạm thời. Không cài ESLint, không sửa logic, không chạm SQL migration đã apply.
 - Trước khi sửa một file, đọc nó và giữ nguyên logic, public API, thứ tự side effect, CSS cascade, HTML/CSP, dữ liệu và hành vi. Định dạng code cũ phải là nhiệm vụ/commit riêng có phạm vi rõ và có diff + regression checks.
 - Không áp dụng formatter lên `package-lock.json`, `dist/`, tệp nhị phân, dữ liệu do người dùng upload, hay migration SQL **đã áp dụng**. Không đưa secret vào output/tooling.
 
 ## Chuẩn đề xuất cho formatter
 
-Khi được giao cài formatter ở một lượt sau, ưu tiên **Prettier** cho `*.js`, `*.mjs`, `*.css`, `*.html`, `*.json`, `*.md`. Dùng cấu hình tương đương sau để mọi máy/agent có cùng cách format:
+Sử dụng **Prettier 3.6.2 (pin exact version)** cho JS/MJS, CSS, HTML, JSON và workflow YAML trong phạm vi code. Markdown vẫn tuân thủ quy ước đọc được nhưng chưa được CI tự format. `.prettierrc.json` có nội dung:
 
 ```json
 {
@@ -27,7 +27,7 @@ Khi được giao cài formatter ở một lượt sau, ưu tiên **Prettier** c
 }
 ```
 
-Đây là **mẫu cấu hình mục tiêu**, chưa phải file config tồn tại trong repo. `printWidth` là mục tiêu xuống dòng, không phải giới hạn ký tự tuyệt đối. Tuân theo hành vi parser của Prettier (ví dụ thuộc tính HTML và key JSON vẫn dùng nháy kép). Không sửa code chỉ để ép một phong cách khác với formatter đã thống nhất.
+Đây là **cấu hình đang tồn tại trong repo**. `printWidth` là mục tiêu xuống dòng, không phải giới hạn ký tự tuyệt đối. Tuân theo hành vi parser của Prettier (ví dụ thuộc tính HTML và key JSON vẫn dùng nháy kép). Không sửa code chỉ để ép một phong cách khác với formatter đã thống nhất.
 
 | Loại | Quy ước bổ sung |
 | --- | --- |
@@ -36,6 +36,20 @@ Khi được giao cài formatter ở một lượt sau, ưu tiên **Prettier** c
 | HTML | Indent theo cây DOM, thuộc tính dài có thể xuống dòng; giữ semantic markup và giá trị CSP, aria, URL; không tự tổ chức lại DOM |
 | JSON | Indent 2 spaces; key và chuỗi nháy kép; JSON hợp lệ (không comment/trailing comma); không chỉnh sửa lockfile vì lý do format |
 | Markdown | Heading và code fence có language; link tương đối còn hoạt động; bảng/list dễ đọc; tránh nhân bản tài liệu chuẩn |
+
+## Lệnh hiện có và baseline chuyển tiếp
+
+```bash
+npm run format:check       # CI: kiểm tra file code mới / đã đổi từ baseline
+npm run format:check:all   # Toàn bộ code; có thể FAIL với legacy chưa format
+npm run format             # Format toàn bộ code; chỉ chạy trong task format-only
+```
+
+- CI chỉ thực thi `npm ci`, `npm run check`, `npm test`, `npm run build`, `npm run format:check`. **Không** chạy `npm run test:api`, `supabase/tests/`, browser QA hoặc truy cập Supabase; giữ quota backend bằng 0 cho CI.
+- Mốc `e075f0c` là snapshot source trước khi áp dụng style. `scripts/format-check.mjs` so sánh Git blob SHA-1 của từng file đã theo dõi: file cũ **không đổi byte** được miễn, file mới/file đã thay đổi phải đạt Prettier toàn file. CI cần checkout full history. Không miễn trừ file mới hoặc file cũ đã sửa, kể cả khi lỗi format nằm ở đoạn chưa chạm.
+- Quy tắc chuyển tiếp cho agent: khi cần sửa một file legacy, cân nhắc commit format-only chính file đó trước rồi commit logic riêng và chạy regression. Không tự format tất cả file chỉ vì một thay đổi nhỏ. Khi tất cả legacy đã format, bỏ cơ chế baseline và dùng `format:check:all` trong CI.
+- Prettier được gọi qua `npx --yes prettier@3.6.2` với phiên bản cố định, chưa thêm devDependency/lockfile cho formatter. Khi có môi trường cài npm và tác vụ công cụ riêng, ưu tiên đưa Prettier vào devDependencies với lockfile đồng bộ. ESLint vẫn là lựa chọn về chất lượng code, không nằm trong CI hiện tại.
+- Với GitHub Actions: `pull_request` đích `develop/main` kiểm tra trước merge; `push` vào `develop/main` kiểm tra sau merge; `workflow_dispatch` cho chạy thủ công. GitHub chỉ hiển thị/chấp nhận lần chạy thủ công khi workflow file đã có trên **default branch `main`**. Không tự merge để kích hoạt.
 
 ## Quy tắc dễ đọc khi viết/sửa code
 
@@ -78,6 +92,6 @@ Prettier **không có parser SQL PostgreSQL mặc định**; không dùng Pretti
 
 1. Đọc `AGENTS.md` → `OVERVIEW.md` + `STATUS.md` → tài liệu theo nhiệm vụ. Khi định **viết/sửa code**, đọc thêm file này và các file đích; đừng quét toàn codebase.
 2. Trước khi thay đổi, xác định đây là `docs-only`, `format-only` hay `behavior change`. Trong lượt docs-only chỉ sửa tài liệu. Với file mới áp dụng toàn bộ quy ước; với file cũ áp dụng cho phần thay đổi mà không kéo theo diff lớn.
-3. Khi được yêu cầu **triển khai công cụ** sau này: thêm cấu hình Prettier và script `format`/`format:check` có thể tái lập (pin version, lockfile); chọn phạm vi ignore tường minh; chạy check trên đúng phạm vi. Chỉ cân nhắc ESLint để phát hiện lỗi/chất lượng JS, **không** trùng trách nhiệm format của Prettier; phải kiểm tra xung đột rule trước khi thêm. Không tuyên bố script/lint check có sẵn khi chưa thêm.
+3. Công cụ đang có: `.prettierrc.json`, `npm run format`, `npm run format:check`, `npm run format:check:all` và `.github/workflows/ci.yml`. Không giả định file legacy đã đạt Prettier; xem mục baseline bên trên. Chỉ cân nhắc ESLint để phát hiện lỗi/chất lượng JS, **không** trùng trách nhiệm format của Prettier.
 4. Với format-only, review diff để xác nhận **chỉ whitespace/line wrapping/quote/semi hợp lệ**, chạy syntax/test/build và regression phù hợp khi có môi trường; ghi PASS/FAIL/BLOCKED/NOT RUN trung thực. Với docs-only, kiểm tra link và phạm vi file; không cần browser QA.
 5. Bàn giao kèm branch/SHA, danh sách file, trạng thái formatter/linter thực tế và checks theo [WORKFLOW](WORKFLOW.md). Không tự merge `develop`/`main` hoặc deploy.

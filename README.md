@@ -24,6 +24,12 @@ npm run build
 
 `test:api` gọi project Supabase đã chọn bằng publishable key, kiểm tra public read và denial; không phải test login thật. `build` xuất `dist/` để phục vụ bằng bất kỳ static HTTPS host phù hợp; không cần Node backend khi vận hành. Vite dùng để bundle SDK, khóa dependency/lockfile và tách cấu hình; không dùng React/Next/Vue. Không có cấu hình deployment của nhà cung cấp cũ.
 
+## CI và format code
+
+`npm run format:check` kiểm tra Prettier cho file code mới/đã thay đổi so với baseline trước quy ước; `npm run format:check:all` kiểm tra toàn bộ source (legacy chưa format có thể FAIL); `npm run format` chỉ dùng khi chủ động làm một đợt format-only. Công cụ dùng Prettier 3.6.2 cố định qua `npx` (cần truy cập npm registry), không tự đổi logic.
+
+GitHub Actions `.github/workflows/ci.yml` chạy khi PR/merge vào `develop` hoặc `main`, và hỗ trợ `workflow_dispatch` khi workflow có trên default branch `main`. CI chỉ `npm ci`, syntax/secret scan, unit tests, static build và format check; **không gọi** `npm run test:api` hay Supabase. Xem [CODE_STYLE](docs/CODE_STYLE.md) và [TESTING](docs/TESTING.md).
+
 ## Backend
 
 Bốn migrations trong `supabase/migrations/` đã apply vào project `dashboard` (`vgciiqtwmxcdqppntgnt`). **Không apply lại vào project hiện tại.** Project mới an toàn: dùng migration theo thứ tự, rồi `supabase/seed.sql` nếu cần dữ liệu mẫu. Seed chạy lại không ghi đè bài đã chỉnh hoặc tạo trùng cùng ID. [DATABASE](docs/DATABASE.md) mô tả quyền, lịch sử và RPC.

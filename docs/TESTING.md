@@ -37,6 +37,22 @@ Môi trường browser không có resize/network độc lập; đã kiểm tra r
 
 Phase UI cần browser QA các luồng/viewport liên quan. Done sản phẩm cần toàn R25 (20 điều kiện), tests R19, bảo mật R10/Storage và backend thật. Nếu thiếu điều kiện, bàn giao rõ trạng thái tạm thời; không gọi hoàn tất. Chỉ chạy lại/bổ sung test khi thay đổi mới, lỗi hoặc nghi ngờ chưa giải quyết cần kiểm chứng, tránh chạy lặp toàn bộ không có lý do.
 
+## CI offline (GitHub Actions)
+
+Workflow `.github/workflows/ci.yml`: `workflow_dispatch`, PR hướng tới `develop/main`, push (gồm merge) vào `develop/main`. Một job trên Ubuntu + Node 24, checkout full history, quyền `contents: read`, không token/secret của Supabase.
+
+| Check CI | Phạm vi | Trạng thái chứng minh |
+| --- | --- | --- |
+| `npm ci` | Cài dependency từ lockfile | Chỉ đánh giá khi workflow chạy |
+| `npm run check` | Syntax JS, scan secret/JWT hardcode, git diff whitespace | Offline |
+| `npm test` | Toàn bộ unit regression dưới `tests/*.test.js` | Offline; chạy tất cả test hiện tại |
+| `npm run build` | Static bundling Vite | Offline, không deploy |
+| `npm run format:check` | Prettier 3.6.2; kiểm tra file mới/đã đổi từ baseline trước style | Không miễn trừ file mới; legacy bất biến được miễn tạm thời |
+
+Theo yêu cầu tránh quota: **không đưa** `npm run test:api`, `supabase/tests/access.sql`, test Auth/RLS/Storage live hay browser E2E vào CI. Chúng vẫn thuộc ma trận nghiệm thu thủ công khi được giao riêng; một CI PASS không tương đương backend/browser PASS. `npm run format:check:all` cho biết nợ format của code cũ, không phải gate CI giai đoạn này.
+
+GitHub yêu cầu workflow có trên default branch (`main`) trước khi nút **Run workflow**/`workflow_dispatch` hoạt động. Trước đó có thể dùng PR checks; không merge vào main chỉ để kích hoạt manual.
+
 ## Lệnh hiện có
 
 `npm test` chạy unit regression không gọi backend; `npm run check` kiểm tra syntax/credential scan/diff; `npm run build` bundle static. `npm run test:api` gọi API bằng publishable key, không lấy token admin. `supabase/tests/access.sql` chạy owner SQL Editor với fixtures rollback (SET LOCAL role và JWT sub), không phải phiên login thật. Xem QA_REPORT trước khi mở rộng ma trận; không chạy destructive test trên dữ liệu thật.

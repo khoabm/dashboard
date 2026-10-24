@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+package-lock.json
+supabase/migrations/
+supabase/seed.sql
+supabase/tests/
+public/placeholders/
+docs/
+README.md
+AGENTS.md
