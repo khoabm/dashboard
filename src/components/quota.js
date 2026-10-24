@@ -22,17 +22,17 @@ export async function QuotaStatus(root) {
       el(
         'div',
         { class: level === 'normal' ? 'fine-print' : 'demo-note' },
-        `Storage học liệu: ${(usage.storage_bytes / 1e6).toFixed(2)} MB / 1.000 MB · Database ước tính: ${(usage.database_bytes_estimate / 1e6).toFixed(1)} MB / 500 MB. Băng thông: chưa đo được.`,
+        `Dung lượng tệp đã sử dụng: ${(usage.storage_bytes / 1e6).toFixed(2)} MB / 1.000 MB · Dung lượng dữ liệu (ước tính): ${(usage.database_bytes_estimate / 1e6).toFixed(1)} MB / 500 MB. Lưu lượng sử dụng: chưa có số liệu.`,
         storageLevel === 'critical'
-          ? ' Đã chặn upload từ ngưỡng Storage 90%.'
+          ? ' Đã tạm dừng tải tệp mới vì dung lượng lưu trữ chạm ngưỡng 90%.'
           : level !== 'normal'
-            ? ' Dung lượng đạt mức cảnh báo. Database là ước tính, cần đối chiếu Dashboard.'
+            ? ' Dung lượng đang gần giới hạn. Số liệu về dữ liệu chỉ là ước tính; hãy kiểm tra thêm trong trang quản trị.'
             : '',
       ),
     );
   } catch {
     if (root.isConnected)
       root.textContent =
-        'Không đọc được quota. Tải tệp mới sẽ yêu cầu kiểm tra lại; không tự nâng gói.';
+        'Chưa thể kiểm tra dung lượng còn lại. Vui lòng thử lại trước khi tải tệp mới.';
   }
 }

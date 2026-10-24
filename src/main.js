@@ -269,7 +269,7 @@ async function refresh() {
   } catch (e) {
     if (!requests.isCurrent(ticket)) return;
     if (!lastSync) boardRegion.replaceChildren(ErrorState(errorMessage(e), refresh));
-    else ToastNotification('Chưa đồng bộ được. Đang giữ dữ liệu đã tải; hãy thử lại.', true);
+    else ToastNotification('Chưa thể tải thông tin mới. Nội dung đang hiển thị vẫn được giữ lại; hãy thử lại.', true);
   } finally {
     requests.finish(ticket);
   }
@@ -443,7 +443,7 @@ async function downloadMetadata() {
     });
     anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    ToastNotification('Đã xuất metadata. Tệp Storage cần sao lưu riêng theo hướng dẫn.');
+    ToastNotification('Đã xuất thông tin học liệu. Bản sao này chưa bao gồm các tệp đính kèm; hãy sao lưu chúng riêng.');
   } catch (e) {
     ToastNotification(errorMessage(e), true);
   }

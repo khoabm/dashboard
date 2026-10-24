@@ -56,7 +56,7 @@ export function field(label, control) {
  */
 export function errorMessage(error) {
   if (error?.code === '40001')
-    return 'Bài đã được sửa ở tab khác. Nháp vẫn được giữ; hãy tải lại bản mới.';
+    return 'Bài đăng đã có thay đổi từ nơi khác. Bản nháp của bạn vẫn được giữ; hãy tải lại bài để xem phiên bản mới nhất.';
   if (error?.code === '23503')
     return 'Cột còn bài đăng (kể cả nháp và thùng rác). Hãy chuyển các bài sang cột khác trước.';
   if (error?.code === '42501' || /JWT|session/i.test(error?.message || ''))

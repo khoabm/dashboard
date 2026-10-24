@@ -17,7 +17,7 @@ export const client = configured
  */
 export function requireClient() {
   if (!client)
-    throw Error('Chưa cấu hình Supabase. Xem README để thiết lập URL và publishable key.');
+    throw Error('Hệ thống chưa được thiết lập đầy đủ. Vui lòng liên hệ người quản lý.');
   return client;
 }
 

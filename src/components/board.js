@@ -76,7 +76,7 @@ export function AdminToolbar({ onNew, onSection, onLogout, onExport, onTrash, fi
       'div',
       { class: 'toolbar-actions' },
       button(filter === 'deleted' ? 'Về bảng học liệu' : 'Thùng rác', onTrash, 'button subtle'),
-      button('Xuất metadata', onExport, 'button subtle'),
+      button('Xuất thông tin học liệu', onExport, 'button subtle'),
       button('+ Chủ đề', onSection, 'button'),
       button('+ Tạo bài đăng', onNew, 'button primary'),
       button('Đăng xuất', onLogout, 'button subtle'),

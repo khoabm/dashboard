@@ -325,7 +325,7 @@ export async function PostEditorDrawer({
     const saved = await draftWriter.save();
     if (dirty && dialog.open)
       draftStatus.textContent = saved
-        ? 'Đã lưu nháp trên thiết bị này · chưa đồng bộ.'
+        ? 'Bản nháp đã được lưu trên thiết bị này, nhưng chưa được lưu vào bài đăng.'
         : 'Không thể lưu nháp cục bộ. Hãy giữ trang mở và thử lại.';
     return saved;
   }
@@ -337,7 +337,7 @@ export async function PostEditorDrawer({
     dirty = true;
     if (!dialog.open || closing) return;
     onDirty(true);
-    draftStatus.textContent = 'Có thay đổi chưa lưu lên Supabase.';
+    draftStatus.textContent = 'Có thay đổi chưa được lưu vào bài đăng.';
     if (!busy) autosave();
   }
 
@@ -372,7 +372,7 @@ export async function PostEditorDrawer({
   });
   // The uploader and both feedback regions follow the post fields inside the form.
   form.append(uploader, error, draftStatus);
-  const saveDraftButton = button('Lưu nháp', () => submit('draft'));
+  const saveDraftButton = button('Lưu bản nháp lên hệ thống', () => submit('draft'));
   const publish = el('button', { type: 'submit', class: 'button primary' }, 'Lưu thay đổi');
   const closeButton = button('×', requestClose, 'icon-button', {
     'aria-label': 'Đóng trình soạn thảo',
@@ -482,7 +482,7 @@ export async function PostEditorDrawer({
       await cleanup(unused, undefined, canContinue).catch(() => {
         if (canContinue())
           ToastNotification(
-            'Bài đã lưu. Một số tệp cũ chưa dọn được; có thể thử “Dọn tệp thừa”.',
+            'Đã lưu bài đăng. Một số tệp cũ chưa xóa được; bạn có thể thử dọn chúng sau.',
             true,
           );
       });
@@ -499,7 +499,7 @@ export async function PostEditorDrawer({
       dialog.close();
       await onSaved();
       ToastNotification(
-        nextStatus === 'published' ? 'Đã xuất bản bài đăng.' : 'Đã lưu bài đăng trên Supabase.',
+        nextStatus === 'published' ? 'Đã xuất bản bài đăng.' : 'Đã lưu bài đăng thành công.',
       );
     } catch (e) {
       // A lost response cannot establish whether the RPC committed; later cleanup checks references.
@@ -533,7 +533,7 @@ export async function PostEditorDrawer({
         dirty &&
         !(await ConfirmDialog(
           'Rời trình soạn thảo?',
-          'Thay đổi chưa được lưu lên Supabase. Chỉ đóng sau khi lưu nháp trên thiết bị thành công.',
+          'Những thay đổi này chưa được lưu vào bài đăng. Bạn chỉ có thể đóng sau khi bản nháp được lưu thành công trên thiết bị.',
         ))
       ) {
         if (dialog.open) autosave();
@@ -542,7 +542,7 @@ export async function PostEditorDrawer({
       if (!dialog.open) return;
       if (!(await persist())) {
         error.textContent =
-          'Chưa đóng trình soạn thảo vì nháp chưa được lưu. Hãy thử lại hoặc lưu lên Supabase.';
+          'Chưa thể lưu bản nháp trên thiết bị. Hãy thử lại hoặc lưu bài đăng trước khi đóng.';
         return;
       }
       closing = true;
