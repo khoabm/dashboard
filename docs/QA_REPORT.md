@@ -1,5 +1,27 @@
 # Bằng chứng kiểm thử
 
+<a id="pulse-feedback-2026-10-24"></a>
+
+## 2026-10-24 — pulse feedback / AUD-015
+
+Branch `enhancement/acceptance-refinements` từ develop `ad8c78c9a8e285d96465753ff65942b78b98ccba`; implementation/test trong commit chứa mục này. Không thay schema, policy, Auth settings, dependency hoặc cấu hình CI. Chrome cloud desktop; frame có viewport CSS thật nhưng không phải Safari/iPhone/Android thật.
+
+`tests/audit.html` thêm chọn loại thao tác, giữ/release response và fault theo loại; fixture xử lý đúng payload reorder p_ids, thứ tự query, timestamp xóa và CRUD chủ đề bằng dữ liệu synthetic. SDK/query + handler app là thật; transport/identity/Auth event là mock. Mock sign-in cố ý submit form rỗng qua nút fixture noValidate, không nhập/tạo credential hoặc token; URL ảnh mock trỏ SVG local. Fetch không forward ngoài origin, CSP giới hạn connect; liveRequests=0 là invariant fixture, không phải phép đo Network tab. Không gọi Supabase thật.
+
+| Case | Kết quả quan sát / assertion | Trạng thái |
+| --- | --- | --- |
+| QA-A16a — re-order | Giữ write response → pulse “Đang sắp xếp bài đăng…”, animationName=pending-pulse, board inert/aria-busy=true. Bấm force vào nút inert không thêm request (write=1, held=1). Release → thứ tự PRIVATE lên đầu, status ẩn/mở khóa. Guard sau ghi vẫn cho đúng refresh cuối | PASS mock; [ảnh pulse trên bảng](qa/pulse-reorder-20261024.jpg) |
+| QA-A16b — bài đăng | Tạo bài/PDF signature bị giữ → pulse kiểm 1 file, save chờ kiểm file và khóa đóng. Release signature → upload/save pulse; response lỗi → inline error, pulse tắt và form mở khóa; tắt fault/retry → bài có 1 PDF. Sửa + publish → nhãn “Đang xuất bản bài đăng…” rồi board đúng title/status. Source cuối kiểm autosave inline, không bật status ở trên form khi nhập | PASS File/IndexedDB thật, RPC/upload mock |
+| QA-A16c — dialog viewport | QA phát hiện status ở đầu content nằm ngoài viewport khi scroll tới footer. Đã chuyển vào sticky heading cho post/section/login. Source cuối: lúc save ở footer, status nằm trong heading, top=80/bottom≈127 trong viewport 936px. Ảnh cho thấy nhãn vẫn trên form khóa | PASS; [ảnh sticky header](qa/pulse-editor-sticky-20261024.jpg) |
+| QA-A16d — xóa/khôi phục/chủ đề | Xóa bài có pending sau confirm, vào thùng rác; restore có pulse rồi về draft. Thêm/sửa chủ đề có pulse lưu; nút đóng disabled, Escape không đóng khi chờ; xóa chủ đề trống có pulse rồi xóa cột synthetic | PASS mock; không xóa dữ liệu runtime |
+| QA-A16e — read / tác vụ nền | Refresh lỗi vẫn giữ bảng, pending kết thúc và controls mở khóa khi SDK kết thúc retry GET 503; không thêm retry riêng trong app. Export, cleanup và quota đều có pulse khi giữ response; release trả kết quả. SIGNED_OUT rồi giữ public read hiển thị pulse tải đầu và biến mất sau release | PASS mock; không đo quota provider hoặc nghiệm thu full backup |
+| QA-A16f — tài nguyên / Auth UI | Gallery chờ mock signed URL có pulse, nút bị khóa; release → SVG local tải xong và có Phóng to. Login mock không credential có pulse, lỗi mở khóa; logout mock có pulse và xóa admin UI. Không test JWT thật. PDF/YouTube iframe có load/error feedback theo source, nhưng không giữ/thẩm định playback/PDF render ở lượt này | PASS cho gallery ảnh/Auth UI mock; iframe playback/render NOT RUN |
+| QA-A16g — lifecycle | Giữ re-order rồi phát SIGNED_OUT qua fixture: UI riêng/status cũ xóa; release không bật lại private UI. Save chờ file → SIGNED_OUT → release signature giữ 1 PDF/header %PDF-, beforeunloadGuarded=false, usage/upload/save/remove=0/0/0/0 sau reset counters. Source cuối kiểm lại file pending và autosave inline | PASS; giữ regression chống mất nháp, không chứng minh session expiry/JWT thật |
+| QA-A16h — responsive | `tests/viewport.html?fixture=audit`: iframe 360/390/768/1024/1440, app scrollWidth = clientWidth lần lượt 345/375/753/1009/1425. Pulse trái/phải trong viewport tại mọi kích thước. Sau sửa sticky heading, dialog 390px: status left=33/right=342 trong clientWidth375, không tràn | PASS Chrome iframe; OS/device và reduced-motion preference thật NOT RUN |
+| QA-A17 — offline | 30/30 unit PASS, 3 test mới cho task duplicate, sync/async error + retry và reset/late completion không clear tác vụ mới hoặc refresh cũ. Check/build/format PASS; dist không chứa fixture | PASS offline; CI phải xem đúng HEAD của PR mới |
+
+Kiểm CSS cho reduced motion: media query hiện có tắt animation/transition toàn cục, dot + nhãn vẫn còn; không gọi đây là kiểm OS preference. Không có app error/warn trong 12 log gần nhất đã xem (chỉ chrome-extension). Các lần chờ assertion ban đầu ngắn hơn retry GET 503 của SDK không phải lỗi stuck loading; đã xác minh cuối cùng status ẩn và bảng còn nguyên. Giữ giới hạn backend/JWT/Storage thật, native picker, Safari/thiết bị, sync hai context, full restore và server signup/anonymous như các mục trước. Không merge/deploy.
+
 <a id="partial-draft-late-save-2026-10-24"></a>
 
 ## 2026-10-24 — review AUD-013/014 tại e98da62

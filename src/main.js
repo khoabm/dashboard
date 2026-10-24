@@ -26,6 +26,8 @@ import { LoginScreen } from './components/auth.js';
 import { SectionEditor } from './components/section-editor.js';
 import { PostEditorDrawer } from './components/post-editor.js';
 import { createRequestGate } from './utils/request-gate.js';
+import { createPendingTask } from './utils/pending-task.js';
+import { PulseIndicator, setPendingMessage } from './components/pending.js';
 const root = document.querySelector('#app');
 const requests = createRequestGate();
 let authRefreshTimer,
@@ -65,6 +67,15 @@ const shell = el('div', { class: 'board-shell' }),
   boardRegion = el('div'),
   adminRegion = el('div');
 const countText = el('span');
+// One persistent region survives board rerenders and describes pending admin work or refreshes.
+const activity = PulseIndicator();
+activity.classList.add('page-progress');
+let operationMessage = '',
+  syncMessage = '';
+const operations = createPendingTask((message) => {
+  operationMessage = message;
+  updatePendingUI();
+});
 // Page composition: global header, introductory hero with a live post count, then the board shell.
 root.append(
   AppHeader({
@@ -104,6 +115,7 @@ root.append(
 );
 // Inside the shell, administrative tools precede section filters and the board; the footer follows.
 shell.append(
+  activity,
   adminRegion,
   controls,
   boardRegion,
@@ -114,6 +126,33 @@ shell.append(
     el('span', {}, 'Cùng học hỏi, cùng khám phá ', el('span', { 'aria-hidden': 'true' }, '↗')),
   ),
 );
+
+/** Updates visible feedback and locks conflicting controls while a board action is pending. */
+function updatePendingUI() {
+  setPendingMessage(activity, operationMessage || syncMessage);
+  const pending = operations.pending() || !!syncMessage;
+  adminRegion.inert = pending;
+  boardRegion.inert = pending;
+  boardRegion.setAttribute('aria-busy', String(pending || !!syncMessage));
+  root.querySelector('.app-header nav').inert = pending || !!syncMessage;
+}
+
+/**
+ * Runs one admin action through completion and refresh without duplicate requests.
+ *
+ * @param {string} message - Pending work to show in the persistent status region.
+ * @param {Function} task - Receives a current-operation check for asynchronous boundaries.
+ * @returns {Promise<*>} The task result, or undefined for ignored/failed work.
+ */
+function runBoardAction(message, task) {
+  return operations.run(message, async (isCurrent) => {
+    try {
+      return await task(isCurrent);
+    } catch (error) {
+      if (isCurrent()) ToastNotification(errorMessage(error), true);
+    }
+  });
+}
 
 // Board rendering and interaction callbacks.
 
@@ -204,6 +243,7 @@ function actions() {
 /** Replaces the visible board with its latest filtered representation. */
 function renderBoard() {
   boardRegion.replaceChildren(BoardContainer(data, actions()));
+  updatePendingUI();
 }
 
 /** Updates counts, admin controls, quota, filters, and board after state changes. */
@@ -227,14 +267,11 @@ function render() {
       }),
       button(
         'Dọn tệp thừa',
-        async () => {
-          try {
+        () =>
+          runBoardAction('Đang kiểm tra và dọn tệp thừa…', async (isCurrent) => {
             await cleanupPending();
-            ToastNotification('Đã hoàn tất kiểm tra các tệp đang chờ dọn.');
-          } catch (e) {
-            ToastNotification(errorMessage(e), true);
-          }
-        },
+            if (isCurrent()) ToastNotification('Đã hoàn tất kiểm tra các tệp đang chờ dọn.');
+          }),
         'button subtle',
       ),
     );
@@ -255,11 +292,16 @@ function render() {
 /**
  * Loads the latest board while preserving the previous snapshot on failure.
  * Commits results only within the authentication generation that started the request.
+ *
+ * @param {object} options - afterWrite permits the owning action's final refresh while controls lock.
  */
-async function refresh() {
+async function refresh({ afterWrite = false } = {}) {
+  if (operations.pending() && !afterWrite) return;
   const ticket = requests.begin();
   if (!ticket) return;
   if (!lastSync) boardRegion.replaceChildren(LoadingState());
+  syncMessage = lastSync ? 'Đang tải lại học liệu…' : '';
+  updatePendingUI();
   try {
     const snapshot = await loadBoard();
     if (!requests.isCurrent(ticket)) return;
@@ -271,6 +313,10 @@ async function refresh() {
     if (!lastSync) boardRegion.replaceChildren(ErrorState(errorMessage(e), refresh));
     else ToastNotification('Chưa thể tải thông tin mới. Nội dung đang hiển thị vẫn được giữ lại; hãy thử lại.', true);
   } finally {
+    if (requests.isCurrent(ticket)) {
+      syncMessage = '';
+      updatePendingUI();
+    }
     requests.finish(ticket);
   }
 }
@@ -278,13 +324,23 @@ async function refresh() {
 /** Rechecks the admin profile and signed-in user before refreshing board data. */
 export async function refreshAuth() {
   requests.invalidate();
+  operations.reset();
   const generation = requests.generation();
-  const nextAdmin = await isAdmin();
-  const { data: auth } = await client.auth.getUser();
-  if (generation !== requests.generation()) return;
-  admin = nextAdmin;
-  userId = auth.user?.id;
-  await refresh();
+  syncMessage = 'Đang kiểm tra quyền quản trị…';
+  updatePendingUI();
+  try {
+    const nextAdmin = await isAdmin();
+    const { data: auth } = await client.auth.getUser();
+    if (generation !== requests.generation()) return;
+    admin = nextAdmin;
+    userId = auth.user?.id;
+    await refresh();
+  } finally {
+    if (generation === requests.generation() && syncMessage === 'Đang kiểm tra quyền quản trị…') {
+      syncMessage = '';
+      updatePendingUI();
+    }
+  }
 }
 
 /**
@@ -317,6 +373,7 @@ function editPost(post = null, sectionId) {
  * @param {object} post - The post to move to the trash.
  */
 async function deletePost(post) {
+  if (operations.pending()) return;
   if (
     !(await ConfirmDialog(
       'Chuyển bài vào thùng rác?',
@@ -324,13 +381,12 @@ async function deletePost(post) {
     ))
   )
     return;
-  try {
+  await runBoardAction('Đang chuyển bài vào thùng rác…', async (isCurrent) => {
     await savePost({ ...post, status: 'deleted' }, post.attachments);
-    await refresh();
-    ToastNotification('Đã chuyển bài vào thùng rác.');
-  } catch (e) {
-    ToastNotification(errorMessage(e), true);
-  }
+    if (!isCurrent()) return;
+    await refresh({ afterWrite: true });
+    if (isCurrent()) ToastNotification('Đã chuyển bài vào thùng rác.');
+  });
 }
 
 /**
@@ -343,13 +399,12 @@ async function restorePost(post) {
     ToastNotification('Bài đăng này đã quá thời hạn khôi phục 30 ngày.', true);
     return;
   }
-  try {
+  await runBoardAction('Đang khôi phục bài đăng…', async (isCurrent) => {
     await savePost({ ...post, status: 'draft' }, post.attachments);
-    await refresh();
-    ToastNotification('Đã khôi phục về bản nháp.');
-  } catch (e) {
-    ToastNotification(errorMessage(e), true);
-  }
+    if (!isCurrent()) return;
+    await refresh({ afterWrite: true });
+    if (isCurrent()) ToastNotification('Đã khôi phục về bản nháp.');
+  });
 }
 
 /**
@@ -366,54 +421,57 @@ async function movePost(post, delta) {
     target = peers[index + delta];
   if (!target) return;
   const ordered = moveItem(peers, index, delta);
-  try {
+  await runBoardAction('Đang sắp xếp bài đăng…', async (isCurrent) => {
     await reorderPosts(ordered);
-    await refresh();
-  } catch (e) {
-    ToastNotification(errorMessage(e), true);
-  }
+    if (!isCurrent()) return;
+    await refresh({ afterWrite: true });
+  });
 }
 
 /** Flushes pending files before confirming logout, without waiting to clear an expired session. */
 export async function logout() {
-  if (logoutPending) return;
+  if (logoutPending || operations.pending()) return;
   logoutPending = true;
   const generation = requests.generation();
-  try {
-    for (const dialog of document.querySelectorAll('dialog')) {
-      if (dialog.preserveDraft && !(await dialog.preserveDraft())) {
-        ToastNotification(
-          'Chưa thể đăng xuất. Hãy chờ thao tác hoàn tất hoặc kiểm tra nháp trong trình soạn thảo.',
-          true,
-        );
+  await runBoardAction('Đang chuẩn bị đăng xuất…', async () => {
+    try {
+      for (const dialog of document.querySelectorAll('dialog')) {
+        if (dialog.preserveDraft && !(await dialog.preserveDraft())) {
+          ToastNotification(
+            'Chưa thể đăng xuất. Hãy chờ thao tác hoàn tất hoặc kiểm tra nháp trong trình soạn thảo.',
+            true,
+          );
+          return;
+        }
+      }
+      if (generation !== requests.generation()) return;
+      if (
+        dirty &&
+        !(await ConfirmDialog(
+          'Đăng xuất?',
+          'Nháp đã lưu trên thiết bị này. Thay đổi chưa đồng bộ không xuất hiện trên thiết bị khác.',
+        ))
+      )
+        return;
+      if (generation !== requests.generation()) return;
+      const { error } = await client.auth.signOut();
+      if (error) {
+        ToastNotification(errorMessage(error), true);
         return;
       }
+      if (admin || userId) clearSession();
+      schedulePublicRefresh();
+    } finally {
+      logoutPending = false;
     }
-    if (generation !== requests.generation()) return;
-    if (
-      dirty &&
-      !(await ConfirmDialog(
-        'Đăng xuất?',
-        'Nháp đã lưu trên thiết bị này. Thay đổi chưa đồng bộ không xuất hiện trên thiết bị khác.',
-      ))
-    )
-      return;
-    if (generation !== requests.generation()) return;
-    const { error } = await client.auth.signOut();
-    if (error) {
-      ToastNotification(errorMessage(error), true);
-      return;
-    }
-    if (admin || userId) clearSession();
-    schedulePublicRefresh();
-  } finally {
-    logoutPending = false;
-  }
+  });
 }
 
 /** Clears private UI synchronously, even if the subsequent anonymous read fails. */
 function clearSession() {
   requests.invalidate();
+  syncMessage = '';
+  operations.reset();
   document.querySelectorAll('dialog').forEach((dialog) => dialog.close());
   admin = false;
   userId = null;
@@ -432,8 +490,9 @@ function schedulePublicRefresh() {
 
 /** Downloads a JSON metadata snapshot without Storage file bytes. */
 async function downloadMetadata() {
-  try {
+  await runBoardAction('Đang chuẩn bị tệp metadata…', async (isCurrent) => {
     const metadata = await exportMetadata();
+    if (!isCurrent()) return;
     const url = URL.createObjectURL(
       new Blob([JSON.stringify(metadata, null, 2)], { type: 'application/json' }),
     );
@@ -444,9 +503,7 @@ async function downloadMetadata() {
     anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     ToastNotification('Đã xuất thông tin học liệu. Bản sao này chưa bao gồm các tệp đính kèm; hãy sao lưu chúng riêng.');
-  } catch (e) {
-    ToastNotification(errorMessage(e), true);
-  }
+  });
 }
 
 // Browser lifecycle, keyboard navigation, and connectivity notifications.

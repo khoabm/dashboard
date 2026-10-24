@@ -647,21 +647,73 @@ kbd {
   font-size: 40px;
   color: #5d836d;
 }
-.spinner {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border: 2px solid #bbd0c1;
-  border-top-color: #315e43;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  vertical-align: middle;
-  margin-right: 10px;
+/* Pending labels remain readable when reduced motion disables the pulse below. */
+.pending-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid #c7ddcf;
+  border-radius: 12px;
+  background: #f0f7f2;
+  color: #23543f;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.6;
+  text-align: left;
 }
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+.pending-indicator[hidden] {
+  display: none;
+}
+.pending-indicator.inline-progress {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: inherit;
+}
+.pulse-dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  margin: 4px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: #307b55;
+}
+.pulse-dot::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border: 2px solid #307b55;
+  border-radius: 50%;
+  animation: pending-pulse 1.5s ease-out infinite;
+}
+@keyframes pending-pulse {
+  from {
+    transform: scale(0.55);
+    opacity: 0.65;
   }
+  to {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+.page-progress {
+  position: fixed;
+  top: 88px;
+  right: 16px;
+  max-width: min(440px, calc(100% - 32px));
+  z-index: 30;
+  box-shadow: 0 8px 28px #183c2520;
+}
+.dialog-progress {
+  flex: 0 0 100%;
+  margin: 0;
+}
+.state.loading .pending-indicator {
+  width: fit-content;
+  max-width: 100%;
+  margin: auto;
 }
 .toast {
   position: fixed;

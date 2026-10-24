@@ -4,6 +4,31 @@ import { el, button } from '../utils/dom.js';
 import { safeUrl, youtubeId } from '../utils/validation.js';
 import { attachmentUrl } from '../services/storage.js';
 import { openDialog, ToastNotification } from './primitives.js';
+import { PulseIndicator, setPendingMessage } from './pending.js';
+
+/**
+ * Keeps frame loading visible until the browser reports load or failure.
+ * A load event describes the frame only, not successful video playback or PDF rendering.
+ *
+ * @param {HTMLElement} wrap - The preview container receiving the frame.
+ * @param {HTMLIFrameElement} frame - The user-requested embedded document or video.
+ * @param {string} message - The pending frame description.
+ */
+function appendFrame(wrap, frame, message) {
+  const progress = PulseIndicator(message);
+  frame.addEventListener('load', () => setPendingMessage(progress), { once: true });
+  frame.addEventListener(
+    'error',
+    () => {
+      setPendingMessage(progress);
+      wrap.append(
+        el('p', {}, 'Không tải được nội dung nhúng. Vui lòng mở lại hoặc dùng liên kết tài liệu.'),
+      );
+    },
+    { once: true },
+  );
+  wrap.append(progress, frame);
+}
 
 /**
  * Creates a YouTube preview that loads its iframe only after a click.
@@ -21,7 +46,9 @@ export function VideoEmbed(url, title) {
       button(
         '▶  Xem video',
         () => {
-          wrap.replaceChildren(
+          wrap.replaceChildren();
+          appendFrame(
+            wrap,
             el('iframe', {
               src: `https://www.youtube-nocookie.com/embed/${id}`,
               title,
@@ -30,6 +57,7 @@ export function VideoEmbed(url, title) {
               referrerpolicy: 'strict-origin-when-cross-origin',
               loading: 'lazy',
             }),
+            'Đang tải trình phát video…',
           );
         },
         'video-load',
@@ -49,7 +77,11 @@ export function DocumentPreview(url, a) {
   // document-preview groups an optional inline PDF viewer with its open/download link.
   const wrap = el('div', { class: 'document-preview' });
   if (a.mime_type === 'application/pdf')
-    wrap.append(el('iframe', { src: url, title: `Xem PDF: ${a.file_name}`, loading: 'lazy' }));
+    appendFrame(
+      wrap,
+      el('iframe', { src: url, title: `Xem PDF: ${a.file_name}`, loading: 'lazy' }),
+      'Đang tải bản xem PDF…',
+    );
   wrap.append(
     el(
       'a',
@@ -88,8 +120,11 @@ export function AttachmentGallery(attachments) {
           ),
         );
     } else {
+      const progress = PulseIndicator();
       const load = button(a.type === 'image' ? 'Mở hình ảnh ↗' : 'Xem tài liệu ↗', async () => {
+        if (load.disabled) return;
         load.disabled = true;
+        setPendingMessage(progress, 'Đang mở tài nguyên…');
         try {
           const url = a.local_url || (await attachmentUrl(a));
           if (url.startsWith('blob:')) blobs.push(url);
@@ -98,29 +133,41 @@ export function AttachmentGallery(attachments) {
             return;
           }
           if (a.type === 'image') {
-            const image = el('img', {
-              src: url,
-              alt: a.file_name || 'Hình ảnh đính kèm',
-              loading: 'lazy',
+            setPendingMessage(progress, 'Đang tải hình ảnh…');
+            await new Promise((resolve, reject) => {
+              const image = el('img', {
+                src: url,
+                alt: a.file_name || 'Hình ảnh đính kèm',
+                onLoad: resolve,
+                onError: () => {
+                  image.remove();
+                  reject(Error('Image unavailable'));
+                },
+              });
+              item.append(image);
             });
-            image.onerror = () => {
-              item.append(el('p', {}, 'Ảnh không khả dụng. Thử tải lại hoặc liên hệ quản trị.'));
-            };
+            if (!wrap.isConnected) return;
             const zoom = button('Phóng to', () => {
               const { content } = openDialog(a.file_name || 'Hình ảnh');
               content.append(
                 el('img', { src: url, alt: a.file_name || 'Hình phóng to', class: 'zoom-image' }),
               );
             });
-            item.append(image, zoom);
+            item.append(zoom);
           } else item.append(DocumentPreview(url, a));
           load.remove();
         } catch {
           load.disabled = false;
-          ToastNotification('Không mở được tệp hoặc liên kết đã hết hạn. Vui lòng thử lại.', true);
+          if (wrap.isConnected)
+            ToastNotification(
+              'Không mở được tệp hoặc liên kết đã hết hạn. Vui lòng thử lại.',
+              true,
+            );
+        } finally {
+          setPendingMessage(progress);
         }
       });
-      item.append(load);
+      item.append(progress, load);
     }
     wrap.append(item);
   }

@@ -1,6 +1,6 @@
 # Kiến trúc và cách code
 
-Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dưới đây áp dụng cho implementation của branch đang đọc (nhánh audit xuất phát từ refactor, chưa merge vào `develop`); nghiệm thu runtime xem STATUS/QA_REPORT.
+Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dưới đây áp dụng cho implementation của branch đang đọc; nghiệm thu runtime xem STATUS/QA_REPORT.
 
 ## Ranh giới
 
@@ -71,6 +71,7 @@ Các vùng dưới đây được lắp trong `src/main.js` bằng helper `el(..
 
 | Module thực tế | Đường dẫn / trách nhiệm | Test |
 | --- | --- | --- |
+| Pulse / tác vụ đang chờ | `src/components/pending.js` dựng live status + pulse; `src/utils/pending-task.js` một task mỗi generation, finally/reset dọn trạng thái và chặn completion cũ xóa status mới | `tests/pending-task.test.js`; QA-A16, audit fixture, viewport `?fixture=audit` |
 | Bootstrap / refresh / hành động | src/main.js | QA_REPORT public + editor fixture |
 | Header/Search/AdminToolbar/Board/Column/Card/Preview | src/components/board.js | public UI + viewport |
 | Gallery/Document/Video | src/components/media.js | ảnh/PDF/YouTube UI |
@@ -95,3 +96,7 @@ DraftRecoveryDialog tách restore/discard/cancel; dismissal không cho phép xó
 Nháp publish bằng localStorage sau khi IndexedDB transaction hoàn tất, không ghi đè blob của snapshot đã commit. Nếu text fail thì metadata cũ tiếp tục trỏ tới blob cũ; snapshot chưa publish vẫn giữ đến explicit discard/confirmed save. Storage snapshot key bị giới hạn cùng namespace UID/post. Các version thay tập file có thể tăng dung lượng cục bộ; chỉ sửa text/retry không sao chép blob lại. Đây chưa phải bằng chứng đồng bộ hai context độc lập.
 
 Editor tính candidate file cũ bị thay trước save RPC, queue sau response trước mọi cancellation exit; response lỗi/không rõ commit cũng giữ candidate để phiên admin sau kiểm tham chiếu. SIGNED_OUT không bắt đầu remote cleanup. Chi tiết điều tra AUD-013/014 trong BUG_FIX_LOG, không thay điều kiện RLS/JWT.
+
+Phản hồi đang chờ theo R14: main giữ pulse cố định trong viewport cho re-order, xóa/khôi phục, refresh, export, cleanup và logout. Controls khóa bằng inert trong thời gian thao tác/đọc bảng; background refresh nhường task đang ghi, task sở hữu gọi refresh cuối sau RPC. SIGNED_OUT reset task/generation và UI; completion cũ không mở khóa hoặc thay status của tác vụ mới.
+
+Dialog đặt pulse trong `.dialog-heading` sticky, bên ngoài form inert; post có nhãn riêng cho xác minh file, upload, save/publish, recovery và hoàn tất. Autosave dùng vùng draft-status inline để không đẩy form khi đang nhập. Section/login khóa submit, đóng và Escape khi chờ. Media tách chờ ký URL, load ảnh và iframe load/error; iframe load không chứng minh playback/PDF render thành công. Quota có pulse riêng. CSS dùng dot + vòng pulse, nhãn chữ/live status và media query reduced motion đã có; không thêm timer kéo dài loading hoặc request/polling.
