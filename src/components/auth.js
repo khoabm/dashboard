@@ -1,7 +1,7 @@
 /** Presents admin login and verifies the active profile before enabling editor actions. */
 
 import { el, button, field, errorMessage } from '../utils/dom.js';
-import { requireClient } from '../services/client.js';
+import { requireClient, sessionPersistent } from '../services/client.js';
 import { isAdmin } from '../services/board.js';
 import { openDialog } from './primitives.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
@@ -42,6 +42,13 @@ export function LoginScreen(onSuccess) {
     ),
     field('Email', email),
     field('Mật khẩu', password),
+    el(
+      'p',
+      { class: 'fine-print' },
+      sessionPersistent
+        ? 'Giữ đăng nhập khi tải lại trang trong tab này. Hãy đăng xuất khi dùng xong trên thiết bị chung.'
+        : 'Trình duyệt không cho lưu phiên trong tab. Bạn cần đăng nhập lại sau khi tải lại trang.',
+    ),
     error,
     submit,
     el(

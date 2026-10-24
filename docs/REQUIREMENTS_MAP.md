@@ -11,7 +11,7 @@ SPEC.md là bản đầy đủ. Bảng này chỉ giúp chọn phần cần đ�
 | [R05](SPEC.md#r05) | UI, wireframe, placeholder | TESTING.md |
 | [R06](SPEC.md#r06) | 20 component JS | ARCHITECTURE.md |
 | [R07](SPEC.md#r07) | Public, phạm vi loại trừ | TESTING.md |
-| [R08](SPEC.md#r08) | Admin 8.1–8.9 | SECURITY.md |
+| [R08](SPEC.md#r08) | Admin 8.1–8.9; phiên qua reload và xác minh quyền | SECURITY.md, ADMIN_SETUP.md |
 | [R09](SPEC.md#r09) | 6 bảng và trường dữ liệu | DATABASE.md |
 | [R10](SPEC.md#r10) | 20 yêu cầu bảo mật | SECURITY.md |
 | [R11](SPEC.md#r11) | Storage, upload từng phần | SECURITY.md |
