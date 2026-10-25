@@ -2,6 +2,12 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-25 — đóng gói regression và ranh giới production
+
+**AUD-018 / P2 — FIXED offline.** Baseline `6bf2069`, branch `enhancement/acceptance-refinements`. Commit trước thiếu regression Auth/điều hướng và fixture được docs tham chiếu; build chưa có gate ngăn đưa test nhầm vào website. Giữ test tái sử dụng trong `tests/`, output máy tại `tests/local/` được ignore. `vite.config.js` chặn test module trong graph production; `package.json` chạy `tests/check-production-build.mjs` kiểm allowlist dist sau build. DEPLOYMENT yêu cầu hosting chỉ phục vụ dist, kiểm URL test trước phát hành.
+
+Bằng chứng: 38/38 offline unit PASS, syntax/credential/diff check PASS, production build PASS. Negative checks: dùng `tests/session.html` làm entry bị build từ chối; chép `dist/test/session.html` bị output gate từ chối và đã dọn file giả lập. Không gọi Supabase thật. Routing HTTP production **NOT RUN** vì chưa có hosting/deployment; không hứa 404 khi hosting có SPA fallback. Gate ngăn fixture được publish trong artifact build chuẩn, không thay việc cấu hình đúng document root.
+
 ## 2026-10-24 — khắc phục sau audit PR #1
 
 Branch sửa: `fix/audit-reliability-20261024`, tạo từ `refactor/code-formatting-guidelines` tại `e5605d87ab5106f5b41d491b970aec68b744fc91`. Audit trước đó đọc `20772f1`; hai lỗi format đã được upstream sửa tại `e5605d8` trước khi tạo branch này. Không sửa refactor/develop/main, không apply migration hoặc deploy.
@@ -70,3 +76,13 @@ Baseline `b24acc19648badfbcfc641ce88555b2000d95678`, branch `enhancement/accepta
 | AUD-016 / P2 | Đăng nhập admin rồi F5 trở thành khách: client persistSession=false; bootstrap chỉ refresh board, không khôi phục và xác minh quyền. Bật persistence mặc định một mình vừa không sửa UI vừa lưu token vào localStorage | `auth-session.js` + `client.js`: SDK sessionStorage/key theo tab, memory fallback, không localStorage/BroadcastChannel chung giữa tab độc lập. `main.js`: bootstrap getSession → getUser server → active admin profile; khóa read/UI khi đang kiểm tra/lỗi, retry, generation chặn kết quả sau SIGNED_OUT. `components/auth.js`: thông báo phạm vi phiên/fallback. Audit fixture bổ sung getSession mock; fixture session mới dùng SDK/storage thật và transport giả | **FIXED trong source/offline**. 35/35 unit PASS (5 test mới gồm SDK restore/refresh-expired/logout/tab isolation và deny cases). QA-A18 browser PASS: form/login/reload/logout, pending verification/SIGNED_OUT/late response, revoked admin, failure/retry, blocked storage, tab độc lập và form iframe360. Auth/JWT/RLS/Storage thật **NOT RUN** |
 
 Check/build PASS. Prettier nội dung toàn code PASS với EOL auto; gate nguyên bản FAIL ở 32 file không sửa do CRLF checkout Windows, không trộn format-only. Không có request Supabase thật, không thêm dependency hoặc dịch vụ trả phí. Giới hạn XSS, browser restore/duplicate, cross-tab logout và token expiry ghi tại SECURITY; không tuyên bố bảo mật backend đã nghiệm thu từ mock. Bằng chứng, ảnh và bước chạy lại: [QA-A18](QA_REPORT.md#auth-reload-2026-10-24), [TESTING](TESTING.md#phiên-qua-reload--aud-016).
+
+## 2026-10-24–25 — điều hướng bảng nhiều chủ đề (AUD-017)
+
+Baseline `ff8c5678c5a07c71456e38383294f7bdb1317c93`, branch `enhancement/acceptance-refinements`. Source triển khai 2026-10-24; tiếp tục phần tài liệu/kiểm chứng bị ngắt và chạy lại ngày 2026-10-25. Người dùng chấp nhận thiết kế với giới hạn: không “Đi đến”, giữ UI/màu hiện tại; gom test và ignore output local. Không đổi develop/main, schema/RLS/Auth server hoặc deploy.
+
+| ID / mức độ | Điều kiện / nguyên nhân | File / cách sửa | Regression / trạng thái |
+| --- | --- | --- | --- |
+| AUD-017 / P2 UX | Board nhiều cột overflow nhưng scrollbar nằm sau cột dài; create chỉ refresh, không giữ anchor/đưa cột vừa tạo vào tầm nhìn. Focus reveal trước khi mở khóa còn bị inert pending chặn | `board-navigation.js`: native top scrollbar/step buttons sticky, sync có guard không ngắt smooth scroll, cleanup ResizeObserver/listener/frame, anchor theo ID+offset. `board.js` gắn section ID. `main.js` giữ anchor, snapshot create supersede read cũ, reveal/focus sau unlock. `section-editor.js` chuyển ID trả từ save và không che read failure bằng success toast. CSS giữ palette/button/layout. Test/fixture ở tests; tests/local được Git/Prettier ignore | **FIXED trong source/offline**; 38 unit/check/build PASS khi chạy lại. Ma trận nghiệm thu browser, format và giới hạn tại QA-A19. Backend/thiết bị thật NOT RUN |
+
+Giữ các regression Auth có sẵn trong working tree, không đưa ảnh/log local vào Git hoặc xóa evidence đã tracked. Hợp đồng tại SPEC R05.2 / D10; bước chạy lại: [TESTING](TESTING.md#điều-hướng-nhiều-chủ-đề--aud-017), [QA-A19](QA_REPORT.md#board-navigation-2026-10-25). Không thêm dependency/dịch vụ trả phí, không dùng mock làm bằng chứng backend thật. Gate format giữ nguyên cấu hình; khác biệt CRLF checkout được ghi riêng trong QA_REPORT.

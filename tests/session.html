@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' blob: data:; frame-src 'none'; object-src 'none'"
+    />
+    <title>Auth reload QA — synthetic only</title>
+    <style>
+      #evidence {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+    </style>
+  </head>
+  <body>
+    <aside aria-label="Kiểm thử phiên giả lập">
+      <h1>QA phiên — không gọi Supabase thật</h1>
+      <p>SDK và sessionStorage thật; Auth/REST giả lập. Không nhập tài khoản thật.</p>
+      <button id="login">Đăng nhập QA giả lập</button>
+      <button id="expire">Phát SIGNED_OUT giả lập</button>
+      <label><input id="deny" type="checkbox" /> Thu hồi admin giả lập</label>
+      <label><input id="fail" type="checkbox" /> Lỗi xác minh user giả lập</label>
+      <label><input id="hold" type="checkbox" /> Giữ xác minh quyền</label>
+      <button id="release">Trả xác minh quyền cũ</button>
+      <button id="inspect">Kiểm tra an toàn</button>
+      <pre id="evidence" role="status"></pre>
+    </aside>
+    <div id="app"></div>
+    <div id="toast" role="status"></div>
+    <script type="module" src="./session-fixture.js"></script>
+  </body>
+</html>
