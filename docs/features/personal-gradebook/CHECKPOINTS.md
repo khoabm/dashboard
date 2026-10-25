@@ -2,6 +2,8 @@
 
 **Status: CP00 documentation readiness PASS (docs-only); CP01–CP07 implementation NOT STARTED.** This plan follows BRIEF V1.1 / user D01–D05 (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
 
+CP01-A is a separately authorized **technical-design** slice: [design and read-only evidence](CP01_TECHNICAL_DESIGN.md), baseline `f522266`, 2026-10-26; **DESIGN READY**, documentation checks only. It does not change the implementation status above. CP01-B (code/migration drafts) and CP01-C (authorized synthetic DB/API integration) require separate requests; no CP01 acceptance box is checked by design alone.
+
 ## Operating workflow for Codex
 
 1. Verify current branch/HEAD and existing `develop` baseline; do not assume the branch still equals initial planning SHA. Read [README](README.md) → [BRIEF](BRIEF.md) and the specific part of [DATA_AND_SECURITY](DATA_AND_SECURITY.md). Open [root AGENTS](../../../AGENTS.md), code style and relevant target files before changes.
@@ -61,6 +63,8 @@ Paths are planning candidates, not permission to create modules or abstractions.
 Deliverables: reviewed additive migration(s), six-table model incl ordered catalogs, minimal secure Functions for identity and admin, unit/security checks, cost check; **do not apply without authorization**.
 
 Dependency: corrected CP00 docs and explicit CP01 authorization. Review offline drafts first; separately authorize migration/deployment to an approved test environment before claiming live policy acceptance. No new paid project or real student data for testing.
+
+Slice order: CP01-A → CP01-B → CP01-C. CP01-A must cover all [14 design sections](CP01_TECHNICAL_DESIGN.md) and pass documentation review; B follows the [implementation sequence](CP01_TECHNICAL_DESIGN.md#13-implementation-sequence-for-cp01-b), C owns the [live acceptance matrix](CP01_TECHNICAL_DESIGN.md#12-test-and-acceptance-matrix). CP02–CP07 and the real-data gate remain separate. Design/metadata inspection is not a mock/live security test.
 
 Acceptance:
 - [ ] Correct student auto-ID; two mandatory fields; secure encrypted+blind-index identity; UNIQUE duplicates per class.
