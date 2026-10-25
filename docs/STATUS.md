@@ -18,6 +18,8 @@ Cập nhật 2026-10-25. Repo `khoabm/dashboard`, branch `enhancement/acceptance
 
 ## Bước tiếp theo
 
+AUD-019 (baseline `34b2ff0`): xác nhận CI PR #3 run `40151354448` fail hai assertion message cũ, build/format skip. Regression chuyển sang bất biến nháp/cleanup; 41/41 unit/check/build PASS local. Có thêm 5 file upstream cần format ở commit riêng. CI phải kiểm đúng SHA sau push; chưa merge/đổi Draft/deploy. Xem BUG_FIX_LOG.
+
 AUD-018 (2026-10-25, baseline `6bf2069`): bổ sung regression/fixture còn thiếu vào Git, giữ tests/local được ignore. Build production có gate chặn test module và kiểm allowlist dist; 38 unit/check/build cùng hai negative checks PASS. Chỉ deploy dist; URL test production NOT RUN, chưa deploy. Chi tiết BUG_FIX_LOG và DEPLOYMENT.
 
 Lượt AUD-017 tiếp tục trên cùng branch, baseline `ff8c567`, giữ phạm vi thiết kế đã được chấp nhận. Gate Prettier nguyên bản FAIL ở 27 file không sửa, đã xác nhận chỉ khác CRLF checkout so với blob LF tại HEAD; kiểm tra EOL auto toàn code PASS. Chi tiết QA-A19. Không format toàn repo, không thay dependency/schema/policy/Auth server hoặc deploy. Ảnh Auth QA-A18 đã chuyển từ docs/qa sang tests/local/artifacts theo yêu cầu gom output local, không đưa lên Git.

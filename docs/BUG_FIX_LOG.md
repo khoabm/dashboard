@@ -2,6 +2,12 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-25 — sửa CI PR #3 sau thay đổi thông báo
+
+**AUD-019 / P1 CI blocker — FIXED offline.** Baseline `34b2ff0`, branch `enhancement/acceptance-refinements`. Run `40151354448` lỗi đúng hai assertion khớp message cũ trong `tests/drafts.test.js` và `tests/reliability.test.js` (39/41 PASS); build/format bị skip. Đã tái hiện local. Thay regex thông báo bằng kiểm rejection kiểu Error kèm bất biến: con trỏ khác UID không được đọc blob, snapshot text/blob cũ không đổi; cleanup bị cắt không xóa tệp, giữ queue và retry kiểm đủ tham chiếu thì giữ tệp đang dùng rồi xóa queue. Không đổi thông báo hoặc logic ứng dụng.
+
+41/41 unit, check và production build PASS local, transport offline. Gate format tiếp theo phát hiện 5 file upstream còn sai format sau khi bỏ khác biệt EOL: `src/main.js`, `src/services/client.js`, `src/services/storage.js`, `src/utils/quota.js`, `tests/dom.test.js`; sửa bằng Prettier 3.6.2 trong commit format riêng. Không chạy browser/backend thật vì không đổi hành vi UI/backend. CI trên SHA sửa phải xác nhận riêng sau push, không dùng PASS của commit cũ; không merge/đổi Draft/deploy.
+
 ## 2026-10-25 — đóng gói regression và ranh giới production
 
 **AUD-018 / P2 — FIXED offline.** Baseline `6bf2069`, branch `enhancement/acceptance-refinements`. Commit trước thiếu regression Auth/điều hướng và fixture được docs tham chiếu; build chưa có gate ngăn đưa test nhầm vào website. Giữ test tái sử dụng trong `tests/`, output máy tại `tests/local/` được ignore. `vite.config.js` chặn test module trong graph production; `package.json` chạy `tests/check-production-build.mjs` kiểm allowlist dist sau build. DEPLOYMENT yêu cầu hosting chỉ phục vụ dist, kiểm URL test trước phát hành.
