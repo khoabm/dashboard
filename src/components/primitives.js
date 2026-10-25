@@ -1,6 +1,7 @@
 /** Provides reusable feedback states, dialogs, and status labels for the UI. */
 
 import { el, button } from '../utils/dom.js';
+import { PulseIndicator } from './pending.js';
 
 /**
  * Shows a temporary toast, replacing any previously scheduled dismissal.
@@ -25,12 +26,7 @@ export function ToastNotification(message, error = false) {
  * @returns {HTMLElement} The status element.
  */
 export const LoadingState = () =>
-  el(
-    'div',
-    { class: 'state loading', role: 'status' },
-    el('span', { class: 'spinner' }),
-    'Đang mở không gian học liệu…',
-  );
+  el('div', { class: 'state loading' }, PulseIndicator('Đang mở không gian học liệu…'));
 
 /**
  * Builds the empty-state message for a board without visible posts.

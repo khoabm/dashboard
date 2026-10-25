@@ -2,10 +2,14 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { config, configured } from '../config/public.js';
-// Sessions stay in memory: no refresh token is duplicated in browser draft storage.
+import { createTabAuthOptions } from './auth-session.js';
+
+const authOptions = createTabAuthOptions(config.url);
+export const sessionPersistent = authOptions.persistSession;
+// SDK tokens use sessionStorage only; drafts and localStorage never receive them.
 export const client = configured
   ? createClient(config.url, config.key, {
-      auth: { persistSession: false, detectSessionInUrl: false, autoRefreshToken: true },
+      auth: authOptions,
     })
   : null;
 
@@ -16,8 +20,7 @@ export const client = configured
  * @throws {Error} When public client settings are missing.
  */
 export function requireClient() {
-  if (!client)
-    throw Error('Chưa cấu hình Supabase. Xem README để thiết lập URL và publishable key.');
+  if (!client) throw Error('Hệ thống chưa được thiết lập đầy đủ. Vui lòng liên hệ người quản lý.');
   return client;
 }
 

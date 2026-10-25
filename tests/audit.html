@@ -8,12 +8,36 @@
       content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://terminal.local:4173; img-src 'self' blob: data:; frame-src 'self' blob:; object-src 'none'"
     />
     <title>Audit regression · offline fixture</title>
+    <style>
+      #evidence {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+    </style>
   </head>
   <body>
     <aside aria-label="Điều khiển QA offline">
       <h1>QA offline — dữ liệu giả lập</h1>
       <p>Không đăng nhập thật, không gọi Supabase thật. CSP chặn kết nối ngoài origin.</p>
       <button id="admin">Nạp trạng thái quản trị giả lập</button>
+      <label
+        >Chờ thao tác
+        <select id="pending-target">
+          <option value="write">Ghi dữ liệu (CRUD / re-order)</option>
+          <option value="read">Tải lại bảng</option>
+          <option value="quota">Kiểm tra dung lượng</option>
+          <option value="export">Xuất metadata</option>
+          <option value="cleanup">Dọn file</option>
+          <option value="media">Mở tài nguyên</option>
+          <option value="auth">Đăng nhập / đăng xuất</option>
+        </select>
+      </label>
+      <label><input id="hold-operation" type="checkbox" /> Giữ phản hồi thao tác</label>
+      <label><input id="fail-operation" type="checkbox" /> Lỗi thao tác đang chọn</label>
+      <button id="release-operation">Trả phản hồi thao tác</button>
+      <button id="seed-cleanup">Tạo candidate cleanup giả lập</button>
+      <button id="preview-media">Mở ảnh QA local</button>
+      <button id="mock-login">Mô phỏng đăng nhập không credential</button>
       <label><input id="fail-text" type="checkbox" /> Lỗi lưu nháp văn bản</label>
       <label><input id="fail-files" type="checkbox" /> Lỗi IndexedDB</label>
       <label><input id="fail-read" type="checkbox" /> Chỉ lỗi đọc IndexedDB</label>
@@ -23,6 +47,7 @@
       <button id="hold">Giữ lần tải quản trị kế tiếp</button>
       <button id="release">Trả response quản trị cũ</button>
       <button id="inspect">Kiểm tra nháp và request</button>
+      <button id="inspect-navigation">Kiểm tra điều hướng bảng</button>
       <button id="release-file">Trả kết quả xác minh file</button>
       <button id="release-save">Trả response lưu bài sau hết phiên</button>
       <button id="seed-remote">Gắn file Storage cũ giả lập</button>

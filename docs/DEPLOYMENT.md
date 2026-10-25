@@ -28,6 +28,12 @@ Nguồn: SPEC R03–04, R17–18, R24–28; quy trình chi tiết ở WORKFLOW. 
 
 ## Bằng chứng phải bổ sung khi thực hiện
 
+### Loại test khỏi website
+
+Chỉ đặt document root/static.directory là `dist/` sau `npm run build` thành công; không publish checkout GitHub, không dùng `npm run dev` làm server production. Test/fixture được giữ trong Git phục vụ regression, không phải nội dung website. Build chặn import module trong `test/`/`tests/`; `tests/check-production-build.mjs` kiểm allowlist output và byte placeholder. CI đang chạy lệnh build này nên gate cũng áp dụng khi merge vào main.
+
+Trước phát hành, thử `/test`, `/test/session`, `/tests/session.html`, `/tests/audit.html` và `/tests/viewport.html`: không URL nào được trả fixture/test source. Hosting có SPA fallback có thể trả index ứng dụng thay vì 404; nếu yêu cầu HTTP 404, cấu hình rule tại hosting đã chọn và kiểm lại. Không suy kiểm build local thành bằng chứng routing production; hosting hiện chưa được tạo/deploy.
+
 GitHub SHA, Sites source SHA và đối chiếu nội dung, project_id/version/deployment_id, URL, audience, ngày, public config sử dụng, checks, quota/chi phí, production smoke và giới hạn. Không ghi credential, signed URL nhạy cảm hoặc token.
 
 Cập nhật học liệu Supabase không cần deploy frontend; đổi source/config client mới cần bản phát hành. Giữ hướng dẫn chạy độc lập ngoài Sites và xuất ZIP khi được yêu cầu. Lệnh thật: npm ci, npm run dev, npm test, npm run check, npm run build. Static output dist chỉ chứa ứng dụng/placeholder; tests/*.html không nằm trong build. Vite allowedHosts chỉ thêm terminal.local để QA nội bộ. Không có hosting.json giả hoặc auto-deploy.

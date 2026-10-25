@@ -22,6 +22,7 @@ import {
 } from '../services/drafts.js';
 import { openDialog, ConfirmDialog, DraftRecoveryDialog, ToastNotification } from './primitives.js';
 import { PostPreviewModal } from './board.js';
+import { PulseIndicator, setPendingMessage } from './pending.js';
 
 /**
  * Builds an attachment list with file, link, and ordering controls.
@@ -39,6 +40,8 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
   const root = el('div');
   const list = el('div', { class: 'editor-attachments' });
   const objectUrls = [];
+  const verificationStatus = PulseIndicator();
+  let pendingFiles = 0;
   // File signature checks finish before submission or local draft dismissal can proceed.
   let pending = Promise.resolve(),
     destroyed = false;
@@ -103,6 +106,8 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
     const selectedFiles = [...files.files];
     files.value = '';
     if (!selectedFiles.length) return;
+    pendingFiles += selectedFiles.length;
+    setPendingMessage(verificationStatus, `Đang kiểm tra ${pendingFiles} tệp đã chọn…`);
     pending = pending
       .then(async () => {
         for (const file of selectedFiles) {
@@ -130,7 +135,14 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
         onChange(attachments);
         render();
       })
-      .catch((error) => onError(errorMessage(error)));
+      .catch((error) => onError(errorMessage(error)))
+      .finally(() => {
+        pendingFiles -= selectedFiles.length;
+        setPendingMessage(
+          verificationStatus,
+          !destroyed && pendingFiles ? `Đang kiểm tra ${pendingFiles} tệp đã chọn…` : '',
+        );
+      });
     onPending();
   });
   const link = el('input', {
@@ -174,6 +186,7 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
         'JPG, PNG, WebP, PDF, DOCX, PPTX, XLSX · mỗi tệp < 2 MB · tối đa 10 tài nguyên/bài',
       ),
       files,
+      verificationStatus,
     ),
     list,
     el(
@@ -248,6 +261,9 @@ export async function PostEditorDrawer({
   });
   /** Checks the editor and Auth generation after each asynchronous remote-save boundary. */
   const canContinue = () => dialog.open && isCurrent();
+  const progress = PulseIndicator();
+  progress.classList.add('dialog-progress');
+  dialog.querySelector('.dialog-heading').append(progress);
   // Recovery feedback remains accessible while the editable form is inert.
   const recoveryNotice = el('div', { role: 'status' });
   // Form controls hold unsaved values; only submit() attempts remote persistence.
@@ -284,7 +300,7 @@ export async function PostEditorDrawer({
   const thumbnail = el('select', { 'aria-label': 'Ảnh đại diện' });
   // error reports validation/save failures; draftStatus reports local draft and upload progress.
   const error = el('p', { class: 'form-error', role: 'alert' }),
-    draftStatus = el('p', { class: 'draft-status', role: 'status' });
+    draftStatus = el('div', { class: 'draft-status', role: 'status' });
   // The form groups post metadata, publication settings, and the attachment section.
   const form = el(
     'form',
@@ -322,11 +338,18 @@ export async function PostEditorDrawer({
    */
   async function persist() {
     if (!recoveryReady) return false;
+    if (!busy) {
+      const localProgress = PulseIndicator('Đang lưu nháp trên thiết bị…');
+      localProgress.classList.add('inline-progress');
+      localProgress.removeAttribute('role');
+      localProgress.removeAttribute('aria-live');
+      draftStatus.replaceChildren(localProgress);
+    }
     const saved = await draftWriter.save();
     if (dirty && dialog.open)
       draftStatus.textContent = saved
-        ? 'Đã lưu nháp trên thiết bị này · chưa đồng bộ.'
-        : 'Không thể lưu nháp cục bộ. Hãy giữ trang mở và thử lại.';
+        ? 'Bản nháp đã được lưu trên thiết bị này, nhưng chưa được lưu vào bài đăng.'
+        : 'Chưa thể lưu bản nháp trên thiết bị này. Hãy giữ trang mở và thử lại.';
     return saved;
   }
   const autosave = debounce(persist, 450);
@@ -337,7 +360,7 @@ export async function PostEditorDrawer({
     dirty = true;
     if (!dialog.open || closing) return;
     onDirty(true);
-    draftStatus.textContent = 'Có thay đổi chưa lưu lên Supabase.';
+    draftStatus.textContent = 'Có thay đổi chưa được lưu vào bài đăng.';
     if (!busy) autosave();
   }
 
@@ -372,15 +395,20 @@ export async function PostEditorDrawer({
   });
   // The uploader and both feedback regions follow the post fields inside the form.
   form.append(uploader, error, draftStatus);
-  const saveDraftButton = button('Lưu nháp', () => submit('draft'));
-  const publish = el('button', { type: 'submit', class: 'button primary' }, 'Lưu thay đổi');
+  const saveDraftButton = button('Lưu bản nháp lên hệ thống', () => submit('draft'));
+  const publish = el('button', { type: 'submit', class: 'button primary' }, 'Lưu bài đăng');
   const closeButton = button('×', requestClose, 'icon-button', {
     'aria-label': 'Đóng trình soạn thảo',
   });
   close.replaceWith(closeButton);
 
-  /** Locks keyboard, pointer, and close actions while a stable snapshot is being saved. */
-  function setBusy(value) {
+  /**
+   * Locks keyboard, pointer, and close actions while a stable snapshot is being saved.
+   *
+   * @param {boolean} value - Whether the editor is processing an explicit action.
+   * @param {string} message - The current phase shown outside the inert form.
+   */
+  function setBusy(value, message = 'Đang xử lý…') {
     busy = value;
     form.inert = value || !recoveryReady;
     form.setAttribute('aria-busy', String(value));
@@ -388,6 +416,7 @@ export async function PostEditorDrawer({
     publish.disabled = value || !recoveryReady;
     saveDraftButton.disabled = value || !recoveryReady;
     form.classList.toggle('form-busy', value);
+    setPendingMessage(progress, value ? message : '');
   }
   // Footer actions support cancellation, draft save, preview, and final submit.
   form.append(
@@ -425,7 +454,7 @@ export async function PostEditorDrawer({
    */
   async function submit(nextStatus) {
     if (busy || !recoveryReady || !canContinue() || !form.reportValidity()) return;
-    setBusy(true);
+    setBusy(true, 'Đang kiểm tra tệp trước khi lưu…');
     autosave.cancel();
     await uploader.whenReady();
     if (!canContinue()) {
@@ -454,10 +483,19 @@ export async function PostEditorDrawer({
     let saveAttempted = false;
     try {
       if (!navigator.onLine) throw Error('Bạn đang ngoại tuyến. Nháp vẫn được giữ trên thiết bị.');
+      setPendingMessage(
+        progress,
+        value.attachments.some((attachment) => attachment.file)
+          ? 'Đang tải tệp đính kèm…'
+          : 'Đang chuẩn bị bài đăng…',
+      );
       uploaded = await uploadAttachments(
         value.id,
         value.attachments,
-        (done, total) => (draftStatus.textContent = `Đang tải tệp ${done}/${total}…`),
+        (done, total) => {
+          draftStatus.textContent = `Đang tải tệp ${done}/${total}…`;
+          setPendingMessage(progress, draftStatus.textContent);
+        },
         undefined,
         canContinue,
       );
@@ -472,6 +510,10 @@ export async function PostEditorDrawer({
         )
         .map((a) => a.storage_path);
       saveAttempted = true;
+      setPendingMessage(
+        progress,
+        nextStatus === 'published' ? 'Đang xuất bản bài đăng…' : 'Đang lưu bài đăng…',
+      );
       await savePost(value, uploaded.attachments);
       // The RPC may commit after SIGNED_OUT. Keep replaced paths before the cancellation exit.
       queueCleanup(unused);
@@ -479,10 +521,11 @@ export async function PostEditorDrawer({
         queueCleanup(uploaded.paths);
         return;
       }
+      setPendingMessage(progress, 'Đang hoàn tất lưu bài…');
       await cleanup(unused, undefined, canContinue).catch(() => {
         if (canContinue())
           ToastNotification(
-            'Bài đã lưu. Một số tệp cũ chưa dọn được; có thể thử “Dọn tệp thừa”.',
+            'Đã lưu bài đăng. Một số tệp cũ chưa xóa được; bạn có thể thử dọn chúng sau.',
             true,
           );
       });
@@ -499,7 +542,7 @@ export async function PostEditorDrawer({
       dialog.close();
       await onSaved();
       ToastNotification(
-        nextStatus === 'published' ? 'Đã xuất bản bài đăng.' : 'Đã lưu bài đăng trên Supabase.',
+        nextStatus === 'published' ? 'Đã xuất bản bài đăng.' : 'Đã lưu bài đăng thành công.',
       );
     } catch (e) {
       // A lost response cannot establish whether the RPC committed; later cleanup checks references.
@@ -524,7 +567,7 @@ export async function PostEditorDrawer({
       dialog.close();
       return;
     }
-    setBusy(true);
+    setBusy(true, 'Đang chuẩn bị đóng trình soạn thảo…');
     autosave.cancel();
     try {
       await uploader.whenReady();
@@ -533,16 +576,17 @@ export async function PostEditorDrawer({
         dirty &&
         !(await ConfirmDialog(
           'Rời trình soạn thảo?',
-          'Thay đổi chưa được lưu lên Supabase. Chỉ đóng sau khi lưu nháp trên thiết bị thành công.',
+          'Những thay đổi này chưa được lưu vào bài đăng. Bạn chỉ có thể đóng sau khi bản nháp được lưu thành công trên thiết bị.',
         ))
       ) {
         if (dialog.open) autosave();
         return;
       }
       if (!dialog.open) return;
+      setPendingMessage(progress, 'Đang lưu nháp trước khi đóng…');
       if (!(await persist())) {
         error.textContent =
-          'Chưa đóng trình soạn thảo vì nháp chưa được lưu. Hãy thử lại hoặc lưu lên Supabase.';
+          'Chưa thể lưu bản nháp trên thiết bị. Hãy thử lại hoặc lưu bài đăng trước khi đóng.';
         return;
       }
       closing = true;
@@ -555,7 +599,7 @@ export async function PostEditorDrawer({
   dialog.preserveDraft = async () => {
     if (!recoveryReady) return true;
     if (busy || closing) return false;
-    setBusy(true);
+    setBusy(true, 'Đang giữ nháp trước khi đăng xuất…');
     autosave.cancel();
     try {
       return await persist();
@@ -607,7 +651,7 @@ export async function PostEditorDrawer({
   /** Restores fields only after every promised blob has been read successfully. */
   async function restoreSaved() {
     if (busy || !canContinue()) return;
-    setBusy(true);
+    setBusy(true, 'Đang khôi phục bản nháp…');
     let restored = false;
     try {
       const recovered = await recoverAttachments(key, saved);
@@ -640,7 +684,7 @@ export async function PostEditorDrawer({
     if (!canContinue()) return dialog;
     if (decision === 'restore') await restoreSaved();
     else if (decision === 'discard') {
-      setBusy(true);
+      setBusy(true, 'Đang bỏ bản nháp…');
       try {
         // Only the explicit discard button authorizes deletion, never an external close.
         await filesDraft(key, null);

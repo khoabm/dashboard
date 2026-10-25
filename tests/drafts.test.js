@@ -253,10 +253,17 @@ test('published version survives a later empty-file partial write and foreign po
     blobs.get(pointer),
   );
   assert.equal(await restored[0].file.text(), '%PDF-one');
+  let foreignReads = 0;
   await assert.rejects(
-    recoverAttachments(key, { files_key: draftKey('other-user', 'post') }),
-    /không hợp lệ/,
+    recoverAttachments(key, { files_key: draftKey('other-user', 'post') }, async () => {
+      foreignReads++;
+      return [];
+    }),
+    Error,
   );
+  assert.equal(foreignReads, 0);
+  assert.equal(map.get(key), committed);
+  assert.equal(await blobs.get(readDraft(key).files_key)[0].file.text(), '%PDF-one');
 });
 
 test('settled waits for every queued write before confirmed-save cleanup can remove a draft', async () => {

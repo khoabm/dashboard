@@ -59,7 +59,7 @@ GitHub yêu cầu workflow có trên default branch (`main`) trước khi nút *
 
 ## Kiểm thử sau audit không hao quota
 
-- Bắt đầu bằng `npm test` (27 tests), `npm run check`, `npm run build`, `npm run format:check`. Service regression nhận client fixture riêng; mọi fetch thật trong test file bị chặn. Không thêm API/SQL live vào CI.
+- Bắt đầu bằng `npm test` (38 tests sau AUD-017), `npm run check`, `npm run build`, `npm run format:check`. Service regression nhận client fixture riêng; mọi fetch thật trong test file bị chặn. Không thêm API/SQL live vào CI.
 - Browser mở `/tests/audit.html` trên preview local: dữ liệu synthetic và nhãn QA rõ ràng, transport/CSP chặn kết nối ngoài origin. Có fault text store, IndexedDB, save chờ/lỗi, public refresh lỗi và response quản trị trả muộn. Dùng các nút/fields thật để tái hiện QA-A02–A05 trong QA_REPORT.
 - QA-A10/AUD-009 dùng fixture barrier để không phụ thuộc tốc độ filechooser: nạp quản trị giả lập, sửa bài, bấm **QA: chọn PDF và giữ xác minh**. Đây là File/DataTransfer/change bubbling từ placeholder local, không phải native picker. Bấm close/logout/save trong lúc file chờ; chỉ dùng **QA: hoàn tất xác minh** để cho phép đi tiếp. Kiểm nháp qua nút fixture: tên File, header %PDF-, số lượng/thứ tự; mở lại và restore. Các nhánh close, logout, SIGNED_OUT, IndexedDB fail, RPC conflict/success và Auth race đã PASS trong QA_REPORT.
 - Để kiểm forced SIGNED_OUT, bấm **QA: hết phiên giả lập** khi signature còn chờ: UI riêng phải xóa ngay. Dùng **Trả kết quả xác minh file** ở ngoài editor rồi inspect; không mở lại dirty/confirm của phiên cũ. Hàng đợi phải flush trước cleanup. Native filechooser/OS vẫn cần ca riêng; ghi NOT RUN/BLOCKED nếu không chọn được, không suy PASS picker từ File API. Không mở tests/editor.html hoặc viewport.html cũ để debug lặp vì chúng gọi Supabase thật.
@@ -84,3 +84,41 @@ Chạy offline trước; không lặp API/Supabase để debug. Bằng chứng [
 - AUD-014 success: gắn file Storage cũ giả lập, mở editor và discard draft thử nghiệm nếu có; thay file cũ bằng PDF mới, bật **Giữ response lưu bài**, reset counters, save. Inspect xác nhận save=1 rồi SIGNED_OUT; dùng **Trả response lưu bài sau hết phiên** ngoài editor. Queue phải có file cũ + mới, metadata mock chỉ giữ file mới, remove=0. Không coi chờ signature là chờ RPC; đây là hai race khác nhau.
 - AUD-014 rejection: lặp với **Lỗi lưu bài giả lập**; response lỗi sau hết phiên vẫn giữ candidate cũ. Phiên admin mock tiếp theo Dọn tệp thừa phải giữ file vẫn được metadata tham chiếu; removedPaths không có file đó. Chạy một save hợp lệ để kiểm dọn đúng file cũ và xóa toàn bộ version local: drafts=[], draftFileRecords=0.
 - Chỉ thao tác dữ liệu synthetic. inspect chỉ đọc/count record thuộc UID audit-fixture; removedPaths là đường dẫn transport mock, không phải bằng chứng xóa Storage thật. File picker, Safari, JWT/Storage thật và hai context vẫn cần lượt nghiệm thu riêng.
+
+### Pulse feedback / AUD-015
+
+Dùng audit fixture, không test live để xem animation. Chọn loại thao tác, bật Giữ phản hồi thao tác, thực hiện đúng UI action; inspect có operationCalls/heldOperations. Kiểm pulse + mô tả đúng công việc, inert/disabled và keyboard trong lúc chờ. Release bằng nút ngoài app hoặc nút QA trong dialog; status phải hết và thao tác mở khóa khi success/failure. Có fault theo loại; tắt lỗi rồi retry một lần. GET 503 có retry hữu hạn của SDK nên chờ kết quả cuối, không thêm click/retry liên tục.
+
+- Re-order và CRUD post/section: kiểm đúng kết quả sau response, không chỉ pulse xuất hiện. Bấm lặp không thêm request. Post upload: barrier file để kiểm pulse chờ xác minh, rồi save/publish; mock lỗi giữ nháp và mở khóa. Scroll tới footer và assert status vẫn ở `.dialog-heading` trong viewport. Autosave pulse nằm inline tại draft-status, không làm form nhảy phía trên.
+- Refresh, export, cleanup, quota: chọn target tương ứng; cleanup cần Tạo candidate cleanup giả lập trước. Gallery ảnh dùng mock signed URL và SVG local. Mô phỏng đăng nhập không credential chỉ kiểm loading/error của form rỗng qua adapter mock, không chứng minh login hợp lệ; không nhập credential thật.
+- SIGNED_OUT khi response còn chờ phải xóa pulse cũ/private UI; response muộn không clear status mới hoặc hồi sinh dữ liệu riêng. File pending giữ các assertion QA-A12c/A16g, reset counters sau admin/quota read trước kiểm request ghi.
+- Responsive offline: `/tests/viewport.html?fixture=audit` chọn trước iframe src nên không mở live entry trung gian. Các width360/390/768/1024/1440 và dialog390 chỉ chứng minh Chrome iframe. Default viewport fixture vẫn gọi app thật, tránh mở nhầm khi debug. CSS reduced motion phải giữ label/dot; OS preference, Safari/device thật vẫn cần lượt riêng.
+
+Bằng chứng và các giới hạn: [QA-A16/A17](QA_REPORT.md#pulse-feedback-2026-10-24). Không thêm minimum loading delay, polling, hoặc backend request chỉ để chạy pulse.
+
+### Phiên qua reload / AUD-016
+
+Theo SPEC R08.1, xem [QA-A18](QA_REPORT.md#auth-reload-2026-10-24). `tests/auth-session.test.js` dùng SDK thật với adapter tab trong memory và transport synthetic; chặn global fetch/localStorage. Kiểm restore, refresh phiên hết hạn, tab độc lập, logout rồi tạo lại client, storage bị chặn, user không khớp và profile inactive/non-admin/lỗi. Không in token.
+
+Browser mở `/tests/session.html` trên Vite localhost, không mở `/` để thử Auth thật. CSP chặn kết nối Supabase; fixture chỉ forward fetch cùng origin, Auth/REST bên ngoài được giả lập. SDK và sessionStorage thật, credential synthetic `qa@example.invalid` / `synthetic` chỉ có nghĩa trong fixture; không nhập tài khoản thật. Style inline được phép riêng ở fixture cho CSS do Vite inject, không thay CSP production.
+
+- Đăng nhập QA hoặc dùng form thật với credential synthetic → reload → Quản trị viên và PRIVATE QA xuất hiện; Inspect có storedSessions=1, authInLocalStorage=false. Tab mới độc lập vẫn là khách.
+- Giữ xác minh quyền → reload → boardReads=0/privateVisible=false, chưa có toolbar. Phát SIGNED_OUT → Trả xác minh cũ → chỉ PUBLIC QA, storedSessions=0. Đăng xuất bằng toolbar rồi reload cũng không khôi phục admin.
+- Đăng nhập lại → Thu hồi admin giả lập → reload: không có toolbar/private. Bỏ toggle, bật Lỗi xác minh user → reload: boardReads=0, hiện Thử lại; tắt lỗi và retry mới khôi phục quản trị. Tắt toggle trước ca kế tiếp vì chúng tồn tại qua reload.
+- `/tests/session.html?blocked=1`: form báo không giữ phiên, login memory vẫn dùng được, reload trở lại khách và không dùng localStorage. Ca này chỉ mô phỏng storage bị chặn ngay khi khởi tạo.
+- Form ở iframe 360px dùng `/tests/viewport.html?fixture=audit`; không mở mặc định vì default gọi app thật. Đây là IAB/iframe, không thay Safari/iPhone/Android hoặc chứng minh Auth/JWT/RLS thật.
+
+Checkout Windows có thể đổi LF trong Git thành CRLF. Lượt AUD-016: gate `npm run format:check` nguyên bản FAIL ở 32 file không sửa; check cùng scope với `--end-of-line auto` PASS. Không format toàn repo để che khác biệt môi trường; CI vẫn giữ cấu hình LF gốc, cần xem kết quả ở đúng commit khi đẩy lên GitHub.
+
+### Điều hướng nhiều chủ đề / AUD-017
+
+Theo SPEC R05.2, bằng chứng [QA-A19](QA_REPORT.md#board-navigation-2026-10-25). Test frontend và fixture tập trung trong `tests/`, xem [tests/README](../tests/README.md). `tests/local/` chứa ảnh/scratch/check logs chỉ dùng máy hiện tại, được Git và Prettier ignore; không chuyển test regression cần chạy lại vào vùng ignore.
+
+Unit `board-navigation.test.js` kiểm anchor bị cắt một phần, refresh, chèn/đổi thứ tự trước anchor, tính lại theo độ rộng mới, xóa anchor và clamp khi không overflow. Không thêm dependency DOM test. Browser dùng `/tests/audit.html?scenario=navigation`: 8 cột, bảng dài, Auth/transport mock, không forward request Supabase. Fixture inspect đọc DOM thật; observer giữ tối đa 8 toast đã hiển thị để không mất evidence khi client chậm.
+
+- Cuộn trái/phải từng cột; kéo native scrollbar phía trên và dùng keyboard → offset hai chiều khớp, nút biên disabled. Cuộn dọc giữa bảng → nav top=0 trong workspace, không theo footer. Lọc một chủ đề hoặc không overflow → nav ẩn. Không có “Đi đến”.
+- Cuộn ngang rồi Làm mới → giữ anchor/offset. Tạo chủ đề, hold write → chưa có cột mới; release thành công → đúng ID/tiêu đề có “Vừa thêm”, focus sau pending unlock, giữ tab Tất cả trên desktop. Kiểm vị trí đầu/cuối theo giá trị Vị trí.
+- Write fail → giữ form/nội dung, không thêm cột giả; tắt fault/retry mới reveal. Write thành công + read fail → giữ snapshot và toast chưa đồng bộ, không che bằng success toast. Tạo khi search không ra kết quả → bỏ tìm kiếm che cột sau snapshot xác nhận. SIGNED_OUT khi create đang chờ → release không hồi sinh toolbar, highlight hoặc focus cũ.
+- `/tests/viewport.html?fixture=audit&scenario=navigation` kiểm iframe360/390/768/1024/1440; mobile giữ một cột và chọn đúng chủ đề mới sau save. Kiểm DOM root clientWidth=scrollWidth, nav chỉ hiện desktop overflow. Không suy iframe thành Safari/iPhone/Android thật. Reduced-motion đã có nhánh source; OS preference thật chưa nghiệm thu.
+
+Logs/ảnh local tại `tests/local/`, không đưa vào Git/ZIP nguồn. CI không đổi cấu hình, không tự chạy backend và cần kiểm ở đúng commit khi push. Backend save/RLS/JWT thật vẫn thuộc lượt nghiệm thu riêng; không dùng kết quả mock để báo đã lưu vào project thật.

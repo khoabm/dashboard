@@ -90,7 +90,7 @@ function snapshotKey(key, draft) {
   const pointer = draft?.files_key;
   if (!pointer || pointer === key) return key;
   if (typeof pointer !== 'string' || !pointer.startsWith(`${key}:files:`)) {
-    throw Error('Đường dẫn tệp nháp không hợp lệ. Bản nháp vẫn được giữ nguyên.');
+    throw Error('Chưa thể mở tệp trong bản nháp. Nội dung đã lưu vẫn được giữ nguyên.');
   }
   return pointer;
 }

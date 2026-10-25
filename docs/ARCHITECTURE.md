@@ -1,6 +1,6 @@
 # Kiến trúc và cách code
 
-Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dưới đây áp dụng cho implementation của branch đang đọc (nhánh audit xuất phát từ refactor, chưa merge vào `develop`); nghiệm thu runtime xem STATUS/QA_REPORT.
+Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dưới đây áp dụng cho implementation của branch đang đọc; nghiệm thu runtime xem STATUS/QA_REPORT.
 
 ## Ranh giới
 
@@ -59,7 +59,9 @@ Các vùng dưới đây được lắp trong `src/main.js` bằng helper `el(..
 | `#app` | `index.html` → `src/main.js` | Root chứa header, hero giới thiệu và `board-shell` |
 | `.app-header` | `AppHeader` | Logo/home, SearchBar, refresh và login/admin entry |
 | `.hero` / `.hero-copy` | `src/main.js` | Tiêu đề, mô tả, số chủ đề/bài công khai; ảnh orbit trang trí |
-| `.board-shell` / `shell` | `src/main.js` | Container căn giữa, bao adminRegion → controls → boardRegion → footer |
+| `.board-shell` / `shell` | `src/main.js` | Container căn giữa, bao adminRegion → workspace → footer |
+| `.board-workspace` / `workspace` | `src/main.js` | Bao controls → BoardNavigation → boardRegion, giới hạn vùng sticky để không đi theo footer |
+| `.board-navigation` / thanh cuộn phía trên | `src/components/board-navigation.js` | Chỉ hiện khi tất cả chủ đề overflow ngang trên desktop; native scrollbar + nút theo cột, dùng lại token/kiểu nút hiện tại |
 | `adminRegion` (div không class) | `render()` | Trống với khách; admin có toolbar, dọn tệp và trạng thái quota |
 | `.board-controls` / `controls` | `renderControls()` | Tab desktop, bộ chọn chủ đề mobile, nhãn bảng và thời điểm đồng bộ |
 | `boardRegion` (div không class) | `renderBoard()`, `refresh()` | Vùng nội dung được thay bằng `BoardContainer`, loading hoặc error |
@@ -71,7 +73,9 @@ Các vùng dưới đây được lắp trong `src/main.js` bằng helper `el(..
 
 | Module thực tế | Đường dẫn / trách nhiệm | Test |
 | --- | --- | --- |
+| Pulse / tác vụ đang chờ | `src/components/pending.js` dựng live status + pulse; `src/utils/pending-task.js` một task mỗi generation, finally/reset dọn trạng thái và chặn completion cũ xóa status mới | `tests/pending-task.test.js`; QA-A16, audit fixture, viewport `?fixture=audit` |
 | Bootstrap / refresh / hành động | src/main.js | QA_REPORT public + editor fixture |
+| Điều hướng ngang / anchor / reveal | `src/components/board-navigation.js`: đồng bộ native scroll hai chiều với guard chống feedback; ResizeObserver/scroll listener/frame được reset khi thay board/Auth. Anchor theo data-section-id + offset. `main.js` chỉ reveal snapshot xác nhận sau khi mở khóa; `section-editor.js` chuyển ID trả từ save | `tests/board-navigation.test.js`; `tests/audit.html?scenario=navigation`, QA-A19 |
 | Header/Search/AdminToolbar/Board/Column/Card/Preview | src/components/board.js | public UI + viewport |
 | Gallery/Document/Video | src/components/media.js | ảnh/PDF/YouTube UI |
 | PostEditorDrawer/AttachmentUploader | src/components/post-editor.js | tests/audit.html: draft faults, inert busy form, pending-file barrier/close/logout/expired event/restore, save failure; drafts/validation unit |
@@ -79,6 +83,7 @@ Các vùng dưới đây được lắp trong `src/main.js` bằng helper `el(..
 | DraftRecovery/Confirm/Toast/Loading/Empty/Error/Sync | src/components/primitives.js | browser search/modal/error |
 | QuotaStatus | src/components/quota.js | quota unit + SQL RPC |
 | Supabase client/query/Auth/export/pagination | src/services/client.js, board.js, pagination.js | tests/reliability.test.js: complete pages/count/failure; anon API + SQL role regression |
+| Phiên theo tab / xác minh bootstrap | `src/services/auth-session.js`: chọn sessionStorage/key riêng, fallback memory; getSession → getUser server → admin_profiles. `main.js` khóa read/UI khi kiểm tra, retry khi lỗi và fence SIGNED_OUT | `tests/auth-session.test.js`; `tests/session.html` / `session-fixture.js` dùng SDK/storage thật + transport giả; QA-A18 |
 | Session request generation | src/utils/request-gate.js; src/main.js xóa snapshot khi SIGNED_OUT | unit late-response race + tests/audit.html logout/failure |
 | File upload/sign/cleanup | src/services/storage.js | offline uncertain upload + guarded/batched cleanup; upload bytes thật chưa chạy |
 | Text / Blob nháp / flush queue | src/services/drafts.js: createDraftWriter chờ file, ghi snapshot blob bất biến rồi publish files_key trong text; reuse blob cho cùng tập ID file; đọc legacy, recover đủ order/blob hoặc báo lỗi; serialize write/fence cleanup, discard/confirmed save xóa các version cùng draft | tests/drafts.test.js (pending/write failure/serial) + QA-A10 File API/IndexedDB |
@@ -86,7 +91,9 @@ Các vùng dưới đây được lắp trong `src/main.js` bằng helper `el(..
 | Public config / placeholder fixtures | src/config/public.js, src/data/placeholders.js, public/placeholders/ | public board/media |
 | Schema/RLS/atomic RPC | supabase/migrations/, seed.sql | supabase/tests/access.sql |
 
-Vite chỉ bundle SDK và cấu hình public, output static dist. Không có server app hoặc framework SPA. Session Supabase ở memory (không persistence), còn text draft localStorage và File draft IndexedDB có key theo UID/post. Private Storage dùng signed URL 60 giây; thumbnail được ký theo batch metadata, không fetch tất cả file bytes. Refresh sau ghi/active/manual, không đăng ký Realtime. Chi tiết quyết định ở SPEC/DECISIONS, không nhân bản cấu hình ở nhiều file.
+Vite chỉ bundle SDK và cấu hình public, output static dist. Không có server app hoặc framework SPA. Session Supabase theo SPEC R08.1 / D09, còn text draft localStorage và File draft IndexedDB có key theo UID/post. Private Storage dùng signed URL 60 giây; thumbnail được ký theo batch metadata, không fetch tất cả file bytes. Refresh sau ghi/active/manual, không đăng ký Realtime. Chi tiết quyết định ở SPEC/DECISIONS, không nhân bản cấu hình ở nhiều file.
+
+Bootstrap gọi `refreshAuth()` ngoài callback SDK, không phụ thuộc thứ tự `INITIAL_SESSION`. `clearSession()` hủy generation trước kiểm tra; chỉ kết quả Auth cùng generation mới bật admin và bắt đầu tải board. Header/manual/online/active refresh nhường bước xác minh; sau lỗi sẽ retry Auth thay vì đọc bằng JWT chưa xác minh. Listener SIGNED_OUT xóa private UI đồng bộ và dời public read bằng timer để tránh lock SDK. Login trong app vẫn đi qua callback thành công đã kiểm quyền; không xử lý lại mọi SIGNED_IN/TOKEN_REFRESHED bằng cách đóng editor hoặc xóa nháp. Key SDK có hậu tố UUID theo tab để tránh BroadcastChannel mặc định đưa session sang tab độc lập; duplicate/restore tab vẫn theo giới hạn browser tại R08.1.
 
 Editor phân biệt file selection/result với input khi busy: markDirty vẫn nhận kết quả đã xếp hàng, nhưng không cập nhật dirty toàn cục sau khi dialog đóng. Close và preserveDraft chờ signature trước flush; logout flush trước confirm, hủy luồng cũ nếu Auth generation đổi. SIGNED_OUT xóa UI ngay, để local flush hoàn tất trước uploader cleanup; không chờ network hoặc giữ UI quản trị mở.
 
@@ -95,3 +102,11 @@ DraftRecoveryDialog tách restore/discard/cancel; dismissal không cho phép xó
 Nháp publish bằng localStorage sau khi IndexedDB transaction hoàn tất, không ghi đè blob của snapshot đã commit. Nếu text fail thì metadata cũ tiếp tục trỏ tới blob cũ; snapshot chưa publish vẫn giữ đến explicit discard/confirmed save. Storage snapshot key bị giới hạn cùng namespace UID/post. Các version thay tập file có thể tăng dung lượng cục bộ; chỉ sửa text/retry không sao chép blob lại. Đây chưa phải bằng chứng đồng bộ hai context độc lập.
 
 Editor tính candidate file cũ bị thay trước save RPC, queue sau response trước mọi cancellation exit; response lỗi/không rõ commit cũng giữ candidate để phiên admin sau kiểm tham chiếu. SIGNED_OUT không bắt đầu remote cleanup. Chi tiết điều tra AUD-013/014 trong BUG_FIX_LOG, không thay điều kiện RLS/JWT.
+
+Phản hồi đang chờ theo R14: main giữ pulse cố định trong viewport cho re-order, xóa/khôi phục, refresh, export, cleanup và logout. Controls khóa bằng inert trong thời gian thao tác/đọc bảng; background refresh nhường task đang ghi, task sở hữu gọi refresh cuối sau RPC. SIGNED_OUT reset task/generation và UI; completion cũ không mở khóa hoặc thay status của tác vụ mới.
+
+Dialog đặt pulse trong `.dialog-heading` sticky, bên ngoài form inert; post có nhãn riêng cho xác minh file, upload, save/publish, recovery và hoàn tất. Autosave dùng vùng draft-status inline để không đẩy form khi đang nhập. Section/login khóa submit, đóng và Escape khi chờ. Media tách chờ ký URL, load ảnh và iframe load/error; iframe load không chứng minh playback/PDF render thành công. Quota có pulse riêng. CSS dùng dot + vòng pulse, nhãn chữ/live status và media query reduced motion đã có; không thêm timer kéo dài loading hoặc request/polling.
+
+Điều hướng theo SPEC R05.2 không thay AppHeader/card/bố cục lọc. Sticky chỉ áp dụng row điều hướng mới, top=0 vì AppHeader hiện không sticky. Create ưu tiên snapshot mới hơn background read; lookup ID chỉ chạy sau khi ticket Auth còn hiệu lực. `renderBoard()` chụp anchor trước replaceChildren rồi attach DOM mới; lọc chủ đề chủ động reset vị trí. Focus reveal đặt sau pending unlock để tránh gọi focus vào board inert. Không có “Đi đến”, kéo thả nội dung hay scroll wheel hijack.
+
+Tổ chức kiểm thử: mọi file frontend test/fixture nằm trong `tests/` (xem tests/README.md); chỉ `tests/local/` là vùng artifact/scratch được .gitignore và .prettierignore bỏ qua. Unit và fixture regression cần chạy lại vẫn giữ trong Git, không gộp vào vùng ignore. Vite build chặn test module; `tests/check-production-build.mjs` kiểm allowlist output sau build. Hosting chỉ phục vụ `dist/`, xem DEPLOYMENT.

@@ -236,9 +236,13 @@ test('an uncertain upload is removed after a complete reference check, never on 
   );
   assert.deepEqual(db.removed, db.attempts);
   const capped = storageClient({ referenced: ['post/used.pdf'], truncated: true });
-  await assert.rejects(cleanup(['post/used.pdf'], capped), /tham chiếu/);
+  await assert.rejects(cleanup(['post/used.pdf'], capped), Error);
   assert.deepEqual(capped.removed, []);
   assert.deepEqual(JSON.parse(local.get('khtn8:cleanup')), ['post/used.pdf']);
+  const complete = storageClient({ referenced: ['post/used.pdf'] });
+  await cleanup(['post/used.pdf'], complete);
+  assert.deepEqual(complete.removed, []);
+  assert.deepEqual(JSON.parse(local.get('khtn8:cleanup')), []);
 });
 
 test('cleanup batches large queues and preserves every referenced object', async () => {
