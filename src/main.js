@@ -214,7 +214,7 @@ function renderControls() {
       { class: 'board-label' },
       '▦  Bảng học liệu',
       lastSync
-        ? ` · cập nhật ${lastSync.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`
+        ? ` · Tải lần cuối lúc ${lastSync.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`
         : '',
     ),
   );
@@ -284,7 +284,7 @@ function render(options = {}) {
         () =>
           runBoardAction('Đang kiểm tra và dọn tệp thừa…', async (isCurrent) => {
             await cleanupPending();
-            if (isCurrent()) ToastNotification('Đã kiểm tra và dọn các tệp thừa được ghi nhận.');
+            if (isCurrent()) ToastNotification('Đã hoàn tất kiểm tra các tệp đang chờ dọn.');
           }),
         'button subtle',
       ),
@@ -346,7 +346,7 @@ async function refresh({ afterWrite = false, revealSectionId = null } = {}) {
   } catch (e) {
     if (!requests.isCurrent(ticket)) return;
     if (!lastSync) boardRegion.replaceChildren(ErrorState(errorMessage(e), refresh));
-    else ToastNotification('Chưa đồng bộ được. Đang giữ dữ liệu đã tải; hãy thử lại.', true);
+    else ToastNotification('Chưa thể tải thông tin mới. Nội dung đang hiển thị vẫn được giữ lại; hãy thử lại.', true);
     return false;
   } finally {
     if (requests.isCurrent(ticket)) {
@@ -445,7 +445,7 @@ async function deletePost(post) {
  */
 async function restorePost(post) {
   if (!canRestore(post)) {
-    ToastNotification('Đã hết thời hạn khôi phục 30 ngày. Không tự động xóa tệp.', true);
+    ToastNotification('Bài đăng này đã quá thời hạn khôi phục 30 ngày.', true);
     return;
   }
   await runBoardAction('Đang khôi phục bài đăng…', async (isCurrent) => {
@@ -554,7 +554,7 @@ async function downloadMetadata() {
     });
     anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    ToastNotification('Đã xuất metadata. Tệp Storage cần sao lưu riêng theo hướng dẫn.');
+    ToastNotification('Đã xuất thông tin học liệu. Bản sao này chưa bao gồm các tệp đính kèm; hãy sao lưu chúng riêng.');
   });
 }
 
