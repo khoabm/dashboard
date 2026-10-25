@@ -2,6 +2,12 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-25 — đóng gói regression và ranh giới production
+
+**AUD-018 / P2 — FIXED offline.** Baseline `6bf2069`, branch `enhancement/acceptance-refinements`. Commit trước thiếu regression Auth/điều hướng và fixture được docs tham chiếu; build chưa có gate ngăn đưa test nhầm vào website. Giữ test tái sử dụng trong `tests/`, output máy tại `tests/local/` được ignore. `vite.config.js` chặn test module trong graph production; `package.json` chạy `tests/check-production-build.mjs` kiểm allowlist dist sau build. DEPLOYMENT yêu cầu hosting chỉ phục vụ dist, kiểm URL test trước phát hành.
+
+Bằng chứng: 38/38 offline unit PASS, syntax/credential/diff check PASS, production build PASS. Negative checks: dùng `tests/session.html` làm entry bị build từ chối; chép `dist/test/session.html` bị output gate từ chối và đã dọn file giả lập. Không gọi Supabase thật. Routing HTTP production **NOT RUN** vì chưa có hosting/deployment; không hứa 404 khi hosting có SPA fallback. Gate ngăn fixture được publish trong artifact build chuẩn, không thay việc cấu hình đúng document root.
+
 ## 2026-10-24 — khắc phục sau audit PR #1
 
 Branch sửa: `fix/audit-reliability-20261024`, tạo từ `refactor/code-formatting-guidelines` tại `e5605d87ab5106f5b41d491b970aec68b744fc91`. Audit trước đó đọc `20772f1`; hai lỗi format đã được upstream sửa tại `e5605d8` trước khi tạo branch này. Không sửa refactor/develop/main, không apply migration hoặc deploy.

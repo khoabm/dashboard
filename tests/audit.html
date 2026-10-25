@@ -8,6 +8,12 @@
       content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://terminal.local:4173; img-src 'self' blob: data:; frame-src 'self' blob:; object-src 'none'"
     />
     <title>Audit regression · offline fixture</title>
+    <style>
+      #evidence {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+    </style>
   </head>
   <body>
     <aside aria-label="Điều khiển QA offline">
@@ -41,6 +47,7 @@
       <button id="hold">Giữ lần tải quản trị kế tiếp</button>
       <button id="release">Trả response quản trị cũ</button>
       <button id="inspect">Kiểm tra nháp và request</button>
+      <button id="inspect-navigation">Kiểm tra điều hướng bảng</button>
       <button id="release-file">Trả kết quả xác minh file</button>
       <button id="release-save">Trả response lưu bài sau hết phiên</button>
       <button id="seed-remote">Gắn file Storage cũ giả lập</button>

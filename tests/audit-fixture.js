@@ -12,7 +12,8 @@ const fileSlice = File.prototype.slice;
 const getRecord = IDBObjectStore.prototype.get;
 const evidence = document.querySelector('#evidence');
 const sectionId = '20000000-0000-4000-8000-000000000001';
-let admin = false,
+const navigationScenario = new URLSearchParams(location.search).get('scenario') === 'navigation';
+let admin = navigationScenario,
   holdNext = false,
   releaseRead,
   releaseSave,
@@ -69,6 +70,30 @@ const sections = [
     sort_order: 0,
   },
 ];
+
+// This bounded scenario exercises the production UI with many columns and a tall board.
+if (navigationScenario) {
+  for (let i = 1; i < 8; i++) {
+    sections.push({
+      ...sections[0],
+      id: `20000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`,
+      title: `Chủ đề QA ${i + 1}`,
+      sort_order: i,
+    });
+  }
+  for (const [index, section] of sections.entries()) {
+    for (let i = 0; i < 6; i++) {
+      posts.push({
+        ...posts[0],
+        id: `navigation-post-${index}-${i}`,
+        section_id: section.id,
+        title: `Học liệu QA ${index + 1}.${i + 1}`,
+        body: 'Nội dung synthetic để kiểm tra điều hướng khi bảng có nhiều bài. Không phải học liệu runtime.',
+        sort_order: i + 2,
+      });
+    }
+  }
+}
 
 /** Returns the current fault toggle without reading production application state. */
 const enabled = (id) => document.getElementById(id).checked;
@@ -250,6 +275,10 @@ window.fetch = async (input, init) => {
 const { client } = await import('/src/services/client.js');
 const callbacks = [];
 // No Auth token or password is created. The fixture injects identity lookup and event delivery.
+client.auth.getSession = async () => ({
+  data: { session: admin ? { user: { id: 'audit-fixture' } } : null },
+  error: null,
+});
 client.auth.getUser = async () => ({
   data: { user: admin ? { id: 'audit-fixture' } : null },
   error: null,
@@ -278,7 +307,49 @@ client.storage.from = (...args) => {
   };
   return bucket;
 };
+const toastMessages = [];
+// Retain visible toast text for slow QA clients without changing production toast timing.
+new MutationObserver(() => {
+  const message = document.querySelector('#toast').textContent;
+  if (message && message !== toastMessages.at(-1)) {
+    toastMessages.push(message);
+    if (toastMessages.length > 8) toastMessages.shift();
+  }
+}).observe(document.querySelector('#toast'), {
+  childList: true,
+  characterData: true,
+  subtree: true,
+});
 const main = await import('/src/main.js');
+
+document.querySelector('#inspect-navigation').onclick = () => {
+  const board = document.querySelector('#board');
+  const nav = document.querySelector('.board-navigation');
+  const track = document.querySelector('.board-scrollbar');
+  const columns = [...board.querySelectorAll('[data-section-id]')];
+  const bounds = board.getBoundingClientRect();
+  const visible = columns.filter((column) => {
+    const rect = column.getBoundingClientRect();
+    return rect.right > bounds.left + 1 && rect.left < bounds.right - 1;
+  });
+  evidence.textContent = JSON.stringify({
+    count: columns.length,
+    left: board.scrollLeft,
+    max: board.scrollWidth - board.clientWidth,
+    trackLeft: track.scrollLeft,
+    trackMax: track.scrollWidth - track.clientWidth,
+    visible: visible.map((column) => column.getAttribute('aria-label')),
+    navHidden: nav.hidden,
+    navTop: nav.getBoundingClientRect().top,
+    highlighted: board.querySelector('.section-new h2')?.textContent ?? null,
+    focus: document.activeElement.textContent,
+    overflowPage: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    toastMessages,
+    requests,
+    blocked,
+    liveRequests: 0,
+  });
+};
 document.querySelector('#seed-cleanup').onclick = async () => {
   const { queueCleanup } = await import('/src/services/storage.js');
   queueCleanup(['qa-fixture/unused.pdf']);

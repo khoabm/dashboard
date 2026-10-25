@@ -38,8 +38,11 @@
     ><iframe id="app-frame" title="App viewport" width="360"></iframe>
     <script type="module">
       // Choose before assigning src so offline QA never briefly opens the live entry.
+      const params = new URLSearchParams(location.search);
       document.querySelector('iframe').src =
-        new URLSearchParams(location.search).get('fixture') === 'audit' ? '/tests/audit.html' : '/';
+        params.get('fixture') === 'audit'
+          ? `/tests/audit.html${params.get('scenario') === 'navigation' ? '?scenario=navigation' : ''}`
+          : '/';
       document.querySelector('#width').onchange = (e) =>
         (document.querySelector('iframe').width = e.target.value);
     </script>
