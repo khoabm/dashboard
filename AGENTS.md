@@ -54,3 +54,7 @@ Trước khi công bố hoàn tất UI phải có browser QA theo TESTING. Chưa
 Các lần khắc phục bug từ 2026-10-24 phải có entry trong [BUG_FIX_LOG](docs/BUG_FIX_LOG.md): ID ổn định, điều kiện lỗi/nguyên nhân, file và cách sửa, regression/bằng chứng, baseline/branch và trạng thái. Không ghi secret/PII; không dùng STATUS thay nhật ký này. Ghi rõ mock, backend thật, BLOCKED hoặc NOT RUN.
 
 Cập nhật STATUS (ngắn, thay trạng thái cũ), CODE MAP trong ARCHITECTURE khi thêm/đổi module, DECISIONS chỉ khi có quyết định thực sự, ROADMAP khi phase đổi. Khi yêu cầu đổi, cập nhật SPEC một chỗ và REQUIREMENTS_MAP nếu cần; tránh sao chép spec ra nhiều bản. Ghi kết quả theo mẫu WORKFLOW, kèm branch/SHA, checks và hạn chế. Không lặp toàn bộ roadmap/spec trong câu trả lời.
+
+## Tính năng mới đang chuẩn bị: Bảng điểm cá nhân
+
+Nếu task đề cập bảng điểm, lớp học, CMND/CCCD, import Excel/CSV, biểu đồ điểm hoặc quyền học sinh: bắt đầu tại [Personal Gradebook Codex entry](docs/features/personal-gradebook/README.md), sau đó [BRIEF](docs/features/personal-gradebook/BRIEF.md), [DATA_AND_SECURITY](docs/features/personal-gradebook/DATA_AND_SECURITY.md) và [CHECKPOINTS](docs/features/personal-gradebook/CHECKPOINTS.md) theo đúng phạm vi. Đây là feature chưa code: đừng coi brief/checklist là đã thực thi migration hoặc nghiệm thu. GB-01..09 là mã yêu cầu của module, không thay R01–R28 của website học liệu.

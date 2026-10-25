@@ -15,3 +15,5 @@
 **Nguồn chuẩn:** SPEC gồm 28 nhóm; REQUIREMENTS_MAP giúp tìm mục. STATUS phản ánh những gì thực sự có. ROADMAP gồm Phase 0–6. ARCHITECTURE quy định cách code và map file thực tế. WORKFLOW hướng dẫn Work/Sites và mẫu bàn giao.
 
 Không dùng overview này để thay tiêu chí chi tiết hoặc tuyên bố tính năng đã tồn tại.
+
+**Feature được lên kế hoạch (chưa implement):** [Bảng điểm cá nhân](features/personal-gradebook/README.md) — một lớp, hai học kỳ, xác minh CMND/CCCD và ngày sinh, quản lý học sinh/điểm, import INSERT-only Excel/CSV, biểu đồ cột trên modal. Chi tiết và điều kiện nghiệm thu thuộc brief riêng; không hiểu dòng này là đã có UI hoặc dữ liệu runtime.

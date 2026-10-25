@@ -1,3 +1,8 @@
+
+## Planned feature — Bảng điểm cá nhân (chưa triển khai)
+
+Branch tài liệu `feature/personal-gradebook` tạo từ `develop` `af43f51` sau khi PR #3 được merge. Tài liệu Codex: [entry](features/personal-gradebook/README.md), [yêu cầu](features/personal-gradebook/BRIEF.md), [schema/bảo mật](features/personal-gradebook/DATA_AND_SECURITY.md), [CP00–CP07](features/personal-gradebook/CHECKPOINTS.md). Trạng thái: tài liệu đã tạo; **toàn bộ checkpoint implementation NOT STARTED; không có source, migration, Edge Function, dữ liệu thực, test feature hoặc deployment được tạo từ branch này**. Dùng bằng chứng trên ref thực tế khi bắt đầu; phần STATUS phía dưới là nhật ký baseline của project học liệu và có thể đã cũ sau merge PR #3.
+
 # Trạng thái hiện tại
 
 Cập nhật 2026-10-25. Repo `khoabm/dashboard`, branch `enhancement/acceptance-refinements` từ `develop` tại `ad8c78c`; baseline lượt AUD-017 là `ff8c567`. Develop đã chứa các sửa AUD-001–014; branch này dành cho các hạng mục hoàn thiện nghiệm thu. **Đã có implementation, chưa đạt Definition of Done.**
