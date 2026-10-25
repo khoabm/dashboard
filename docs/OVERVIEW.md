@@ -16,4 +16,4 @@
 
 Không dùng overview này để thay tiêu chí chi tiết hoặc tuyên bố tính năng đã tồn tại.
 
-**Feature được lên kế hoạch (chưa implement):** [Bảng điểm cá nhân](features/personal-gradebook/README.md) — một lớp, hai học kỳ, xác minh CMND/CCCD và ngày sinh, quản lý học sinh/điểm, import INSERT-only Excel/CSV, biểu đồ cột trên modal. Chi tiết và điều kiện nghiệm thu thuộc brief riêng; không hiểu dòng này là đã có UI hoặc dữ liệu runtime.
+**Feature được lên kế hoạch (chưa implement):** [Bảng điểm cá nhân](features/personal-gradebook/README.md) — một lớp, hai học kỳ, xác minh CMND/CCCD và ngày sinh, quản lý học sinh/điểm, import UPSERT Excel/CSV, biểu đồ cột trên modal. Chi tiết và điều kiện nghiệm thu thuộc brief riêng; không hiểu dòng này là đã có UI hoặc dữ liệu runtime.

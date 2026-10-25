@@ -3,6 +3,8 @@
 
 Branch tài liệu `feature/personal-gradebook` tạo từ `develop` `af43f51` sau khi PR #3 được merge. Tài liệu Codex: [entry](features/personal-gradebook/README.md), [yêu cầu](features/personal-gradebook/BRIEF.md), [schema/bảo mật](features/personal-gradebook/DATA_AND_SECURITY.md), [CP00–CP07](features/personal-gradebook/CHECKPOINTS.md). Trạng thái: tài liệu đã tạo; **toàn bộ checkpoint implementation NOT STARTED; không có source, migration, Edge Function, dữ liệu thực, test feature hoặc deployment được tạo từ branch này**. Dùng bằng chứng trên ref thực tế khi bắt đầu; phần STATUS phía dưới là nhật ký baseline của project học liệu và có thể đã cũ sau merge PR #3.
 
+CP00 correction 2026-10-26, baseline docs `cc13962`: BRIEF V1.1 và [8 finding](features/personal-gradebook/CHECKPOINTS.md#cp00-finding-dispositions) đồng bộ; GB-REV-004 Accepted/Deferred. Docs-only self-review PASS: 8 Markdown, 54 links/anchors, nhãn/thứ tự và headers giữ nguyên, diff check PASS; đủ đề nghị lập kế hoạch CP01, chưa tự nghiệm thu implementation. Throttle/transaction/audit cần CP01 kiểm chứng; real-data gate **NOT RUN**. GitHub xác nhận develop `307b6c6`, feature ahead 2/behind 1 tại đầu lượt; commit develop đổi branding/thẻ/preview, không schema. Không merge/rebase; đối chiếu UI khi tích hợp sau. Không chạy browser/backend/migration hoặc xác nhận security PASS; CP01–CP07 chưa bắt đầu.
+
 # Trạng thái hiện tại
 
 Cập nhật 2026-10-25. Repo `khoabm/dashboard`, branch `enhancement/acceptance-refinements` từ `develop` tại `ad8c78c`; baseline lượt AUD-017 là `ff8c567`. Develop đã chứa các sửa AUD-001–014; branch này dành cho các hạng mục hoàn thiện nghiệm thu. **Đã có implementation, chưa đạt Definition of Done.**

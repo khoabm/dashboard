@@ -1,6 +1,6 @@
 # Execution plan and acceptance gates — Personal Gradebook
 
-**Status: CP00–CP07 NOT STARTED; documentation-only preparation.** Use this file as the live checkpoint tracker once implementation is authorized. Add *dated SHA/evidence* on completion; never tick a box from intention or a prior unrelated CI run.
+**Status: CP00 documentation corrected/validated; CP01–CP07 implementation NOT STARTED.** This plan follows BRIEF V1.1 / user D01–D05 (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
 
 ## Operating workflow for Codex
 
@@ -9,60 +9,107 @@
 3. Maintain conventional tests for new logic; use synthetic identities and fake responses. Test server policy with actual JWT/anon identities on a safe authorized environment where necessary; never describe mock-only result as “RLS verified”.
 4. Migrations/secret provisioning/server deployments **require explicit authorization** per execution request; do not use this plan as automatic permission. Do not create a second Supabase project or a paid resource. Never edit/seed real student records while testing. Do not merge/deploy until requested.
 5. Check no regression in resource board, admin sessions/loading/media and existing CI on exact SHA. Report FAIL/NOT RUN/BLOCKED honestly. Update related architecture/status/decisions and this tracker without duplicating full BRIEF.
+6. The [real personal data gate](DATA_AND_SECURITY.md#h-real-personal-data-gate) is separate and **NOT RUN** until evidenced; require it before real entry/import in any checkpoint. Use synthetic records beforehand. Gate status is not waived by deployment/merge authorization.
 
-## CP00 — Baseline and approved scope (NOT STARTED)
+## CP00 — Baseline and documentation correction (no functional acceptance yet)
 
-Deliverables: branch from current `develop` (planning branch already created), feature implementation plan informed by actual source/schema, new route/interface/module inventory, risk and test plan. No application/database changes for docs-only prep.
+Deliverables: existing branch baseline/develop comparison, consistent GB-01..09 specification, proposed route/module inventory, findings disposition and test/dependency plan. Do not recreate/merge/rebase the branch to close a baseline gap. No application/database changes.
 
 Acceptance:
 - [ ] Confirm latest `develop`, branch and baseline SHA; validate existing CI/working state.
 - [ ] Map GB-01..09 to target files and exact visible labels/order.
 - [ ] Confirm no clashes with existing public board/auth/SQL and no paid service.
-- [ ] Identify open engineering defaults vs user-approved requirements; no spec contradictions.
-- [ ] Record plan and proof before implementation (docs-only current task does not count as implementation CP00 completion).
+- [ ] GB-REV-001..008 each resolved or explicitly Accepted/Deferred; business decisions D01–D05 separated from technical defaults.
+- [ ] No current import prohibition on UPDATE; five-place decimal/API contract, editable year metadata trade-off, deferred histogram inference and measurable limiter design agree across docs.
+- [ ] Validate links, literal labels/order and docs-only diff; record proof and self-review before requesting CP01 planning. Documentation readiness does not mark CP01 or real-data gate PASS.
+
+<a id="cp00-finding-dispositions"></a>
+
+### CP00 finding dispositions
+
+Documentation correction only, baseline `cc13962`, 2026-10-26. RESOLVED means the specification was corrected, **not** that backend/security tests passed. Latest user decisions override the earlier review's suggested remedies.
+
+Docs-only evidence 2026-10-26: eight Markdown files, 54 relative links/anchors validated, literal 8/7 labels and 10 score-import headers unchanged, no stale active import/history/suppression rules, `git diff --check` PASS. Self-review found no remaining contradiction in this correction; documentation ready for requesting CP01 planning. Code/unit/browser/DB/Auth/migration/security acceptance **NOT RUN in this correction**; checkpoint checkboxes below still require their own evidence, including exact-HEAD CI when implementation begins. These checks do not certify all CP00 functional/integration conditions or the real-data gate.
+
+| Finding | Documentation status | Resolution / verification owner |
+| --- | --- | --- |
+| GB-REV-001 | RESOLVED | BRIEF GB-06; DATA §A exact decimal-string/≤5-place contract; CP01/04/06 round-trip tests |
+| GB-REV-002 | RESOLVED | BRIEF GB-01 mutable metadata and accepted label-history trade-off; DATA §A/B; CP03/06 no score mutation |
+| GB-REV-003 | RESOLVED | BRIEF GB-07 UPSERT, same student/different subjects valid; DATA §E/F; CP03/04/06 atomicity and duplicates |
+| GB-REV-004 | ACCEPTED / DEFERRED | BRIEF GB-08; DATA §D; CP05 keeps authorization/publication/aggregate-only, no suppression gate V1 |
+| GB-REV-005 | RESOLVED | Approved behavior + proposed measurable defaults in DATA §D; CP01/02/06 verify concurrency/fail-closed, thresholds not yet verified |
+| GB-REV-006 | RESOLVED | DATA §B/E server-role-only RPC bridge; CP01 verifies actual grants/transaction and no board regression |
+| GB-REV-007 | RESOLVED | DATA §I class-scoped existing audit table proposal; CP01 verifies actor, compatibility and rollback |
+| GB-REV-008 | RESOLVED | DATA §H gate before any real data; CP03/04 enforce, CP07 rechecks evidence; gate itself NOT RUN |
+
+### Requirement / proposed module map (not files created)
+
+| Requirements | Existing reuse / proposed additions | Acceptance |
+| --- | --- | --- |
+| GB-01, GB-09 | Header/menu in `src/components/board.js`; small route lifecycle in `src/main.js`; existing CSS/dialog/pending/request gates; feature UI under `src/components/gradebook/` | CP02, CP06 |
+| GB-02, GB-03 | Existing admin session; proposed lookup/admin service under `src/services/gradebook/`; two Functions and server RPCs per DATA_AND_SECURITY | CP01–CP03, CP06 |
+| GB-04, GB-05 | Ordered seeded catalogs, shared table/dropdown/template mapping (labels remain canonical in BRIEF) | CP01, CP04–CP06 |
+| GB-06, GB-07 | One score model, exact decimal/import helpers proposed under `src/utils/gradebook/`, bounded roster/score UI | CP01, CP03, CP04, CP06 |
+| GB-08 | Student table and on-demand modal chart using existing dialog/pending; no teacher chart | CP05, CP06 |
+
+Paths are planning candidates, not permission to create modules or abstractions. Frontend regression/fixtures stay in `tests/`; local outputs in ignored `tests/local/`. Server/migration tests use conventional feature subfolders, with exact commands chosen in CP01 and CI coverage added when implemented.
 
 ## CP01 — Data model and security (NOT STARTED)
 
 Deliverables: reviewed additive migration(s), six-table model incl ordered catalogs, minimal secure Functions for identity and admin, unit/security checks, cost check; **do not apply without authorization**.
 
+Dependency: corrected CP00 docs and explicit CP01 authorization. Review offline drafts first; separately authorize migration/deployment to an approved test environment before claiming live policy acceptance. No new paid project or real student data for testing.
+
 Acceptance:
 - [ ] Correct student auto-ID; two mandatory fields; secure encrypted+blind-index identity; UNIQUE duplicates per class.
 - [ ] Exact eight subject labels and seven column labels/order seeded; no scattered hard-coded copies, no separate semester table.
-- [ ] Decimal `NUMERIC` stores raw values 8.24 / 8.25 / 8.26 unchanged; range 0–10; 0 vs absent and composite PK verified.
+- [ ] Scale-free NUMERIC + decimal-string API, ≤5 fractional digits, reject excess precision before write; exact cases from DATA_AND_SECURITY §A round-trip without rounding, including UPDATE; 0 vs absent and composite PK verified.
+- [ ] §E server-only SECURITY INVOKER RPC bridge: atomic UPSERT, minimal grants, no exposed grade tables; existing board/private helpers unaffected. Verify effective privileges/defaults, not object names alone.
 - [ ] Anon/direct Data API SELECT/INSERT/UPDATE/DELETE for grade/private records denied; existing board public reads unchanged.
 - [ ] Teacher API verifies real admin profile + JWT before writes/reveal; unauthorized/non-admin/expired admin denied.
-- [ ] Student API checks pair, throttles invalid/repeated/concurrent attempts, restricts responses and publication; no leaks into log/url/client storage.
-- [ ] Reversible encryption keys protected, no secret in bundle; migration/rollback/backup notes and security advisors considered.
+- [ ] Student API checks pair, §D per-document/global budgets, malformed/unknown/changing IDs, exact boundaries and concurrent requests; denied counters persist; limiter error/timeout fails closed before sensitive reads. Thresholds/TTL remain technical defaults pending actual test evidence.
+- [ ] Capability expiry/deactivation/unpublish enforced server-side on every read; aggregate-only histogram with V1 inference risk deferred, no suppression gate.
+- [ ] Reversible encryption/HMAC keys versioned/protected; no secret in bundle; synthetic rotation/recovery, migration/rollback notes and security review. §H remains NOT RUN for real data until all required evidence exists.
+- [ ] §I class-UUID audit with verified admin actor, allowlisted event/counts and no PII/score payload; mutation + audit rollback together; do not reuse board UUID-row trigger on BIGINT/composite keys.
 - [ ] Document exact test evidence (mock vs live, approved environment) and gate status.
 
 ## CP02 — Navigation and lookup UI (NOT STARTED)
 
+Dependency: CP01 API contract; synthetic UI may use clearly labeled mocks before authorized live integration. Reuse one admin Auth state, clear student capability/private DOM on route exit/expiry, and fence responses after navigation/logout.
+
 - [ ] Hamburger at far left; Bảng học liệu/Bảng điểm cá nhân; keyboard/focus/close/menu responsive.
 - [ ] Deep-link `/bang-diem` loads and refreshes on selected static host; existing public board unaffected.
 - [ ] CMND/CCCD 9–12 ASCII digits, retain leading zeros; `DD/MM/YYYY` validated datepicker desktop/mobile.
-- [ ] Invalid/unknown data reveals no user existence; loading/error/retry and no plaintext persistent storage.
+- [ ] Invalid/unknown, rate-limited and unavailable-limit-state responses reveal no student existence; loading/error/retry, no plaintext persistent storage or URL credentials; do not call sensitive reads after denial.
 - [ ] Return to verification on expiry/refresh; anonymous grade direct requests remain denied.
 
-## CP03 — Class/student admin and INSERT-only roster import (NOT STARTED)
+## CP03 — Class/student admin and UPSERT roster import (NOT STARTED)
 
-- [ ] Single active class name/year edit; archive history; no multiple-class management UI.
+Dependency: CP01 transactional/admin/identity contract and CP02 admin navigation. Synthetic-only until §H real-data gate is evidenced, even if UI works.
+
+- [ ] Single active class: edit name/year independently even with scores; IDs/relationships/score values/publication remain unchanged. No new class/rollover or old year-label snapshot promise.
 - [ ] Student create/list/edit/deactivate or safe delete, with both mandatory fields; optional name; no `HS001` key field.
 - [ ] Mask identity in teacher list; explicit authorized reveal only.
-- [ ] Excel + CSV roster templates/import with exact visible headers and preview, row/column errors, duplicate detection.
-- [ ] INSERT-only: existing students are never mutated, all-or-nothing validation/transaction, no partial writes.
+- [ ] Excel + CSV roster exact headers/preview with INSERT/UPDATE/unchanged/error counts; row/column errors and in-file duplicate identities detected.
+- [ ] New document INSERTs; existing document + same DOB permits name UPDATE; different DOB blocks entire batch. Blank name preserves existing name; no imported identity/DOB/class/active-status edits or silent reactivation under §F technical allowlist. Authorized manual identity correction remains separate.
+- [ ] One atomic batch; mixed valid/invalid rows change nothing, including existing records. Stale preview/concurrent CRUD refreshes preview before commit; no frontend per-row writes.
 - [ ] Leading zero, Excel date, malformed/empty/duplicate file, mixed valid+invalid and retry tests.
 
 ## CP04 — Teacher point CRUD, import and publication (NOT STARTED)
 
+Dependency: CP01 + CP03; verify publication/import locks and authorized preview semantics together. No real data before §H.
+
 - [ ] Two semester contexts with all eight subjects and seven score labels/order via catalogs; don't label any visible column `TX1`.
 - [ ] Manually add/edit/remove scores with confirmations and pending feedback.
 - [ ] Excel + CSV score import contains only CMND/CCCD, Ngày sinh, Môn and seven exact score headers; semester selected on UI.
-- [ ] Match student via protected ID + DOB; unknown student, existing slot, file duplicate, bad raw decimal abort **whole file**.
-- [ ] Blank score skipped, not written as 0; import INSERT-only, never silent overwrite or partial commit; manual editing is distinct.
-- [ ] Preserve raw precision through storage/import/sorting; one-decimal display only, deterministic rounding tested.
+- [ ] Match student via protected ID + DOB; multiple rows of the same student in different subjects valid. Unknown/mismatched student, repeated nonblank score coordinate or invalid decimal blocks whole file, never last-write-wins.
+- [ ] Preview INSERT/UPDATE/unchanged/error by score coordinate and skipped blanks. Missing slot INSERTs, changed raw value UPDATEs, equal value unchanged. Blank never clears/writes 0. Transaction preserves all previous values on failure; same-value rows do not rewrite timestamps.
+- [ ] Raw decimal-string values with ≤5 fractional digits survive form/Excel/CSV/API/DB writes and sorting. Excess precision rejects instead of rounding; only display/grouping rounds to one decimal. Reconfirm stale previews after concurrent edits.
 - [ ] Publish/unpublish each semester independently; missing-data warning; block imports while published and warn on manual edits.
 
 ## CP05 — Student board and per-cell histogram modal (NOT STARTED)
+
+Dependency: CP01/02 and CP04 publication/data contract. Real-data access additionally requires §H; statistical suppression is outside V1.
 
 - [ ] Verified student sees only own published grades and two **Học kỳ I / Học kỳ II** tabs, not two tables on one screen.
 - [ ] Exact names/order everywhere; null/absent displays `—`; 0 remains 0; mobile table/card responsive.
@@ -70,24 +117,30 @@ Acceptance:
 - [ ] X-axis point scale 0–10, Y-axis number of pupils; aggregate only, no other pupil identities/rows.
 - [ ] Exact raw personal point retained; highlight **correct rounded-tenth bucket** and label grouping honestly. Empty score shows no highlight.
 - [ ] One chart on demand, no all-56 prefetch; bottom-sheet/near-fullscreen mobile; keyboard/ESC/focus restore/scroll.
-- [ ] Unpublished semester and insufficient privacy-safe cohort return no histogram, even with old lookup token.
+- [ ] Unpublished semester returns no histogram even with old token; no peer names/identities/DOB/raw scores reach client. Own raw score is separate from aggregate API data.
+- [ ] Inference risk recorded as Accepted/Deferred for V1; no minimum cohort, bucket suppression, extra table or privacy framework. Lack of suppression does not fail CP05.
 
 ## CP06 — Integration, regression, and QA (NOT STARTED)
+
+Dependency: CP01–CP05 integration. Keep separate evidence for offline units, browser Codex/IAB, approved live API/Auth/RLS, migration verification and §H data-governance acceptance; none substitutes for the others.
 
 - [ ] Existing public resource board, CRUD/reorder, drafts/file, admin Auth/session, nav and loading tests remain green.
 - [ ] Exact label/order test for eight subjects/seven columns in UI, modal, CSV/Excel template and import parser.
 - [ ] Duplicate and format validation, bad dates/identifiers, encrypted index, wrong DOB, throttle concurrency, admin denial, published/unpublished, token expiry.
-- [ ] Raw 8.24/8.25/8.26 retained across input/DB/read/sort/import; deterministic display rounding, histogram matching bucket.
-- [ ] Import all-or-nothing vs faulty/mixed file, replay, concurrent writes, no unauthorized update and blank skip.
-- [ ] Browser QA Chrome at 360/390/768/1024/1440 with actual click/keyboard/dialog; real device/Safari if available, otherwise NOT RUN/BLOCKED.
+- [ ] §A decimal cases across form/Excel/CSV/API/DB: `8.12345` accepted, `8.123456` rejected without rounding, `8.24/8.25/8.26` raw sort retained; 0/10 and out-of-range; INSERT/UPDATE/unchanged numeric equality, display rounding and correct histogram bucket. No precision-recovery claim for Excel.
+- [ ] Class name/year metadata edits with existing scores do not UPDATE/move those scores or create class/student copies; old label snapshot is not promised.
+- [ ] Roster UPSERT new/existing/DOB conflict/blank name; score INSERT/UPDATE/unchanged/blanks; same student different subjects; in-file duplicate coordinates; sixth decimal; mixed-error rollback preserves both old and new records.
+- [ ] Concurrent UPSERT/manual edit and publish/import, stale preview, lost response + retry: constraints prevent duplicates; no unnoticed newer-edit overwrite, partial mutations or out-of-transaction audit. Denied limiter attempts remain counted; random identities, boundary bursts, cleanup/backlog and fail-closed tested.
+- [ ] Browser Codex/IAB at 360/390/768/1024/1440 with click/keyboard/dialog; do not use machine Chrome for QA. Real device/Safari if available, otherwise NOT RUN/BLOCKED; iframe is not a device test.
 - [ ] `npm ci`, `npm run check`, `npm test`, `npm run build`, `npm run format:check` and GitHub Offline CI on exact HEAD; separate real Auth/API/RLS checks where permitted.
 - [ ] No secrets/PII/test fixture shipped in `dist`; file import data absent from Git/logs/storage.
+- [ ] CI covers implemented server Functions/helpers as well as existing frontend checks; no live credentials in CI. Mocks do not prove real grants, policies, key recovery or publication enforcement.
 
 ## CP07 — Review, docs and eventual merge (NOT STARTED)
 
 - [ ] Review final source and migration diff against BRIEF and existing board SPEC; no new framework or unexpected billable resource.
-- [ ] Security and privacy review incl parent/child access risk, live authorization and group histogram disclosure limits.
-- [ ] Check backup/restoration and key recovery plan; no missing sensitive-data safeguards.
+- [ ] Security review: residual pair-knowledge impersonation + Accepted/Deferred inference risk distinguished from mandatory server authorization/aggregate-only rules; no new suppression prerequisite for V1.
+- [ ] Recheck §H evidence predates any real data; backup/recovery/key custody and authorized retention/deletion were not deferred until this checkpoint. Block real data if incomplete; synthetic development remains possible.
 - [ ] Update `docs/ARCHITECTURE.md`, `docs/DATABASE.md`, `docs/SECURITY.md`, `docs/STATUS.md`, `docs/DECISIONS.md` where actually affected; avoid stale counts.
 - [ ] PR with proof, migration status, warnings and open gates; **merge to develop only after explicit request and acceptance**.
 - [ ] No implicit main merge or production deployment. Note teacher histogram/multi-class/weighted grades remain out of scope.
@@ -108,4 +161,4 @@ Remaining risks / next checkpoint: ...
 No merge/deploy/production personal-data write unless separately authorized.
 ```
 
-**Current checkpoint state remains NOT STARTED.** Writing a plan and creating a branch is preparation, not functional acceptance.
+**CP01–CP07 remain NOT STARTED.** A docs-only CP00 readiness verdict permits requesting CP01 planning, not implementing/deploying it or passing the real-data gate.

@@ -14,7 +14,7 @@
 
 - New user decisions > [BRIEF](BRIEF.md) > technical proposals in [DATA_AND_SECURITY](DATA_AND_SECURITY.md) > this index. Implementation state comes from code/migrations at current SHA, not a checkbox by itself.
 - Existing board implementation and 28-part [SPEC](../../SPEC.md) remain authoritative for the current learning-resource board; this feature must not regress it.
-- **Labels, order, input rules, INSERT-only imports, 2 semesters, raw-score precision, student-only charts and privacy controls are approved.** Internal identifiers, token duration, rate-limit thresholds, data retention and UI implementation details are proposals requiring evidence/security review; do not present them as new user-approved mandates.
+- **BRIEF V1.1 / user D01–D05 (2026-10-26):** approved scope includes ≤5-place raw decimals, atomic roster/score UPSERT, editable class/year metadata, server rate limiting, exact labels/order, two semesters and student-only charts. Statistical inference mitigation is Accepted/Deferred for V1; access authorization, aggregate-only responses and publication checks remain mandatory. See [decision history](../../DECISIONS.md#personal-gradebook-2026-10-26). Thresholds/TTL, parser limits, transaction/audit details and retention remain technical defaults or gates requiring evidence, not newly user-approved values.
 - No feature code, database changes, Edge Function deployment, demo personal data, account creation, merge to develop/main, public hosting or billed services are authorized by this docs-only task.
 - Protect real student identifiers and birth dates: never commit to Git, QA fixtures, issue text or logs. Use synthetic numbers/dates in tests.
 
@@ -23,3 +23,5 @@
 [CHECKPOINTS](CHECKPOINTS.md) is the execution/acceptance tracker: CP00 baseline → CP01 schema/security → CP02 navigation/student lookup → CP03 student administration/import → CP04 score administration/import/publication → CP05 student board/chart → CP06 integration/regression → CP07 final review/merge. These CPs are for this feature, not global project Phase 0–6.
 
 For every checkpoint report: **branch/HEAD; what changed; requirement IDs; actual tests (PASS/FAIL/NOT RUN/BLOCKED); risks; next unblocked checkpoint**. Do not conflate offline mocks with real Auth/RLS/privacy tests. Update the tracker and root STATUS only with observed evidence.
+
+CP00 correction and [finding dispositions](CHECKPOINTS.md#cp00-finding-dispositions) document readiness only. CP01–CP07 implementation is NOT STARTED. Complete the [real-data gate](DATA_AND_SECURITY.md#h-real-personal-data-gate) before using real students' information, even before deployment. No rollover/history workflow or suppression engine is implied by this plan.

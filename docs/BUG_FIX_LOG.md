@@ -2,6 +2,10 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-26 — GB-DOC-001 / CP00 documentation correction
+
+Branch `feature/personal-gradebook`, baseline `cc13962`, merge base `af43f51`; develop được đối chiếu ở `307b6c6`, không merge/rebase. Review GB-REV-001..008 nêu thiếu hợp đồng decimal/lịch sử/import/throttle/bridge/audit/gate. Sửa bộ tài liệu feature theo quyết định mới D01–D05, không áp máy móc đề xuất review: ≤5-place decimal strings, metadata năm học sửa được, UPSERT, inference deferred, limiter kỹ thuật đo được, RPC server-only/audit theo lớp và gate trước dữ liệu thật. README/OVERVIEW/DECISIONS/STATUS đồng bộ; [CHECKPOINTS](features/personal-gradebook/CHECKPOINTS.md#cp00-finding-dispositions) giữ disposition từng finding. Trạng thái: **documentation corrected; feature NOT IMPLEMENTED**, backend/security/browser tests NOT RUN trong lượt docs-only; chỉ kiểm diff, links và tính nhất quán tài liệu. Các mặc định kỹ thuật và real-data gate chưa được nghiệm thu; không sửa source/schema/config, không deploy.
+
 ## 2026-10-25 — sửa CI PR #3 sau thay đổi thông báo
 
 **AUD-019 / P1 CI blocker — FIXED offline.** Baseline `34b2ff0`, branch `enhancement/acceptance-refinements`. Run `40151354448` lỗi đúng hai assertion khớp message cũ trong `tests/drafts.test.js` và `tests/reliability.test.js` (39/41 PASS); build/format bị skip. Đã tái hiện local. Thay regex thông báo bằng kiểm rejection kiểu Error kèm bất biến: con trỏ khác UID không được đọc blob, snapshot text/blob cũ không đổi; cleanup bị cắt không xóa tệp, giữ queue và retry kiểm đủ tham chiếu thì giữ tệp đang dùng rồi xóa queue. Không đổi thông báo hoặc logic ứng dụng.
