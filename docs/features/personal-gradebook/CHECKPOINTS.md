@@ -1,6 +1,6 @@
 # Execution plan and acceptance gates — Personal Gradebook
 
-**Status: CP00 documentation corrected/validated; CP01–CP07 implementation NOT STARTED.** This plan follows BRIEF V1.1 / user D01–D05 (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
+**Status: CP00 documentation readiness PASS (docs-only); CP01–CP07 implementation NOT STARTED.** This plan follows BRIEF V1.1 / user D01–D05 (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
 
 ## Operating workflow for Codex
 
@@ -11,17 +11,19 @@
 5. Check no regression in resource board, admin sessions/loading/media and existing CI on exact SHA. Report FAIL/NOT RUN/BLOCKED honestly. Update related architecture/status/decisions and this tracker without duplicating full BRIEF.
 6. The [real personal data gate](DATA_AND_SECURITY.md#h-real-personal-data-gate) is separate and **NOT RUN** until evidenced; require it before real entry/import in any checkpoint. Use synthetic records beforehand. Gate status is not waived by deployment/merge authorization.
 
-## CP00 — Baseline and documentation correction (no functional acceptance yet)
+## CP00 — Documentation readiness PASS; implementation/security acceptance NOT RUN
 
 Deliverables: existing branch baseline/develop comparison, consistent GB-01..09 specification, proposed route/module inventory, findings disposition and test/dependency plan. Do not recreate/merge/rebase the branch to close a baseline gap. No application/database changes.
 
-Acceptance:
-- [ ] Confirm latest `develop`, branch and baseline SHA; validate existing CI/working state.
-- [ ] Map GB-01..09 to target files and exact visible labels/order.
-- [ ] Confirm no clashes with existing public board/auth/SQL and no paid service.
-- [ ] GB-REV-001..008 each resolved or explicitly Accepted/Deferred; business decisions D01–D05 separated from technical defaults.
-- [ ] No current import prohibition on UPDATE; five-place decimal/API contract, editable year metadata trade-off, deferred histogram inference and measurable limiter design agree across docs.
-- [ ] Validate links, literal labels/order and docs-only diff; record proof and self-review before requesting CP01 planning. Documentation readiness does not mark CP01 or real-data gate PASS.
+Documentation acceptance (reviewed with documentation evidence only):
+- [x] Confirm feature baseline and newer `develop` SHA/CI at the documented review time; do not confuse this with CI for the feature HEAD.
+- [x] Map GB-01..09 to proposed modules, tests and exact labels/order, without claiming those modules exist.
+- [x] Review scope against current public board/Auth/SQL inventory and zero-cost constraint; actual integration checks remain CP01–CP06.
+- [x] GB-REV-001..008 each resolved in documentation or explicitly Accepted/Deferred; distinguish user D01–D05 from technical defaults.
+- [x] No current import prohibition on UPDATE; five-place decimal/API contract, editable year metadata, deferred histogram inference and measurable limiter design consistent across docs.
+- [x] Docs-only links, literal labels/order and diff checks reported in the correction evidence below; further optional-column clarification added with targeted doc review.
+
+**Unmet implementation gates (not CP00 docs blockers):** exact-feature-HEAD CI and browser QA, live security/API/RLS evidence, migrations, personal-data permission/backup gate. These remain NOT RUN until authorized and tested.
 
 <a id="cp00-finding-dispositions"></a>
 
@@ -29,7 +31,7 @@ Acceptance:
 
 Documentation correction only, baseline `cc13962`, 2026-10-26. RESOLVED means the specification was corrected, **not** that backend/security tests passed. Latest user decisions override the earlier review's suggested remedies.
 
-Docs-only evidence 2026-10-26: eight Markdown files, 54 relative links/anchors validated, literal 8/7 labels and 10 score-import headers unchanged, no stale active import/history/suppression rules, `git diff --check` PASS. Self-review found no remaining contradiction in this correction; documentation ready for requesting CP01 planning. Code/unit/browser/DB/Auth/migration/security acceptance **NOT RUN in this correction**; checkpoint checkboxes below still require their own evidence, including exact-HEAD CI when implementation begins. These checks do not certify all CP00 functional/integration conditions or the real-data gate.
+Docs-only evidence 2026-10-26 at `eba7c18e`: eight Markdown files, 54 relative links/anchors validated, literal 8/7 labels and 10 score-import headers unchanged, no stale active import/history/suppression rules, `git diff --check` PASS. The subsequent P2 clarification explicitly permits two-column-only roster files and aligns CP00 readiness wording; validate its diff separately rather than attributing it to the earlier check. Documentation is ready for requesting CP01 planning. Code/unit/browser/DB/Auth/migration/security acceptance **NOT RUN in this correction**; checkpoint checkboxes below still require their own evidence, including exact-HEAD CI when implementation begins. These checks do not certify all CP00 functional/integration conditions or the real-data gate.
 
 | Finding | Documentation status | Resolution / verification owner |
 | --- | --- | --- |
@@ -90,10 +92,10 @@ Dependency: CP01 transactional/admin/identity contract and CP02 admin navigation
 - [ ] Single active class: edit name/year independently even with scores; IDs/relationships/score values/publication remain unchanged. No new class/rollover or old year-label snapshot promise.
 - [ ] Student create/list/edit/deactivate or safe delete, with both mandatory fields; optional name; no `HS001` key field.
 - [ ] Mask identity in teacher list; explicit authorized reveal only.
-- [ ] Excel + CSV roster exact headers/preview with INSERT/UPDATE/unchanged/error counts; row/column errors and in-file duplicate identities detected.
+- [ ] Excel + CSV roster accepts **both** header layouts: `CMND/CCCD`, `Ngày sinh` alone, or `Họ tên`, `CMND/CCCD`, `Ngày sinh`; optional header may be entirely absent. Preview INSERT/UPDATE/unchanged/error counts; row/column errors and in-file duplicate identities detected.
 - [ ] New document INSERTs; existing document + same DOB permits name UPDATE; different DOB blocks entire batch. Blank name preserves existing name; no imported identity/DOB/class/active-status edits or silent reactivation under §F technical allowlist. Authorized manual identity correction remains separate.
 - [ ] One atomic batch; mixed valid/invalid rows change nothing, including existing records. Stale preview/concurrent CRUD refreshes preview before commit; no frontend per-row writes.
-- [ ] Leading zero, Excel date, malformed/empty/duplicate file, mixed valid+invalid and retry tests.
+- [ ] CSV and XLSX fixtures for **two-column-only import**, three columns with blank/missing names, and UPSERT that preserves existing names; leading zero, Excel date, malformed/empty/duplicate file, mixed valid+invalid and retry tests.
 
 ## CP04 — Teacher point CRUD, import and publication (NOT STARTED)
 
@@ -129,7 +131,7 @@ Dependency: CP01–CP05 integration. Keep separate evidence for offline units, b
 - [ ] Duplicate and format validation, bad dates/identifiers, encrypted index, wrong DOB, throttle concurrency, admin denial, published/unpublished, token expiry.
 - [ ] §A decimal cases across form/Excel/CSV/API/DB: `8.12345` accepted, `8.123456` rejected without rounding, `8.24/8.25/8.26` raw sort retained; 0/10 and out-of-range; INSERT/UPDATE/unchanged numeric equality, display rounding and correct histogram bucket. No precision-recovery claim for Excel.
 - [ ] Class name/year metadata edits with existing scores do not UPDATE/move those scores or create class/student copies; old label snapshot is not promised.
-- [ ] Roster UPSERT new/existing/DOB conflict/blank name; score INSERT/UPDATE/unchanged/blanks; same student different subjects; in-file duplicate coordinates; sixth decimal; mixed-error rollback preserves both old and new records.
+- [ ] Roster UPSERT new/existing/DOB conflict/blank name, CSV/XLSX **without a `Họ tên` column**, existing names preserved; score INSERT/UPDATE/unchanged/blanks; same student different subjects; in-file duplicate coordinates; sixth decimal; mixed-error rollback preserves both old and new records.
 - [ ] Concurrent UPSERT/manual edit and publish/import, stale preview, lost response + retry: constraints prevent duplicates; no unnoticed newer-edit overwrite, partial mutations or out-of-transaction audit. Denied limiter attempts remain counted; random identities, boundary bursts, cleanup/backlog and fail-closed tested.
 - [ ] Browser Codex/IAB at 360/390/768/1024/1440 with click/keyboard/dialog; do not use machine Chrome for QA. Real device/Safari if available, otherwise NOT RUN/BLOCKED; iframe is not a device test.
 - [ ] `npm ci`, `npm run check`, `npm test`, `npm run build`, `npm run format:check` and GitHub Offline CI on exact HEAD; separate real Auth/API/RLS checks where permitted.
@@ -161,4 +163,4 @@ Remaining risks / next checkpoint: ...
 No merge/deploy/production personal-data write unless separately authorized.
 ```
 
-**CP01–CP07 remain NOT STARTED.** A docs-only CP00 readiness verdict permits requesting CP01 planning, not implementing/deploying it or passing the real-data gate.
+**CP00 documentation readiness PASS; CP01–CP07 remain NOT STARTED.** This status does not assert runtime/Auth/RLS/browser security acceptance, authorize applying migration or pass the real-data gate.

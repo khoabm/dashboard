@@ -74,7 +74,7 @@ Exactly **seven** columns per subject per semester, in **this** order:
 
 Teacher can manually enter/edit/delete scores and student info, **plus** import both `.xlsx` and `.csv` using **INSERT/UPDATE via UPSERT**. Existing records are not errors merely because they exist. All file validation and writes must be atomic on the server; manual CRUD remains available.
 
-**Student import visible column sequence:** `Họ tên` (optional), `CMND/CCCD` (required), `Ngày sinh` (required). No ID/key column. Numeric-looking identifiers MUST be preserved as text including leading zeros. An Excel cell that has already lost its leading zeros cannot be reconstructed; reject/call attention to it.
+**Student import headers — two accepted shapes (CSV and Excel):** minimum `CMND/CCCD`, `Ngày sinh`; or `Họ tên`, `CMND/CCCD`, `Ngày sinh` in that order. `Họ tên` is an **optional column**, not just an optional cell: files containing **only the two mandatory columns are valid**. If provided, name cells may be blank. Missing/blank name never clears an existing stored name; a newly inserted student without a name stores NULL. No ID/key column or hidden required field. Numeric-looking identifiers MUST be preserved as text including leading zeros. An Excel cell that has already lost its leading zeros cannot be reconstructed; reject/call attention to it.
 
 **Score import visible column sequence, exact strings:**
 

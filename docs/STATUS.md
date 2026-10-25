@@ -1,11 +1,22 @@
+# Trạng thái dự án — baseline kiểm chứng 2026-10-26
 
-## Planned feature — Bảng điểm cá nhân (chưa triển khai)
+**Repo:** `khoabm/dashboard`. **Source tích hợp:** `develop` tại `307b6c611ca36d8d8e05a6cccf8dadd86d754a30`; GitHub Offline CI **PASS** cho push tại chính SHA này (đọc GitHub ngày 2026-10-26). **Branch feature docs:** `feature/personal-gradebook`, tài liệu correction baseline `eba7c18e`. Branch feature xuất phát từ `develop` `af43f51`, đang thiếu một commit branding/UI/preview của develop tại thời điểm đối chiếu; chưa merge/rebase. Không suy kết quả CI của develop sang feature HEAD.
 
-Branch tài liệu `feature/personal-gradebook` tạo từ `develop` `af43f51` sau khi PR #3 được merge. Tài liệu Codex: [entry](features/personal-gradebook/README.md), [yêu cầu](features/personal-gradebook/BRIEF.md), [schema/bảo mật](features/personal-gradebook/DATA_AND_SECURITY.md), [CP00–CP07](features/personal-gradebook/CHECKPOINTS.md). Trạng thái: tài liệu đã tạo; **toàn bộ checkpoint implementation NOT STARTED; không có source, migration, Edge Function, dữ liệu thực, test feature hoặc deployment được tạo từ branch này**. Dùng bằng chứng trên ref thực tế khi bắt đầu; phần STATUS phía dưới là nhật ký baseline của project học liệu và có thể đã cũ sau merge PR #3.
+| Luồng | Trạng thái được xác minh / việc còn thiếu |
+| --- | --- |
+| Bảng học liệu | Đã có frontend static Vite, admin Auth/session, CMS, Storage/RLS và regression offline. **Chưa đạt Definition of Done**: real admin/non-admin JWT, upload/thu hồi file, Safari/thiết bị thật, backup/restore và production smoke còn cần bằng chứng; xem [TESTING](TESTING.md) và [QA_REPORT](QA_REPORT.md). |
+| Bảng điểm cá nhân | [Brief V1.1](features/personal-gradebook/BRIEF.md), [Data/security](features/personal-gradebook/DATA_AND_SECURITY.md), [CP00–CP07](features/personal-gradebook/CHECKPOINTS.md). **CP00 documentation readiness PASS; CP01–CP07 NOT STARTED**. Chưa có module code, migration, Edge Function hay dữ liệu học sinh thật được triển khai. |
+| Database hiện có | 6 bảng `public` cho học liệu, 4 migration học liệu đã apply theo tài liệu baseline. Gradebook gồm 6 bảng **chỉ là đề xuất**, chưa apply; không được tạo tài khoản học sinh thật để test. |
+| Security Advisor (kiểm tra 2026-10-26) | Supabase hiện trả **1 WARN**: `auth_leaked_password_protection` (Leaked Password Protection Disabled). Xem [remediation](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection). Đây là advisory cấu hình Auth, **không phải bằng chứng lỗi Gradebook**; không tự bật gói trả phí. |
+| Quy trình an toàn | [Real personal data gate](features/personal-gradebook/DATA_AND_SECURITY.md#h-real-personal-data-gate) **NOT RUN**. Không xử lý dữ liệu học sinh thật trước khi có bằng chứng cần thiết; triển khai/test synthetic có thể chuẩn bị theo checkpoint được phép. Không có deployment/merge thuộc lượt docs này. |
 
-CP00 correction 2026-10-26, baseline docs `cc13962`: BRIEF V1.1 và [8 finding](features/personal-gradebook/CHECKPOINTS.md#cp00-finding-dispositions) đồng bộ; GB-REV-004 Accepted/Deferred. Docs-only self-review PASS: 8 Markdown, 54 links/anchors, nhãn/thứ tự và headers giữ nguyên, diff check PASS; đủ đề nghị lập kế hoạch CP01, chưa tự nghiệm thu implementation. Throttle/transaction/audit cần CP01 kiểm chứng; real-data gate **NOT RUN**. GitHub xác nhận develop `307b6c6`, feature ahead 2/behind 1 tại đầu lượt; commit develop đổi branding/thẻ/preview, không schema. Không merge/rebase; đối chiếu UI khi tích hợp sau. Không chạy browser/backend/migration hoặc xác nhận security PASS; CP01–CP07 chưa bắt đầu.
+**Bằng chứng CP00 docs:** correction `eba7c18e` đối chiếu [GB-REV-001..008](features/personal-gradebook/CHECKPOINTS.md#cp00-finding-dispositions); lượt sau làm rõ file Excel/CSV học sinh chỉ gồm `CMND/CCCD` và `Ngày sinh` cũng hợp lệ, bổ sung regression checklist. Các kết quả kiểm tra Markdown là **docs-only**; unit/browser/backend Gradebook, grants/RLS và migration thật **NOT RUN**. Mọi thao tác tiếp theo cần kiểm tra ref/HEAD mới thay vì dùng snapshot này như sự thật vĩnh viễn.
 
-# Trạng thái hiện tại
+---
+
+## Snapshot lịch sử — ghi nhận ngày 2026-10-25 (không phải baseline hiện tại)
+
+Nội dung dưới đây giữ nguyên bối cảnh và bằng chứng AUD-015–019 tại thời điểm lập; mọi câu mô tả branch đang làm, chưa merge, số lượng test và kết quả Security Advisor là thông tin lịch sử, **không đại diện trạng thái hiện tại của `develop`**. Xem phần đầu trang để lấy baseline mới.
 
 Cập nhật 2026-10-25. Repo `khoabm/dashboard`, branch `enhancement/acceptance-refinements` từ `develop` tại `ad8c78c`; baseline lượt AUD-017 là `ff8c567`. Develop đã chứa các sửa AUD-001–014; branch này dành cho các hạng mục hoàn thiện nghiệm thu. **Đã có implementation, chưa đạt Definition of Done.**
 
@@ -23,7 +34,7 @@ Cập nhật 2026-10-25. Repo `khoabm/dashboard`, branch `enhancement/acceptance
 | Sites / main | Chỉ preview nội bộ bằng Sites supervisor; không tạo Site, hosting manifest, version/deployment/public URL, không đổi audience hoặc merge main |
 | Wireframe | Bám mô tả R05, có ảnh UI trong docs/qa; chưa có ảnh wireframe quản trị gốc để đối chiếu hoặc visual acceptance |
 
-## Bước tiếp theo
+### Kế hoạch đã ghi tại snapshot 2026-10-25 (tham khảo lịch sử)
 
 AUD-019 (baseline `34b2ff0`): sửa hai assertion message cũ bằng bất biến nháp/cleanup tại `bd6acb1`, format riêng 5 file upstream tại `c1230c3`. 41/41 unit/check/build/format PASS local; Offline CI run `40152051421` PASS tại `c1230c3`, gồm đủ unit/build/format. Working tree sạch sau khôi phục EOL checkout; chưa merge/đổi Draft/deploy. Commit cập nhật docs sau đó cần kiểm CI riêng theo HEAD. Xem BUG_FIX_LOG.
 

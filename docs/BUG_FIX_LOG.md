@@ -2,6 +2,10 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-26 — GB-DOC-002 / clarification sau review tài liệu
+
+Branch `feature/personal-gradebook`, baseline `eba7c18e`. P2 documentation: mẫu danh sách học sinh chưa quy định rõ có thể bỏ hẳn cột `Họ tên`, và `STATUS.md` còn đặt snapshot cũ dưới nhan đề trạng thái hiện tại. Làm rõ CSV/XLSX hai cột tối thiểu hoặc ba cột có tên, giữ nguyên quy tắc UPSERT và giá trị tên đã có; bổ sung regression CP03/CP06; đưa HEAD/CI mới của `develop` và Security Advisor vào STATUS, chuyển snapshot AUD trước thành lịch sử; ghi CP00 docs PASS riêng khỏi implementation. **Docs-only**, không thay source/schema/PII, browser/backend/real security NOT RUN. Kiểm tra diff/links phải được xác nhận trên commit cuối cùng.
+
 ## 2026-10-26 — GB-DOC-001 / CP00 documentation correction
 
 Branch `feature/personal-gradebook`, baseline `cc13962`, merge base `af43f51`; develop được đối chiếu ở `307b6c6`, không merge/rebase. Review GB-REV-001..008 nêu thiếu hợp đồng decimal/lịch sử/import/throttle/bridge/audit/gate. Sửa bộ tài liệu feature theo quyết định mới D01–D05, không áp máy móc đề xuất review: ≤5-place decimal strings, metadata năm học sửa được, UPSERT, inference deferred, limiter kỹ thuật đo được, RPC server-only/audit theo lớp và gate trước dữ liệu thật. README/OVERVIEW/DECISIONS/STATUS đồng bộ; [CHECKPOINTS](features/personal-gradebook/CHECKPOINTS.md#cp00-finding-dispositions) giữ disposition từng finding. Trạng thái: **documentation corrected; feature NOT IMPLEMENTED**, backend/security/browser tests NOT RUN trong lượt docs-only; chỉ kiểm diff, links và tính nhất quán tài liệu. Các mặc định kỹ thuật và real-data gate chưa được nghiệm thu; không sửa source/schema/config, không deploy.
