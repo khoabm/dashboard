@@ -12,7 +12,7 @@ import { createPendingTask } from '../utils/pending-task.js';
  *
  * @param {object|null} section - The section to edit, or null for a new section.
  * @param {object} data - Current board and post data for validation.
- * @param {Function} onSaved - Refreshes the board after a successful change.
+ * @param {Function} onSaved - Receives the confirmed section ID for new-section reveal.
  */
 export function SectionEditor(section, data, onSaved) {
   const { dialog, content, close } = openDialog(section ? 'Sửa chủ đề' : 'Thêm chủ đề');
@@ -61,7 +61,7 @@ export function SectionEditor(section, data, onSaved) {
       error.textContent = '';
       try {
         if (!title.value.trim()) throw Error('Vui lòng nhập tên chủ đề.');
-        await saveSection({
+        const saved = await saveSection({
           ...section,
           board_id: data.board.id,
           title: title.value.trim(),
@@ -71,8 +71,10 @@ export function SectionEditor(section, data, onSaved) {
         });
         if (!dialog.open) return;
         dialog.close();
-        await onSaved();
-        ToastNotification('Đã lưu chủ đề.');
+        const refreshed = await onSaved({ revealSectionId: section ? null : saved.id });
+        // Keep a refresh failure visible; do not overwrite it with a success toast after the dialog closes.
+        if (refreshed)
+          ToastNotification(section ? 'Đã lưu chủ đề.' : `Đã thêm chủ đề “${saved.title}”.`);
       } catch (e) {
         if (dialog.open) error.textContent = errorMessage(e);
       }

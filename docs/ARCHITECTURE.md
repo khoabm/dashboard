@@ -59,7 +59,9 @@ Các vùng dưới đây được lắp trong `src/main.js` bằng helper `el(..
 | `#app` | `index.html` → `src/main.js` | Root chứa header, hero giới thiệu và `board-shell` |
 | `.app-header` | `AppHeader` | Logo/home, SearchBar, refresh và login/admin entry |
 | `.hero` / `.hero-copy` | `src/main.js` | Tiêu đề, mô tả, số chủ đề/bài công khai; ảnh orbit trang trí |
-| `.board-shell` / `shell` | `src/main.js` | Container căn giữa, bao adminRegion → controls → boardRegion → footer |
+| `.board-shell` / `shell` | `src/main.js` | Container căn giữa, bao adminRegion → workspace → footer |
+| `.board-workspace` / `workspace` | `src/main.js` | Bao controls → BoardNavigation → boardRegion, giới hạn vùng sticky để không đi theo footer |
+| `.board-navigation` / thanh cuộn phía trên | `src/components/board-navigation.js` | Chỉ hiện khi tất cả chủ đề overflow ngang trên desktop; native scrollbar + nút theo cột, dùng lại token/kiểu nút hiện tại |
 | `adminRegion` (div không class) | `render()` | Trống với khách; admin có toolbar, dọn tệp và trạng thái quota |
 | `.board-controls` / `controls` | `renderControls()` | Tab desktop, bộ chọn chủ đề mobile, nhãn bảng và thời điểm đồng bộ |
 | `boardRegion` (div không class) | `renderBoard()`, `refresh()` | Vùng nội dung được thay bằng `BoardContainer`, loading hoặc error |
@@ -73,6 +75,7 @@ Các vùng dưới đây được lắp trong `src/main.js` bằng helper `el(..
 | --- | --- | --- |
 | Pulse / tác vụ đang chờ | `src/components/pending.js` dựng live status + pulse; `src/utils/pending-task.js` một task mỗi generation, finally/reset dọn trạng thái và chặn completion cũ xóa status mới | `tests/pending-task.test.js`; QA-A16, audit fixture, viewport `?fixture=audit` |
 | Bootstrap / refresh / hành động | src/main.js | QA_REPORT public + editor fixture |
+| Điều hướng ngang / anchor / reveal | `src/components/board-navigation.js`: đồng bộ native scroll hai chiều với guard chống feedback; ResizeObserver/scroll listener/frame được reset khi thay board/Auth. Anchor theo data-section-id + offset. `main.js` chỉ reveal snapshot xác nhận sau khi mở khóa; `section-editor.js` chuyển ID trả từ save | `tests/board-navigation.test.js`; `tests/audit.html?scenario=navigation`, QA-A19 |
 | Header/Search/AdminToolbar/Board/Column/Card/Preview | src/components/board.js | public UI + viewport |
 | Gallery/Document/Video | src/components/media.js | ảnh/PDF/YouTube UI |
 | PostEditorDrawer/AttachmentUploader | src/components/post-editor.js | tests/audit.html: draft faults, inert busy form, pending-file barrier/close/logout/expired event/restore, save failure; drafts/validation unit |
@@ -103,3 +106,7 @@ Editor tính candidate file cũ bị thay trước save RPC, queue sau response 
 Phản hồi đang chờ theo R14: main giữ pulse cố định trong viewport cho re-order, xóa/khôi phục, refresh, export, cleanup và logout. Controls khóa bằng inert trong thời gian thao tác/đọc bảng; background refresh nhường task đang ghi, task sở hữu gọi refresh cuối sau RPC. SIGNED_OUT reset task/generation và UI; completion cũ không mở khóa hoặc thay status của tác vụ mới.
 
 Dialog đặt pulse trong `.dialog-heading` sticky, bên ngoài form inert; post có nhãn riêng cho xác minh file, upload, save/publish, recovery và hoàn tất. Autosave dùng vùng draft-status inline để không đẩy form khi đang nhập. Section/login khóa submit, đóng và Escape khi chờ. Media tách chờ ký URL, load ảnh và iframe load/error; iframe load không chứng minh playback/PDF render thành công. Quota có pulse riêng. CSS dùng dot + vòng pulse, nhãn chữ/live status và media query reduced motion đã có; không thêm timer kéo dài loading hoặc request/polling.
+
+Điều hướng theo SPEC R05.2 không thay AppHeader/card/bố cục lọc. Sticky chỉ áp dụng row điều hướng mới, top=0 vì AppHeader hiện không sticky. Create ưu tiên snapshot mới hơn background read; lookup ID chỉ chạy sau khi ticket Auth còn hiệu lực. `renderBoard()` chụp anchor trước replaceChildren rồi attach DOM mới; lọc chủ đề chủ động reset vị trí. Focus reveal đặt sau pending unlock để tránh gọi focus vào board inert. Không có “Đi đến”, kéo thả nội dung hay scroll wheel hijack.
+
+Tổ chức kiểm thử: mọi file frontend test/fixture nằm trong `tests/` (xem tests/README.md); chỉ `tests/local/` là vùng artifact/scratch được .gitignore và .prettierignore bỏ qua. Unit và fixture regression cần chạy lại vẫn giữ trong Git, không gộp vào vùng ignore. Không đưa tests vào entry production/dist.

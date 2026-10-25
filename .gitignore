@@ -13,6 +13,9 @@ playwright-report/
 test-results/
 *.log
 
+# Local QA captures, scratch pages and generated reports stay under one ignored folder.
+/tests/local/
+
 # Local editor / OS
 .DS_Store
 Thumbs.db

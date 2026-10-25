@@ -316,6 +316,12 @@ Board:
 
 - Board cuộn ngang khi không đủ diện tích.
 
+- Ở “Tất cả chủ đề” trên desktop/tablet, khi có overflow ngang thì hiện một thanh điều hướng phía trên bảng gồm nhãn vùng chủ đề đang thấy, nút trái/phải và thanh cuộn native đồng bộ hai chiều với bảng. Mỗi nút dịch khoảng một cột và bị vô hiệu ở biên; thanh điều hướng sticky trong phạm vi bảng khi cuộn dọc, không chạy theo footer. Không thêm mục “Đi đến”. Giữ nguyên tab lọc, màu sắc, typography, nút và card của UI hiện tại; không redesign toàn trang hoặc ép nhỏ cột.
+
+- Tải lại dữ liệu/render thông thường giữ chủ đề đang nhìn bằng ID và độ lệch, không tự trả bảng về đầu. Sau khi tạo chủ đề và tải được snapshot xác nhận, đưa tiêu đề cột vừa tạo vào tầm nhìn, đánh dấu “Vừa thêm”, chuyển focus sau khi mở khóa pending. Nếu đang xem tất cả trên desktop thì giữ chế độ đó; khi đang xem riêng hoặc dùng mobile, chọn chủ đề mới để thấy cột. Lần tạo này bỏ tìm kiếm/trạng thái thùng rác đang che khuất cột; cập nhật thông thường không tự đổi bộ lọc. Lỗi ghi giữ form/nội dung, không thêm cột giả. Nếu ghi thành công nhưng tải lại lỗi thì giữ snapshot trước và thông báo chưa đồng bộ, không giả lập cột mới hoặc che lỗi bằng toast thành công. Kết quả sau SIGNED_OUT không được reveal hoặc bật lại quản trị.
+
+- Điều hướng ngang chỉ hiện khi cần, dùng được bằng bàn phím, tôn trọng reduced motion. Mobile vẫn một cột và bộ chọn chủ đề hiện có; không thêm bộ chọn điều hướng thứ hai.
+
 - Không bóp nhỏ các cột đến mức mất khả năng đọc.
 
 Gợi ý:

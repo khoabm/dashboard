@@ -29,6 +29,7 @@ import { PostEditorDrawer } from './components/post-editor.js';
 import { createRequestGate } from './utils/request-gate.js';
 import { createPendingTask } from './utils/pending-task.js';
 import { PulseIndicator, setPendingMessage } from './components/pending.js';
+import { BoardNavigation } from './components/board-navigation.js';
 const root = document.querySelector('#app');
 const requests = createRequestGate();
 let authRefreshTimer,
@@ -67,8 +68,10 @@ const search = SearchBar(
 // adminRegion stays empty for readers and hosts admin actions and quota status after login.
 const shell = el('div', { class: 'board-shell' }),
   controls = el('div', { class: 'board-controls' }),
+  workspace = el('div', { class: 'board-workspace' }),
   boardRegion = el('div'),
   adminRegion = el('div');
+const navigation = BoardNavigation();
 const countText = el('span');
 // One persistent region survives board rerenders and describes pending admin work or refreshes.
 const activity = PulseIndicator();
@@ -116,12 +119,12 @@ root.append(
   ),
   shell,
 );
-// Inside the shell, administrative tools precede section filters and the board; the footer follows.
+// The workspace bounds sticky navigation to the board; the footer remains outside that region.
+workspace.append(controls, navigation.element, boardRegion);
 shell.append(
   activity,
   adminRegion,
-  controls,
-  boardRegion,
+  workspace,
   el(
     'footer',
     { class: 'footer' },
@@ -135,6 +138,8 @@ function updatePendingUI() {
   setPendingMessage(activity, operationMessage || syncMessage);
   const pending = operations.pending() || !!syncMessage;
   adminRegion.inert = pending;
+  controls.inert = pending;
+  navigation.element.inert = pending;
   boardRegion.inert = pending;
   boardRegion.setAttribute('aria-busy', String(pending || !!syncMessage));
   root.querySelector('.app-header nav').inert = pending || !!syncMessage;
@@ -176,7 +181,7 @@ function renderControls() {
       localStorage.setItem('khtn8:selected', id);
     } catch {}
     renderControls();
-    renderBoard();
+    renderBoard({ resetPosition: true });
   };
   // Desktop section tabs and the mobile select offer the same selection behavior.
   const tabs = el(
@@ -243,14 +248,20 @@ function actions() {
   };
 }
 
-/** Replaces the visible board with its latest filtered representation. */
-function renderBoard() {
-  boardRegion.replaceChildren(BoardContainer(data, actions()));
+/**
+ * Replaces board DOM while preserving a section anchor.
+ * @param {object} options - Explicit selection changes reset the horizontal position.
+ */
+function renderBoard({ resetPosition = false } = {}) {
+  const position = resetPosition ? null : navigation.capture();
+  const board = BoardContainer(data, actions());
+  boardRegion.replaceChildren(board);
+  navigation.attach(board, { all: selected === 'all', position });
   updatePendingUI();
 }
 
 /** Updates counts, admin controls, quota, filters, and board after state changes. */
-function render() {
+function render(options = {}) {
   if (!data.sections.some((s) => s.id === selected)) selected = 'all';
   countText.textContent = `${data.sections.length} chủ đề · ${data.posts.filter((p) => p.status === 'published').length} học liệu`;
   // Clear the previous admin-only toolbar and quota before rebuilding this region.
@@ -287,7 +298,7 @@ function render() {
   const loginLabel = root.querySelector('.header-admin');
   loginLabel.textContent = admin ? 'Quản trị viên' : 'Đăng nhập quản trị';
   renderControls();
-  renderBoard();
+  renderBoard(options);
 }
 
 // Remote refresh and editor persistence.
@@ -296,31 +307,53 @@ function render() {
  * Loads the latest board while preserving the previous snapshot on failure.
  * Commits results only within the authentication generation that started the request.
  *
- * @param {object} options - afterWrite permits the owning action's final refresh while controls lock.
+ * @param {object} options - afterWrite permits final reads; revealSectionId targets a confirmed create.
+ * @returns {Promise<boolean|undefined>} True for a committed snapshot, false on read failure, undefined if superseded.
  */
-async function refresh({ afterWrite = false } = {}) {
+async function refresh({ afterWrite = false, revealSectionId = null } = {}) {
   if (authChecking) return;
   if (authFailed) return refreshAuth();
   if (operations.pending() && !afterWrite) return;
+  // A confirmed create must supersede an older background snapshot before revealing its column.
+  if (revealSectionId) requests.invalidate();
   const ticket = requests.begin();
   if (!ticket) return;
   if (!lastSync) boardRegion.replaceChildren(LoadingState());
   syncMessage = lastSync ? 'Đang tải lại học liệu…' : '';
   updatePendingUI();
+  let revealConfirmed = null;
   try {
     const snapshot = await loadBoard();
     if (!requests.isCurrent(ticket)) return;
     data = snapshot;
     lastSync = new Date();
+    if (revealSectionId && data.sections.some((section) => section.id === revealSectionId)) {
+      revealConfirmed = revealSectionId;
+      // A new section must remain visible even when the previous view was filtered or mobile-only.
+      if (selected !== 'all' || matchMedia('(max-width:700px)').matches) selected = revealSectionId;
+      query = '';
+      filter = 'all';
+      search.querySelector('input').value = '';
+      try {
+        localStorage.setItem('khtn8:selected', selected);
+        localStorage.setItem('khtn8:query', '');
+      } catch {
+        /* Preferences are optional. */
+      }
+    }
     render();
+    return true;
   } catch (e) {
     if (!requests.isCurrent(ticket)) return;
     if (!lastSync) boardRegion.replaceChildren(ErrorState(errorMessage(e), refresh));
     else ToastNotification('Chưa đồng bộ được. Đang giữ dữ liệu đã tải; hãy thử lại.', true);
+    return false;
   } finally {
     if (requests.isCurrent(ticket)) {
       syncMessage = '';
       updatePendingUI();
+      // Focus can only move into the new column after the board's inert pending lock is released.
+      if (revealConfirmed) navigation.reveal(revealConfirmed);
     }
     requests.finish(ticket);
   }
@@ -486,6 +519,7 @@ export async function logout() {
 /** Clears private UI synchronously, even if the subsequent anonymous read fails. */
 function clearSession() {
   requests.invalidate();
+  navigation.reset();
   authChecking = false;
   authFailed = false;
   syncMessage = '';

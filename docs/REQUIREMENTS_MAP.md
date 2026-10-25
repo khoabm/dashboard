@@ -8,7 +8,7 @@ SPEC.md là bản đầy đủ. Bảng này chỉ giúp chọn phần cần đ�
 | [R02](SPEC.md#r02) | 0 USD, quota | ZERO_COST.md |
 | [R03](SPEC.md#r03) | Tech stack | ARCHITECTURE.md |
 | [R04](SPEC.md#r04) | Work và plugins | WORKFLOW.md |
-| [R05](SPEC.md#r05) | UI, wireframe, placeholder | TESTING.md |
+| [R05](SPEC.md#r05) | UI, wireframe, placeholder; điều hướng overflow / reveal cột mới | TESTING.md |
 | [R06](SPEC.md#r06) | 20 component JS | ARCHITECTURE.md |
 | [R07](SPEC.md#r07) | Public, phạm vi loại trừ | TESTING.md |
 | [R08](SPEC.md#r08) | Admin 8.1–8.9; phiên qua reload và xác minh quyền | SECURITY.md, ADMIN_SETUP.md |

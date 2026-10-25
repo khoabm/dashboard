@@ -1,5 +1,30 @@
 # Bằng chứng kiểm thử
 
+<a id="board-navigation-2026-10-25"></a>
+
+## 2026-10-25 — nghiệm thu phần điều hướng đã bàn giao / AUD-017 / QA-A19
+
+Baseline `ff8c5678c5a07c71456e38383294f7bdb1317c93`, working tree branch `enhancement/acceptance-refinements`. Source UI đã triển khai 2026-10-24; lượt tiếp tục ngày 25 đọc lại diff, hoàn tất phần tài liệu bị ngắt và chạy lại kiểm thử, không thêm tính năng/thiết kế mới. Không suy PASS từ lần chạy trước.
+
+Môi trường: Windows + Node 25.2.1, IAB của desktop app; responsive dùng iframe360/390/768/1024/1440. `/tests/audit.html?scenario=navigation` có 8 cột và bảng dài synthetic. DOM, native scroll, SDK query và handler app là thật; Auth/REST/Storage transport mock, không forward request Supabase. Không dùng credential/học liệu runtime. Counter liveRequests=0 là invariant fixture/CSP, không phải phép đo Network tab.
+
+| Case / yêu cầu đã chốt | Kết quả chạy lại ngày 25 | Trạng thái |
+| --- | --- | --- |
+| QA-A19a — không “Đi đến”, giữ UI | Nav không có select; chỉ thêm row/scrollbar dùng button/palette cũ. Nền nav rgb(239,244,241) khớp nền dự án; header, tab lọc, card và màu chủ đề không redesign. Không overflow ngang toàn trang | PASS diff + browser |
+| QA-A19b — overflow, nút biên, keyboard/native sync | 8 cột, board max1837px. Nút phải dịch ~367.2px. Kéo native top thumb đến cuối → left1836.8/max1837, nút phải disabled. ArrowLeft trên top track đồng bộ board; hai thanh cùng left1816 ở lần kiểm ổn định. Bảng một cột không overflow/đang xem riêng → nav ẩn | PASS browser |
+| QA-A19c — sticky và refresh | Cuộn dọc giữa board → nav top=0. Làm mới ở left1816 → left1816, top track cùng vị trí. Workspace chứa nav/board và kết thúc trước footer. Unit kiểm anchor theo ID+offset khi chèn/reorder/xóa/thay độ rộng | PASS browser + unit/diff |
+| QA-A19d — pending và lỗi ghi | Hold create → số cột cũ giữ9, highlight0. Release với lỗi → vẫn9 cột, tên “QA chủ đề mới” còn trong form, nút Lưu mở khóa. Không thêm cột giả | PASS browser |
+| QA-A19e — retry/reveal/focus | Tắt lỗi và retry → đúng heading mới, nhãn “Vừa thêm”, heading là activeElement sau pending unlock; tab Tất cả giữ nguyên. Tạo từ chế độ xem riêng với Vị trí0 → chọn đúng chủ đề mới, một cột, nav ẩn | PASS browser |
+| QA-A19f — tìm kiếm và lỗi tải lại | Tạo khi tìm kiếm không có kết quả → query rỗng sau snapshot xác nhận, giữ Tất cả và reveal đúng tên. Write thành công nhưng read503 → giữ8 cột/snapshot/left1816, không highlight; observer ghi duy nhất toast “Chưa đồng bộ được. Đang giữ dữ liệu đã tải; hãy thử lại.”, không bị success toast che | PASS browser |
+| QA-A19g — response sau SIGNED_OUT | Hết phiên khi create chờ rồi release → highlight0, adminToolbar0 và không có success toast chứa tên response muộn. Không hồi sinh quản trị/reveal cũ | PASS browser |
+| QA-A19h — mobile và các breakpoint | Mobile360: clientWidth=scrollWidth=345, một cột/nav ẩn; tạo mới chọn đúng “QA chủ đề mobile”, focus đúng. Iframe390/768/1024/1440 có clientWidth lần lượt375/753/1009/1425 bằng scrollWidth; nav chỉ hiện desktop overflow, không có select điều hướng mới | PASS browser/DOM |
+| QA-A19i — tập trung test/local output | Regression/fixture frontend trong tests; tests/local chứa ảnh/log/scratch, .gitignore và .prettierignore bỏ qua. git check-ignore xác nhận artifacts/logs được ignore và unit/fixture không bị ignore. Ảnh Auth cũ đã chuyển từ docs/qa, không xóa ảnh đã tracked | PASS filesystem/check-ignore |
+| QA-A19j — checks | 38/38 unit, syntax/credential scan/build PASS khi chạy lại. Prettier EOL auto toàn code PASS; gate gốc FAIL ở27 file CRLF không sửa, không format toàn repo. Không thay CI hoặc dependency | PASS offline; format gốc FAIL do checkout, CI mới NOT RUN |
+
+Evidence local, không đưa lên Git/ZIP source: `tests/local/checks/2026-10-25/` (unit/check/build/format, 18 bản ghi browser trong browser.json, validation.json), `tests/local/artifacts/board-navigation-sticky-20261025.png`, `board-navigation-created-20261025.png`. Validation đã kiểm link file/anchor tài liệu, ignore artifacts nhưng không ignore regression, dist không chứa fixture và 27 file format cảnh báo chỉ khác CRLF với blob LF tại HEAD. Kết quả kiểm thử đã được tóm tắt trong bảng để checkout khác vẫn đọc được khi không có ảnh local. Bước chạy lại tại [TESTING](TESTING.md#điều-hướng-nhiều-chủ-đề--aud-017), tổ chức file tại [tests/README](../tests/README.md).
+
+Giới hạn: không kiểm Auth/JWT/RLS/Storage save thật, Safari/iPhone/Android thật hoặc OS reduced-motion; các gate đó **NOT RUN**. Branches source tôn trọng prefers-reduced-motion và không đổi CSP/RLS production. Không deploy/merge, không kích hoạt dịch vụ trả phí, không đánh dấu Definition of Done toàn sản phẩm. Phạm vi yêu cầu điều hướng đã đối chiếu đầy đủ trong QA-A19a–i.
+
 <a id="auth-reload-2026-10-24"></a>
 
 ## 2026-10-24 — phiên qua reload / AUD-016 / QA-A18
@@ -19,7 +44,7 @@ Baseline `b24acc19648badfbcfc641ce88555b2000d95678`, working tree branch `enhanc
 | QA-A18g | 35/35 unit; 5 test Auth mới dùng SDK/transport synthetic, kiểm refresh expired session, restore, logout, isolation, deny/profile error/mismatched identity và không chạm localStorage. Syntax/credential scan/build PASS | PASS offline |
 | QA-A18h | Gate Prettier nguyên bản FAIL ở 32 file không sửa dùng CRLF checkout; cùng toàn scope với `--end-of-line auto` PASS. File code thay đổi đã format theo LF; không format toàn repo | FAIL nguyên bản do checkout; nội dung PASS, CI đúng commit NOT RUN |
 
-Ảnh chỉ dữ liệu synthetic: [Khôi phục sau reload](qa/auth-reload-20261024.png), [Form iframe360](qa/auth-login-360-20261024.png). Bước chạy lại tại [TESTING](TESTING.md#phiên-qua-reload--aud-016). Không gọi SQL/API project thật, không sửa schema/policy/Auth settings, không deploy/merge hoặc kích hoạt dịch vụ trả phí. Session/JWT/RLS/Storage thật, browser restore/duplicate, cross-tab revoke, storage mất quyền giữa phiên và Safari/iPhone/Android vẫn **NOT RUN**. Không đánh dấu Definition of Done sản phẩm.
+Ảnh synthetic đã chuyển vào `tests/local/artifacts/auth-reload-20261024.png` và `tests/local/artifacts/auth-login-360-20261024.png` theo yêu cầu gom artifact local, được Git ignore; chúng không phải deliverable source và có thể không có trên checkout khác. Bước chạy lại tại [TESTING](TESTING.md#phiên-qua-reload--aud-016). Không gọi SQL/API project thật, không sửa schema/policy/Auth settings, không deploy/merge hoặc kích hoạt dịch vụ trả phí. Session/JWT/RLS/Storage thật, browser restore/duplicate, cross-tab revoke, storage mất quyền giữa phiên và Safari/iPhone/Android vẫn **NOT RUN**. Không đánh dấu Definition of Done sản phẩm.
 
 <a id="pulse-feedback-2026-10-24"></a>
 

@@ -325,6 +325,67 @@ kbd {
   align-items: center;
   gap: 7px;
 }
+/* This workspace bounds sticky controls to the board and keeps existing filters unchanged. */
+.board-workspace {
+  min-width: 0;
+}
+.board-navigation {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 8px 0 10px;
+  margin-bottom: 14px;
+  background: #eff4f1;
+  border-bottom: 1px solid var(--line);
+}
+.board-navigation[hidden] {
+  display: none;
+}
+.board-navigation-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.board-navigation-title,
+.board-navigation-position {
+  font-size: 12px;
+  color: var(--muted);
+}
+.board-navigation-title {
+  font-weight: 600;
+}
+.board-navigation-position {
+  margin-left: auto;
+}
+.board-navigation button:disabled {
+  cursor: default;
+}
+.board-scrollbar {
+  height: 20px;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  scrollbar-color: var(--muted) var(--line);
+}
+.board-scrollbar > div {
+  height: 1px;
+}
+.board-scrollbar:focus-visible,
+.section-new h2:focus-visible {
+  outline: 3px solid #507dca;
+  outline-offset: 3px;
+}
+.section-new .section-heading {
+  box-shadow: inset 0 0 0 2px var(--green);
+}
+.section-new-label {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--green);
+  background: var(--paper);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
 /* Horizontal board columns and resource cards. */
 
 /* The board element inside boardRegion arranges columns horizontally on desktop. */

@@ -203,7 +203,11 @@ export function PostCard(post, { admin, onOpen, onEdit, onMove, onDelete, onRest
  */
 export function SectionColumn(section, posts, actions) {
   // One board column groups a section heading, description, and its filtered post list.
-  const column = el('section', { class: 'section-column', 'aria-label': section.title });
+  const column = el('section', {
+    class: 'section-column',
+    'aria-label': section.title,
+    'data-section-id': section.id,
+  });
   column.style.setProperty('--section-color', section.color);
   const heading = el(
     'div',
