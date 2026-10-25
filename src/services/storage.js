@@ -158,7 +158,9 @@ export async function cleanup(paths, db = requireClient(), isCurrent = () => tru
     assertCurrent(isCurrent);
     // Never infer absence from a truncated reference lookup.
     if (!Array.isArray(referenced) || count !== referenced.length) {
-      throw Error('Chưa thể xác định tệp nào có thể xóa an toàn trong nhóm này. Nhóm tệp này được giữ nguyên.');
+      throw Error(
+        'Chưa thể xác định tệp nào có thể xóa an toàn trong nhóm này. Nhóm tệp này được giữ nguyên.',
+      );
     }
     const unused = batch.filter((path) => !referenced.some((a) => a.storage_path === path));
     if (unused.length) await result(db.storage.from(config.bucket).remove(unused));

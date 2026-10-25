@@ -26,13 +26,7 @@ test('recognized service errors are localized instead of exposed', () => {
     errorMessage({ code: '23503', message: 'violates foreign key constraint' }),
     /Chủ đề này vẫn có bài đăng/,
   );
-  assert.match(
-    errorMessage({ code: '42501', message: 'permission denied' }),
-    /Phiên đăng nhập/,
-  );
-  assert.match(
-    errorMessage({ status: 429, message: 'Too Many Requests' }),
-    /quá nhiều yêu cầu/,
-  );
+  assert.match(errorMessage({ code: '42501', message: 'permission denied' }), /Phiên đăng nhập/);
+  assert.match(errorMessage({ status: 429, message: 'Too Many Requests' }), /quá nhiều yêu cầu/);
   assert.match(errorMessage({ message: 'Failed to fetch' }), /Không thể kết nối/);
 });

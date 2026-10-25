@@ -20,8 +20,7 @@ export const client = configured
  * @throws {Error} When public client settings are missing.
  */
 export function requireClient() {
-  if (!client)
-    throw Error('Hệ thống chưa được thiết lập đầy đủ. Vui lòng liên hệ người quản lý.');
+  if (!client) throw Error('Hệ thống chưa được thiết lập đầy đủ. Vui lòng liên hệ người quản lý.');
   return client;
 }
 

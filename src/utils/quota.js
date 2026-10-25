@@ -23,7 +23,9 @@ export function quotaLevel(used, limit) {
  */
 export function assertUploadBudget(used, incoming) {
   if (!Number.isFinite(used))
-    throw Error('Chưa kiểm tra được dung lượng lưu trữ. Để tránh vượt giới hạn, việc tải tệp mới đang tạm dừng.');
+    throw Error(
+      'Chưa kiểm tra được dung lượng lưu trữ. Để tránh vượt giới hạn, việc tải tệp mới đang tạm dừng.',
+    );
   if (used + incoming >= STORAGE_LIMIT * 0.9)
     throw Error(
       'Dung lượng lưu trữ đã gần giới hạn an toàn (90%). Vui lòng giải phóng dung lượng hoặc thêm liên kết thay thế.',
