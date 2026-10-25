@@ -18,7 +18,7 @@ Cập nhật 2026-10-25. Repo `khoabm/dashboard`, branch `enhancement/acceptance
 
 ## Bước tiếp theo
 
-AUD-019 (baseline `34b2ff0`): xác nhận CI PR #3 run `40151354448` fail hai assertion message cũ, build/format skip. Regression chuyển sang bất biến nháp/cleanup; 41/41 unit/check/build PASS local. Có thêm 5 file upstream cần format ở commit riêng. CI phải kiểm đúng SHA sau push; chưa merge/đổi Draft/deploy. Xem BUG_FIX_LOG.
+AUD-019 (baseline `34b2ff0`): sửa hai assertion message cũ bằng bất biến nháp/cleanup tại `bd6acb1`, format riêng 5 file upstream tại `c1230c3`. 41/41 unit/check/build/format PASS local; Offline CI run `40152051421` PASS tại `c1230c3`, gồm đủ unit/build/format. Working tree sạch sau khôi phục EOL checkout; chưa merge/đổi Draft/deploy. Commit cập nhật docs sau đó cần kiểm CI riêng theo HEAD. Xem BUG_FIX_LOG.
 
 AUD-018 (2026-10-25, baseline `6bf2069`): bổ sung regression/fixture còn thiếu vào Git, giữ tests/local được ignore. Build production có gate chặn test module và kiểm allowlist dist; 38 unit/check/build cùng hai negative checks PASS. Chỉ deploy dist; URL test production NOT RUN, chưa deploy. Chi tiết BUG_FIX_LOG và DEPLOYMENT.
 
