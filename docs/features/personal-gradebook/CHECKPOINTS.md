@@ -2,7 +2,7 @@
 
 **Status: CP00 documentation readiness PASS (docs-only); CP01–CP07 implementation NOT STARTED.** This plan follows BRIEF V1.1 / user D01–D05 (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
 
-CP01-A is a separately authorized **technical-design** slice: [design and read-only evidence](CP01_TECHNICAL_DESIGN.md), baseline `f522266`, 2026-10-26; **DESIGN READY**, documentation checks only. It does not change the implementation status above. CP01-B (code/migration drafts) and CP01-C (authorized synthetic DB/API integration) require separate requests; no CP01 acceptance box is checked by design alone.
+CP01-A is a separately authorized **technical-design** slice: [design and original read-only evidence](CP01_TECHNICAL_DESIGN.md), baseline `f522266`; [accepted refinements GB-A-REV-001..003](CP01_TECHNICAL_DESIGN.md#143-accepted-refinement-disposition) reviewed from `31f887bd`, 2026-10-26. **DESIGN REFINED / READY**, documentation checks only. CP01-B implementation remains NOT STARTED; CP01-C security acceptance and the real-data gate remain NOT RUN. Separate requests are required; no implementation acceptance box is checked by design alone.
 
 ## Operating workflow for Codex
 
@@ -71,10 +71,12 @@ Acceptance:
 - [ ] Exact eight subject labels and seven column labels/order seeded; no scattered hard-coded copies, no separate semester table.
 - [ ] Scale-free NUMERIC + decimal-string API, ≤5 fractional digits, reject excess precision before write; exact cases from DATA_AND_SECURITY §A round-trip without rounding, including UPDATE; 0 vs absent and composite PK verified.
 - [ ] §E server-only SECURITY INVOKER RPC bridge: atomic UPSERT, minimal grants, no exposed grade tables; existing board/private helpers unaffected. Verify effective privileges/defaults, not object names alone.
+- [ ] Preview fingerprint follows CP01-A §8.2/T09.1–10: existing/missing identities and coordinates, canonical raw values plus revisions, class/catalog/key context, bound/expiring token with no exposed personal state, locked stale comparison and atomic audit. B1/B3/B4 offline evidence does not substitute for actual DB/API races in C.
 - [ ] Anon/direct Data API SELECT/INSERT/UPDATE/DELETE for grade/private records denied; existing board public reads unchanged.
 - [ ] Teacher API verifies real admin profile + JWT before writes/reveal; unauthorized/non-admin/expired admin denied.
 - [ ] Student API checks pair, §D per-document/global budgets, malformed/unknown/changing IDs, exact boundaries and concurrent requests; denied counters persist; limiter error/timeout fails closed before sensitive reads. Thresholds/TTL remain technical defaults pending actual test evidence.
-- [ ] Capability expiry/deactivation/unpublish enforced server-side on every read; aggregate-only histogram with V1 inference risk deferred, no suppression gate.
+- [ ] Capability expiry/global class/student revocation and requested-semester publication checked on every read; unpublish does not invalidate the other semester's capability access. Same-token republish and locking/response boundary follow CP01-A T05.1–7; actual DB/API C evidence required. Aggregate-only histogram, inference deferred, no suppression gate.
+- [ ] Date-only DOB contract and Asia/Ho_Chi_Minh future-date reference follow CP01-A §3.2/T19.1–5; B1 codecs/Excel contract and B3 RPC validation, actual DATE/API tests in C, no UTC/browser-zone shifts.
 - [ ] Reversible encryption/HMAC keys versioned/protected; no secret in bundle; synthetic rotation/recovery, migration/rollback notes and security review. §H remains NOT RUN for real data until all required evidence exists.
 - [ ] §I class-UUID audit with verified admin actor, allowlisted event/counts and no PII/score payload; mutation + audit rollback together; do not reuse board UUID-row trigger on BIGINT/composite keys.
 - [ ] Document exact test evidence (mock vs live, approved environment) and gate status.
@@ -85,7 +87,7 @@ Dependency: CP01 API contract; synthetic UI may use clearly labeled mocks before
 
 - [ ] Hamburger at far left; Bảng học liệu/Bảng điểm cá nhân; keyboard/focus/close/menu responsive.
 - [ ] Deep-link `/bang-diem` loads and refreshes on selected static host; existing public board unaffected.
-- [ ] CMND/CCCD 9–12 ASCII digits, retain leading zeros; `DD/MM/YYYY` validated datepicker desktop/mobile.
+- [ ] CMND/CCCD 9–12 ASCII digits, retain leading zeros; `DD/MM/YYYY` validated datepicker desktop/mobile, date-only API/storage contract and cross-timezone/midnight cases T19.
 - [ ] Invalid/unknown, rate-limited and unavailable-limit-state responses reveal no student existence; loading/error/retry, no plaintext persistent storage or URL credentials; do not call sensitive reads after denial.
 - [ ] Return to verification on expiry/refresh; anonymous grade direct requests remain denied.
 
@@ -137,6 +139,7 @@ Dependency: CP01–CP05 integration. Keep separate evidence for offline units, b
 - [ ] Class name/year metadata edits with existing scores do not UPDATE/move those scores or create class/student copies; old label snapshot is not promised.
 - [ ] Roster UPSERT new/existing/DOB conflict/blank name, CSV/XLSX **without a `Họ tên` column**, existing names preserved; score INSERT/UPDATE/unchanged/blanks; same student different subjects; in-file duplicate coordinates; sixth decimal; mixed-error rollback preserves both old and new records.
 - [ ] Concurrent UPSERT/manual edit and publish/import, stale preview, lost response + retry: constraints prevent duplicates; no unnoticed newer-edit overwrite, partial mutations or out-of-transaction audit. Denied limiter attempts remain counted; random identities, boundary bursts, cleanup/backlog and fail-closed tested.
+- [ ] Carry forward accepted refinements: [T05.1–7/T09.1–10/T19.1–5](CP01_TECHNICAL_DESIGN.md#121-accepted-refinement-regression-cases-all-not-run) with their evidence types. Include same-token other-semester/republish behavior, missing→existing races, raw-score change without revision bump, equivalent decimals, private token payload and Vietnam date-only validation. Browser late-response/timezone checks remain distinct from CP01-C DB/API evidence.
 - [ ] Browser Codex/IAB at 360/390/768/1024/1440 with click/keyboard/dialog; do not use machine Chrome for QA. Real device/Safari if available, otherwise NOT RUN/BLOCKED; iframe is not a device test.
 - [ ] `npm ci`, `npm run check`, `npm test`, `npm run build`, `npm run format:check` and GitHub Offline CI on exact HEAD; separate real Auth/API/RLS checks where permitted.
 - [ ] No secrets/PII/test fixture shipped in `dist`; file import data absent from Git/logs/storage.

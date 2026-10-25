@@ -2,6 +2,10 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-26 — GB-DOC-003 / CP01-A accepted refinements
+
+Branch `feature/personal-gradebook`, baseline `31f887bd`. GB-A-REV-001/P2: unpublish tăng epoch toàn lớp gây xác minh lại cả học kỳ còn công bố; GB-A-REV-002/P2: fingerprint chưa chốt đầy đủ absence/raw values; GB-A-REV-003/P3: DOB dùng tên múi giờ chưa phù hợp và thiếu hợp đồng date-only. Sửa [thiết kế CP01-A](features/personal-gradebook/CP01_TECHNICAL_DESIGN.md#143-accepted-refinement-disposition), DATA_AND_SECURITY/CHECKPOINTS và README/STATUS: publication kiểm từng học kỳ, fingerprint tồn tại/vắng mặt + raw NUMERIC với commitment có khóa, DOB calendar-only/Asia/Ho_Chi_Minh; B1–B5 và T05/T09/T19 có owner/evidence. **RESOLVED trong tài liệu**, BRIEF giữ nguyên; không phải runtime bug fix. Diff/links/requirements được kiểm tra trong lượt correction; DB/API/Auth/concurrency/browser/security **NOT RUN**, không truy vấn hay sửa Supabase. Commit chứa entry là mốc docs-only; không có code/migration/deploy/merge/push.
+
 ## 2026-10-26 — GB-DOC-002 / clarification sau review tài liệu
 
 Branch `feature/personal-gradebook`, baseline `eba7c18e`. P2 documentation: mẫu danh sách học sinh chưa quy định rõ có thể bỏ hẳn cột `Họ tên`, và `STATUS.md` còn đặt snapshot cũ dưới nhan đề trạng thái hiện tại. Làm rõ CSV/XLSX hai cột tối thiểu hoặc ba cột có tên, giữ nguyên quy tắc UPSERT và giá trị tên đã có; bổ sung regression CP03/CP06; đưa HEAD/CI mới của `develop` và Security Advisor vào STATUS, chuyển snapshot AUD trước thành lịch sử; ghi CP00 docs PASS riêng khỏi implementation. **Docs-only**, không thay source/schema/PII, browser/backend/real security NOT RUN. Kiểm tra diff/links phải được xác nhận trên commit cuối cùng.
