@@ -100,7 +100,7 @@ root.append(
       'div',
       { class: 'hero-copy' },
       el('div', { class: 'eyebrow' }, 'HỌC TẬP · KHÁM PHÁ · KẾT NỐI'),
-      el('h1', {}, 'KHOA HỌC TỰ NHIÊN ', el('span', {}, '– 8')),
+      el('h1', {}, 'Vui học cùng cô Quỳnh'),
       el(
         'p',
         {},
@@ -108,12 +108,12 @@ root.append(
         el('br'),
         'Cùng tìm kiếm, lưu giữ và khám phá học liệu theo từng chủ đề.',
       ),
-      el(
-        'div',
-        { class: 'hero-meta' },
-        el('span', {}, el('i', { class: 'live-dot' }), 'Học liệu mở'),
-        countText,
-      ),
+      // el(
+      //   'div',
+      //   { class: 'hero-meta' },
+      //   el('span', {}, el('i', { class: 'live-dot' }), 'Học liệu mở'),
+      //   countText,
+      // ),
     ),
     el('img', { class: 'hero-orbit', src: '/placeholders/orbit.svg', alt: '' }),
   ),
@@ -128,7 +128,7 @@ shell.append(
   el(
     'footer',
     { class: 'footer' },
-    el('span', {}, 'KHTN8 Board · Không gian học liệu Khoa học tự nhiên lớp 8'),
+    el('span', {}, 'Vui học cùng cô Quỳnh'),
     el('span', {}, 'Cùng học hỏi, cùng khám phá ', el('span', { 'aria-hidden': 'true' }, '↗')),
   ),
 );

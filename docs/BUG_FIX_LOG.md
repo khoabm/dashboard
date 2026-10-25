@@ -2,6 +2,12 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-25 — dành chiều cao thẻ cho văn bản
+
+**AUD-020 / P2 — FIXED offline/browser Codex.** Baseline `af43f51`, branch `develop`, có các thay đổi local khác giữ nguyên. Lần tăng chiều cao đầu tiên chỉ thêm margin trước `.card-meta` nên mô tả vẫn bị clamp 3 dòng, khoảng trống thêm không dùng để đọc. `src/styles/main.css` trả margin footer về 16px; bỏ clamp/ẩn overflow mô tả, đặt min-height bằng `3lh + 2cm` sau yêu cầu giảm 3cm từ mức cộng 5cm; cho mô tả dài nở tự nhiên. Tiêu đề/mô tả dùng overflow-wrap để chuỗi dài không tràn ngang. SPEC R05.2 cập nhật đúng yêu cầu được người dùng làm rõ; không đổi nội dung bài hoặc ảnh/media.
+
+`npm run check`, `npm run build` (gồm gate loại test khỏi dist), format CSS **PASS**. Browser QA từng BLOCKED ở sandbox; chạy Vite trên loopback ngoài sandbox đã cho phép browser Codex/IAB truy cập, không dùng Chrome trên máy. Fixture offline ở `tests/local/card-height/` (Git ignore) so cùng DOM/CSS, baseline chỉ override min-height cũ 5cm. IAB iframe360/390/1024/1440 PASS: thẻ ngắn giảm 113,387–113,388 CSS px; chiều ngang không đổi, không tràn document; mô tả dài và chuỗi liền không bị clip/clamp (scroll/client dimensions), thẻ dài tự nở nên không bị ép giảm 3cm khi cần chỗ cho chữ. Bằng chứng local: `results.json`, `compare-2cm.png` trong thư mục fixture trên, không publish. Mọi dữ liệu giả lập; không gọi backend thật. Thiết bị/Safari thật **NOT RUN**. Không deploy/commit trong lượt này.
+
 ## 2026-10-25 — sửa CI PR #3 sau thay đổi thông báo
 
 **AUD-019 / P1 CI blocker — FIXED offline.** Baseline `34b2ff0`, branch `enhancement/acceptance-refinements`. Run `40151354448` lỗi đúng hai assertion khớp message cũ trong `tests/drafts.test.js` và `tests/reliability.test.js` (39/41 PASS); build/format bị skip. Đã tái hiện local. Thay regex thông báo bằng kiểm rejection kiểu Error kèm bất biến: con trỏ khác UID không được đọc blob, snapshot text/blob cũ không đổi; cleanup bị cắt không xóa tệp, giữ queue và retry kiểm đủ tham chiếu thì giữ tệp đang dùng rồi xóa queue. Không đổi thông báo hoặc logic ứng dụng.

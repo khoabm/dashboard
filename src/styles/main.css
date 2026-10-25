@@ -498,16 +498,16 @@ kbd {
   line-height: 1.5;
   margin: 12px 0 7px;
   letter-spacing: -0.25px;
+  overflow-wrap: anywhere;
 }
 .card-body p {
   font-size: 12px;
   line-height: 1.7;
   color: #7b857e;
   margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  /* Gives the extra card height to readable text; longer descriptions can grow naturally. */
+  min-height: calc(3lh + 2cm);
+  overflow-wrap: anywhere;
   white-space: pre-line;
 }
 .card-meta {
