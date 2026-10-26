@@ -1,3 +1,11 @@
+# CP01-B4 preflight BLOCKED — 2026-10-26
+
+Baseline `0bbd0c3`, feature/personal-gradebook. **GB-B4-INT-001 / P1 OPEN:** B3 `gb_student_read(reveal=true)` omits the stored blind index and lookup-key generation needed for the approved AES-GCM AAD and HMAC verification. No current RPC provides that selected record's missing context. [Evidence and minimal upstream correction plan](features/personal-gradebook/B4_INTEGRATION_REVIEW.md). B4 cannot complete secure reveal without a separately reviewed additive B3 correction; accepted migrations are unchanged. No incomplete Edge implementation created.
+
+This turn is documentation/static review only: testsNONE, hosted requests0, migrationsNO, Edge deploymentNO, secrets provisionedNO, stress/load/soak/stretchNONE. B4 **BLOCKED at integration preflight**; B5 NOT STARTED; CP01-C and real-data gate NOT RUN. No hosted failure or new retry incident is asserted. Earlier snapshots below are historical.
+
+---
+
 # CP01-B3 accepted offline / CP01-B4 handoff — 2026-10-26
 
 **B3 correction ACCEPTED at static/offline review** (baseline 778600d); eight custom 40001 business conflicts corrected to PT409 in draft migration. Focused PGlite SQL 13/13 and DOM 4/4 PASS as reported, not independently rerun. **Not hosted integration acceptance.** Board hotfix applied per previously recorded metadata. Three attempted Work smoke-test workflows BLOCKED before authentication/RPC (0 test requests), so observed HTTP409 and lack of PostgREST internal retries remain NOT RUN/INCONCLUSIVE. See [recurrence warning](DATABASE.md#cảnh-báo-tái-diễn-gb-ops-001--sqlstate-retryable-cho-xung-đột-nghiệp-vụ).
