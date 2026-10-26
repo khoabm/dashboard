@@ -20,7 +20,7 @@ try {
     )
   ).rows;
   const fix = await readFile(
-    'supabase/migrations/20261026040000_stop_business_conflict_retries.sql',
+    'supabase/migrations/20261026034549_stop_business_conflict_retries.sql',
     'utf8',
   );
   await db.exec(fix);

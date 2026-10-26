@@ -1,3 +1,13 @@
+# GB-OPS-001 — hosted board retry fix applied, 2026-10-26
+
+**Board hotfix APPLIED / metadata verified.** Explicit user authorization followed the initial approval rejection. Supabase migration `20261026034549_stop_business_conflict_retries` replaces business-conflict40001 with PT409 in only `public.reorder_posts(uuid[],integer[])` and `public.save_post(jsonb,jsonb,integer)`. Local filename reconciled to actual hosted migration version; SQL content unchanged.
+
+Verified: both functions contain PT409/no40001, owner postgres, SECURITY INVOKER, empty search_path, anon EXECUTE false/authenticated true. Previously identified looping backend131961 was terminated with explicit permission; exact session absent afterward. No business data mutation, RLS/Auth setting change, project restart or Gradebook apply. No hosted RPC reproducer/load test. Backend work in apply turn: one migration + two bounded metadata reads (first returned only final statement, requiring combined result query).
+
+B3 draft still contains custom40001 and requires correction before apply; B4/B5 not started, CP01-C/real-data gate NOT RUN. Earlier incident snapshots below are historical and superseded by this entry.
+
+---
+
 # Incident GB-OPS-001 — hosted retry storm, 2026-10-26
 
 **P1 / fix prepared, hosted execution BLOCKED by automatic approval review.** PostgREST14.18 repeatedly retries existing board reorder_posts business conflicts raised as40001. Bounded logs/activity confirmed backend131961 with known session start. Prepared additive board-only PT409 hotfix and focused disposable regression PASS. Migration apply and exact-session termination were rejected and did not execute. No live load test. [Finding/evidence](BUG_FIX_LOG.md#2026-10-26--gb-ops-001--p1-postgrest-retry-storm-hosted-fix-blocked).
