@@ -1,8 +1,8 @@
 # Execution plan and acceptance gates — Personal Gradebook
 
-**Status: CP00 documentation readiness PASS (docs-only); CP01–CP07 implementation NOT STARTED.** This plan follows BRIEF V1.1 / user D01–D05 (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
+**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1 implemented, offline PASS / ready for review; B2–B5 and CP02–CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.1 / user D01–D05 (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
 
-CP01-A is a separately authorized **technical-design** slice: [design and original read-only evidence](CP01_TECHNICAL_DESIGN.md), baseline `f522266`; [accepted refinements GB-A-REV-001..003](CP01_TECHNICAL_DESIGN.md#143-accepted-refinement-disposition) reviewed from `31f887bd`, 2026-10-26. **DESIGN REFINED / READY**, documentation checks only. CP01-B implementation remains NOT STARTED; CP01-C security acceptance and the real-data gate remain NOT RUN. Separate requests are required; no implementation acceptance box is checked by design alone.
+CP01-A is a separately authorized **technical-design** slice: [design and original read-only evidence](CP01_TECHNICAL_DESIGN.md), baseline `f522266`; [accepted refinements GB-A-REV-001..003](CP01_TECHNICAL_DESIGN.md#143-accepted-refinement-disposition) reviewed from `31f887bd`, 2026-10-26. **DESIGN REFINED / READY**, documentation checks only. CP01-B1 implementation is ready for review; CP01-B2–B5 remain NOT STARTED; CP01-C security acceptance and the real-data gate remain NOT RUN. Separate requests are required; no implementation acceptance box is checked by design alone.
 
 ## Operating workflow for Codex
 
@@ -58,7 +58,7 @@ Docs-only evidence 2026-10-26 at `eba7c18e`: eight Markdown files, 54 relative l
 
 Paths are planning candidates, not permission to create modules or abstractions. Frontend regression/fixtures stay in `tests/`; local outputs in ignored `tests/local/`. Server/migration tests use conventional feature subfolders, with exact commands chosen in CP01 and CI coverage added when implemented.
 
-## CP01 — Data model and security (NOT STARTED)
+## CP01 — Data model and security (B1 ready for review; remaining implementation NOT STARTED)
 
 Deliverables: reviewed additive migration(s), six-table model incl ordered catalogs, minimal secure Functions for identity and admin, unit/security checks, cost check; **do not apply without authorization**.
 
@@ -170,4 +170,16 @@ Remaining risks / next checkpoint: ...
 No merge/deploy/production personal-data write unless separately authorized.
 ```
 
-**CP00 documentation readiness PASS; CP01–CP07 remain NOT STARTED.** This status does not assert runtime/Auth/RLS/browser security acceptance, authorize applying migration or pass the real-data gate.
+**CP00 docs PASS; CP01-A design ready; B1 offline implementation ready for review; remaining implementation NOT STARTED.** This status does not assert runtime/Auth/RLS/browser security acceptance, authorize applying migration or pass the real-data gate.
+
+## CP01-B1 — Exact-value contracts (2026-10-26)
+
+**PASS — READY FOR REVIEW (offline only).** Baseline `48ae91bdb722467432498b06bf218e22acd26db6`, branch `feature/personal-gradebook`; the commit containing this entry is the implementation evidence anchor. No newer feature commits at start; no merge/rebase of develop (feature ahead 6/behind 1 at baseline).
+
+- Implemented five pure modules under `src/utils/gradebook/`: safe contract errors/field allowlists/identity and BIGINT text; exact decimal normalization/comparison/half-up display; Gregorian UI/API and Excel calendar codecs; bounded roster normalization/name intent and score-cell skip/value; UTF-8 framing and deterministic input transcripts.
+- `tests/gradebook-contracts.test.js`: **37 new tests**; complete suite **78/78 PASS**, including all 41 existing tests. Runtime timezone subprocesses cover UTC−12/UTC/UTC+14; these are Node codec checks, not browser/device QA.
+- `npm ci`, `npm run check`, `npm test`, `npm run build`, `npm run format:check`, `git diff --check`: PASS locally. No new dependencies; production output guard PASS. New utilities are not wired into the UI and are not shipped in the current application bundle. Exact-commit GitHub CI NOT RUN in this task; no PR created.
+- Covers B1 acceptance for lexical precision (sixth zero rejected), exact numeric ordering/JSON, identity leading zeros, Vietnam reference-day future checks, 1900/1904 serials including fictitious leap day and time rejection, absent/blank/nonblank name and skip/zero distinctions, unknown fields, fixed tuple ordering/UTF-8 lengths and EXISTS/MISSING vectors.
+- Scope detail and API signatures: source JSDoc and [B1 contract boundary](CP01_TECHNICAL_DESIGN.md#15-b1-implemented-contract-boundary). No claim of a complete PostgreSQL state fingerprint or token commitment.
+
+B2–B5 remain **NOT STARTED**; CP01-C and real-personal-data gate **NOT RUN**. No migration/RPC/Function/UI or real student data created, no Supabase requests, no server changes, merge or deployment. XLSX file parsing, score-batch/catalog matching and full API operation DTOs remain later responsibilities; the B1 Excel codec is not an XLSX parser. Main CP01 acceptance boxes above remain unchecked because they require integration evidence.

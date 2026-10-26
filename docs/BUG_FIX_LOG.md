@@ -104,3 +104,13 @@ Baseline `ff8c5678c5a07c71456e38383294f7bdb1317c93`, branch `enhancement/accepta
 | AUD-017 / P2 UX | Board nhiều cột overflow nhưng scrollbar nằm sau cột dài; create chỉ refresh, không giữ anchor/đưa cột vừa tạo vào tầm nhìn. Focus reveal trước khi mở khóa còn bị inert pending chặn | `board-navigation.js`: native top scrollbar/step buttons sticky, sync có guard không ngắt smooth scroll, cleanup ResizeObserver/listener/frame, anchor theo ID+offset. `board.js` gắn section ID. `main.js` giữ anchor, snapshot create supersede read cũ, reveal/focus sau unlock. `section-editor.js` chuyển ID trả từ save và không che read failure bằng success toast. CSS giữ palette/button/layout. Test/fixture ở tests; tests/local được Git/Prettier ignore | **FIXED trong source/offline**; 38 unit/check/build PASS khi chạy lại. Ma trận nghiệm thu browser, format và giới hạn tại QA-A19. Backend/thiết bị thật NOT RUN |
 
 Giữ các regression Auth có sẵn trong working tree, không đưa ảnh/log local vào Git hoặc xóa evidence đã tracked. Hợp đồng tại SPEC R05.2 / D10; bước chạy lại: [TESTING](TESTING.md#điều-hướng-nhiều-chủ-đề--aud-017), [QA-A19](QA_REPORT.md#board-navigation-2026-10-25). Không thêm dependency/dịch vụ trả phí, không dùng mock làm bằng chứng backend thật. Gate format giữ nguyên cấu hình; khác biệt CRLF checkout được ghi riêng trong QA_REPORT.
+
+## 2026-10-26 — CP01-B1 implementation review
+
+Branch `feature/personal-gradebook`, baseline `48ae91b`. No pre-existing production Gradebook bug is asserted: feature code did not exist at baseline. This entry traces defects caught and corrected before publishing B1, not backend acceptance.
+
+| ID / severity | Condition / cause | Correction | Evidence / status |
+| --- | --- | --- | --- |
+| GB-B1-001 / P3 | Initial tuple draft used Array.map, which skips sparse elements and could collapse a missing scalar into an absent field | `canonical.js` rejects holes/undefined before framing; record prefix requires explicit key count and presence marker in §8.2 order | FIXED before commit; regression covers sparse tuple, null vs empty, malformed presence-vector keys. 37 B1 / 78 total offline tests PASS |
+
+No change to existing board behavior or migrations, no Supabase request, key provisioning, UI, PR, merge or deployment. Full DB snapshot canonicalization/concurrency, JWT/RLS and crypto acceptance remain B3/B4/CP01-C NOT RUN. B2–B5 NOT STARTED; real-data gate NOT RUN.

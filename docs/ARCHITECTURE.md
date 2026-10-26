@@ -110,3 +110,7 @@ Dialog đặt pulse trong `.dialog-heading` sticky, bên ngoài form inert; post
 Điều hướng theo SPEC R05.2 không thay AppHeader/card/bố cục lọc. Sticky chỉ áp dụng row điều hướng mới, top=0 vì AppHeader hiện không sticky. Create ưu tiên snapshot mới hơn background read; lookup ID chỉ chạy sau khi ticket Auth còn hiệu lực. `renderBoard()` chụp anchor trước replaceChildren rồi attach DOM mới; lọc chủ đề chủ động reset vị trí. Focus reveal đặt sau pending unlock để tránh gọi focus vào board inert. Không có “Đi đến”, kéo thả nội dung hay scroll wheel hijack.
 
 Tổ chức kiểm thử: mọi file frontend test/fixture nằm trong `tests/` (xem tests/README.md); chỉ `tests/local/` là vùng artifact/scratch được .gitignore và .prettierignore bỏ qua. Unit và fixture regression cần chạy lại vẫn giữ trong Git, không gộp vào vùng ignore. Vite build chặn test module; `tests/check-production-build.mjs` kiểm allowlist output sau build. Hosting chỉ phục vụ `dist/`, xem DEPLOYMENT.
+
+## Personal Gradebook B1 utilities
+
+`src/utils/gradebook/{contracts,decimal,dates,imports,canonical}.js` contains pure B1 contracts, with no client/network/DOM or persistent-storage dependency. `tests/gradebook-contracts.test.js` covers exact values, calendar/Excel conversion, normalization and protocol vectors offline. They are not imported by the application entry point yet. See [B1 boundary](features/personal-gradebook/CP01_TECHNICAL_DESIGN.md#15-b1-implemented-contract-boundary); routes, full DB fingerprint, RPC and Functions are not implemented.
