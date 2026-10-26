@@ -1,6 +1,6 @@
 # Implementation Brief — Bảng điểm cá nhân
 
-**Version:** V1.1, user decisions D01–D05 consolidated 2026-10-26; supersedes conflicting V1.0 import/history/privacy defaults. **State:** SPECIFIED, NOT IMPLEMENTED. **Owner:** existing single teacher/admin. The IDs `GB-xx` below are stable acceptance references, not API or database keys. Decision history: [Gradebook decisions](../../DECISIONS.md#personal-gradebook-2026-10-26).
+**Version:** V1.2, 2026-10-26: V1.1 plus approved GB-B1-REV-003 positional import mapping; supersedes earlier literal import-header requirements. D01–D05 business rules remain. **State:** B1 pure contracts implemented; UI/backend feature NOT IMPLEMENTED. **Owner:** existing single teacher/admin. The IDs `GB-xx` below are stable acceptance references, not API or database keys. Decision history: [Gradebook decisions](../../DECISIONS.md#personal-gradebook-2026-10-26).
 
 This feature is additional to, not a rewrite of, the current KHTN8 Board. Exact approved labels/order below take precedence over abbreviated examples in earlier discussions. See [DATA_AND_SECURITY](DATA_AND_SECURITY.md) for candidate storage/API architecture and [CHECKPOINTS](CHECKPOINTS.md) for work items.
 
@@ -30,7 +30,7 @@ This feature is additional to, not a rewrite of, the current KHTN8 Board. Exact 
 
 ## GB-04 — Subjects: visible names and immutable order for V1
 
-Render these **exact UI labels in this exact order** everywhere: student/teacher tables, dropdowns, import templates, previews and docs.
+Render these **exact UI labels in this exact order** everywhere: student/teacher tables, dropdowns, catalog labels, default templates and semantic preview fields. Import header cells alone may be customized under GB-07.
 
 | Order | Display name |
 | --- | --- |
@@ -59,7 +59,7 @@ Exactly **seven** columns per subject per semester, in **this** order:
 | 6 | Giữa kì |
 | 7 | Cuối kì |
 
-**Do NOT display `TX1` / `TX2` / `GK` / `CK` or any new abbreviations** in table headers, buttons, chart dropdowns or import files. “1 tiết” is its own seventh-system slot, separate from four “Thường xuyên” slots, regardless of differing general academic conventions. Do not add weighting/averages from legislation without a separate requirement.
+**Do NOT display `TX1` / `TX2` / `GK` / `CK` or any new abbreviations** in application table headers, buttons, chart dropdowns or generated default templates. User-edited import header text is permitted under GB-07. “1 tiết” is its own seventh-system slot, separate from four “Thường xuyên” slots, regardless of differing general academic conventions. Do not add weighting/averages from legislation without a separate requirement.
 
 ## GB-06 — Semesters, publication and raw score precision
 
@@ -74,9 +74,9 @@ Exactly **seven** columns per subject per semester, in **this** order:
 
 Teacher can manually enter/edit/delete scores and student info, **plus** import both `.xlsx` and `.csv` using **INSERT/UPDATE via UPSERT**. Existing records are not errors merely because they exist. All file validation and writes must be atomic on the server; manual CRUD remains available.
 
-**Student import headers — two accepted shapes (CSV and Excel):** minimum `CMND/CCCD`, `Ngày sinh`; or `Họ tên`, `CMND/CCCD`, `Ngày sinh` in that order. `Họ tên` is an **optional column**, not just an optional cell: files containing **only the two mandatory columns are valid**. If provided, name cells may be blank. Missing/blank name never clears an existing stored name; a newly inserted student without a name stores NULL. No ID/key column or hidden required field. Numeric-looking identifiers MUST be preserved as text including leading zeros. An Excel cell that has already lost its leading zeros cannot be reconstructed; reject/call attention to it.
+**Student import — fixed physical positions (CSV and Excel):** exactly two columns A=CMND/CCCD, B=Ngày sinh; or exactly three columns A=Họ tên, B=CMND/CCCD, C=Ngày sinh. The physical column count selects the layout; header text does not. The name column is optional as a whole, so two-column files are valid. If provided, name cells may be blank. Missing/blank name never clears an existing stored name; a newly inserted student without a name stores NULL. No ID/key column or hidden required field. Numeric-looking identifiers MUST be preserved as text including leading zeros. An Excel cell that has already lost its leading zeros cannot be reconstructed; reject/call attention to it.
 
-**Score import visible column sequence, exact strings:**
+**Score import — exactly ten physical columns A–J, with these meanings (not mandatory literal header text):**
 
 1. CMND/CCCD
 2. Ngày sinh
@@ -94,9 +94,11 @@ Teacher can manually enter/edit/delete scores and student info, **plus** import 
 **Score UPSERT:** teacher selects **semester before import** (not repeated in file). Resolve an existing active student by secure CMND/CCCD **AND birth date** within the class. “Môn” uses exact GB-04 names. No student ID, `HS001` or hidden required key column.
 - A nonblank score inserts a missing coordinate (student + semester + subject + column), updates an existing one, or is unchanged when its raw numeric value is equal. Blank score = skip; never delete an existing score or write 0.
 - Multiple rows for the same student in **different subjects are valid**. Repeated score coordinates inside the file must be detected, even if values agree; no silent last-write-wins. Roster duplicates are a separate rule.
-- Missing student for score import, mismatched birth date, invalid identity/date, malformed headers, duplicate coordinates or invalid range/precision => **reject whole file** with row/column errors.
+- Missing student for score import, mismatched birth date, invalid identity/date, missing/extra physical columns or malformed row structure, duplicate coordinates or invalid range/precision => **reject whole file** with row/column errors.
 - Preview separately counts records to **INSERT**, **UPDATE**, **leave unchanged**, and **errors** (and skipped blanks explicitly). Roster counts refer to students; score counts refer to individual nonblank score slots. No partial write while errors remain. Server revalidates the preview against current data and commits all changes in one transaction; never issue independent frontend writes. Keep the unpublished-semester import restriction from GB-06.
 - Do not upload raw sensitive Excel/CSV files to Storage by default, cache them persistently or log them. Use user-approved data transport and size limits.
+- First physical row is always the header row. Labels may be renamed, duplicated or blank; never use them as data keys or infer layout from their contents. Keep exact physical widths and cell positions, including empty trailing columns. Reject partial/invalid rows; only completely empty physical rows may be skipped, retaining increasing original source row numbers (gaps allowed).
+- Future preview must clearly show column-to-field mapping before confirmation. Moving physical columns changes meaning; value checks cannot reliably detect a swap between otherwise valid score columns. Validate the subject **value** in C against GB-04 regardless of its header text. Errors identify original row and one-based physical column.
 - Student import and score import are separate flows; download templates from admin UI. CSV UTF-8/BOM and Excel date cells need explicit parsing tests.
 
 ## GB-08 — Student grade view and chart

@@ -1,10 +1,10 @@
-# CP01-B1 update — 2026-10-26
+# CP01-B1 review corrections — 2026-10-26
 
-Branch `feature/personal-gradebook`, implementation baseline `48ae91bdb722467432498b06bf218e22acd26db6`; see the commit containing this entry for final source. **B1 implemented / offline PASS / ready for review**: exact decimals, identity/BIGINT text, calendar-only DOB/Excel serials, bounded roster normalization and canonical input/framing primitives. Five pure utility modules, 37 new unit tests; **78/78 total PASS**. `npm ci`, check, test, build, format:check and diff whitespace PASS locally. No UI integration, dependency/migration changes or live Supabase calls. GitHub CI at the implementation commit NOT RUN; no PR requested.
+Branch `feature/personal-gradebook`, correction baseline `f810f03ab8f101607553d73c19438c7fff14689a`; see the commit containing this entry for final source. **B1 implemented / offline PASS / ready for review**: exact decimals, identity/BIGINT text, calendar-only DOB/Excel serials, bounded roster normalization and canonical input/framing primitives. Five pure utility modules; trim/Unicode length, increasing source-row gaps and positional roster mapping corrected. BRIEF V1.2 permits custom/duplicate import headers, preserving UI/catalog labels. **40 B1 / 81 total tests PASS**. `npm ci`, check, test, build, format:check and diff whitespace PASS locally. No UI integration, dependency/migration changes or live Supabase calls. GitHub CI at the implementation commit NOT RUN; no PR requested.
 
 B2–B5 and CP02–CP07 **NOT STARTED**; CP01-C and real-personal-data gate **NOT RUN**. Full snapshot fingerprint, RPC locks/UPSERT, Edge crypto/signing, XLSX parser and live security acceptance remain separate. [B1 evidence](features/personal-gradebook/CHECKPOINTS.md#cp01-b1--exact-value-contracts-2026-10-26). No merge/rebase/deploy.
 
-The dated snapshot below describes the pre-B1 state; its “NOT STARTED” statements for B1 are historical.
+Correction entries GB-B1-REV-001/002 FIXED; GB-B1-REV-003 B1/design FIXED and full file/score importer DEFERRED CP03/CP04. No new module/dependency/UI or migration. The dated snapshot below describes the pre-B1 state; its “NOT STARTED” statements for B1 are historical.
 
 ---
 

@@ -1,6 +1,6 @@
 # Execution plan and acceptance gates — Personal Gradebook
 
-**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1 implemented, offline PASS / ready for review; B2–B5 and CP02–CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.1 / user D01–D05 (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
+**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1 implemented, offline PASS / ready for review; B2–B5 and CP02–CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
 
 CP01-A is a separately authorized **technical-design** slice: [design and original read-only evidence](CP01_TECHNICAL_DESIGN.md), baseline `f522266`; [accepted refinements GB-A-REV-001..003](CP01_TECHNICAL_DESIGN.md#143-accepted-refinement-disposition) reviewed from `31f887bd`, 2026-10-26. **DESIGN REFINED / READY**, documentation checks only. CP01-B1 implementation is ready for review; CP01-B2–B5 remain NOT STARTED; CP01-C security acceptance and the real-data gate remain NOT RUN. Separate requests are required; no implementation acceptance box is checked by design alone.
 
@@ -98,7 +98,7 @@ Dependency: CP01 transactional/admin/identity contract and CP02 admin navigation
 - [ ] Single active class: edit name/year independently even with scores; IDs/relationships/score values/publication remain unchanged. No new class/rollover or old year-label snapshot promise.
 - [ ] Student create/list/edit/deactivate or safe delete, with both mandatory fields; optional name; no `HS001` key field.
 - [ ] Mask identity in teacher list; explicit authorized reveal only.
-- [ ] Excel + CSV roster accepts **both** header layouts: `CMND/CCCD`, `Ngày sinh` alone, or `Họ tên`, `CMND/CCCD`, `Ngày sinh`; optional header may be entirely absent. Preview INSERT/UPDATE/unchanged/error counts; row/column errors and in-file duplicate identities detected.
+- [ ] Excel + CSV roster accepts **both positional layouts** (header text customizable): `CMND/CCCD`, `Ngày sinh` alone, or `Họ tên`, `CMND/CCCD`, `Ngày sinh`; the optional name column may be entirely absent. Exact physical width is 2 or 3, not inferred from header labels. Preview INSERT/UPDATE/unchanged/error counts; row/column errors and in-file duplicate identities detected.
 - [ ] New document INSERTs; existing document + same DOB permits name UPDATE; different DOB blocks entire batch. Blank name preserves existing name; no imported identity/DOB/class/active-status edits or silent reactivation under §F technical allowlist. Authorized manual identity correction remains separate.
 - [ ] One atomic batch; mixed valid/invalid rows change nothing, including existing records. Stale preview/concurrent CRUD refreshes preview before commit; no frontend per-row writes.
 - [ ] CSV and XLSX fixtures for **two-column-only import**, three columns with blank/missing names, and UPSERT that preserves existing names; leading zero, Excel date, malformed/empty/duplicate file, mixed valid+invalid and retry tests.
@@ -109,7 +109,7 @@ Dependency: CP01 + CP03; verify publication/import locks and authorized preview 
 
 - [ ] Two semester contexts with all eight subjects and seven score labels/order via catalogs; don't label any visible column `TX1`.
 - [ ] Manually add/edit/remove scores with confirmations and pending feedback.
-- [ ] Excel + CSV score import contains only CMND/CCCD, Ngày sinh, Môn and seven exact score headers; semester selected on UI.
+- [ ] Excel + CSV score import has exactly ten physical columns A–J with the meanings in BRIEF GB-07; header text may be customized/duplicated and never supplies data keys; semester selected on UI.
 - [ ] Match student via protected ID + DOB; multiple rows of the same student in different subjects valid. Unknown/mismatched student, repeated nonblank score coordinate or invalid decimal blocks whole file, never last-write-wins.
 - [ ] Preview INSERT/UPDATE/unchanged/error by score coordinate and skipped blanks. Missing slot INSERTs, changed raw value UPDATEs, equal value unchanged. Blank never clears/writes 0. Transaction preserves all previous values on failure; same-value rows do not rewrite timestamps.
 - [ ] Raw decimal-string values with ≤5 fractional digits survive form/Excel/CSV/API/DB writes and sorting. Excess precision rejects instead of rounding; only display/grouping rounds to one decimal. Reconfirm stale previews after concurrent edits.
@@ -133,7 +133,7 @@ Dependency: CP01/02 and CP04 publication/data contract. Real-data access additio
 Dependency: CP01–CP05 integration. Keep separate evidence for offline units, browser Codex/IAB, approved live API/Auth/RLS, migration verification and §H data-governance acceptance; none substitutes for the others.
 
 - [ ] Existing public resource board, CRUD/reorder, drafts/file, admin Auth/session, nav and loading tests remain green.
-- [ ] Exact label/order test for eight subjects/seven columns in UI, modal, CSV/Excel template and import parser.
+- [ ] Exact catalog label/order test for eight subjects/seven columns in UI, modal and default CSV/Excel templates; parser uses physical positions and validates C subject values, not header labels.
 - [ ] Duplicate and format validation, bad dates/identifiers, encrypted index, wrong DOB, throttle concurrency, admin denial, published/unpublished, token expiry.
 - [ ] §A decimal cases across form/Excel/CSV/API/DB: `8.12345` accepted, `8.123456` rejected without rounding, `8.24/8.25/8.26` raw sort retained; 0/10 and out-of-range; INSERT/UPDATE/unchanged numeric equality, display rounding and correct histogram bucket. No precision-recovery claim for Excel.
 - [ ] Class name/year metadata edits with existing scores do not UPDATE/move those scores or create class/student copies; old label snapshot is not promised.
@@ -183,3 +183,15 @@ No merge/deploy/production personal-data write unless separately authorized.
 - Scope detail and API signatures: source JSDoc and [B1 contract boundary](CP01_TECHNICAL_DESIGN.md#15-b1-implemented-contract-boundary). No claim of a complete PostgreSQL state fingerprint or token commitment.
 
 B2–B5 remain **NOT STARTED**; CP01-C and real-personal-data gate **NOT RUN**. No migration/RPC/Function/UI or real student data created, no Supabase requests, no server changes, merge or deployment. XLSX file parsing, score-batch/catalog matching and full API operation DTOs remain later responsibilities; the B1 Excel codec is not an XLSX parser. Main CP01 acceptance boxes above remain unchecked because they require integration evidence.
+
+## B1 review corrections — 2026-10-26
+
+Baseline `f810f03ab8f101607553d73c19438c7fff14689a`, same feature branch/local/remote and clean working tree before editing. The commit containing this entry is the fix anchor. GB-B1-REV-001/002 FIXED; GB-B1-REV-003 B1 mapping and design FIXED, full file/score importer DEFERRED CP03/CP04. BRIEF V1.2 supersedes literal header matching, not catalog/UI labels or UPSERT rules.
+
+- [x] Trim then ≤200 Unicode-code-point name check; bounded raw input, malformed Unicode/NUL rejection; absent/blank/value retained.
+- [x] Safe increasing source row numbers ≥2 with gaps; no sorting/placeholders; 2,000-data-row cap unchanged; canonical input binds actual source positions.
+- [x] Width-2/3 roster mapping via positionalRosterRow; custom/duplicate/blank header text retained only for canonical binding. Stable row DTO keys, not header-derived keys. Width mismatch/hole rejected.
+- [x] Focused regression for Unicode boundary/trim, sparse rows/order/unsafe values, mapping/headers/canonical binding and original row/physical-column cell errors.
+- Local offline: **40 B1 / 81 total tests PASS**; npm ci/check/test/build/format:check and diff whitespace PASS. Existing 41 board regressions retained. No live/backend/browser acceptance inferred; exact-commit GitHub CI NOT RUN.
+
+Future CP03/CP04 acceptance: parser preserves exact physical width including trailing empty columns/XLSX positions; skips only entirely empty physical rows and reports partial/invalid rows at original row/column; preview clearly shows A–J/roster mapping before confirmation. Renamed headers must not alter meaning; swapped valid numeric columns may be undetectable. No full parser, score importer or preview UI implemented here. B2–B5 NOT STARTED; CP01-C and real-data gate NOT RUN.

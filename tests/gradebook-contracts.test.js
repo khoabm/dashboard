@@ -18,7 +18,12 @@ import {
   vietnamToday,
   excelDate,
 } from '../src/utils/gradebook/dates.js';
-import { importedScore, importedName, normalizeRoster } from '../src/utils/gradebook/imports.js';
+import {
+  positionalRosterRow,
+  importedScore,
+  importedName,
+  normalizeRoster,
+} from '../src/utils/gradebook/imports.js';
 import {
   frameScalar,
   frameTuple,
@@ -191,10 +196,11 @@ test('untrusted structures, hidden names, duplicates and excessive batches fail 
   input.rows[0].birthDate = '2027-01-01';
   cases.push(input);
   input = roster();
-  input.rows[0].row = 3;
+  input.rows[0].row = 1;
   cases.push(input);
   input = roster();
-  input.headers.reverse();
+  input.headers.push('extra');
+  input.headers.push('extra');
   cases.push(input);
   input = roster();
   input.rows = new Array(1);
@@ -293,4 +299,124 @@ test('ordered score-cell input canonicalization preserves skip/zero and numeric 
   assert.notEqual(canonical, canonicalScoreCells(['8.1', null, '', '0', '8.25', '8.24', '10']));
   assert.throws(() => canonicalScoreCells(new Array(7)));
   assert.throws(() => canonicalScoreCells(cells.slice(1)));
+});
+
+test('GB-B1-REV-001 trims before Unicode code-point length validation', () => {
+  for (const name of ['x'.repeat(200), '😀'.repeat(200)]) {
+    assert.deepEqual(importedName(name, true), { state: 'value', value: name });
+    assert.deepEqual(importedName(`  ${name}  `, true), { state: 'value', value: name });
+  }
+  assert.throws(() => importedName('😀'.repeat(201), true));
+  assert.equal(importedName('e\u0301'.repeat(100), true).value.length, 200);
+  assert.throws(() => importedName('e\u0301'.repeat(101), true));
+  assert.throws(() => importedName('x'.repeat(201), true));
+  assert.throws(() => importedName('a\ud800', true));
+  assert.throws(() => importedName('a\0b', true));
+  assert.throws(() => importedName(' '.repeat(4097), true));
+  assert.throws(() => importedName(null, true));
+  assert.deepEqual(importedName(' \t\n ', true), { state: 'blank' });
+  assert.deepEqual(importedName(undefined, false), { state: 'absent' });
+  const a = roster();
+  a.headers.unshift('Name');
+  a.rows[0].fullName = '  Synthetic  ';
+  const b = structuredClone(a);
+  b.rows[0].fullName = 'Synthetic';
+  assert.equal(canonicalRosterInput(a, today), canonicalRosterInput(b, today));
+});
+
+test('GB-B1-REV-002 preserves increasing source positions and rejects unsafe/unordered rows', () => {
+  for (const positions of [[2, 3, 4], [2, 4, 7], [2, 100, 101], [Number.MAX_SAFE_INTEGER]]) {
+    const batch = roster();
+    batch.rows = positions.map((row, i) => ({
+      row,
+      documentNumber: String(i + 1).padStart(9, '0'),
+      birthDate: '2012-04-12',
+    }));
+    assert.deepEqual(
+      normalizeRoster(batch, today).rows.map((row) => row.row),
+      positions,
+    );
+    assert.equal(batch.rows.length, positions.length);
+  }
+  for (const positions of [
+    [2, 2],
+    [4, 3],
+    [1, 2],
+    [-1],
+    [2.5],
+    ['2'],
+    [NaN],
+    [Infinity],
+    [Number.MAX_SAFE_INTEGER + 1],
+  ]) {
+    const batch = roster();
+    batch.rows = positions.map((row, i) => ({
+      row,
+      documentNumber: String(i + 1).padStart(9, '0'),
+      birthDate: '2012-04-12',
+    }));
+    assert.throws(() => normalizeRoster(batch, today), { code: 'row' });
+  }
+  const full = roster();
+  full.rows = Array.from({ length: 2000 }, (_, index) => ({
+    row: 2 + index * 2,
+    documentNumber: String(index + 1).padStart(9, '0'),
+    birthDate: '2012-04-12',
+  }));
+  assert.equal(normalizeRoster(full, today).rows.length, 2000);
+  full.rows.push({ row: 4002, documentNumber: '000002001', birthDate: '2012-04-12' });
+  assert.throws(() => normalizeRoster(full, today), { code: 'rows' });
+  const a = roster(),
+    b = roster();
+  b.rows[0].row = 7;
+  assert.notEqual(canonicalRosterInput(a, today), canonicalRosterInput(b, today));
+  b.rows[0].birthDate = 'invalid';
+  assert.throws(() => normalizeRoster(b, today), { code: 'date', row: 7, column: 2 });
+});
+
+test('GB-B1-REV-003 maps physical positions independently of custom or duplicate headers', () => {
+  for (const headers of [
+    ['Document', 'Birthday'],
+    ['same', 'same'],
+    ['__proto__', '__proto__'],
+    ['', ''],
+    ['Ngày sinh', 'CMND/CCCD'],
+  ]) {
+    const row = positionalRosterRow(4, ['000000001', '2012-04-12'], headers.length);
+    const batch = { headers, rows: [row] };
+    assert.deepEqual(normalizeRoster(batch, today).rows[0], {
+      ...roster().rows[0],
+      row: 4,
+      name: { state: 'absent' },
+    });
+    assert.deepEqual(batch.rows[0], row);
+    assert.equal(
+      canonicalRosterInput(batch, today),
+      canonicalRosterInput(structuredClone(batch), today),
+    );
+  }
+  const headers = ['same', 'same', 'same'];
+  const row = positionalRosterRow(7, ['Synthetic', '000000001', '2012-04-12'], 3);
+  assert.deepEqual(normalizeRoster({ headers, rows: [row] }, today).rows[0].name, {
+    state: 'value',
+    value: 'Synthetic',
+  });
+  assert.throws(() => normalizeRoster({ headers, rows: [{ ...row, birthDate: 'bad' }] }, today), {
+    row: 7,
+    column: 3,
+  });
+  for (const count of [0, 1, 4, 10])
+    assert.throws(
+      () => normalizeRoster({ headers: new Array(count).fill('x'), rows: roster().rows }, today),
+      { code: 'headers' },
+    );
+  assert.throws(() => normalizeRoster({ headers: new Array(2), rows: roster().rows }, today));
+  assert.throws(() => positionalRosterRow(2, ['000000001'], 2));
+  assert.throws(() => positionalRosterRow(2, ['', '000000001', '2012-04-12'], 2));
+  assert.throws(() => positionalRosterRow(2, new Array(3), 3));
+  assert.throws(() => normalizeRoster({ headers: ['a', 'a'], rows: [row] }, today));
+  const a = roster(),
+    b = roster();
+  b.headers = ['Custom', 'Custom'];
+  assert.notEqual(canonicalRosterInput(a, today), canonicalRosterInput(b, today));
 });
