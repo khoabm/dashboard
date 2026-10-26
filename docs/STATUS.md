@@ -1,3 +1,13 @@
+# CP01-B5 — PARTIAL IMPLEMENTATION / SQL CI BLOCKED / 2026-10-26
+
+Baseline `8f2bcfb`, feature/personal-gradebook. B4 accepted as draft. [B5 coverage/evidence/handoff](features/personal-gradebook/B5_OFFLINE_REVIEW.md): syntax covers13 Edge files; exact Prettier3.6.2 installed/locked, Edge format scope added, B4 files formatting-only; Node adapter loads both actual entrypoints with pinned SDK and zero network. One final-code run: check PASS, tests120/120 PASS, build PASS, format PASS, diff PASS. No accepted SQL/B1/frontend behavior changed.
+
+**Remaining B5 blocker:** automatic approval review rejected adding PGlite alongside Prettier; no dependency workaround. Separate approval is required for a pinned test-only SQL runtime before wiring existing focused disposable SQL tests into CI. Their prior results remain historical, not new CI evidence. Native Deno/bundle NOT RUN (runtime absent); exact-final-SHA Actions outcome reported after publication. Prettier's earlier ENOTCACHED is now resolved locally; no inferred hosted acceptance.
+
+Hosted Supabase/Auth/migrations/deployments0; secretsNO, real dataNONE, stress/load/soak/stretchNONE. CP01-C/native17/rollout/real-data gates NOT RUN; CP02 NOT STARTED. No automatic continuation or merge. Earlier snapshots below are historical.
+
+---
+
 # GB-B4-REV-001 — FIXED IN DRAFT; CP01-B4 READY FOR FINAL REVIEW / 2026-10-26
 
 Baseline `e036521e`, feature/personal-gradebook. Shared OPTIONS allowlist now includes pinned SDK2.118.0's `x-client-info`; explicit origins, POST/OPTIONS, capability header, no-store and authentication unchanged. [Focused review/concern preservation](features/personal-gradebook/B4_INTEGRATION_REVIEW.md#gb-b4-rev-001--sdk-cors-correction-2026-10-26), [bug trace](BUG_FIX_LOG.md#2026-10-26--gb-b4-rev-001--p2-supabase-sdk-cors-header-compatibility-fixed-in-draft). One focused offline run `node --test --test-name-pattern='CORS preflight|HTTP boundaries' tests/gradebook-edge.test.js` **4/4 PASS**; syntax/diff checks PASS. Actual SDK headers captured with synthetic transport; OPTIONS performs no backend work. No full-suite rerun or new crypto/retry acceptance claim.

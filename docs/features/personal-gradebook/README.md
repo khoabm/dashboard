@@ -2,6 +2,8 @@
 
 **Project:** KHTN8 Board (`khoabm/dashboard`). **Feature:** Bảng điểm cá nhân. **Phase:** CP01 backend drafts; **implementation:** B1/B2 accepted, B3 correction accepted at static/offline review, [GB-B4-INT-001 FIXED IN DRAFT](B4_INTEGRATION_REVIEW.md), B4 READY FOR REVIEW (offline), B5 NOT STARTED; hosted Gradebook NOT APPLIED. Branch `feature/personal-gradebook` created from `develop` `af43f51` on 2026-10-25.
 
+**Latest B5 snapshot (2026-10-26 / baseline8f2bcfb):** B4 ACCEPTED AS DRAFT. [B5 partial implementation/evidence](B5_OFFLINE_REVIEW.md): Edge syntax/format and locked Prettier implemented;120/120 Node tests/build/format PASS. SQL execution CI blocked pending explicit PGlite dependency approval; native Deno NOT RUN, exact-SHA CI reported separately. CP01-C/real-data gate NOT RUN. Earlier B5 NOT STARTED statements describe the prior handoff.
+
 ## Read path (token-efficient)
 
 1. Read root [AGENTS](../../../AGENTS.md), [OVERVIEW](../../OVERVIEW.md), and [STATUS](../../STATUS.md) once at the chosen HEAD.

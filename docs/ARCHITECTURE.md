@@ -33,6 +33,7 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 | supabase/functions/_shared/{admin,student,runtime}.js | Allowlisted teacher/student operations, actual B3 RPC arguments, completed limiter before sensitive reads, server-only configuration |
 | supabase/config.toml | Unapplied/undeployed per-function entrypoint and gateway flags; no exposed-schema or hosted setting change |
 | tests/gradebook-edge.test.js | Synthetic Web Crypto/real-SDK-with-mocked-fetch regression; global live fetch denied; Deno/hosted/CI acceptance separate |
+| tests/gradebook-runtime.test.js | B5 Node24 adapter loads actual Edge entrypoints/pinned SDK/shared+B1 graph, captures Deno.serve without server/network; native Deno/bundle remains NOT RUN |
 
 Các thư mục code trong bảng đã có implementation. Không buộc một file/component nếu ghép module nhỏ rõ nghĩa tiết kiệm hơn; vẫn đáp ứng đủ hành vi các component trong SPEC.
 

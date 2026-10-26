@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   validate:
-    name: Unit tests, build, and format
+    name: Frontend and Edge checks, unit tests, build, and format
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -39,14 +39,14 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
-      - name: Check JavaScript syntax and accidental secrets
+      - name: Check frontend and Edge syntax and scoped credential literals
         run: npm run check
 
-      - name: Run all existing offline unit tests
+      - name: Run Board, Gradebook contracts, Edge and runtime-adapter offline tests
         run: npm test
 
       - name: Verify static production build
         run: npm run build
 
-      - name: Check Prettier format for new or modified code
+      - name: Check pinned Prettier format including Edge source
         run: npm run format:check

@@ -179,3 +179,9 @@ Other headers were reviewed, not assumed: the SDK's `src/cors.ts` combines heade
 | GB-B4-CON-005 | **PASS scope compliance** | Hosted Supabase/Auth0, migrations0, Edge deployments0, secretsNO, real dataNONE, stress/load/soak/stretchNONE. Separate authorization required for rollout/security/real-data gates. |
 
 B4 READY FOR FINAL REVIEW only. B5 NOT STARTED; CP01-C, rollout reconciliation and real-personal-data gate NOT RUN. This correction does not authorize or start those checkpoints.
+
+## B4-to-B5 handoff (2026-10-26 / baseline8f2bcfb)
+
+B4 accepted as draft for the separately authorized B5 slice. [B5 evidence](B5_OFFLINE_REVIEW.md) supersedes only formatter/runtime-test status: exact locked Prettier3.6.2 now actually PASS,13 Edge files covered by syntax/format, new actual-entrypoint Node adapter PASS, final-code unit run120/120 PASS including existing crypto/DTO/PT409/CORS cases. The12 changed existing B4 files preserve equivalent Babel AST; no auth/crypto/DTO/retry/SQL business behavior changed. Earlier ENOTCACHED/NOT RUN evidence remains historical, not erased.
+
+CON-001 native17 remains NOT RUN/CP01-C; CON-002 and004 PASS offline, no hosted acceptance; CON-003 remains partial (native Deno/bundle NOT RUN, exact-SHA CI reported separately, SQL CI dependency approval BLOCKED); CON-005 hosted requests/migrations/deployments0. B5 partial implementation, not complete. CP01-C and real-data gate NOT RUN; no automatic continuation.

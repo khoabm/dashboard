@@ -2,6 +2,14 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-26 — GB-B5-001 / P2: Edge source omitted from syntax/format gates (FIXED IN DRAFT)
+
+Baseline `8f2bcfbffbdac45fc8e0d16a2b7169ef084d9459`, feature/personal-gradebook. scripts/check.mjs checked only src JS and package format scope omitted supabase/functions; B4 .test.js discovery was already correct. Thus a passing prior CI did not check syntax/format of every Edge file. Formatter was an npx-only pin absent from local cache (ENOTCACHED), not an executed format result. This is a tooling coverage defect, not a deployed Gradebook failure.
+
+Correction: include all13 Edge modules/entrypoints in syntax and pinned format gate; preserve frontend credential rules, use a separate Edge literal-secret/JWT guard that permits server env variable names; lock only prettier3.6.2 as devDependency and use local binary. Format only B4/checkpoint files, compare equivalent Babel AST for12 existing B4 code/test files. Add one actual-entrypoint Node adapter test with synthetic Deno/env, pinned SDK resolution and fetch denied; no production behavior changed.
+
+One final-code run: npm run check PASS; npm test120/120 PASS; npm run build PASS; npm run format:check PASS; git diff --check PASS. Runtime adapter confirms204/401/400 without network. No full-suite repeats. [B5 report](features/personal-gradebook/B5_OFFLINE_REVIEW.md) retains separate gaps: PGlite addition rejected by automatic approval review, SQL execution CI not wired; native Deno/bundle absent/NOT RUN; exact-final-SHA Actions outcome reported after publication. B5 remains partial, not accepted as complete. No hosted Supabase/Auth/migrations/Edge deployments, real data or stress/load/soak/stretch tests. Commit containing this entry is the trace; NOT DEPLOYED.
+
 ## 2026-10-26 — GB-B4-REV-001 / P2: Supabase SDK CORS header compatibility (FIXED IN DRAFT)
 
 Baseline `e036521e079c514a44b24ed1bf9b706fbddfa5e5`, feature/personal-gradebook. The shared handler's OPTIONS allowlist omitted `x-client-info`, which pinned SDK2.118.0 sends with JSON Functions invocations. Browser preflight could therefore prevent an otherwise authorized request; this is a source-confirmed compatibility defect, not an observed hosted incident. Node POST-only tests did not check the actual preflight header values.

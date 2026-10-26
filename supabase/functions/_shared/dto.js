@@ -1,36 +1,69 @@
 /** Explicit response projections: raw SQL JSON never becomes an HTTP payload. */
-import { bigintId, uuid, apiDate, normalizeScore, code, text, requireContract } from './contracts.js';
+import {
+  bigintId,
+  uuid,
+  apiDate,
+  normalizeScore,
+  code,
+  text,
+  requireContract,
+} from './contracts.js';
 import { Failure } from './http.js';
 
 /** Backend shape failures are unavailable, not validation errors attributable to the browser. */
 export function checked(project) {
-  try { return project(); } catch { throw new Failure(503, 'unavailable'); }
+  try {
+    return project();
+  } catch {
+    throw new Failure(503, 'unavailable');
+  }
 }
-function bool(value) { requireContract(typeof value === 'boolean', 'backend'); return value; }
-function count(value) { requireContract(Number.isSafeInteger(value) && value >= 0, 'backend'); return value; }
+function bool(value) {
+  requireContract(typeof value === 'boolean', 'backend');
+  return value;
+}
+function count(value) {
+  requireContract(Number.isSafeInteger(value) && value >= 0, 'backend');
+  return value;
+}
 
 /** Class DTO has no crypto/key/epoch material. Public lookup omits internal class ID/revision. */
 export function classDto(value, publicView = false) {
   return checked(() => {
-    const result = { name: text(value.name, 100), schoolYear: text(value.schoolYear, 32),
-      semester1Published: bool(value.semester1Published), semester2Published: bool(value.semester2Published) };
-    return publicView ? result : { id: uuid(value.id), revision: bigintId(value.revision), ...result };
+    const result = {
+      name: text(value.name, 100),
+      schoolYear: text(value.schoolYear, 32),
+      semester1Published: bool(value.semester1Published),
+      semester2Published: bool(value.semester2Published),
+    };
+    return publicView
+      ? result
+      : { id: uuid(value.id), revision: bigintId(value.revision), ...result };
   });
 }
 
 /** Only approved admin student fields leave ordinary read/list/create/patch operations. */
 export function studentDto(value) {
-  return checked(() => ({ id: bigintId(value.id), classId: uuid(value.classId),
-    fullName: value.fullName === null ? null : text(value.fullName, 200), birthDate: apiDate(value.birthDate),
-    active: bool(value.active), revision: bigintId(value.revision) }));
+  return checked(() => ({
+    id: bigintId(value.id),
+    classId: uuid(value.classId),
+    fullName: value.fullName === null ? null : text(value.fullName, 200),
+    birthDate: apiDate(value.birthDate),
+    active: bool(value.active),
+    revision: bigintId(value.revision),
+  }));
 }
 
 /** Own/admin score rows retain authoritative strings without Number conversion. */
 export function scoreDtos(value, revisions = false) {
   return checked(() => {
     requireContract(Array.isArray(value) && value.length <= 56, 'backend');
-    return value.map((row) => ({ subjectCode: code(row.subjectCode), columnCode: code(row.columnCode), rawScore: normalizeScore(row.rawScore),
-      ...(revisions ? { revision: bigintId(row.revision) } : {}) }));
+    return value.map((row) => ({
+      subjectCode: code(row.subjectCode),
+      columnCode: code(row.columnCode),
+      rawScore: normalizeScore(row.rawScore),
+      ...(revisions ? { revision: bigintId(row.revision) } : {}),
+    }));
   });
 }
 
@@ -40,11 +73,20 @@ export function catalogDtos(context) {
     const project = (rows) => {
       requireContract(Array.isArray(rows) && rows.length >= 1 && rows.length <= 32, 'backend');
       const seen = new Set();
-      return rows.map((row) => {
-        const id = code(row.code); requireContract(!seen.has(id), 'backend'); seen.add(id);
-        requireContract(Number.isSafeInteger(row.sortOrder) && row.sortOrder > 0, 'backend');
-        return { code: id, displayName: text(row.displayName, 100), sortOrder: row.sortOrder, active: bool(row.active) };
-      }).sort((a, b) => a.sortOrder - b.sortOrder);
+      return rows
+        .map((row) => {
+          const id = code(row.code);
+          requireContract(!seen.has(id), 'backend');
+          seen.add(id);
+          requireContract(Number.isSafeInteger(row.sortOrder) && row.sortOrder > 0, 'backend');
+          return {
+            code: id,
+            displayName: text(row.displayName, 100),
+            sortOrder: row.sortOrder,
+            active: bool(row.active),
+          };
+        })
+        .sort((a, b) => a.sortOrder - b.sortOrder);
     };
     return { subjects: project(context.subjects), scoreColumns: project(context.scoreColumns) };
   });
@@ -53,10 +95,23 @@ export function catalogDtos(context) {
 /** Preview/apply responses never include writes, internalStateHash or DB envelopes. */
 export function importDto(value, applying = false) {
   return checked(() => {
-    const counts = Object.fromEntries(['insert', 'update', 'unchanged', 'error', 'skippedBlank'].map((key) => [key, count(value.counts[key])]));
+    const counts = Object.fromEntries(
+      ['insert', 'update', 'unchanged', 'error', 'skippedBlank'].map((key) => [
+        key,
+        count(value.counts[key]),
+      ]),
+    );
     requireContract(Array.isArray(value.errors) && value.errors.length <= 2000, 'backend');
     const errors = value.errors.map((error) => {
-      requireContract(Number.isSafeInteger(error.row) && error.row >= 2 && Number.isInteger(error.column) && error.column >= 1 && error.column <= 10 && error.code === 'invalid', 'backend');
+      requireContract(
+        Number.isSafeInteger(error.row) &&
+          error.row >= 2 &&
+          Number.isInteger(error.column) &&
+          error.column >= 1 &&
+          error.column <= 10 &&
+          error.code === 'invalid',
+        'backend',
+      );
       return { row: error.row, column: error.column, code: 'invalid' };
     });
     if (applying) requireContract(value.committed === true && counts.error === 0, 'backend');
