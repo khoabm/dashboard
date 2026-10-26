@@ -1,3 +1,11 @@
+# CP01-B3-FIX-REVEAL — READY FOR REVIEW / 2026-10-26
+
+Baseline `76102e2`, feature/personal-gradebook. **GB-B4-INT-001/P1 FIXED IN DRAFT / NOT APPLIED**: additive `20261026060000_gradebook_reveal_identity_context.sql` adds stored `identityLookup` and row `lookupKeyVersion` only to `gb_student_read(reveal=true)`. Exact body hashes and full metadata preservation guards; ordinary DTO, authorization, class locking, audit and ACL unchanged. [Correction/self-review](features/personal-gradebook/B4_INTEGRATION_REVIEW.md).
+
+One focused disposable PGlite SQL run **7/7 groups PASS**; syntax/source-hash/diff checks PASS. No app/B2/B3 full suite, build or browser test. Prettier offline unavailable (ENOTCACHED), manual formatting review only. Hosted requests/Auth0, migrations applied0, Edge deployments0, secretsNO, real dataNONE, stress/load/soak/stretchNONE. B4/B5 **NOT STARTED**; B4 cryptography/native17/hosted security/CP01-C/real-data gate **NOT RUN**. Prior B4 blocker below is historical, superseded only for this corrected SQL dependency. No automatic B4 continuation.
+
+---
+
 # CP01-B4 preflight BLOCKED — 2026-10-26
 
 Baseline `0bbd0c3`, feature/personal-gradebook. **GB-B4-INT-001 / P1 OPEN:** B3 `gb_student_read(reveal=true)` omits the stored blind index and lookup-key generation needed for the approved AES-GCM AAD and HMAC verification. No current RPC provides that selected record's missing context. [Evidence and minimal upstream correction plan](features/personal-gradebook/B4_INTEGRATION_REVIEW.md). B4 cannot complete secure reveal without a separately reviewed additive B3 correction; accepted migrations are unchanged. No incomplete Edge implementation created.

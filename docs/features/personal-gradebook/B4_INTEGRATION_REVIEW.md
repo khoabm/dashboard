@@ -1,4 +1,49 @@
-# CP01-B4 preflight — BLOCKED / 2026-10-26
+# GB-B4-INT-001 — FIXED IN DRAFT / 2026-10-26
+
+Correction baseline `76102e281ad1f0c0da86f52bfc3aa14baad93e4e`, branch `feature/personal-gradebook`. [Additive migration20261026060000](../../../supabase/migrations/20261026060000_gradebook_reveal_identity_context.sql) corrects only `public.gb_student_read(uuid,uuid,uuid,bigint,boolean)`. It retains every existing reveal field and adds `identityLookup=encode(s.identity_lookup,'hex')` and `lookupKeyVersion=s.lookup_key_version` from the selected student row. Ordinary/default reads and lists are unchanged; shared student_dto and all accepted migrations are untouched.
+
+The original/corrected prosrc SHA256 hashes are respectively `91d74b47b239794722720ea8b6414a7cfeb126e8e08fcbbf8f3720ffa2517b9d` and `dc1f1791ac02db7ec9af9db81f5c35dd57be9648a2516267f7fa608b166adddc`. The migration fails on missing/body-drift targets, unexpected signature/default/language/return/configuration/security or browser EXECUTE. It compares the complete pg_proc metadata excluding prosrc before/after, preserving owner, raw ACL, volatility, security mode, defaults and return type. Exact corrected replay is accepted. One guarded CREATE OR REPLACE changes only this projection; no grants, table changes, new RPC, retry or custom transaction SQLSTATE.
+
+**Audit meaning:** the existing class-scoped `gradebook:student_reveal:count=1` event means an authorized database reveal request. It does not independently establish successful Edge decryption, HMAC verification or browser display. No personal or crypto payload is added to audit.
+
+## Focused correction evidence
+
+One execution of `PGLITE_MODULE_PATH=/workspace/scratch/a61e5700450e/b2-sql-runtime/node_modules/@electric-sql/pglite/dist/index.js node tests/gradebook-reveal-sql.mjs`: **7/7 groups PASS**, fresh disposable in-memory PGlite0.5.11 / PostgreSQL18.6, actual migration chain plus synthetic platform fixture. No database URL or hosted credentials accepted.
+
+| Group | Evidence |
+| --- | --- |
+| A | Ordinary/default read and list are exactly equal to pre-correction DTOs, with all six protected context/envelope fields absent; no reveal audit |
+| B | Reveal retains envelope fields and returns exact lowercase stored digest; owner-only synthetic row generation7 vs class generation1 proves row selection. No sixth caller crypto argument is accepted |
+| C | Invalid actor/session/class, cross-class/missing student and actual anon/authenticated execution denied; service_role permitted |
+| D | Exactly one authorized class/actor event; denied requests add none; no name/DOB/digest/ciphertext/nonce/key ID in audit |
+| E | Exact intended body-only addition; complete target metadata and raw/effective ACL preserved; every other Board/Gradebook function unchanged |
+| F | Reviewed original and corrected replay accepted; unexpected body and renamed/missing target reject with P0001 and no partial function changes |
+| G | All eight Gradebook PT409 branches and Board definitions unchanged; no custom40001/serialization_failure/deadlock_detected in effective application function bodies |
+
+Static `node --check tests/gradebook-reveal-sql.mjs`, source-hash/projection checks and `git diff --check` PASS. Supabase CLI was not installed/in PATH; the unique ordered migration filename follows the existing convention without installing a CLI or risking telemetry. Pinned Prettier offline invocation was **UNAVAILABLE (ENOTCACHED)**, not PASS; no cached package/bundled CLI was available and no registry request was sent. Formatting was reviewed manually. No dependency or lockfile change, full app/B2/B3 suite, build or browser test.
+
+## Correction self-review and remaining gates
+
+1. Both identityLookup and lookupKeyVersion come from the selected stored row: **YES**, including different generation fixture.
+2. Ordinary/default read/list exposes either field: **NO**, exact DTO equality verified.
+3. Browser roles can execute the RPC: **NO**, effective privileges and execution denial verified locally.
+4. Forged actor/session or cross-class student bypasses checks: **NO in the synthetic local cases**; existing authorization/lock body unchanged.
+5. Reveal retains audit: **YES**, class-scoped authorized-request event, no sensitive payload.
+6. Metadata and other function behavior preserved: **YES** by full metadata/source snapshot comparisons.
+7. Unexpected body drift is rejected: **YES**; missing target also rejected transactionally.
+8. PT409 correction preserved and retryable business errors introduced: **preserved / NONE introduced**.
+9. B4 has the stored inputs needed for the approved AAD and HMAC verification without an extra private lookup: **YES at the SQL contract boundary**; project/keyrings remain trusted Edge configuration.
+10. Edge decryption/HMAC/browser DTO security proven: **NO / NOT RUN**; no B4 code exists in this task.
+
+GB-B4-INT-001 is **FIXED IN DRAFT / READY FOR REVIEW / NOT APPLIED**. B4 implementation remains **NOT STARTED**, not completed or accepted. Its original SQL integration blocker is addressed in the forward draft chain; B4 must still verify JWT/session, crypto/tag/HMAC/keyrings/capabilities/preview tokens/limiter/DTO redaction offline under a separate task. The synthetic mismatched row/class key generations are an owner-only test distinction, not a production rotation procedure.
+
+Future approved rollout is **B2 → B3 → PT409 correction → reveal correction**; reconcile pending versions separately and keep endpoints unavailable until the complete chain and security gates pass. Never replay the recorded applied Board hotfix. Hosted requests/Auth0; migrations applied0; Edge deployments0; secrets provisionedNO; real dataNONE; stress/load/soak/stretchNONE. Native PostgreSQL17, concurrency, hosted Auth/RLS/API, B4 Web Crypto, CP01-C and real-data gate remain NOT RUN. B5 NOT STARTED.
+
+---
+
+# Historical B4 preflight — BLOCKED at baseline0bbd0c3
+
+The original report below explains the finding before the separately authorized SQL correction above. Its OPEN/BLOCKED statuses and proposed future tests are historical; they do not override the current draft correction evidence. B4 cryptographic checks remain deferred.
 
 Baseline `0bbd0c3b179c564a0705af97dbdac6a6b9c1a7f6`, branch `feature/personal-gradebook`. Local checkout advanced from `778600d` to the accepted descendant after reviewing its five documentation-only changes; no merge/rebase. B4 implementation has not been created. This report records a confirmed static integration defect, not an observed hosted failure.
 

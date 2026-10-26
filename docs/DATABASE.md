@@ -75,6 +75,7 @@ Inventory below is based on recorded evidence, not a new hosted query:
 | 20261026030000_gradebook_transactions | B3 draft / NOT APPLIED |
 | 20261026034549_stop_business_conflict_retries | Board hotfix applied per GB-OPS-001 |
 | 20261026050000_gradebook_nonretryable_conflicts | Corrective draft / NOT APPLIED |
+| 20261026060000_gradebook_reveal_identity_context | Secure-reveal corrective draft / NOT APPLIED |
 
 The board hotfix was applied while the earlier Gradebook versions remained drafts. Matching filenames/versions are already reconciled; this gap alone does not justify ledger repair, fake applied entries, hotfix replay or timestamp renumbering.
 
@@ -82,8 +83,10 @@ A **separately authorized deployment task** must:
 
 1. Obtain authorization and a fixed budget for a read of the intended hosted ledger; reconcile exact versions and current dependencies with the repository. No live read is authorized by this document or the correction task.
 2. Review the exact pending set and the deployment tool's handling of older missing versions. Do not assume a generic pending-file workflow can safely skip Gradebook or silently handle out-of-order versions.
-3. Approve the exact dependency order **B2 → B3 → 20261026050000 correction**. The board hotfix is already recorded applied and must not be replayed as a substitute for reconciliation. Use only a reviewed tool/procedure that selects that approved set/order; if it cannot, stop for a rollout decision.
+3. Approve the exact dependency order **B2 → B3 → 20261026050000 PT409 correction → 20261026060000 reveal correction**. The board hotfix is already recorded applied and must not be replayed as a substitute for reconciliation. Use only a reviewed tool/procedure that selects that approved set/order; if it cannot, stop for a rollout decision.
 4. Keep Gradebook Edge endpoints unavailable and privileged runtime workers from invoking Gradebook RPCs throughout rollout. Original B3 temporarily defines custom40001; no client/runtime traffic may exercise it before correction succeeds. Validate final definitions/ACL and complete separately authorized security gates before enabling traffic.
 5. Treat a failed correction/definition hash check as a closed gate: preserve access denial and investigate; never run client tests or retry migration blindly. Hashes bind reviewed LF source bodies; unexpected source/EOL differences require review, not weakening the guard.
 
 **No uncontrolled `db push`, `db reset`, `migration repair` or `apply_migration`.** Each is outside this correction task and requires a separate authorized deployment procedure; never reset production or mark drafts applied merely to make the timestamps continuous. No ledger repair is currently justified by recorded evidence. Real hosted reconciliation/security checks remain NOT RUN — quota policy / pending approval.
+
+The reveal correction targets only `public.gb_student_read(uuid,uuid,uuid,bigint,boolean)`, adding stored identity context to the server-only reveal branch. Its audit is an authorized DB request, not proof of Edge decryption/display; ordinary DTOs stay unchanged. [GB-B4-INT-001 evidence](features/personal-gradebook/B4_INTEGRATION_REVIEW.md): seven focused disposable SQL groups PASS; B4 crypto/hosted security NOT RUN. No Gradebook migration was applied in this correction.

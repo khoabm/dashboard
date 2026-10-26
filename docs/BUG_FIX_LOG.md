@@ -2,13 +2,21 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
-## 2026-10-26 — GB-B4-INT-001 / P1: reveal dependency incomplete (OPEN)
+## 2026-10-26 — GB-B4-INT-001 / P1: reveal dependency (FIXED IN DRAFT)
 
 Baseline `0bbd0c3b179c564a0705af97dbdac6a6b9c1a7f6`, feature/personal-gradebook. Static B4 preflight confirms `gb_student_read(reveal=true)` in `20261026030000_gradebook_transactions.sql:172–184` returns ciphertext/nonce/encKid/algVersion but not stored identity_lookup or lookup_key_version; base DTO lacks them too. CP01-A §6 AES-GCM AAD includes the stored lookup hex, and reveal must recompute the generation-specific HMAC before disclosure. B4 cannot safely obtain this context through the accepted RPC surface. Root cause: B3's privileged reveal projection omits required authenticated identity context, not a crypto primitive failure or observed hosted incident.
 
-Status **OPEN — B4 blocked by B3 integration dependency**, not FIXED. [Review and minimal correction plan](features/personal-gradebook/B4_INTEGRATION_REVIEW.md): separately authorized additive replacement of only the exact reveal RPC, add stored lookup/key generation only to the server-only reveal projection; preserve authorization/audit/owner/ACL and ordinary DTO. B4 must strip all crypto/index fields from browser responses. No upstream SQL correction, Edge code or bypass was implemented in this task.
+Initial preflight status at76102e2 (historical): **OPEN — B4 blocked by B3 integration dependency**, not FIXED. [Review and minimal correction plan](features/personal-gradebook/B4_INTEGRATION_REVIEW.md): separately authorized additive replacement of only the exact reveal RPC, add stored lookup/key generation only to the server-only reveal projection; preserve authorization/audit/owner/ACL and ordinary DTO. B4 must strip all crypto/index fields from browser responses. No upstream SQL correction, Edge code or bypass was implemented in this task.
 
 Evidence is repository static inspection, not runtime reproduction. TestsNONE; hosted requests0; migrations/deployments/secretsNO; no stress/load/soak/stretch. Future focused synthetic SQL+Web Crypto checks are specified in the review, NOT RUN. Native17, hosted security/CP01-C and real-data gate remain NOT RUN; B5 NOT STARTED. The commit containing this entry records the blocker/documentation only, not a defect fix or completed B4 implementation.
+
+### GB-B4-INT-001 correction — CP01-B3-FIX-REVEAL / baseline76102e2
+
+**FIXED IN DRAFT / NOT APPLIED / READY FOR REVIEW.** New `20261026060000_gradebook_reveal_identity_context.sql` changes only `public.gb_student_read(uuid,uuid,uuid,bigint,boolean)`: reveal=true retains its envelope and adds identityLookup from stored identity_lookup and lookupKeyVersion from stored row generation. Exact reviewed original/corrected hashes, signature/default/config/security/ACL guards and full pg_proc metadata comparison; safe replay, missing/drift rejection. Ordinary student_dto, list/read, owner, ACL, locking and class-scoped audit remain unchanged. Audit means an authorized DB reveal request, not successful Edge decryption/display. Accepted migrations unchanged; no new grants/API/table.
+
+One focused run of `tests/gradebook-reveal-sql.mjs` on existing disposable PGlite0.5.11/PostgreSQL18.6: **7/7 groups PASS** (ordinary/default/list equality, stored generation7 vs class1, actual role/actor/session/scope denial, safe audit, full metadata/all-other-functions preservation, guard/replay, eight PT409 corrections unchanged). Synthetic-only fixtures; no real cryptographic keys or personal records. Static source hashes and node syntax/diff checks PASS; pinned offline Prettier unavailable ENOTCACHED, no registry request/dependency installation. Full app/B2/B3 suites/build/browser not run. Supabase CLI unavailable; new unique ordered filename created offline using the established convention.
+
+Hosted requests/Auth0; migrations applied0; Edge deployments0; secretsNO; real dataNONE; stress/load/soak/stretchNONE. B4 implementation/crypto/DTO sanitization, native17/hosted integration/security, CP01-C and real-data gate NOT RUN; B5 NOT STARTED. [Detailed self-review and rollout chain](features/personal-gradebook/B4_INTEGRATION_REVIEW.md). The commit containing this follow-up is the correction trace; no hosted repair or B4 completion is claimed.
 
 ## 2026-10-26 — GB-DOC-003 / CP01-A accepted refinements
 

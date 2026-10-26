@@ -1,10 +1,10 @@
 # Execution plan and acceptance gates — Personal Gradebook
 
-**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1/B2 ACCEPTED; B3 CORRECTION ACCEPTED at static/offline review (hosted NOT RUN); B4 BLOCKED at integration preflight (GB-B4-INT-001); B5 and CP02–CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
+**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1/B2 ACCEPTED; B3 CORRECTION ACCEPTED at static/offline review (hosted NOT RUN); GB-B4-INT-001 FIXED IN DRAFT; B4/B5 and CP02–CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
 
-**2026-10-26 B4 preflight / baseline0bbd0c3:** accepted B3 reveal projection lacks stored lookup hex/key generation needed for CP01-A §6 authenticated decrypt and HMAC verification. [GB-B4-INT-001 evidence/correction plan](B4_INTEGRATION_REVIEW.md). OPEN P1 upstream dependency; B4 code not created, no accepted migration edited. This status supersedes older B4 NOT STARTED/handoff wording below. Static/doc review only, testsNONE/hosted0; no new security acceptance.
+**2026-10-26 FIX-REVEAL / baseline76102e2:** GB-B4-INT-001/P1 **FIXED IN DRAFT / READY FOR REVIEW**, migration20261026060000 adds stored identityLookup/lookupKeyVersion only to the existing server-only reveal RPC. [Evidence and boundaries](B4_INTEGRATION_REVIEW.md): one focused disposable SQL run7/7 groups PASS, preserved authorization/ACL/metadata/audit and eight PT409 branches; ordinary DTO unchanged. Hosted requests0, migration NOT APPLIED, B4 Web Crypto NOT RUN. The earlier preflight blocker is addressed in the draft chain; B4/B5 remain NOT STARTED and no integration/security gate is accepted.
 
-CP01-A is a separately authorized **technical-design** slice: [design and original read-only evidence](CP01_TECHNICAL_DESIGN.md), baseline `f522266`; [accepted refinements GB-A-REV-001..003](CP01_TECHNICAL_DESIGN.md#143-accepted-refinement-disposition) reviewed from `31f887bd`, 2026-10-26. **DESIGN REFINED / READY**, documentation checks only. CP01-B1/B2 are ACCEPTED; CP01-B3 correction is ACCEPTED at static/offline review only; CP01-B4 is BLOCKED at integration preflight; B5 remains NOT STARTED; CP01-C security acceptance and the real-data gate remain NOT RUN. Separate requests are required; no implementation acceptance box is checked by design alone.
+CP01-A is a separately authorized **technical-design** slice: [design and original read-only evidence](CP01_TECHNICAL_DESIGN.md), baseline `f522266`; [accepted refinements GB-A-REV-001..003](CP01_TECHNICAL_DESIGN.md#143-accepted-refinement-disposition) reviewed from `31f887bd`, 2026-10-26. **DESIGN REFINED / READY**, documentation checks only. CP01-B1/B2 are ACCEPTED; CP01-B3 correction is ACCEPTED at static/offline review only; CP01-B4/B5 remain NOT STARTED; CP01-C security acceptance and the real-data gate remain NOT RUN. Separate requests are required; no implementation acceptance box is checked by design alone.
 
 ## Operating workflow for Codex
 
@@ -60,7 +60,7 @@ Docs-only evidence 2026-10-26 at `eba7c18e`: eight Markdown files, 54 relative l
 
 Paths are planning candidates, not permission to create modules or abstractions. Frontend regression/fixtures stay in `tests/`; local outputs in ignored `tests/local/`. Server/migration tests use conventional feature subfolders, with exact commands chosen in CP01 and CI coverage added when implemented.
 
-## CP01 — Data model and security (B1/B2 accepted; B3 offline accepted; B4 blocked; B5 not started)
+## CP01 — Data model and security (B1/B2 accepted; B3 offline accepted; B4/B5 not started)
 
 Deliverables: reviewed additive migration(s), six-table model incl ordered catalogs, minimal secure Functions for identity and admin, unit/security checks, cost check; **do not apply without authorization**.
 
