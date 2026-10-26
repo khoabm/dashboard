@@ -43,6 +43,17 @@ Yêu cầu mới của người dùng > SPEC + DECISIONS đã chốt > hướng 
 
 - Không công khai website hoặc dữ liệu khi chưa được người dùng yêu cầu. Tạo source/docs trên repo hiện có theo nhiệm vụ được giao không có nghĩa được deploy website.
 
+## Chính sách kiểm thử tiết kiệm quota — bắt buộc (2026-10-26)
+
+Áp dụng cho **mọi nhiệm vụ, branch, milestone, agent/Work/Codex và cả kiểm thử hồi quy**. Quy tắc này ưu tiên hơn mọi chỉ dẫn test chung trước đây nếu có xung đột; xem chi tiết tại [TESTING](docs/TESTING.md#chính-sách-kiểm-thử-tiết-kiệm-quota--bắt-buộc).
+
+1. **Chỉ test khi cần thiết:** đọc diff và bằng chứng sẵn có trước; chọn tập kiểm thử offline nhỏ nhất có thể kiểm chứng rủi ro thay đổi. Docs-only chỉ kiểm tài liệu/diff; không chạy browser, unit/build hay backend chỉ để có PASS. Không chạy lặp cùng suite trên cùng SHA khi không có thay đổi hoặc lý do kỹ thuật mới.
+2. **Cấm các bài stress/load/soak/stretch, benchmark lưu lượng, vòng lặp request số lượng lớn hoặc kiểm thử quota bằng cách gây tải**, kể cả trong môi trường live. Không tự diễn giải yêu cầu review, CI hay nghiệm thu là cho phép các bài test đó. Dùng lập luận tĩnh, test offline hữu hạn và fault injection giả lập thay thế.
+3. **Mặc định không gọi hosted:** mọi test chạm Supabase hosted, SQL/API/Auth/Storage thực, trang production hoặc dịch vụ tính quota cần được người dùng phê duyệt **riêng cho từng hoạt động**, nêu rõ mục tiêu, đích, mức request/query tối đa, dữ liệu, rủi ro và điều kiện dừng. Không suy quyền test live từ việc đã cho phép đọc source, tạo migration, hay triển khai checkpoint. Không tự chạy migration/deploy.
+4. **Không auto-retry/poll/refresh liên tục.** Gặp 429, 503, timeout, serialization retry bất thường, request/error tăng đột biến hoặc dấu hiệu quota cạn: dừng ngay hoạt động kiểm thử, không chạy lại để “xác nhận”; phân tích bằng source/log đã có, báo người dùng. Nếu SDK có retry ngầm, phải xác minh và giới hạn trước mọi test được duyệt.
+5. **CI chỉ offline và không tốn API/DB quota.** Chỉ chạy các checks cần thiết một lần cho lượt thay đổi; không tự thêm live E2E, API, database, stress hoặc performance load checks vào CI. Nếu bằng chứng bắt buộc chỉ có thể lấy qua live test chưa được duyệt, ghi **NOT RUN — quota policy / pending approval** hoặc **BLOCKED** thay vì tự chạy hay tuyên bố PASS.
+6. Báo cáo rõ test đã chạy, môi trường, số lần và request/query hosted phát sinh (mặc định phải là **0**); nêu test bỏ qua và phạm vi chưa được chứng minh. Tuân thủ ma trận nghiệm thu mà không tiêu quota để “đủ checklist”.
+
 ## Cách code và kiểm chứng
 
 Theo ARCHITECTURE, [CODE_STYLE](docs/CODE_STYLE.md) và [COMMENTING_GUIDELINES](docs/COMMENTING_GUIDELINES.md) khi viết/sửa code. Prettier đã có config và CI kiểm tra toàn bộ code thực thi (không còn baseline miễn trừ); ESLint chưa cài. Chỉ chạy format toàn repo khi nhiệm vụ cho phép; không trộn format-only với sửa logic. Thay đổi tập trung; không tạo abstraction, dependency, mock backend thành công hoặc test chỉ lặp implementation. Kiểm thử có ý nghĩa cho luồng bị thay đổi; regression bắt buộc khi sửa logic lưu/xuất bản, phân quyền, upload, thứ tự, chống mất nháp. Docs-only: kiểm tra liên kết, đủ yêu cầu, đúng trạng thái; không chạy browser QA vô nghĩa.

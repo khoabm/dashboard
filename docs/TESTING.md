@@ -8,6 +8,22 @@ Mỗi case ghi: ID hoặc Rxx/tiểu mục, commit/config, môi trường/browse
 
 Docs-only kiểm tra tính đầy đủ, link, trạng thái, diff; không cần browser test tài liệu Markdown. Logic mới/được sửa về lưu dữ liệu, phân quyền, upload, sắp xếp, nháp phải có regression có ý nghĩa. Có thể dùng unit/integration miễn phí phù hợp; không test chỉ phản chiếu code. Chỉ cài dependency test khi thực sự cần.
 
+## Chính sách kiểm thử tiết kiệm quota — bắt buộc
+
+**Hiệu lực từ 2026-10-26, áp dụng cho toàn repository và mọi Work/Codex/agent, không chỉ Gradebook.** Đây là giới hạn thực thi bắt buộc của người dùng. Bảng ma trận nghiệm thu ở dưới mô tả *bằng chứng cần có khi được phép chạy*, không tự cấp phép phát sinh request hay chạy thêm bài test.
+
+### Chọn bài test theo mức chi phí và mức độ cần thiết
+
+1. **Trước khi chạy:** kiểm tra ref/HEAD và diff; xác định rủi ro thực, test nào đã có bằng chứng đủ và tập ca nhỏ nhất có khả năng bắt lỗi. Không “test toàn bộ cho chắc”, không chạy lặp chỉ để tăng số PASS. Với docs-only: kiểm tra nội dung, link và diff; **không** chạy unit/build/browser/backend.
+2. **Mặc định offline:** code/static review → unit hoặc focused regression không có network → disposable in-memory/local SQL với fixture synthetic **chỉ nếu có lỗi database cần kiểm tra và chi phí tài nguyên nhỏ**. Full-suite offline chỉ chạy khi có phạm vi ảnh hưởng rộng, chính sách CI hiện hữu yêu cầu, hoặc đã sửa code sau lần chạy trước; tối đa một lượt cho cùng ref/trạng thái không đổi. Không cần cài bộ công cụ nặng hoặc dựng dịch vụ mới chỉ để có PASS.
+3. **Từ chối stress/load/soak/stretch, benchmark request, test ngưỡng quota bằng khối lượng lớn, polling liên tục và test đồng thời quy mô lớn.** Không đưa các mục này vào kịch bản Work, CI hay checklist yêu cầu người dùng cấp phép. Nếu cần đánh giá contention/race, ưu tiên phân tích logic hoặc 2–3 giao dịch synthetic offline có kiểm soát; không lấy lưu lượng làm bằng chứng bắt buộc.
+4. **Hosted/production/API/DB:** mặc định **không được gọi để kiểm thử**, kể cả metadata/SELECT, smoke, Auth, Storage, RLS, SQL Editor, RPC hoặc mở trang web có request thật. Chỉ thực hiện sau khi người dùng cho phép riêng hoạt động đó, ghi rõ môi trường và endpoint, mục đích, loại thao tác (read/write), giới hạn tổng requests/queries, fixture/rollback, retry policy và điểm dừng. Phê duyệt một lần không có hiệu lực cho các lần sau. Chạy test live **không được suy ra** từ quyền tạo/push code, tạo migration hoặc đọc tài liệu.
+5. **Fail-safe:** không tự động retry sau lỗi/timeout/429/503 hoặc khi SQLSTATE 40001/transaction retry gây lặp; phải dừng và tra cứu tĩnh. Trước một test live đã duyệt, kiểm tra cấu hình SDK/proxy/DB có retry nội bộ và ngăn retry không giới hạn. Nếu cần chẩn đoán sự cố, ưu tiên log/bằng chứng có sẵn; không tạo sự cố hay mô phỏng tải trên hosted.
+6. **Ngân sách kiểm thử:** trước mọi ngoại lệ live đã được duyệt, trình bày và tuân thủ giới hạn cố định do người dùng chấp thuận; hết giới hạn hoặc có bất thường phải dừng ngay. Không tự tăng budget, tự quay vòng nhiều ID/phiên hay chia batch để lách giới hạn. Chưa có mức được duyệt nghĩa là **0 request live**.
+7. **Báo cáo:** phân biệt static review, mock, disposable DB, native DB và hosted; ghi lệnh/ca đã chạy, PASS/FAIL/NOT RUN/BLOCKED, số lượt, mức tiêu thụ request/query hosted (0 nếu không gọi) và các kiểm thử hoãn vì chính sách quota. Không ghi dữ liệu nhạy cảm. Khi test thật cần cho nghiệm thu nhưng chưa được cho phép, ghi **NOT RUN — quota policy / pending approval**, không tự hạ tiêu chí chức năng hoặc tuyên bố nghiệm thu tích hợp.
+
+Quy tắc này **không xóa** các yêu cầu kiểm thử an toàn/bảo mật của SPEC hay CP01-C. Chúng là các gate phải được lên kế hoạch xin phép riêng, không phải lệnh chạy ngay. Xem thêm [AGENTS](../AGENTS.md#chính-sách-kiểm-thử-tiết-kiệm-quota--bắt-buộc).
+
 ## Ma trận nghiệm thu
 
 | Nhóm | Phạm vi bắt buộc | Bằng chứng |
