@@ -2,7 +2,8 @@
 
 Giữ toàn bộ test và fixture frontend trong `tests/`; không đưa dữ liệu runtime hoặc credential thật vào đây.
 
-- `*.test.js`: regression tự động, chạy bằng `npm test`, giữ trong Git để CI/chats sau có thể chạy lại.
+- `npm run test:ci` (cũng là `npm test`): chỉ sáu file được duy trì rõ trong package.json — board-navigation, dom, drafts, pending-task, validation, gradebook-contracts. Đây là component/pure units, không discovery wildcard.
+- `npm run test:specialist`: Auth SDK, service reliability, Edge handler/HTTP/crypto integration và Node runtime adapter; tách ngoài CI. Lệnh tồn tại không tự cấp quyền kiểm thử. SQL/browser/live assets cũng không nằm trong CI.
 - `audit.html` / `audit-fixture.js`: fixture browser dùng transport/Auth giả lập; `?scenario=navigation` có 8 chủ đề và bảng dài để kiểm cuộn. Không gọi Supabase thật.
 - `session.html` / `session-fixture.js`: kiểm SDK/sessionStorage với transport giả lập.
 - `viewport.html?fixture=audit&scenario=navigation`: iframe responsive của fixture điều hướng. Không mở default viewport nếu chỉ cần offline QA vì default dùng app thật.
@@ -10,6 +11,8 @@ Giữ toàn bộ test và fixture frontend trong `tests/`; không đưa dữ li�
 - `local/`: ảnh chụp, output, báo cáo máy và thử nghiệm dùng một lần; được `.gitignore` và `.prettierignore` loại khỏi source/format. Không đặt test regression cần CI trong thư mục này.
 
 Tài liệu bằng chứng: `docs/TESTING.md`, `docs/QA_REPORT.md`, `docs/BUG_FIX_LOG.md`. Kết quả mock không thay nghiệm thu Auth/JWT/RLS/Storage hay thiết bị thật. Không upload artifact local lên Git; CI hiện tại không tự gọi API hoặc browser live.
+
+Trước merge develop, [B5 inventory](../docs/features/personal-gradebook/B5_OFFLINE_REVIEW.md#non-production-assets-outside-the-eventual-develop-merge) đề xuất giữ riêng toàn bộ specialist/SQL/browser assets ngoài tập merge; chưa xóa assets có ích cho CP01-C. Không tạo probe/curl/ad-hoc runner mới để có thêm bằng chứng. scripts/test-gradebook-sql.mjs và PGlite vừa staged đã bị gỡ theo policy thay thế, chưa từng commit.
 
 ## Ranh giới production
 

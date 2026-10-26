@@ -1,3 +1,13 @@
+# CP01-B5 — CURATED CODE-QUALITY CI; PR CONFLICT / ACTIONS BLOCKED / 2026-10-26
+
+Baseline `c9e18c1`, feature/personal-gradebook. Latest policy supersedes SQL CI approval: newly staged PGlite dependency/SQL step/ad-hoc runner removed, lock restored exactly; accepted B1–B4/Edge/Prettier/build preserved. CI uses explicit test:ci with six component/pure-unit files; no API/HTTP/Supabase integration, SQL/runtime or browser suites. [Consolidated concern matrix, inclusion/exclusion and pre-merge asset inventory](features/personal-gradebook/B5_OFFLINE_REVIEW.md#current-policy-correction--baselinec9e18c1-supersedes-sql-ci-approval). Prior120/120 Node and temporary20 SQL-group results remain historical; no new integration acceptance. Final curated gate: test:ci66/66 PASS (566ms), check/build/format/diff PASS; no specialist/SQL repetition.
+
+**GB-B5-REV-001/P1 CONFIRMED / OPEN:** PR5 Draft, mergeable=false/dirty against develop307b6c6. Read-only three-tree diagnostic identifies docs/BUG_FIX_LOG.md (competing Gradebook/AUD-020 insertions); docs/STATUS.md changes on both sides without conflict markers. No merge/rebase/conflict resolution/force-push/develop edit performed. GitHub pull_request CI is blocked until a separately authorized reconciliation; no exact-HEAD Actions PASS. GB-B5-REV-002/P2 boundary preserved: PGlite is supplementary regression, not native17 or hosted/security acceptance.
+
+Hosted Supabase/Auth/migrations/deployments0; secretsNO; real dataNONE; stress/load/soak/stretchNONE. Deno/native17/CP01-C/real-data gate NOT RUN, CP02 NOT STARTED. Specialist assets retained pending separate pre-merge cleanup; no premature deletion. Earlier dependency blocker and B5 snapshots below are historical.
+
+---
+
 # CP01-B5 — PARTIAL IMPLEMENTATION / SQL CI BLOCKED / 2026-10-26
 
 Baseline `8f2bcfb`, feature/personal-gradebook. B4 accepted as draft. [B5 coverage/evidence/handoff](features/personal-gradebook/B5_OFFLINE_REVIEW.md): syntax covers13 Edge files; exact Prettier3.6.2 installed/locked, Edge format scope added, B4 files formatting-only; Node adapter loads both actual entrypoints with pinned SDK and zero network. One final-code run: check PASS, tests120/120 PASS, build PASS, format PASS, diff PASS. No accepted SQL/B1/frontend behavior changed.

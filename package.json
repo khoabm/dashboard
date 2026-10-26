@@ -6,12 +6,14 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 4173",
     "build": "vite build && node tests/check-production-build.mjs",
-    "test": "node --test tests/*.test.js",
+    "test": "npm run test:ci",
     "check": "node scripts/check.mjs",
     "test:api": "node tests/api-smoke.mjs",
     "format": "prettier --write \"src/**/*.{js,mjs,css,html,json}\" \"supabase/functions/**/*.js\" \"tests/**/*.{js,mjs,html,json}\" \"scripts/**/*.{js,mjs,json}\" \"index.html\" \"vite.config.js\"",
     "format:check": "prettier --check \"src/**/*.{js,mjs,css,html,json}\" \"supabase/functions/**/*.js\" \"tests/**/*.{js,mjs,html,json}\" \"scripts/**/*.{js,mjs,json}\" \"index.html\" \"vite.config.js\"",
-    "format:check:all": "npm run format:check"
+    "format:check:all": "npm run format:check",
+    "test:ci": "node --test tests/board-navigation.test.js tests/dom.test.js tests/drafts.test.js tests/pending-task.test.js tests/validation.test.js tests/gradebook-contracts.test.js",
+    "test:specialist": "node --test tests/auth-session.test.js tests/reliability.test.js tests/gradebook-edge.test.js tests/gradebook-runtime.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.118.0"

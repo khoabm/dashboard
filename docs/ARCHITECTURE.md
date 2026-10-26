@@ -32,8 +32,8 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 | supabase/functions/_shared/{crypto,contracts,imports,dto}.js | Web Crypto keyrings/envelopes/tokens; reuse pure B1 via relative imports; complete score-input framing; explicit response projections |
 | supabase/functions/_shared/{admin,student,runtime}.js | Allowlisted teacher/student operations, actual B3 RPC arguments, completed limiter before sensitive reads, server-only configuration |
 | supabase/config.toml | Unapplied/undeployed per-function entrypoint and gateway flags; no exposed-schema or hosted setting change |
-| tests/gradebook-edge.test.js | Synthetic Web Crypto/real-SDK-with-mocked-fetch regression; global live fetch denied; Deno/hosted/CI acceptance separate |
-| tests/gradebook-runtime.test.js | B5 Node24 adapter loads actual Edge entrypoints/pinned SDK/shared+B1 graph, captures Deno.serve without server/network; native Deno/bundle remains NOT RUN |
+| tests/gradebook-edge.test.js | Specialist Web Crypto/real-SDK/HTTP handler regression, explicitly excluded from curated CI; prior offline evidence retained; hosted acceptance separate |
+| tests/gradebook-runtime.test.js | Specialist Node24 adapter loads actual Edge entrypoints/pinned SDK/shared+B1 graph without service/network; excluded from curated CI; native Deno/bundle NOT RUN |
 
 Các thư mục code trong bảng đã có implementation. Không buộc một file/component nếu ghép module nhỏ rõ nghĩa tiết kiệm hơn; vẫn đáp ứng đủ hành vi các component trong SPEC.
 

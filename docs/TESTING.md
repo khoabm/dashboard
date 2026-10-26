@@ -66,11 +66,11 @@ Workflow `.github/workflows/ci.yml`: `workflow_dispatch`, PR hướng tới `dev
 | --- | --- | --- |
 | `npm ci` | Cài dependency từ lockfile | Chỉ đánh giá khi workflow chạy |
 | `npm run check` | Syntax frontend +13 Edge JS; frontend secret rules unchanged, server env references allowed but literal key/JWT patterns denied; git diff whitespace | Offline |
-| `npm test` | Toàn bộ unit regression dưới `tests/*.test.js` | Offline; chạy tất cả test hiện tại |
+| `npm run test:ci` | Explicit six-file component/pure-unit allowlist; npm test delegates to it | No wildcard discovery, SDK/API/Edge/service/SQL/browser integration |
 | `npm run build` | Static bundling Vite | Offline, không deploy |
 | `npm run format:check` | Prettier exact3.6.2 local devDependency/lock; frontend/test/scripts và supabase/functions JS | Không còn baseline miễn trừ; đầy đủ file trong phạm vi script |
 
-B5 bổ sung `tests/gradebook-runtime.test.js` vào discovery Node hiện có: adapter nạp entrypoint thật/SDK pin với Deno.env/serve synthetic, fetch bị chặn; không thay kiểm chứng Deno/Supabase bundle. [B5 evidence](features/personal-gradebook/B5_OFFLINE_REVIEW.md): SQL .mjs vẫn cần runtime PGlite ngoài repo, chưa nằm trong CI, dependency addition bị automatic approval review chặn. Không coi Node CI PASS là SQL/native17/hosted PASS; không tự cài qua đường khác hoặc thêm test live.
+**Superseding B5 policy:** CI chỉ syntax/static/format/build và curated component/pure units, cấm API/HTTP endpoint hoặc Supabase Auth/RPC/Storage/Edge integration kể cả mocked transport, SQL/PGlite/PostgreSQL/migrations, runtime integration, browser E2E và stress/load. Không thêm PGlite dependency/runner; approval cũ đã bị thay thế. [B5 matrix và inventory](features/personal-gradebook/B5_OFFLINE_REVIEW.md#current-policy-correction--baselinec9e18c1-supersedes-sql-ci-approval) liệt kê six-file allowlist và toàn bộ specialist assets không dự kiến merge develop nếu chưa có quyết định riêng. test:specialist là lệnh thủ công tách riêng, không tự cấp quyền chạy. Các hướng dẫn full-suite cũ bên dưới không ghi đè policy này; lịch sử120 Node/20 SQL nhóm không phải gate hiện hành.
 
 Theo yêu cầu tránh quota: **không đưa** `npm run test:api`, `supabase/tests/access.sql`, test Auth/RLS/Storage live hay browser E2E vào CI. Chúng vẫn thuộc ma trận nghiệm thu thủ công khi được giao riêng; một CI PASS không tương đương backend/browser PASS. `npm run format:check:all` là alias của gate format hiện tại; source code thực thi đã được format trong commit `4058de8`, không có baseline miễn trừ.
 

@@ -2,6 +2,14 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-26 — GB-B5-REV-001 / P1: PR conflict blocks CI (CONFIRMED / OPEN; reporting corrected)
+
+Baseline `c9e18c173d70198bce8cc53d39a93271e395e181`, feature/personal-gradebook; develop307b6c6. Prior B5 response reported no Actions run but did not diagnose PR5's mergeable=false/mergeable_state=dirty. Confirmed REST evidence plus read-only Git three-tree diagnostic identifies docs/BUG_FIX_LOG.md: develop AUD-020 and feature Gradebook entries compete immediately after the introduction. docs/STATUS.md differs on both sides but has no diagnostic conflict markers. GitHub does not trigger pull_request workflows with merge conflicts; no waiting/retry/trigger bypass can supply that acceptance.
+
+Correction in this task is the evidence/handoff, **not conflict resolution**. [Exact baseline/blobs and proposed separate reconciliation](features/personal-gradebook/B5_OFFLINE_REVIEW.md). Preserve all AUD-020/Gradebook entries in a later separately authorized normal merge into feature; no whole-file ours/theirs, rebase/force-push/develop edit/PR merge. No such action performed; P1 remains OPEN and exact-HEAD Actions is BLOCKED.
+
+The temporary SQL approval was superseded before any commit: PGlite dependency/lock addition, SQL CI step and new ad-hoc runner removed. The one earlier13/13+7/7 PGlite run is retained only as historical evidence, not current CI. Revised explicit test:ci contains six component/pure-unit files; API/HTTP/Supabase/Edge/service/SQL/runtime integration and browser assets are excluded, with a pre-merge retention/removal inventory. No new test/probe file or integration rerun. One final curated gate66/66 PASS, check/build/format/diff PASS; no new security acceptance. GB-B5-REV-002/P2 boundary retained: no native17/hosted/security inference from PGlite. Production/tests/migrations unchanged, no hosted Supabase/Auth/migrations/deployments, real data or stress/load/soak/stretch. Commit containing this entry is the reporting/policy-tooling trace, not a resolved conflict or deployed repair.
+
 ## 2026-10-26 — GB-B5-001 / P2: Edge source omitted from syntax/format gates (FIXED IN DRAFT)
 
 Baseline `8f2bcfbffbdac45fc8e0d16a2b7169ef084d9459`, feature/personal-gradebook. scripts/check.mjs checked only src JS and package format scope omitted supabase/functions; B4 .test.js discovery was already correct. Thus a passing prior CI did not check syntax/format of every Edge file. Formatter was an npx-only pin absent from local cache (ENOTCACHED), not an executed format result. This is a tooling coverage defect, not a deployed Gradebook failure.

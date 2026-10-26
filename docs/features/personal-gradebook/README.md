@@ -2,7 +2,7 @@
 
 **Project:** KHTN8 Board (`khoabm/dashboard`). **Feature:** Bảng điểm cá nhân. **Phase:** CP01 backend drafts; **implementation:** B1/B2 accepted, B3 correction accepted at static/offline review, [GB-B4-INT-001 FIXED IN DRAFT](B4_INTEGRATION_REVIEW.md), B4 READY FOR REVIEW (offline), B5 NOT STARTED; hosted Gradebook NOT APPLIED. Branch `feature/personal-gradebook` created from `develop` `af43f51` on 2026-10-25.
 
-**Latest B5 snapshot (2026-10-26 / baseline8f2bcfb):** B4 ACCEPTED AS DRAFT. [B5 partial implementation/evidence](B5_OFFLINE_REVIEW.md): Edge syntax/format and locked Prettier implemented;120/120 Node tests/build/format PASS. SQL execution CI blocked pending explicit PGlite dependency approval; native Deno NOT RUN, exact-SHA CI reported separately. CP01-C/real-data gate NOT RUN. Earlier B5 NOT STARTED statements describe the prior handoff.
+**Latest B5 snapshot (2026-10-26 / baselinec9e18c1):** B4 ACCEPTED AS DRAFT. [Superseding CI policy/concern matrix/asset inventory](B5_OFFLINE_REVIEW.md#current-policy-correction--baselinec9e18c1-supersedes-sql-ci-approval): six explicit component/pure-unit files in test:ci; no API/Supabase/Edge/SQL integration in CI, staged PGlite/runner withdrawn. Prior120 Node and temporary20 SQL groups retained as historical evidence only. PR5 Draft/dirty (BUG_FIX_LOG conflict), Actions blocked; native Deno/PG17, CP01-C and real-data gates NOT RUN. No automatic continuation or pre-merge asset deletion.
 
 ## Read path (token-efficient)
 
