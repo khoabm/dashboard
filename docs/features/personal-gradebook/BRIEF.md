@@ -7,7 +7,7 @@ This feature is additional to, not a rewrite of, the current KHTN8 Board. Exact 
 ## GB-01 — Navigation, permissions and scope
 
 - Add a hamburger menu at the **far left of the existing header**, with exactly the new primary navigation choice **Bảng điểm cá nhân** alongside **Bảng học liệu** in V1. Keep existing header identity, responsive behavior, keyboard access, focus and dismiss behavior.
-- Suggested paths: `/` board, `/bang-diem` student lookup/results, `/quan-ly-diem` teacher administration. Path names are a proposal; static hosting deep-link refresh **must work**. No large SPA framework or new standalone Node backend.
+- Technical paths confirmed in CP02: `/` board, `/personal-gradebook` student lookup/results, `/personal-gradebook/admin` reserved teacher administration; static hosting deep-link refresh **must work**. No large SPA framework or new standalone Node backend.
 - One **active** class (e.g., `6A8`) for V1. Teacher can edit class name and school year as ordinary metadata, even after scores exist. This changes neither student/score relationships nor score rows, and creates no new class/student copies or rollover workflow. **Accepted trade-off:** the previous school-year label of the same class is not preserved as an independent historical snapshot. No year lock, history table or simultaneous multi-class management in V1.
 - Reuse the existing single admin account and existing loading/pulse patterns. Viewer of public board remains anonymous; grades are **never public via direct table SELECT**.
 

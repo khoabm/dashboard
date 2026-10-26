@@ -60,7 +60,7 @@ Docs-only evidence 2026-10-26 at `eba7c18e`: eight Markdown files, 54 relative l
 
 | Requirements | Existing reuse / proposed additions | Acceptance |
 | --- | --- | --- |
-| GB-01, GB-09 | Header/menu in `src/components/board.js`; small route lifecycle in `src/main.js`; existing CSS/dialog/pending/request gates; feature UI under `src/components/gradebook/` | CP02, CP06 |
+| GB-01, GB-09 | Shared `app-header.js`/`site-navigation.js`; route owner `src/app.js`; lazy Board `src/main.js`; disposable `student-lookup.js` with pure `gradebook-ui.js` state | CP02, CP06 |
 | GB-02, GB-03 | Existing admin session; proposed lookup/admin service under `src/services/gradebook/`; two Functions and server RPCs per DATA_AND_SECURITY | CP01–CP03, CP06 |
 | GB-04, GB-05 | Ordered seeded catalogs, shared table/dropdown/template mapping (labels remain canonical in BRIEF) | CP01, CP04–CP06 |
 | GB-06, GB-07 | One score model, exact decimal/import helpers proposed under `src/utils/gradebook/`, bounded roster/score UI | CP01, CP03, CP04, CP06 |
@@ -98,15 +98,19 @@ Acceptance:
 - B2/B3/correction đều **NOT APPLIED**. B4 chỉ được implement Edge handler/crypto/auth/capability/preview signing với synthetic fixtures và focused offline tests. Không tự deploy, cấp secrets, đăng nhập Auth thật, gọi hosted hay dùng dữ liệu học sinh thật.
 - B5/CP01-C và real-data gate là bước nghiệm thu riêng, gồm kiểm tra rollout pending migrations theo [DATABASE](../../DATABASE.md#gradebook-migration-rollout-gate--gb-ops-rev-002) và security evidence khi có phê duyệt và budget.
 - **Mandatory B4 reviewer confirmation:** [GB-B4-CON-001..005 register](B4_INTEGRATION_REVIEW.md#cp01-b4-reviewer-concerns--mandatory-confirmation-register-2026-10-26). Work must explicitly report PostgreSQL17 compatibility as a CP01-C gate, Edge AES/HMAC + strict browser DTO redaction as a B4 P1 gate, previous Prettier ENOTCACHED as a B5 CI gate, PostgREST retry safety as B4 P1, and hosted/real-data restrictions. Each is PASS/FAIL/NOT RUN/BLOCKED with evidence; no implied PASS.
-## CP02 — Navigation and lookup UI (NOT STARTED)
+## CP02 — Navigation and lookup UI (IMPLEMENTED OFFLINE — REVIEW PENDING)
 
 Dependency: CP01 API contract; synthetic UI may use clearly labeled mocks before authorized live integration. Reuse one admin Auth state, clear student capability/private DOM on route exit/expiry, and fence responses after navigation/logout.
 
-- [ ] Hamburger at far left; Bảng học liệu/Bảng điểm cá nhân; keyboard/focus/close/menu responsive.
-- [ ] Deep-link `/bang-diem` loads and refreshes on selected static host; existing public board unaffected.
-- [ ] CMND/CCCD 9–12 ASCII digits, retain leading zeros; `DD/MM/YYYY` validated datepicker desktop/mobile, date-only API/storage contract and cross-timezone/midnight cases T19.
-- [ ] Invalid/unknown, rate-limited and unavailable-limit-state responses reveal no student existence; loading/error/retry, no plaintext persistent storage or URL credentials; do not call sensitive reads after denial.
-- [ ] Return to verification on expiry/refresh; anonymous grade direct requests remain denied.
+- [x] Hamburger at far left; Bảng học liệu/Bảng điểm cá nhân; keyboard/focus/Escape/outside dismissal; responsive menu.
+- [x] `/personal-gradebook` direct navigation, Back/Forward and local Vite refresh; Board lazy-loaded with preserved snapshot/draft flush. Reserved `/personal-gradebook/admin` remains unavailable.
+- [ ] Deployed static-host SPA rewrite/direct refresh (NOT RUN; no deployment).
+- [x] CMND/CCCD string validation, leading zeros, `DD/MM/YYYY` text/native date input, Gregorian/future/Vietnam-day validation via B1. Native calendar popup/device-specific behavior and live DATE round-trip remain separate gates.
+- [x] Offline synthetic invalid/neutral/loading/unavailable/expiry states; cancellation and late-response fencing; no private URL/storage/log output. Production adapter always returns unavailable and makes no lookup request.
+- [x] Memory-only state/private DOM cleared on exit, sign-out, expiry and refresh; synthetic regression and browser observations.
+- [ ] Hosted anonymous access/JWT/RLS/Edge/limiter integration (CP01-C NOT RUN).
+
+CP02 baseline `7b7656b`, 2026-10-26: [current evidence and limitations](../../STATUS.md#cp02--offline-student-lookup-ui--2026-10-26). Chrome desktop and iframe CSS widths1440/768/390; not Safari/native mobile acceptance. QA adapters/screenshots stay in ignored tests/local/cp02 and are excluded from production/commit. No CP03–05 or CP01-C started.
 
 ## CP03 — Class/student admin and UPSERT roster import (NOT STARTED)
 

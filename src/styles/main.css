@@ -1,5 +1,6 @@
 /* Global UI tokens, board layout, and responsive presentation. */
 @import './editor.css';
+@import './gradebook.css';
 :root {
   font-family: Inter, 'Segoe UI', Arial, sans-serif;
   color: #243d36;

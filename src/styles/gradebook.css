@@ -1,0 +1,406 @@
+/* Primary navigation and the private lookup surface share the existing Board palette. */
+[hidden] {
+  display: none !important;
+}
+.site-navigation {
+  position: relative;
+  flex: 0 0 auto;
+}
+.menu-toggle {
+  font-size: 23px;
+  border: 1px solid var(--line);
+  background: #f7faf8;
+}
+.site-navigation-panel {
+  position: absolute;
+  top: 55px;
+  left: 0;
+  width: 305px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: white;
+  box-shadow: 0 16px 45px #243d3620;
+  z-index: 100;
+}
+.navigation-caption {
+  display: block;
+  padding: 8px 10px 13px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+.site-navigation-panel a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 10px;
+  text-decoration: none;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.site-navigation-panel a > span:last-child {
+  margin-left: auto;
+}
+.navigation-number {
+  color: #8b9a93;
+  font-size: 10px;
+  font-weight: 400;
+}
+.site-navigation-panel a:hover,
+.site-navigation-panel a[aria-current='page'] {
+  background: #edf4ef;
+  color: var(--green);
+}
+.app-header {
+  gap: 18px;
+}
+.brand {
+  min-width: 0;
+}
+.gradebook-header {
+  background: #fff;
+}
+.gradebook-page {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 70px 40px 28px;
+  display: grid;
+  grid-template-columns: 1fr 430px;
+  column-gap: 80px;
+  align-items: start;
+}
+.gradebook-intro {
+  padding-top: 17px;
+}
+.gradebook-intro h1 {
+  margin: 22px 0;
+  font-size: clamp(34px, 4.4vw, 54px);
+  line-height: 1.1;
+  letter-spacing: -2px;
+  font-weight: 650;
+}
+.gradebook-intro h1 span {
+  display: block;
+  color: #4f816b;
+}
+.gradebook-lead {
+  margin: 0 0 12px;
+  font-size: 16px;
+  line-height: 1.65;
+}
+.gradebook-description {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.85;
+  max-width: 350px;
+}
+.gradebook-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid #b4c6bb;
+}
+.gradebook-illustration {
+  position: relative;
+  height: 150px;
+  max-width: 300px;
+  margin: 28px 0;
+  border-bottom: 1px solid #c8d9cc;
+}
+.gradebook-illustration span {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border: 1px solid #c4d8ca;
+  border-radius: 16px;
+  width: 54px;
+  height: 54px;
+  background: #e2ece5;
+  font-size: 22px;
+  color: #49725c;
+  transform: rotate(-10deg);
+  left: 12px;
+  top: 25px;
+}
+.gradebook-illustration span:nth-child(2) {
+  left: 100px;
+  top: 0;
+  border: 0;
+  background: transparent;
+  font-size: 36px;
+}
+.gradebook-illustration span:nth-child(3) {
+  left: 190px;
+  top: 20px;
+  background: #f4ebda;
+  border-color: #e1d9c7;
+  transform: rotate(12deg);
+  font-size: 14px;
+}
+.gradebook-illustration i {
+  position: absolute;
+  bottom: 0;
+  width: 30px;
+  height: 32px;
+  background: #ccdcd0;
+  border-radius: 7px 7px 0 0;
+  left: 80px;
+}
+.gradebook-illustration i:nth-last-child(3) {
+  left: 125px;
+  height: 52px;
+  background: #adc9b5;
+}
+.gradebook-illustration i:nth-last-child(2) {
+  left: 170px;
+  height: 75px;
+  background: #7da88c;
+}
+.gradebook-illustration i:last-child {
+  left: 215px;
+  height: 96px;
+  background: #557e63;
+}
+.lookup-card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 21px;
+  padding: 29px;
+  box-shadow: 0 16px 45px #243d3608;
+}
+.lookup-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #edf1ee;
+  margin-bottom: 23px;
+}
+.lookup-icon {
+  width: 43px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  background: #e9f2eb;
+  border-radius: 12px;
+  font-size: 27px;
+}
+.lookup-card h2 {
+  font-size: 20px;
+  margin: 0 0 5px;
+  letter-spacing: -0.4px;
+}
+.lookup-card-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.lookup-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 650;
+  margin: 0 0 9px;
+}
+.lookup-form > input,
+.lookup-date-control > input {
+  border: 1px solid #d6e1da;
+  background: #fafcfb;
+  border-radius: 10px;
+  min-height: 49px;
+  padding: 12px 13px;
+  width: 100%;
+  font-size: 15px;
+}
+.lookup-form input[aria-invalid='true'] {
+  border-color: #bc6a58;
+}
+.lookup-form input:disabled {
+  color: #78867e;
+  background: #f2f5f3;
+}
+.lookup-date-control {
+  display: flex;
+  gap: 8px;
+}
+.lookup-date-control .lookup-date-picker {
+  width: 46px;
+  min-width: 46px;
+  padding: 8px;
+  color: transparent;
+  cursor: pointer;
+}
+.lookup-date-picker::-webkit-calendar-picker-indicator {
+  opacity: 0.7;
+  cursor: pointer;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+}
+.field-help {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 7px 0 0;
+  line-height: 1.6;
+}
+.field-error {
+  color: #944735;
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 5px 0 18px;
+}
+.field-error:empty {
+  margin: 0 0 23px;
+}
+.lookup-submit {
+  width: 100%;
+  min-height: 49px;
+  font-size: 14px;
+  margin-top: 2px;
+}
+.lookup-status {
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--muted);
+  margin-top: 15px;
+}
+.lookup-status[data-state='unavailable'],
+.lookup-status[data-state='neutral'],
+.lookup-status[data-state='expired'],
+.lookup-status[data-state='limited'] {
+  border-left: 3px solid #c5a675;
+  padding: 9px 11px;
+  background: #fcf8f0;
+  color: #715d39;
+  border-radius: 3px;
+}
+.lookup-status[data-state='loading'] {
+  color: var(--green);
+}
+.lookup-status[data-state='verified'] {
+  background: #eaf5ed;
+  color: var(--green);
+  padding: 10px;
+  border-radius: 6px;
+}
+.lookup-reset {
+  margin-top: 9px;
+  padding-left: 0;
+  font-size: 12px;
+}
+.lookup-privacy {
+  font-size: 11px;
+  color: var(--muted);
+  border-top: 1px solid #edf1ee;
+  margin: 20px 0 0;
+  padding-top: 17px;
+  line-height: 1.7;
+}
+.lookup-availability {
+  font-size: 11px;
+  color: #7c705a;
+  line-height: 1.65;
+  margin: 10px 0 0;
+}
+.gradebook-footer {
+  grid-column: 1 / -1;
+  text-align: center;
+  margin-top: 42px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+  color: #829189;
+  font-size: 11px;
+}
+.gradebook-reserved {
+  max-width: 800px;
+  padding: 60px 25px;
+  margin: auto;
+}
+@media (max-width: 1100px) {
+  .app-header {
+    gap: 12px;
+  }
+  .brand strong {
+    font-size: 18px;
+  }
+  .gradebook-page {
+    gap: 35px;
+    grid-template-columns: 1fr 390px;
+    padding: 45px 28px 25px;
+  }
+}
+@media (max-width: 800px) {
+  .gradebook-page {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 550px;
+    padding: 35px 22px 24px;
+    gap: 25px;
+  }
+  .gradebook-intro {
+    padding: 0;
+  }
+  .gradebook-intro h1 {
+    margin: 16px 0;
+    font-size: 38px;
+  }
+  .gradebook-intro h1 span {
+    display: inline;
+  }
+  .gradebook-illustration,
+  .gradebook-description {
+    display: none;
+  }
+  .gradebook-lead {
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+  .gradebook-footer {
+    margin-top: 0;
+  }
+}
+@media (max-width: 600px) {
+  .app-header {
+    gap: 9px;
+    padding: 13px 16px;
+  }
+  .brand {
+    gap: 7px;
+  }
+  .brand strong {
+    white-space: normal;
+    max-width: 105px;
+    font-size: 16px;
+    line-height: 1.25;
+    letter-spacing: -0.5px;
+  }
+  .app-header nav.header-actions {
+    margin-left: auto;
+  }
+  .header-admin {
+    max-width: 90px;
+    white-space: normal;
+    font-size: 10px;
+    padding: 7px 8px;
+  }
+  .site-navigation-panel {
+    width: min(305px, calc(100vw - 32px));
+  }
+  .lookup-card {
+    padding: 23px;
+    border-radius: 16px;
+  }
+  .gradebook-intro h1 {
+    font-size: 33px;
+  }
+}
+
+.app-header .site-navigation-panel {
+  display: block;
+  margin: 0;
+}

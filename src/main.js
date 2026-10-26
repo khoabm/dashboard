@@ -30,7 +30,9 @@ import { createRequestGate } from './utils/request-gate.js';
 import { createPendingTask } from './utils/pending-task.js';
 import { PulseIndicator, setPendingMessage } from './components/pending.js';
 import { BoardNavigation } from './components/board-navigation.js';
-const root = document.querySelector('#app');
+const managedRoot = document.querySelector('#board-app');
+const root = managedRoot || document.querySelector('#app');
+let boardActive = !managedRoot || location.pathname === '/';
 const requests = createRequestGate();
 let authRefreshTimer,
   authChecking = false,
@@ -142,7 +144,7 @@ function updatePendingUI() {
   navigation.element.inert = pending;
   boardRegion.inert = pending;
   boardRegion.setAttribute('aria-busy', String(pending || !!syncMessage));
-  root.querySelector('.app-header nav').inert = pending || !!syncMessage;
+  root.querySelector('.header-actions').inert = pending || !!syncMessage;
 }
 
 /**
@@ -311,6 +313,7 @@ function render(options = {}) {
  * @returns {Promise<boolean|undefined>} True for a committed snapshot, false on read failure, undefined if superseded.
  */
 async function refresh({ afterWrite = false, revealSectionId = null } = {}) {
+  if (!boardActive) return;
   if (authChecking) return;
   if (authFailed) return refreshAuth();
   if (operations.pending() && !afterWrite) return;
@@ -365,6 +368,7 @@ async function refresh({ afterWrite = false, revealSectionId = null } = {}) {
 
 /** Rechecks the admin profile and signed-in user before refreshing board data. */
 export async function refreshAuth() {
+  if (!boardActive) return;
   clearSession();
   const generation = requests.generation();
   authChecking = true;
@@ -535,6 +539,7 @@ function clearSession() {
   filter = 'all';
   data = { sections: [], posts: [] };
   lastSync = null;
+  window.dispatchEvent(new Event('app:sign-out'));
   render();
 }
 
@@ -573,6 +578,7 @@ window.addEventListener('beforeunload', (event) => {
 });
 window.addEventListener('keydown', (event) => {
   if (
+    boardActive &&
     event.key === '/' &&
     !document.querySelector('dialog') &&
     !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)
@@ -582,6 +588,7 @@ window.addEventListener('keydown', (event) => {
   }
 });
 window.addEventListener('online', () => {
+  if (!boardActive) return;
   ToastNotification('Đã có mạng. Đang tải lại dữ liệu…');
   refresh();
 });
@@ -590,6 +597,7 @@ window.addEventListener('offline', () =>
 );
 document.addEventListener('visibilitychange', () => {
   if (
+    boardActive &&
     document.visibilityState === 'visible' &&
     !document.querySelector('dialog') &&
     (!lastSync || Date.now() - lastSync.getTime() > 30_000)
@@ -605,4 +613,36 @@ client?.auth.onAuthStateChange((event) => {
 });
 // Explicit bootstrap also handles persisted sessions without relying on Auth callback timing.
 // SDK reads stay outside the synchronous Auth event callback to avoid its internal lock.
-refreshAuth();
+if (boardActive) refreshAuth();
+
+/** Suspends Board refreshes without discarding its snapshot, filters, Auth state or saved drafts. */
+export function setBoardActive(active) {
+  if (boardActive === active) return;
+  boardActive = active;
+  if (!active) {
+    clearTimeout(authRefreshTimer);
+    requests.invalidate();
+    authChecking = false;
+    syncMessage = '';
+    client?.auth.stopAutoRefresh();
+  } else {
+    client?.auth.startAutoRefresh();
+    if (!lastSync) void refreshAuth();
+    else void refresh();
+  }
+}
+
+/** Flushes editor-owned drafts before a route change; failed persistence leaves the editor open. */
+export async function prepareRouteExit() {
+  if (operations.pending() || logoutPending) return false;
+  for (const dialog of document.querySelectorAll('dialog')) {
+    if (dialog.preserveDraft && !(await dialog.preserveDraft())) return false;
+  }
+  document.querySelectorAll('dialog').forEach((dialog) => dialog.close());
+  return true;
+}
+
+/** Reports only the already-verified in-memory Board state; performs no Auth request. */
+export function boardSessionActive() {
+  return admin;
+}

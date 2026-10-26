@@ -18,7 +18,13 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 
 | Vị trí dự kiến | Trách nhiệm |
 | --- | --- |
-| src/main.js | Bootstrap, ghép dịch vụ và component; không nhồi toàn bộ ứng dụng |
+| src/app.js | Path-only History routing; lazy Board/SDK graph; shared navigation; disposes student state on exit/sign-out/page lifecycle |
+| src/main.js | Board bootstrap/render/Auth; suspend route refresh; flush editor-owned drafts before route exit |
+| src/components/app-header.js, site-navigation.js | Pure shared branding/admin controls; accessible two-route disclosure menu |
+| src/components/student-lookup.js, src/utils/gradebook-ui.js | Date-only lookup form; pure validation/generation/cancellation/expiry; capability/input memory only |
+| src/services/student-lookup.js | CP02 production fail-closed adapter: unavailable, zero network until separately authorized backend integration |
+| src/styles/gradebook.css | Responsive student page/menu; existing Board design tokens |
+| tests/gradebook-ui.test.js | Curated pure unit validation/route/disposal/late-response regression; no API or SDK |
 | src/components/ | Render/interaction của 20 component tại SPEC R06; cleanup listeners khi unmount |
 | src/services/ | Một Supabase client; truy vấn/Auth/Storage/sync, trả lỗi rõ ràng; không thao tác DOM |
 | src/utils/ | Hàm thuần kiểm tra URL/file, format, debounce, thứ tự; test logic có rủi ro |
