@@ -1,5 +1,48 @@
 /* Primary navigation and the private lookup surface share the existing Board palette. */
 /* CP03 uses the same cards, controls and modal tokens; only the table scrolls on narrow screens. */
+.teacher-scores,
+.score-panel {
+  min-width: 0;
+}
+.teacher-scores [role='tablist'] {
+  display: flex;
+  gap: 8px;
+  margin: 18px 0;
+}
+.teacher-scores [aria-selected='true'],
+.gradebook-admin [aria-pressed='true'] {
+  background: var(--green);
+  color: white;
+}
+.score-panel {
+  display: grid;
+  gap: 16px;
+}
+.score-panel > p {
+  margin: 0;
+}
+.teacher-scores > .admin-feedback:empty {
+  display: none;
+}
+.scores-grid {
+  min-width: 1150px;
+}
+.scores-grid th:first-child {
+  min-width: 160px;
+  white-space: normal;
+}
+.scores-grid .score-cell {
+  min-width: 68px;
+  min-height: 42px;
+  font-variant-numeric: tabular-nums;
+}
+.publication-warning {
+  padding: 14px;
+  background: #fcf8f0;
+  border: 1px solid #dfd0b1;
+  color: #715d39;
+  border-radius: 10px;
+}
 .gradebook-admin {
   max-width: 1320px;
   margin: 36px auto 80px;

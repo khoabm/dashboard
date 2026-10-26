@@ -88,12 +88,17 @@ async function showRoute(path, focus = true) {
       if (focus) view.focus();
     } else if (current === 'admin') {
       try {
-        const [{ GradebookAdmin }, { requestGradebookAdmin }, { readRosterFile }] =
-          await Promise.all([
-            import('./components/gradebook-admin.js'),
-            import('./services/gradebook-admin.js'),
-            import('./services/roster-file.js'),
-          ]);
+        const [
+          { GradebookAdmin },
+          { requestGradebookAdmin },
+          { readRosterFile, readScoreFile },
+          { loadTeacherCatalog },
+        ] = await Promise.all([
+          import('./components/gradebook-admin.js'),
+          import('./services/gradebook-admin.js'),
+          import('./services/roster-file.js'),
+          import('./services/gradebook-catalog.js'),
+        ]);
         if (!boardPromise) boardPromise = import('./main.js');
         boardModule = await boardPromise;
         if (ticket !== generation) return;
@@ -101,6 +106,8 @@ async function showRoute(path, focus = true) {
         view = GradebookAdmin({
           request: requestGradebookAdmin,
           readFile: readRosterFile,
+          readScores: readScoreFile,
+          loadCatalog: loadTeacherCatalog,
           onLogin: async () => {
             if (await navigate('/')) await boardModule.openBoardAdmin();
           },

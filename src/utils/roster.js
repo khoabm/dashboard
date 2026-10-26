@@ -5,7 +5,8 @@ import { uiDate, birthDate, vietnamToday } from './gradebook/dates.js';
 export const ROSTER_LIMITS = Object.freeze({ bytes: 1048576, rows: 2000 });
 
 /** Parses RFC-style quoted CSV while retaining trailing cells and original physical line numbers. */
-export function csvRecords(text) {
+export function csvRecords(text, maxColumns = 3) {
+  if (![3, 10].includes(maxColumns)) throw Error('columns');
   if (typeof text !== 'string' || text.length > ROSTER_LIMITS.bytes || text.includes('\0'))
     throw Error('file');
   text = text.replace(/^\uFEFF/, '');
@@ -18,6 +19,8 @@ export function csvRecords(text) {
     start = 1;
   const cell = () => {
     cells.push(value);
+    if (cells.length > maxColumns)
+      throw Object.assign(Error('columns'), { row: start, column: cells.length });
     value = '';
     closed = false;
   };
@@ -55,7 +58,7 @@ export function csvRecords(text) {
       if (closed || ch === '"') throw Error('csv');
       value += ch;
     }
-    if (cells.length > 3 || value.length > 4096) throw Error('columns');
+    if (cells.length > maxColumns || value.length > 4096) throw Error('columns');
   }
   if (quoted) throw Error('csv');
   if (value || cells.length || closed || !records.length) row();

@@ -1,6 +1,7 @@
 /** Reads local roster files in memory; lazy XLSX dependencies never enter the initial Board graph. */
 import { csvRecords, rosterBatch, ROSTER_LIMITS } from '../utils/roster.js';
 import { excelDate, apiDate } from '../utils/gradebook/dates.js';
+import { scoreBatch } from '../utils/gradebook-scores.js';
 
 const elements = (node, name) => [...node.getElementsByTagNameNS('*', name)];
 
@@ -14,11 +15,31 @@ function xml(bytes) {
 }
 
 /** Inspects layout/date metadata only; the library owns shared strings and XLSX value decoding. */
-function prepareWorkbook(files) {
+function prepareWorkbook(files, kind) {
+  const widths = kind === 'scores' ? [10] : [2, 3];
   for (const [name, bytes] of Object.entries(files)) {
     if (/externalLinks|vbaProject|\.bin$/i.test(name)) throw Error('external');
     if (/\.xml(?:\.rels)?$/.test(name)) {
       const doc = xml(bytes);
+      if (kind === 'scores' && name.startsWith('xl/worksheets/')) {
+        const formula = elements(doc, 'f')[0];
+        if (formula) {
+          const ref = /^([A-Z]+)([1-9][0-9]*)$/.exec(
+            formula.parentElement?.getAttribute('r') || '',
+          );
+          throw Object.assign(
+            Error('formula'),
+            ref
+              ? {
+                  row: Number(ref[2]),
+                  column: [...ref[1]].reduce((n, ch) => n * 26 + ch.charCodeAt(0) - 64, 0),
+                }
+              : {},
+          );
+        }
+        if (elements(doc, 'mergeCell').length || elements(doc, 'oleObject').length)
+          throw Error('active');
+      }
       if (elements(doc, 'Relationship').some((r) => r.getAttribute('TargetMode') === 'External'))
         throw Error('external');
     }
@@ -69,7 +90,7 @@ function prepareWorkbook(files) {
       const match = /^([A-Z]+)([1-9][0-9]*)$/.exec(cell.getAttribute('r') || '');
       if (!match || Number(match[2]) !== number) throw Error('cell');
       const column = [...match[1]].reduce((n, ch) => n * 26 + ch.charCodeAt(0) - 64, 0);
-      if (column > 3 || metadata[column - 1]) throw Error('columns');
+      if (column > Math.max(...widths) || metadata[column - 1]) throw Error('columns');
       width = Math.max(width, column);
       if (elements(cell, 'f').length)
         throw Object.assign(Error('formula'), { row: number, column });
@@ -86,7 +107,7 @@ function prepareWorkbook(files) {
       original.set(number, metadata);
     }
   }
-  if (![2, 3].includes(width) || rows.length > 2001) throw Error('columns');
+  if (!widths.includes(width) || rows.length > 2001) throw Error('columns');
   // Compact only gaps for the reader; preserve physical source rows separately, with no arbitrary row-number cap.
   if (!rows.length || Number(rows[0].getAttribute('r')) !== 1) {
     const header = doc.createElementNS(sheetData.namespaceURI, 'row');
@@ -119,14 +140,14 @@ function prepareWorkbook(files) {
 }
 
 /** Terminates parsing on timeout/abort; raw file bytes and worker state are never persisted. */
-async function xlsxRecords(bytes, signal) {
+async function xlsxRecords(bytes, signal, kind) {
   const [{ rosterArchive }, { zipSync }] = await Promise.all([
     import('../utils/roster-archive.js'),
     import('fflate'),
   ]);
   if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
   const files = rosterArchive(bytes);
-  const meta = prepareWorkbook(files);
+  const meta = prepareWorkbook(files, kind);
   const packed = zipSync(files, { level: 0 });
   const values = await new Promise((resolve, reject) => {
     const worker = new Worker(new URL('./roster-worker.js', import.meta.url), { type: 'module' });
@@ -150,10 +171,12 @@ async function xlsxRecords(bytes, signal) {
       const cell = record.cells[col];
       const value = values[index]?.[col] ?? '';
       if (index === 0) return typeof value === 'string' ? value : cell?.value || '';
-      const idCol = meta.width === 3 ? 1 : 0;
+      const idCol = kind === 'scores' ? 0 : meta.width === 3 ? 1 : 0;
       if (col === idCol && cell && !['s', 'inlineStr'].includes(cell.type) && cell.value !== '')
         return { kind: 'numeric-identity' };
-      if (col === meta.width - 1 && cell?.value !== '') {
+      if (kind === 'scores' && col >= 3 && cell?.type === 'n' && cell.value !== '')
+        return { kind: 'excel-number', value: cell.value };
+      if (col === (kind === 'scores' ? 1 : meta.width - 1) && cell?.value !== '') {
         if (cell?.type === 'n') {
           try {
             return { kind: 'date', value: excelDate(Number(cell.value), meta.epoch) };
@@ -173,16 +196,33 @@ async function xlsxRecords(bytes, signal) {
   return { records, sheetName: meta.sheetName };
 }
 
+/** Preserves CP03's two/three-column contract while sharing bounded extraction with CP04. */
 export async function readRosterFile(file, { signal } = {}) {
+  const { records, sheetName } = await readLocalFile(file, signal, 'roster');
+  return { ...rosterBatch(records), sheetName };
+}
+
+/** Reuses physical extraction, leaving score-cell validation to exact B1-derived decimal contracts. */
+export async function readScoreFile(file, { signal, catalogs } = {}) {
+  const { records, sheetName } = await readLocalFile(file, signal, 'scores');
+  return { ...scoreBatch(records, catalogs), sheetName };
+}
+
+/** Reads one bounded local file; only the two supported roster/score layouts are recognized. */
+async function readLocalFile(file, signal, kind) {
   if (!file || file.size > ROSTER_LIMITS.bytes || file.size === 0) throw Error('file');
   const bytes = new Uint8Array(await file.arrayBuffer());
   if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
   let records,
     sheetName = null;
   if (/\.csv$/i.test(file.name))
-    records = csvRecords(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
-  else if (/\.xlsx$/i.test(file.name)) ({ records, sheetName } = await xlsxRecords(bytes, signal));
+    records = csvRecords(
+      new TextDecoder('utf-8', { fatal: true }).decode(bytes),
+      kind === 'scores' ? 10 : 3,
+    );
+  else if (/\.xlsx$/i.test(file.name))
+    ({ records, sheetName } = await xlsxRecords(bytes, signal, kind));
   else throw Error('type');
   if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
-  return { ...rosterBatch(records), sheetName };
+  return { records, sheetName };
 }

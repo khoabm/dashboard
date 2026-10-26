@@ -2,6 +2,7 @@
 import { el, button, field } from '../utils/dom.js';
 import { openDialog, ConfirmDialog } from './primitives.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
+import { GradebookScores } from './gradebook-scores.js';
 import { displayDate, uiDate, vietnamToday } from '../utils/gradebook/dates.js';
 import { bigintId, documentNumber } from '../utils/gradebook/contracts.js';
 import {
@@ -16,7 +17,15 @@ import {
 } from '../utils/gradebook-admin.js';
 
 /** Owns all private DOM, dialogs, pagination and import confirmation until route/session disposal. */
-export function GradebookAdmin({ request, readFile, onLogin, onLogout, clock = Date.now }) {
+export function GradebookAdmin({
+  request,
+  readFile,
+  readScores,
+  loadCatalog,
+  onLogin,
+  onLogout,
+  clock = Date.now,
+}) {
   let session = { status: 'loading', generation: -1 },
     disposed = false,
     operation = 0,
@@ -29,6 +38,8 @@ export function GradebookAdmin({ request, readFile, onLogin, onLogout, clock = D
     cursors = [null],
     nextCursor = null;
   const dialogs = new Set();
+  let scoreView = null,
+    mode = 'students';
   let confirmations = new AbortController();
   const preview = createRosterPreview(clock);
   const gate = createAdminGate(request, () => session);
@@ -70,6 +81,9 @@ export function GradebookAdmin({ request, readFile, onLogin, onLogout, clock = D
   }
 
   function closePrivate() {
+    scoreView?.dispose();
+    scoreView = null;
+    mode = 'students';
     cancel();
     confirmations.abort();
     confirmations = new AbortController();
@@ -182,6 +196,7 @@ export function GradebookAdmin({ request, readFile, onLogin, onLogout, clock = D
   }
 
   function load() {
+    if (mode === 'scores' && scoreView) return scoreView.reload();
     return run(async (isCurrent) => {
       preview.clear();
       const result = await gate.call({ op: 'class.read' });
@@ -202,6 +217,7 @@ export function GradebookAdmin({ request, readFile, onLogin, onLogout, clock = D
 
   /** Edits class metadata only; optimistic revisions prevent overwriting a newer teacher change. */
   function editClass() {
+    if (scoreView?.pending()) return;
     const entry = dialog(currentClass ? 'Chỉnh sửa lớp' : 'Tạo lớp đang hoạt động');
     const name = el('input', {
       required: true,
@@ -244,13 +260,16 @@ export function GradebookAdmin({ request, readFile, onLogin, onLogout, clock = D
           const result = await gate.call(payload);
           if (!isCurrent()) return;
           currentClass = result.class;
+          scoreView?.dispose();
+          scoreView = null;
           preview.clear();
           dirty = false;
           clearDialog(entry);
           entry.dialog.close();
           // Refresh only by an explicit completed mutation, never replay the write.
           body.replaceChildren();
-          await list(isCurrent);
+          if (mode === 'scores') render();
+          else await list(isCurrent);
           status.textContent = 'Đã cập nhật lớp.';
         },
         (e) => {
@@ -682,6 +701,48 @@ export function GradebookAdmin({ request, readFile, onLogin, onLogout, clock = D
         button('Chỉnh sửa lớp', editClass),
       ),
     );
+    const changeMode = async (next) => {
+      if (mode === next || (scoreView && !(await scoreView.prepareExit()))) return;
+      scoreView?.dispose();
+      scoreView = null;
+      mode = next;
+      if (mode === 'scores') render();
+      else void load();
+    };
+    body.append(
+      el(
+        'div',
+        { class: 'admin-actions', 'aria-label': 'Khu vực quản trị' },
+        button('Lớp và học sinh', () => void changeMode('students'), 'button', {
+          'aria-pressed': String(mode === 'students'),
+        }),
+        button('Quản lý điểm', () => void changeMode('scores'), 'button', {
+          'aria-pressed': String(mode === 'scores'),
+        }),
+      ),
+    );
+    if (mode === 'scores') {
+      if (!scoreView)
+        scoreView = GradebookScores({
+          request,
+          readFile: readScores,
+          loadCatalog,
+          classroom: currentClass,
+          session,
+          clock,
+          onClass: (value) => {
+            currentClass = value;
+            const title = body.querySelector('.admin-class h2'),
+              year = body.querySelector('.admin-class p');
+            if (title) title.textContent = value.name;
+            if (year) year.textContent = `Năm học: ${value.schoolYear}`;
+          },
+          onUnauthorized: () =>
+            setSession({ status: 'anonymous', generation: session.generation + 1 }),
+        });
+      body.append(scoreView.element);
+      return;
+    }
     const search = el('input', {
       type: 'search',
       placeholder: 'Tìm tên trong trang hiện tại',
@@ -841,6 +902,7 @@ export function GradebookAdmin({ request, readFile, onLogin, onLogout, clock = D
     setSession,
     focus: () => heading.focus(),
     async prepareExit() {
+      if (scoreView && !(await scoreView.prepareExit())) return false;
       return (
         !dirty ||
         (await confirm(

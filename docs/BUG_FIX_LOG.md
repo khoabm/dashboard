@@ -2,6 +2,14 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-27 — GB-CP04-001 / P2: structured422 previews lose actionable counts/errors (FIXED OFFLINE)
+
+Baseline `60fd760`, feature/personal-gradebook. B4 deliberately returns422 for a preview plan with safe counts/errors; CP03's shared gate previously propagated every rejection as a generic operation failure, losing that structured plan for future integration. src/utils/gradebook-admin.js now projects only validated counts/source coordinates for roster.preview/scores.preview errors supplied as status422 + payload; discards diagnostics, internal state and tokens; mutations/other statuses still reject. CP04-T11 pure/component coverage and actual installed-Chrome synthetic422 unknown/DOB-conflict previews PASS, apply remains disabled. Production adapter still has no transport: authorized future transport must extract the422 body into error.payload; no SDK/HTTP/backend integration acceptance inferred.
+
+## 2026-10-27 — GB-CP04-002 / P3: final CSV cell bypasses width guard (FIXED OFFLINE)
+
+Same baseline/branch. Focused CP04-T06 exposed that csvRecords checked accumulated columns during scanning but did not bound the final cell pushed at end-of-row/file. Downstream roster validation already rejected invalid widths, but the extractor's declared maximum could be exceeded. src/utils/roster.js now checks each emitted cell with safe original row/column; default roster3-column cap remains, score mode explicitly allows10. T06 failed before the guard and affected rerun1/1 PASS; CP03 parser tests remain in final curated gate. No hosted requests, backend changes or raw-file persistence.
+
 ## 2026-10-26 — GB-CP03-001 / P2: route scope requires randomUUID (FIXED OFFLINE)
 
 Baseline `1fcbf29f4d10f595a6f251f54627b8f699f7386d`, feature/personal-gradebook. Direct crypto.randomUUID in src/app.js could prevent routing where that API is unavailable. Route scope now uses existing src/utils/id.js newId fallback, no new identity/Auth mechanism. Pure CP03-T01 exercises missing randomUUID; installed Chrome QA disables the method before app bootstrap and verifies Board/lookup/admin navigation. Hosted requests0; no changes to B1–B4/migrations or CP01-C acceptance.

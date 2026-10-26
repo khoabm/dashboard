@@ -128,17 +128,18 @@ Dependency: CP01 transactional/admin/identity contract and CP02 admin navigation
 
 The unchecked atomic/concurrency item requires real CP01-C evidence; offline acceptance never checks it by inference. Installed-Chrome18 scenario/component groups plus local curated90/90/static/build/format evidence establish CP03 OFFLINE ACCEPTED only. No CP04 or CP01-C started.
 
-## CP04 — Teacher point CRUD, import and publication (NOT STARTED)
+## CP04 — Teacher point CRUD, import and publication (OFFLINE ACCEPTED)
 
-Dependency: CP01 + CP03; verify publication/import locks and authorized preview semantics together. No real data before §H.
+Dependency: CP01 + CP03; verify publication/import locks and authorized preview semantics together. No real data before §H. [Current implementation/evidence](../../STATUS.md#cp04--teacher-score-management-import-and-publication--2026-10-27), [T01–T14 matrix](../../TESTING.md#cp04-offline-concern-matrix). Below, checked items are offline UI/contracts only; production adapter remains fail-closed.
 
-- [ ] Two semester contexts with all eight subjects and seven score labels/order via catalogs; don't label any visible column `TX1`.
-- [ ] Manually add/edit/remove scores with confirmations and pending feedback.
-- [ ] Excel + CSV score import has exactly ten physical columns A–J with the meanings in BRIEF GB-07; header text may be customized/duplicated and never supplies data keys; semester selected on UI.
-- [ ] Match student via protected ID + DOB; multiple rows of the same student in different subjects valid. Unknown/mismatched student, repeated nonblank score coordinate or invalid decimal blocks whole file, never last-write-wins.
-- [ ] Preview INSERT/UPDATE/unchanged/error by score coordinate and skipped blanks. Missing slot INSERTs, changed raw value UPDATEs, equal value unchanged. Blank never clears/writes 0. Transaction preserves all previous values on failure; same-value rows do not rewrite timestamps.
-- [ ] Raw decimal-string values with ≤5 fractional digits survive form/Excel/CSV/API/DB writes and sorting. Excess precision rejects instead of rounding; only display/grouping rounds to one decimal. Reconfirm stale previews after concurrent edits.
-- [ ] Publish/unpublish each semester independently; missing-data warning; block imports while published and warn on manual edits.
+- [x] Two semester tabs, ordered eight-subject/seven-column catalog workspace; no technical abbreviations. Teacher catalog supplied by isolated QA adapter only; B4 currently lacks teacher exposure, production hook fails locally.
+- [x] Manual put/delete with decimal strings, null expected absence/string revisions, delete confirmation, published-edit acknowledgement, pending/conflict/unknown-outcome handling and private cleanup.
+- [x] CSV/XLSX ten physical A–J columns, customizable headers, preserved source positions/trailing slots/calendar dates/text identities and numeric XML score lexemes; selected semester before file; downloadable header-only templates.
+- [x] Local coordinate/subject/decimal validation; same student/different subject allowed; synthetic server ID/DOB match/conflict and whole-batch rejection; no silent duplicate overwrite.
+- [x] Server-owned preview/apply request contract and safe422 projection; INSERT/UPDATE/unchanged/error/skipped counts by coordinate, explicit class/semester/input/token/expiry confirmation, stale/error invalidation; one batch apply, no per-row writes.
+- [x] Offline decimal strings/form/CSV/XLSX/provisional adapter writes and B1 exact sorting/display preserve ≤5 places; sixth/exponent/binary tails reject. Blank skips, zero writes. Unknown sent-write outcome requires explicit reload; no retry.
+- [x] Independent publish/unpublish UI with class revision/confirmation; conservative possible-missing warning/acknowledgement (B4 has no missing-count preflight DTO); import lock and published manual warning verified synthetically.
+- [ ] CP01-C: real authorization/publication locks, atomic rollback and same-value timestamp preservation, NUMERIC API/DB precision round-trip, teacher catalog/preflight integration. Offline mocks never check these by inference.
 
 ## CP05 — Student board and per-cell histogram modal (NOT STARTED)
 

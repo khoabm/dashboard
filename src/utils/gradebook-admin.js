@@ -11,6 +11,32 @@ export class AdminError extends Error {
   }
 }
 
+/** Projects a structured 422 preview only; diagnostics, identities, state hashes and tokens are discarded. */
+export function previewErrors(payload) {
+  const counts = {};
+  for (const key of ['insert', 'update', 'unchanged', 'error', 'skippedBlank']) {
+    const n = payload?.counts?.[key];
+    requireContract(Number.isSafeInteger(n) && n >= 0 && n <= 14000, 'preview');
+    counts[key] = n;
+  }
+  requireContract(
+    counts.error > 0 && Array.isArray(payload.errors) && payload.errors.length <= 2000,
+    'preview',
+  );
+  const errors = payload.errors.map((error) => {
+    requireContract(
+      Number.isSafeInteger(error.row) &&
+        error.row >= 2 &&
+        Number.isInteger(error.column) &&
+        error.column >= 1 &&
+        error.column <= 10,
+      'preview',
+    );
+    return { row: error.row, column: error.column, code: 'invalid' };
+  });
+  return { counts, errors, previewToken: null, expiresAt: null };
+}
+
 /** Maps safe categories, never backend diagnostic text or personal values. */
 export function adminMessage(error) {
   if (error?.status === 409)
@@ -18,7 +44,7 @@ export function adminMessage(error) {
   if (error?.status === 401 || error?.status === 403)
     return 'Phiên quản trị chưa được xác minh hoặc đã hết hạn.';
   if (error?.status === 422)
-    return 'Không thể thực hiện. Kiểm tra thông tin; học sinh có điểm cần được ngừng sử dụng thay vì xóa.';
+    return 'Không thể thực hiện. Kiểm tra dữ liệu và điều kiện thao tác; hãy tải lại nếu dữ liệu đã thay đổi.';
   if (error?.status === 429)
     return 'Vui lòng dừng và thử lại sau; hệ thống không tự gửi lại yêu cầu.';
   if (error?.name === 'AbortError')
@@ -118,7 +144,16 @@ export function createAdminGate(request, session, deadline = 15000) {
           );
           timer = setTimeout(() => active.abort(), deadline);
         });
-        const result = await Promise.race([request(body, { signal }), stopped]);
+        const response = Promise.resolve(request(body, { signal })).catch((error) => {
+          if (
+            error?.status === 422 &&
+            ['roster.preview', 'scores.preview'].includes(body.op) &&
+            error.payload?.counts
+          )
+            return previewErrors(error.payload);
+          throw error;
+        });
+        const result = await Promise.race([response, stopped]);
         if (
           signal.aborted ||
           ticket !== generation ||
@@ -136,22 +171,29 @@ export function createAdminGate(request, session, deadline = 15000) {
 }
 
 /** Owns a preview's exact in-memory input/expiry; any change makes confirmation unusable. */
-export function createRosterPreview(clock = Date.now) {
+export function createRosterPreview(clock = Date.now, kind = 'roster') {
   let batch = null,
     preview = null,
     classId = null,
-    version = 0;
+    version = 0,
+    semester = null;
   return {
     clear() {
       batch = null;
       preview = null;
       classId = null;
+      semester = null;
       version++;
     },
-    set(value, owner) {
+    set(value, owner, selectedSemester = null) {
+      requireContract(
+        kind === 'roster' || (kind === 'scores' && [1, 2].includes(selectedSemester)),
+        'semester',
+      );
       batch = structuredClone({ headers: value.headers, rows: value.rows });
       preview = null;
       classId = owner;
+      semester = selectedSemester;
       return ++version;
     },
     ticket: () => version,
@@ -170,14 +212,21 @@ export function createRosterPreview(clock = Date.now) {
       preview = { previewToken: value.previewToken, expiresAt: value.expiresAt };
       return true;
     },
-    apply(owner) {
-      if (!batch || !preview || classId !== owner || preview.expiresAt * 1000 <= clock()) {
+    apply(owner, selectedSemester = null) {
+      if (
+        !batch ||
+        !preview ||
+        classId !== owner ||
+        semester !== selectedSemester ||
+        preview.expiresAt * 1000 <= clock()
+      ) {
         preview = null;
         throw new AdminError(409, 'preview');
       }
       return {
-        op: 'roster.apply',
+        op: `${kind}.apply`,
         classId: owner,
+        ...(kind === 'scores' ? { semester } : {}),
         headers: batch.headers,
         rows: batch.rows,
         previewToken: preview.previewToken,

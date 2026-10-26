@@ -6,6 +6,21 @@ Nguồn tiêu chí đầy đủ: SPEC R05–08, R10–14, R19–22, R25. Không 
 
 Mỗi case ghi: ID hoặc Rxx/tiểu mục, commit/config, môi trường/browser/viewport/danh tính, bước thực hiện, mong đợi/thực tế, trạng thái và bằng chứng. PASS chỉ khi thực sự chạy và quan sát; FAIL có tái hiện; BLOCKED có nguyên nhân; NOT RUN chưa chạy. Không in secret/PII hoặc token trong log/screenshot.
 
+## CP04 offline concern matrix
+
+Baseline60fd760, feature/personal-gradebook. Current test:ci explicitly lists ten pure/component files, adding gradebook-scores.test.js; earlier nine/six-file snapshots are historical. No HTTP/API/SDK/Edge/SQL/browser integration enters CI. Production adapter remains unavailable; local Chrome intercepts Board/Auth and injects an isolated teacher adapter/catalog.
+
+| Groups | Focused evidence |
+| --- | --- |
+| CP04-T01–T05 | Ordered catalogs, null/string revision writes, lexical precision/zero/absence, exact display/sort and publication acknowledgement; pure/component tests plus actual teacher UI |
+| CP04-T06–T09 | Physical A–J/custom headers/trailing blanks/source coordinates, XML numeric precision/date/text identity, duplicates versus different subjects, invalid/unknown/mismatched records; pure extraction contracts plus actual CSV/XLSX Chrome files |
+| CP04-T10–T13 | Per-coordinate/skipped counts, semester/input/token/expiry binding, structured422 versus409, no retry, publication independence/missing warning, cancellation/late-result disposal; pure ownership contracts plus synthetic Chrome operations |
+| CP04-T14 | Existing curated tests; representative actual Board content, CP02 lookup disposal/unavailability and CP03 controls/two-column XLSX parser regression, without repeating their complete historical QA |
+
+Merge inventory: gradebook-scores component/helper, no-transport catalog boundary, small admin/app integration, shared preview422/semester binding and roster parser extensions, score CSS, header-only public CSV/XLSX templates/exact build allowlist, one curated test file/package script, essential overview/status/code map/checkpoint/index/bug log/testing updates. B1–B4, migrations, dependencies/lock and specialist assets remain unchanged. Fixture adapters, raw synthetic test files, screenshots/downloads/logs/runners stay ignored under tests/local/cp04 and never enter application/CI bundles. Screenshots redact score-table rows; no raw identifiers/scores in logs.
+
+Browser QA uses installed headed Chrome, isolated temporary profile, loopback CDP and finite synthetic fault injection. Real DB/Auth/RLS/transaction/precision round-trip, teacher catalog integration, publication missing-count preflight, CP01-C and real-data security gates remain NOT RUN; viewport checks do not establish native-device/Safari acceptance. Cancellation of a sent write is an unknown outcome until explicit reload, not proof of rollback.
+
 ## CP03 offline concern matrix
 
 Baseline `1fcbf29`, feature/personal-gradebook. Curated CI now explicitly lists **nine** component/pure-unit files in package.json (seven existing plus gradebook-admin.test.js and roster.test.js). Earlier six-file B5 inventories below are historical. No HTTP, SDK, Edge, SQL or browser integration enters CI.
@@ -87,7 +102,7 @@ Workflow `.github/workflows/ci.yml`: `workflow_dispatch`, PR hướng tới `dev
 | --- | --- | --- |
 | `npm ci` | Cài dependency từ lockfile | Chỉ đánh giá khi workflow chạy |
 | `npm run check` | Syntax frontend +13 Edge JS; frontend secret rules unchanged, server env references allowed but literal key/JWT patterns denied; git diff whitespace | Offline |
-| `npm run test:ci` | Explicit nine-file component/pure-unit allowlist; npm test delegates to it | No wildcard discovery, SDK/API/Edge/service/SQL/browser integration |
+| `npm run test:ci` | Explicit ten-file component/pure-unit allowlist; npm test delegates to it | No wildcard discovery, SDK/API/Edge/service/SQL/browser integration |
 | `npm run build` | Static bundling Vite | Offline, không deploy |
 | `npm run format:check` | Prettier exact3.6.2 local devDependency/lock; frontend/test/scripts và supabase/functions JS | Không còn baseline miễn trừ; đầy đủ file trong phạm vi script |
 

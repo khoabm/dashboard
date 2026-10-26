@@ -16,4 +16,4 @@
 
 Không dùng overview này để thay tiêu chí chi tiết hoặc tuyên bố tính năng đã tồn tại.
 
-**Feature đang phát triển:** [Bảng điểm cá nhân](features/personal-gradebook/README.md) — backend draft chưa áp dụng; CP02 tra cứu và CP03 quản trị lớp/học sinh/import có UI offline, production adapter vẫn fail-closed. Điểm/biểu đồ CP04/CP05 chưa triển khai; CP01-C và real-data gate NOT RUN. Brief quy định nghiệp vụ; [STATUS](STATUS.md) ghi bằng chứng hiện tại, không suy từ UI rằng backend đã an toàn hoặc có dữ liệu thật.
+**Feature đang phát triển:** [Bảng điểm cá nhân](features/personal-gradebook/README.md) — backend draft chưa áp dụng; CP02 tra cứu, CP03 lớp/học sinh/import và CP04 điểm/import/công bố có UI offline, production adapters vẫn fail-closed. CP05 chưa triển khai; CP01-C và real-data gate NOT RUN. Brief quy định nghiệp vụ; [STATUS](STATUS.md) ghi bằng chứng hiện tại, không suy từ UI rằng backend đã an toàn hoặc có dữ liệu thật.

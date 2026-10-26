@@ -23,9 +23,13 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 | src/main.js | Board bootstrap/render/Auth; shared restoration promise + direct openBoardAdmin for both headers; suspend route refresh; flush editor-owned drafts before route exit |
 | src/components/app-header.js, site-navigation.js | Shared branding/admin controls; accessible Board/lookup menu plus verified-admin entry |
 | src/components/gradebook-admin.js | CP03 class/student dialogs, paged list, reveal/import ownership and route/session disposal |
+| src/components/gradebook-scores.js | CP04 teacher-only semester/subject/student workspace, bounded score-page joins, cell CRUD, publication and score import; owned dialogs/previews/late-response disposal |
+| src/utils/gradebook-scores.js | Pure ordered catalog projection, B1 decimal comparison/input, score-page DTOs, mutation/publication preconditions and A–J batch validation |
+| src/services/gradebook-catalog.js | Explicit teacher catalog integration gap; no invented operation/network or production fixture fallback |
 | src/utils/gradebook-admin.js, roster.js | Pure input/DTO projection, cancellable operation/preview ownership and bounded positional CSV/roster validation; reuse B1 |
 | src/services/gradebook-admin.js | CP03 B4-shaped production adapter; deliberately no transport or synthetic fallback until authorized integration |
-| src/services/roster-file.js, roster-worker.js, src/utils/roster-archive.js | Memory-only file parsing; bounded ZIP/layout inspection, lazy read-excel-file9.3.12 worker/fflate0.8.3; physical columns/source rows and calendar dates retained |
+| src/services/roster-file.js, roster-worker.js, src/utils/roster-archive.js | Shared roster/score memory-only parsing; bounded ZIP/layout inspection, lazy read-excel-file9.3.12 worker/fflate0.8.3; original rows/calendar dates and lexical XML numeric scores retained |
+| public/templates/score-template.csv, score-template.xlsx; tests/gradebook-scores.test.js | Header-only default score templates and CP04 curated pure/component contracts; no student data, HTTP/SDK/SQL/browser integration in CI |
 | tests/gradebook-admin.test.js, roster.test.js | CP03 curated pure T01–T10 contracts; actual installed-Chrome fixtures/evidence stay ignored under tests/local/cp03, outside CI/production |
 | src/components/student-lookup.js, src/utils/gradebook-ui.js | Date-only lookup form; pure validation/generation/cancellation/expiry; capability/input memory only |
 | src/services/student-lookup.js | CP02 production fail-closed adapter: unavailable, zero network until separately authorized backend integration |
