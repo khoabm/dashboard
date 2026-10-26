@@ -1,6 +1,6 @@
 # Execution plan and acceptance gates — Personal Gradebook
 
-**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1 ACCEPTED; B2 ACCEPTED; B3 READY FOR REVIEW; B4/B5 and CP02–CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
+**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1 ACCEPTED; B2 ACCEPTED; B3 CORRECTION READY FOR REVIEW; B4/B5 and CP02–CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
 
 CP01-A is a separately authorized **technical-design** slice: [design and original read-only evidence](CP01_TECHNICAL_DESIGN.md), baseline `f522266`; [accepted refinements GB-A-REV-001..003](CP01_TECHNICAL_DESIGN.md#143-accepted-refinement-disposition) reviewed from `31f887bd`, 2026-10-26. **DESIGN REFINED / READY**, documentation checks only. CP01-B1 is ACCEPTED; CP01-B2 is ACCEPTED; CP01-B3 READY FOR REVIEW; CP01-B4/B5 remain NOT STARTED; CP01-C security acceptance and the real-data gate remain NOT RUN. Separate requests are required; no implementation acceptance box is checked by design alone.
 
@@ -207,3 +207,7 @@ Main CP01 integration acceptance boxes stay unchecked. SQL helpers/tables passin
 ## CP01-B3 — transaction draft (2026-10-26)
 
 B2 accepted baseline `d86627f`. New `20261026030000_gradebook_transactions.sql` adds 22 service-only invoker RPCs, private validation/planner/framing helpers, shared import preview/apply/state hash, class-scoped audit and atomic limiter. Five prior migrations unchanged, no tables added. [B3 inventory, DTO signatures, evidence and limits](B3_TRANSACTION_REVIEW.md). B3 READY FOR REVIEW; B4/B5 NOT STARTED, CP01-C and real-data gate NOT RUN. 14 B3/18 B2 disposable SQL groups and81 app tests PASS; native17, multi-connection locks, hosted API/security and browser NOT RUN. Draft not applied. Earlier B3 NOT STARTED entries are historical.
+
+## B3 focused conflict correction — 2026-10-26
+
+At `13292a3` baseline, GB-B3-REV-003 P1 confirmed eight application40001 paths. Additive20261026050000 corrective draft replaces them with PT409; no B2/B3/history rewrite. Correction offline13/13 SQL groups +4/4 DOM tests PASS, one focused execution each. No hosted requests, broad suite, quota/load/stress or migration deployment. Board conflict guidance fixed; GB-OPS-REV-002 rollout plan in DATABASE, GB-OPS-REV-003 policy remains RESOLVED. B4/B5 NOT STARTED, CP01-C and real-data gate NOT RUN. [Detailed correction evidence](B3_TRANSACTION_REVIEW.md#gb-b3-rev-003-correction--2026-10-26). This entry supersedes earlier B3 draft-ready/blocker summaries for this specific error-code finding; it does not certify unrelated B3 security/runtime behavior.

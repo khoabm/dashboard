@@ -82,6 +82,8 @@ const userFacingErrors = new Set([
  */
 export function errorMessage(error) {
   const message = typeof error?.message === 'string' ? error.message : '';
+  if (error?.code === 'PT409')
+    return 'Bài đăng đã thay đổi. Vui lòng tải lại dữ liệu trước khi thử lại.';
   if (error?.code === '40001')
     return 'Bài đăng đã có thay đổi từ nơi khác. Bản nháp của bạn vẫn được giữ; hãy tải lại bài để xem phiên bản mới nhất.';
   if (error?.code === '23503')

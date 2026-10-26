@@ -1,3 +1,13 @@
+# CP01-B3 focused correction — 2026-10-26
+
+Baseline `13292a3`, feature/personal-gradebook; **B3 CORRECTION READY FOR REVIEW / NOT DEPLOYED**. GB-B3-REV-003 P1 corrected in additive `20261026050000_gradebook_nonretryable_conflicts.sql`: eight exact business-conflict definitions become PT409 with body/metadata guards. Old migrations unchanged. Board PT409 feedback is now localized safely. [Correction evidence](features/personal-gradebook/B3_TRANSACTION_REVIEW.md#gb-b3-rev-003-correction--2026-10-26), [rollout gate](DATABASE.md#gradebook-migration-rollout-gate--gb-ops-rev-002).
+
+One focused SQL execution13/13 groups PASS (disposable PGlite18.6), DOM tests4/4 PASS; targeted syntax/format/diff only. Full B3/app suites, build, browser, native17, concurrency and hosted integration NOT RUN. **Hosted requests0; hosted migration executionNO; stress/load/soak/stretchNONE.** Board hotfix remains applied according to existing recorded evidence; B2/B3/correction remain drafts. B4/B5 NOT STARTED, CP01-C/real-data gate NOT RUN. No ledger repair/deploy/merge/rebase.
+
+GB-OPS-REV-002 handled by documented dependency/pending-version review and a no-Gradebook-traffic rollout gate, not by altering applied history. GB-OPS-REV-003 quota policy remains RESOLVED. Earlier snapshots below are historical.
+
+---
+
 # GB-OPS-001 — hosted board retry fix applied, 2026-10-26
 
 **Board hotfix APPLIED / metadata verified.** Explicit user authorization followed the initial approval rejection. Supabase migration `20261026034549_stop_business_conflict_retries` replaces business-conflict40001 with PT409 in only `public.reorder_posts(uuid[],integer[])` and `public.save_post(jsonb,jsonb,integer)`. Local filename reconciled to actual hosted migration version; SQL content unchanged.

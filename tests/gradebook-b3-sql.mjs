@@ -38,10 +38,12 @@ try {
   for (const file of (await readdir('supabase/migrations')).sort()) {
     if (file.includes('gradebook_transactions')) before = await snapshot();
     await db.exec(await readFile('supabase/migrations/' + file, 'utf8'));
+    if (file.includes('gradebook_transactions')) {
+      await check('B3 preserves existing board/Auth policies/functions/ACLs', async () =>
+        assert.deepEqual(await snapshot(), before),
+      );
+    }
   }
-  await check('B3 preserves existing board/Auth policies/functions/ACLs', async () =>
-    assert.deepEqual(await snapshot(), before),
-  );
   await db.query('INSERT INTO auth.users VALUES($1)', [actor]);
   await db.query('INSERT INTO public.admin_profiles(user_id) VALUES($1)', [actor]);
   await db.query('INSERT INTO auth.sessions VALUES($1,$2,NULL)', [session, actor]);
@@ -175,7 +177,7 @@ try {
       await reject(
         'SELECT public.gb_roster_apply($1,$2,$3,$4,$5,$6)',
         [actor, session, cid, JSON.stringify(headers), JSON.stringify(rows), hash],
-        '40001',
+        'PT409',
       );
       rows = [{ ...identity, row: 7, fullName: 'Changed' }];
       const updated = await preview();
@@ -229,7 +231,10 @@ try {
         (await preview('scores', scoreRows)).internalStateHash,
         next.internalStateHash,
       );
-      await assert.rejects(apply('scores', scoreRows, next.internalStateHash));
+      await assert.rejects(
+        apply('scores', scoreRows, next.internalStateHash),
+        (error) => error.code === 'PT409',
+      );
     },
   );
   await check('mixed invalid and duplicate score batches never commit a prefix', async () => {
@@ -240,7 +245,7 @@ try {
     ]) {
       const p = await preview('scores', rr);
       assert(p.counts.error > 0);
-      await assert.rejects(apply('scores', rr, '0'.repeat(64)));
+      await assert.rejects(apply('scores', rr, '0'.repeat(64)), (error) => error.code === 'PT409');
     }
     assert.equal(await scalar('SELECT sum(score)::text FROM gradebook.student_scores'), original);
   });
