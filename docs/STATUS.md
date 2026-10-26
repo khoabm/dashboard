@@ -1,10 +1,12 @@
-# CP01-B1 review corrections — 2026-10-26
+# CP01-B2 — schema/security migration draft, 2026-10-26
 
-Branch `feature/personal-gradebook`, correction baseline `f810f03ab8f101607553d73c19438c7fff14689a`; see the commit containing this entry for final source. **B1 implemented / offline PASS / ready for review**: exact decimals, identity/BIGINT text, calendar-only DOB/Excel serials, bounded roster normalization and canonical input/framing primitives. Five pure utility modules; trim/Unicode length, increasing source-row gaps and positional roster mapping corrected. BRIEF V1.2 permits custom/duplicate import headers, preserving UI/catalog labels. **40 B1 / 81 total tests PASS**. `npm ci`, check, test, build, format:check and diff whitespace PASS locally. No UI integration, dependency/migration changes or live Supabase calls. GitHub CI at the implementation commit NOT RUN; no PR requested.
+Branch `feature/personal-gradebook`, baseline local/remote `282bebc89f630fe773c016c0ec7bb94b7681143e`, clean; develop `307b6c6`, not merged/rebased. **B1 ACCEPTED; B2 DRAFT READY FOR REVIEW / NOT APPLIED TO SUPABASE.** Six isolated tables, exact catalogs, RLS/ACL and narrow boolean session helper. Migration file exists in Git; no hosted changes, public RPCs, Functions, UI or new project dependency.
 
-B2–B5 and CP02–CP07 **NOT STARTED**; CP01-C and real-personal-data gate **NOT RUN**. Full snapshot fingerprint, RPC locks/UPSERT, Edge crypto/signing, XLSX parser and live security acceptance remain separate. [B1 evidence](features/personal-gradebook/CHECKPOINTS.md#cp01-b1--exact-value-contracts-2026-10-26). No merge/rebase/deploy.
+Local **18/18 SQL groups PASS** on disposable in-memory PGlite 0.5.11 / PostgreSQL18.6 with synthetic platform dependencies + four old migrations. **81/81 offline app tests**, npm ci/check/build/format/diff PASS. Native PostgreSQL17/hosted JWT/API/security acceptance and GitHub CI on B2 commit NOT RUN. [B2 review/evidence and safe rollout/rollback](features/personal-gradebook/B2_MIGRATION_REVIEW.md). Existing B1 findings remain fixed.
 
-Correction entries GB-B1-REV-001/002 FIXED; GB-B1-REV-003 B1/design FIXED and full file/score importer DEFERRED CP03/CP04. No new module/dependency/UI or migration. The dated snapshot below describes the pre-B1 state; its “NOT STARTED” statements for B1 are historical.
+B3–B5 and CP02–CP07 NOT STARTED; CP01-C and real-personal-data gate NOT RUN. No migration apply/PR/merge/rebase/deploy. CLI generated the filename, then automatic approval blocked telemetry; no retry, no further CLI operation. Remaining work follows the review's separate acceptance matrix.
+
+The older snapshot below is historical and does not override the B1/B2 status above.
 
 ---
 

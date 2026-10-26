@@ -1,8 +1,8 @@
 # Execution plan and acceptance gates — Personal Gradebook
 
-**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1 implemented, offline PASS / ready for review; B2–B5 and CP02–CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
+**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1 ACCEPTED; B2 migration draft ready for review; B3–B5 and CP02–CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
 
-CP01-A is a separately authorized **technical-design** slice: [design and original read-only evidence](CP01_TECHNICAL_DESIGN.md), baseline `f522266`; [accepted refinements GB-A-REV-001..003](CP01_TECHNICAL_DESIGN.md#143-accepted-refinement-disposition) reviewed from `31f887bd`, 2026-10-26. **DESIGN REFINED / READY**, documentation checks only. CP01-B1 implementation is ready for review; CP01-B2–B5 remain NOT STARTED; CP01-C security acceptance and the real-data gate remain NOT RUN. Separate requests are required; no implementation acceptance box is checked by design alone.
+CP01-A is a separately authorized **technical-design** slice: [design and original read-only evidence](CP01_TECHNICAL_DESIGN.md), baseline `f522266`; [accepted refinements GB-A-REV-001..003](CP01_TECHNICAL_DESIGN.md#143-accepted-refinement-disposition) reviewed from `31f887bd`, 2026-10-26. **DESIGN REFINED / READY**, documentation checks only. CP01-B1 is ACCEPTED; CP01-B2 draft is ready for review; CP01-B3–B5 remain NOT STARTED; CP01-C security acceptance and the real-data gate remain NOT RUN. Separate requests are required; no implementation acceptance box is checked by design alone.
 
 ## Operating workflow for Codex
 
@@ -58,7 +58,7 @@ Docs-only evidence 2026-10-26 at `eba7c18e`: eight Markdown files, 54 relative l
 
 Paths are planning candidates, not permission to create modules or abstractions. Frontend regression/fixtures stay in `tests/`; local outputs in ignored `tests/local/`. Server/migration tests use conventional feature subfolders, with exact commands chosen in CP01 and CI coverage added when implemented.
 
-## CP01 — Data model and security (B1 ready for review; remaining implementation NOT STARTED)
+## CP01 — Data model and security (B1 accepted; B2 draft ready; B3–B5 NOT STARTED)
 
 Deliverables: reviewed additive migration(s), six-table model incl ordered catalogs, minimal secure Functions for identity and admin, unit/security checks, cost check; **do not apply without authorization**.
 
@@ -195,3 +195,11 @@ Baseline `f810f03ab8f101607553d73c19438c7fff14689a`, same feature branch/local/r
 - Local offline: **40 B1 / 81 total tests PASS**; npm ci/check/test/build/format:check and diff whitespace PASS. Existing 41 board regressions retained. No live/backend/browser acceptance inferred; exact-commit GitHub CI NOT RUN.
 
 Future CP03/CP04 acceptance: parser preserves exact physical width including trailing empty columns/XLSX positions; skips only entirely empty physical rows and reports partial/invalid rows at original row/column; preview clearly shows A–J/roster mapping before confirmation. Renamed headers must not alter meaning; swapped valid numeric columns may be undetectable. No full parser, score importer or preview UI implemented here. B2–B5 NOT STARTED; CP01-C and real-data gate NOT RUN.
+
+## CP01-B2 — Migration draft ready for review (2026-10-26)
+
+Baseline local/remote `282bebc89f630fe773c016c0ec7bb94b7681143e`, clean; develop `307b6c6`, no merge/rebase. Commit containing this entry anchors the draft. [B2 review](B2_MIGRATION_REVIEW.md) lists migration/tests, constraints, least privileges, helper owner preflight, audit dependencies and pre/post/rollback plan.
+
+**PASS — DRAFT READY FOR REVIEW, NOT APPLIED TO SUPABASE.** One additive SQL file, six tables, ordered catalogs, RLS/no client policies, explicit server ACL and narrow boolean session helper. 18/18 disposable SQL groups PASS on PGlite 0.5.11 / PostgreSQL 18.6 WASM with synthetic Auth/Storage and four actual old migrations. Native PostgreSQL 17 and hosted API/JWT/security/concurrency acceptance NOT RUN. npm ci/check/test/build/format:check and diff check PASS; 81/81 app offline tests. No runtime/CI/dependency/frontend change. B3–B5 and CP02–CP07 NOT STARTED; CP01-C and real-data gate NOT RUN; no PR/deploy/merge.
+
+Main CP01 integration acceptance boxes stay unchecked. SQL helpers/tables passing local synthetic tests are not the completed Gradebook backend. The timestamped draft was generated by CLI before automatic approval blocked telemetry; no retry or further CLI operation performed.

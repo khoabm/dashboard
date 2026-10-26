@@ -114,3 +114,7 @@ Tổ chức kiểm thử: mọi file frontend test/fixture nằm trong `tests/` 
 ## Personal Gradebook B1 utilities
 
 `src/utils/gradebook/{contracts,decimal,dates,imports,canonical}.js` contains pure B1 contracts, with no client/network/DOM or persistent-storage dependency. `tests/gradebook-contracts.test.js` covers exact values, calendar/Excel conversion, normalization and protocol vectors offline. The roster helper maps physical width/positions to stable DTO keys, accepts increasing source-row gaps and validates trimmed names by Unicode code points; editable header text is not a mapping key. They are not imported by the application entry point yet. See [B1 boundary](features/personal-gradebook/CP01_TECHNICAL_DESIGN.md#15-b1-implemented-contract-boundary); routes, full DB fingerprint, RPC and Functions are not implemented.
+
+## Personal Gradebook B2 SQL draft
+
+`supabase/migrations/20261026014933_gradebook_foundation.sql` is an unapplied six-table foundation; the narrow private boolean session helper is the only new function. `tests/gradebook-b2-sql.mjs` creates fresh in-memory PGlite databases using `tests/gradebook/b2-bootstrap.sql` and four actual board migrations; no DB URL is accepted, no dependency added to the app. [B2 review](features/personal-gradebook/B2_MIGRATION_REVIEW.md) separates local SQL evidence from PostgreSQL17/Supabase/JWT/concurrency gates. RPCs, runtime epochs/stamping, limiter, crypto and UI remain unimplemented.

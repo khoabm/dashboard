@@ -104,7 +104,7 @@ Seed only the exact [GB-04/GB-05 tables](BRIEF.md#gb-04--subjects-visible-names-
 | semester | SMALLINT NOT NULL | CHECK IN (1,2) |
 | subject_code | TEXT NOT NULL | FK subjects.code, ON DELETE/UPDATE RESTRICT |
 | score_column_code | TEXT NOT NULL | FK score_columns.code, ON DELETE/UPDATE RESTRICT |
-| score | NUMERIC NOT NULL, no typmod/default | CHECK score BETWEEN 0 AND 10 AND scale(score) <= 5; no scale coercion |
+| score | NUMERIC NOT NULL, no typmod/default | CHECK score BETWEEN 0 AND 10 AND scale(trim_scale(score)) <= 5; meaningful precision only; lexical check before cast |
 | revision | BIGINT NOT NULL DEFAULT 1 | Positive; actual UPDATE increments, unchanged does not |
 | updated_by | UUID NOT NULL | FK auth.users(id), ON DELETE/UPDATE RESTRICT, verified actor only |
 | created_at, updated_at | TIMESTAMPTZ NOT NULL DEFAULT now() | No timestamp rewrites for unchanged numeric value |
@@ -445,3 +445,9 @@ Original B1 evidence at f810f03: 37 new B1 tests / 78 total PASS, syntax/build/f
 Header row 1 is retained as ordered bounded text. `headers.length` declares physical roster width 2 or 3; normalized row DTOs use fixed internal keys after positional extraction. B1 never guesses from labels/content. Canonical input still binds exact header text, layout and original row positions: renaming headings changes the input transcript but not semantic mapping. No cryptographic commitment is implemented in B1.
 
 Full CSV/XLSX extraction is CP03/CP04: retain empty trailing columns and XLSX cell addresses; reject missing/extra cells; skip only completely empty physical rows, never partial/invalid rows. Source rows are safe integers ≥2, strictly increasing with gaps and no inserted placeholders. Preview shows detected A–J mapping explicitly; semantic swaps of valid numeric columns cannot always be detected. Score array values are D–J in fixed GB-05 order, not keys derived from headers; C values still use the exact GB-04 subject catalog. Cell errors use original source row and one-based physical column without echoing sensitive values. Transaction and stale-preview guarantees remain unchanged and NOT RUN.
+
+## 16. CP01-B2 migration draft
+
+B1 accepted baseline `282bebc`; B2 creates `20261026014933_gradebook_foundation.sql` only, **not applied to Supabase**. Six tables/RLS/explicit ACL, deterministic catalogs and boolean admin_session_ok helper; no public gb_* RPC, lifecycle stamping, runtime limiter/UPSERT or frontend integration. [B2 review, local evidence, rollout/rollback and security matrix](B2_MIGRATION_REVIEW.md) owns implementation boundaries.
+
+The newer B2 request clarifies stored meaningful precision vs original string spelling: use `scale(trim_scale(score)) <= 5` on unconstrained NUMERIC; B1/B3/B4 still reject sixth lexical digits even when zero. This replaces the earlier scale(score) proposal without allowing rounding. Class/student revisions and revocation updates remain B3 operations, not automatic B2 triggers. Catalog seed replay validates matching rows and fails on divergence; default privilege changes remain out of scope. B3–B5 NOT STARTED; CP01-C/real-data gate NOT RUN.

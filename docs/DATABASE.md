@@ -42,3 +42,7 @@ Hướng dẫn hiện tại: [ADMIN_SETUP](ADMIN_SETUP.md), [BACKUP](BACKUP.md).
 - reorder_posts khóa các bài trong cột theo ID, kiểm danh sách/phiên bản đầy đủ, cập nhật rank trong một transaction. app_usage chỉ admin, đo bucket storage metadata và database physical estimate; egress null.
 - Tên migration ban đầu được CLI migration new sinh; sau apply MCP đã đối chiếu/đổi prefix theo **version thực trả từ schema_migrations** để không push lại cùng migration. File SQL khớp payload đã apply: 20261023150359_initial_board, 20261023151152_quota_observability, 20261023151459_atomic_post_reorder, 20261023152049_split_write_policies.
 - seed.sql có stable IDs và ON CONFLICT DO NOTHING, không ghi đè bài đã chỉnh khi chạy lại. access.sql tạo user/rows test trong transaction rồi ROLLBACK, không giữ credential/tài khoản thử.
+
+## Personal Gradebook B2 — unapplied draft
+
+`supabase/migrations/20261026014933_gradebook_foundation.sql` adds six non-exposed Gradebook tables plus catalog seed/RLS/ACL and one restricted boolean session helper. **Not applied to Supabase; the hosted baseline remains four migrations as last documented.** No class/student/auth data is seeded. [B2 review](features/personal-gradebook/B2_MIGRATION_REVIEW.md) records constraints vs future RPC/Edge guarantees, native17/hosted gates and safe pre/post/rollback planning; do not automatically apply all pending files. Existing board migrations/policies/functions are unchanged.
