@@ -1,3 +1,11 @@
+# Incident GB-OPS-001 — hosted retry storm, 2026-10-26
+
+**P1 / fix prepared, hosted execution BLOCKED by automatic approval review.** PostgREST14.18 repeatedly retries existing board reorder_posts business conflicts raised as40001. Bounded logs/activity confirmed backend131961 with known session start. Prepared additive board-only PT409 hotfix and focused disposable regression PASS. Migration apply and exact-session termination were rejected and did not execute. No live load test. [Finding/evidence](BUG_FIX_LOG.md#2026-10-26--gb-ops-001--p1-postgrest-retry-storm-hosted-fix-blocked).
+
+B3's unhosted custom40001 paths share this risk: **B3 requires correction before hosted apply**, superseding earlier draft-ready status below. No Gradebook migration applied. Earlier B3 implementation evidence remains historical; no B4 work started.
+
+---
+
 # CP01-B3 — transactional RPC draft, 2026-10-26
 
 Branch `feature/personal-gradebook`, baseline `d86627f` matched remote/clean. B1/B2 ACCEPTED; **B3 READY FOR REVIEW, draft only**. 22 service-only invoker RPCs, class-first serialization, shared preview/apply planner + complete private state hash, atomic audit and separate atomic limiter. [B3 review/evidence/boundaries](features/personal-gradebook/B3_TRANSACTION_REVIEW.md).
