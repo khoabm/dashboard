@@ -1,3 +1,8 @@
+# CP01-B4 reviewer concerns recorded — 2026-10-26
+
+**Independent static/offline review accepted** `GB-B4-INT-001` reveal correction at `feb256a`; no new test/deploy. Before and during B4 implementation Work must explicitly confirm [five carry-forward concerns](features/personal-gradebook/B4_INTEGRATION_REVIEW.md#cp01-b4-reviewer-concerns--mandatory-confirmation-register-2026-10-26): PostgreSQL17 cross-version assumptions **NOT RUN / CP01-C**, full AES-GCM/HMAC verification and Edge DTO redaction **B4 hard gate**, Prettier previously **ENOTCACHED / B5 CI**, prevention of 40001/PostgREST retry storm **B4 hard gate**, and hosted/real-data prohibitions. Work must return a status/evidence/owner for each; neither PG17 nor Edge crypto/CI is claimed PASS here. B4 remains NOT STARTED until implemented. 0 hosted Supabase requests, migrations applied0, deployments0 for this docs-only handoff.
+
+---
 # CP01-B3-FIX-REVEAL — READY FOR REVIEW / 2026-10-26
 
 Baseline `76102e2`, feature/personal-gradebook. **GB-B4-INT-001/P1 FIXED IN DRAFT / NOT APPLIED**: additive `20261026060000_gradebook_reveal_identity_context.sql` adds stored `identityLookup` and row `lookupKeyVersion` only to `gb_student_read(reveal=true)`. Exact body hashes and full metadata preservation guards; ordinary DTO, authorization, class locking, audit and ACL unchanged. [Correction/self-review](features/personal-gradebook/B4_INTEGRATION_REVIEW.md).

@@ -89,6 +89,7 @@ Acceptance:
 - Board hotfix APPLIED theo metadata đã ghi. Ba lượt live smoke test Board BLOCKED trước đăng nhập/RPC vì thiếu secure auth/transport; HTTP409/internal retry vẫn NOT RUN. **Không đòi chạy lại Board smoke test để bắt đầu soạn B4 offline**.
 - B2/B3/correction đều **NOT APPLIED**. B4 chỉ được implement Edge handler/crypto/auth/capability/preview signing với synthetic fixtures và focused offline tests. Không tự deploy, cấp secrets, đăng nhập Auth thật, gọi hosted hay dùng dữ liệu học sinh thật.
 - B5/CP01-C và real-data gate là bước nghiệm thu riêng, gồm kiểm tra rollout pending migrations theo [DATABASE](../../DATABASE.md#gradebook-migration-rollout-gate--gb-ops-rev-002) và security evidence khi có phê duyệt và budget.
+- **Mandatory B4 reviewer confirmation:** [GB-B4-CON-001..005 register](B4_INTEGRATION_REVIEW.md#cp01-b4-reviewer-concerns--mandatory-confirmation-register-2026-10-26). Work must explicitly report PostgreSQL17 compatibility as a CP01-C gate, Edge AES/HMAC + strict browser DTO redaction as a B4 P1 gate, previous Prettier ENOTCACHED as a B5 CI gate, PostgREST retry safety as B4 P1, and hosted/real-data restrictions. Each is PASS/FAIL/NOT RUN/BLOCKED with evidence; no implied PASS.
 ## CP02 — Navigation and lookup UI (NOT STARTED)
 
 Dependency: CP01 API contract; synthetic UI may use clearly labeled mocks before authorized live integration. Reuse one admin Auth state, clear student capability/private DOM on route exit/expiry, and fence responses after navigation/logout.
