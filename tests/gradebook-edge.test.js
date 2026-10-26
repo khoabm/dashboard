@@ -473,6 +473,97 @@ test('timeout/cancellation never starts a sensitive follow-up after a stalled li
   assert.equal(cancelled.calls.length, 0);
 });
 
+/** Captures actual pinned SDK invocation headers without Auth, network or application bootstrap. */
+async function sdkInvokeHeaders(headers = {}) {
+  const requests = [];
+  const client = createClient(config.url, config.anonKey, {
+    accessToken: async () => 'synthetic-access-token',
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    global: {
+      fetch: async (url, init) => {
+        requests.push({ url: String(url), method: init.method, headers: new Headers(init.headers) });
+        return Response.json({ synthetic: true });
+      },
+    },
+  });
+  const result = await client.functions.invoke('synthetic-function', { body: { op: 'synthetic' }, headers });
+  assert.equal(result.error, null);
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].method, 'POST');
+  assert.equal(new URL(requests[0].url).pathname, '/functions/v1/synthetic-function');
+  assert.match(requests[0].headers.get('x-client-info'), /^supabase-js\/2\.118\.0;/);
+  return [...requests[0].headers.keys()].sort();
+}
+
+test('CORS preflight permits actual pinned SDK JSON headers for both entrypoints without backend work', async () => {
+  const required = await sdkInvokeHeaders();
+  assert.deepEqual(required, ['apikey', 'authorization', 'content-type', 'x-client-info']);
+  for (const kind of ['admin', 'student']) {
+    let backendCreations = 0;
+    const f = fixture(kind, {}, { backendFactory: () => { backendCreations += 1; throw Error('OPTIONS must not create clients'); } });
+    const result = await f.handler(new Request(`https://edge.example.invalid/${kind}`, {
+      method: 'OPTIONS',
+      headers: {
+        Origin: config.origins[0],
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': required.join(', '),
+      },
+    }));
+    assert.equal(result.status, 204);
+    assert.equal(result.headers.get('access-control-allow-origin'), config.origins[0]);
+    assert.equal(result.headers.get('access-control-allow-methods'), 'POST, OPTIONS');
+    assert.deepEqual(result.headers.get('access-control-allow-headers').split(', ').sort(),
+      [...required, 'x-gradebook-capability'].sort());
+    assert.equal(result.headers.get('cache-control'), 'no-store');
+    assert.equal(result.headers.get('vary'), 'Origin');
+    assert.equal(await result.text(), '');
+    assert.equal(backendCreations, 0);
+    assert.deepEqual(f.calls, []);
+  }
+});
+
+test('CORS preflight permits the dedicated capability header without limiter or sensitive reads', async () => {
+  const required = await sdkInvokeHeaders({ 'x-gradebook-capability': 'synthetic-capability' });
+  assert.ok(required.includes('x-gradebook-capability'));
+  let backendCreations = 0;
+  const f = fixture('student', {}, { backendFactory: () => { backendCreations += 1; throw Error('OPTIONS must not create clients'); } });
+  const result = await f.handler(new Request('https://edge.example.invalid/student', {
+    method: 'OPTIONS',
+    headers: {
+      Origin: config.origins[0],
+      'Access-Control-Request-Method': 'POST',
+      'Access-Control-Request-Headers': required.join(', '),
+    },
+  }));
+  assert.equal(result.status, 204);
+  const allowed = result.headers.get('access-control-allow-headers').split(', ');
+  for (const header of required) assert.ok(allowed.includes(header));
+  assert.equal(backendCreations, 0);
+  assert.deepEqual(f.calls, []);
+});
+
+test('CORS preflight rejects unapproved origins for both entrypoints without backend work', async () => {
+  for (const kind of ['admin', 'student']) {
+    let backendCreations = 0;
+    const f = fixture(kind, {}, { backendFactory: () => { backendCreations += 1; throw Error('Unapproved origin must not create clients'); } });
+    const result = await f.handler(new Request(`https://edge.example.invalid/${kind}`, {
+      method: 'OPTIONS',
+      headers: {
+        Origin: 'https://unapproved.invalid',
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'authorization, apikey, content-type, x-client-info',
+      },
+    }));
+    assert.equal(result.status, 403);
+    assert.equal(result.headers.get('access-control-allow-origin'), null);
+    assert.equal(result.headers.get('access-control-allow-headers'), null);
+    assert.equal(result.headers.get('cache-control'), 'no-store');
+    assert.equal(result.headers.get('x-content-type-options'), 'nosniff');
+    assert.equal(backendCreations, 0);
+    assert.deepEqual(f.calls, []);
+  }
+});
+
 test('HTTP boundaries enforce CORS, JSON media type, chunk/body limit and no diagnostic logging', async () => {
   const f = fixture();
   assert.equal((await f.send({ op: 'class.read' }, { origin: 'https://unapproved.invalid' })).status, 403);

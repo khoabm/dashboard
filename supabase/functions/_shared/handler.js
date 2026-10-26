@@ -23,7 +23,7 @@ export function createHandler(kind, { config, backendFactory, cryptography, cloc
         if (!origin || new URL(request.url).search) throw new Failure(400, 'request');
         return new Response(null, { status: 204, headers: {
           'Cache-Control': 'no-store', Vary: 'Origin', 'Access-Control-Allow-Origin': origin,
-          'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-gradebook-capability',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info, x-gradebook-capability',
         } });
       }
       const signal = controller.signal;

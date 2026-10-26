@@ -2,6 +2,16 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-26 — GB-B4-REV-001 / P2: Supabase SDK CORS header compatibility (FIXED IN DRAFT)
+
+Baseline `e036521e079c514a44b24ed1bf9b706fbddfa5e5`, feature/personal-gradebook. The shared handler's OPTIONS allowlist omitted `x-client-info`, which pinned SDK2.118.0 sends with JSON Functions invocations. Browser preflight could therefore prevent an otherwise authorized request; this is a source-confirmed compatibility defect, not an observed hosted incident. Node POST-only tests did not check the actual preflight header values.
+
+Correction: add only `x-client-info` to `supabase/functions/_shared/handler.js` alongside authorization/apikey/content-type/x-gradebook-capability. Both entrypoints retain explicit allowed origins, POST/OPTIONS methods, no-store, existing headers and unchanged authentication. SDK source `supabase-js/src/lib/constants.ts`, `lib/fetch.ts` and `functions-js/src/FunctionsClient.ts` plus a mocked real-SDK invocation confirm the default JSON header set. Optional tracing headers require explicit opt-in (disabled by default); regional invocation adds x-region and a query parameter outside the existing no-query Gradebook contract. PostgREST x-retry-count is not a default Functions invoke header. No optional feature, wildcard header/origin or SDK-wide CORS defaults were added.
+
+`node --test --test-name-pattern='CORS preflight|HTTP boundaries' tests/gradebook-edge.test.js`: **4/4 PASS**, one bounded offline run. Three new cases inspect actual OPTIONS response headers for both endpoints, dedicated student capability preflight and rejected origins; backend factory/Auth/RPC/limiter calls remain0. The existing HTTP-boundary test also passes. `node --check supabase/functions/_shared/handler.js`, `node --check tests/gradebook-edge.test.js`, `git diff --check`: PASS. No full suite, browser, SQL or hosted test. Formatting/CI remain NOT RUN for this task, prior ENOTCACHED remains B5-owned; crypto/retry acceptance evidence is unchanged, not rerun.
+
+Status **FIXED IN DRAFT / NOT DEPLOYED**; commit containing this entry is the trace. Hosted Supabase/Auth requests0, migrations0, Edge deployments0; real dataNONE; stress/load/soak/stretchNONE. B4 READY FOR FINAL REVIEW only; B5 NOT STARTED; native17/hosted security/CP01-C/migration rollout/real-data gates remain NOT RUN. [Focused review and unchanged concern matrix](features/personal-gradebook/B4_INTEGRATION_REVIEW.md#gb-b4-rev-001--sdk-cors-correction-2026-10-26).
+
 ## 2026-10-26 — GB-B4-002 / P2: apply publication-race error category (FIXED before deployment)
 
 Baseline29a7f2a, B4 draft static self-review. Existing B3 gradebook.plan checks publication before import_run compares the state hash. If publication changes after Edge preflight, that final apply may raise22023/published; the initial Edge draft's generic mapper would return403/422 rather than the promised stale-preview409. This is HTTP conflict classification, not evidence of partial writes or an authorization bypass.

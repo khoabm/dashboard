@@ -149,3 +149,33 @@ Apply verifies actor/session/scope/token/input, performs one read-only preview p
 - Full app/B2/B3 suites, build, Deno execution/bundle/config parsing, native17, multi-connection concurrency, hosted JWT/RLS/API/security, browser, exact-HEAD CI, key recovery and real-data gate **NOT RUN**. Node tests prove crypto/handler behavior and mock request boundaries, not deployed JWT signatures or DB permissions.
 
 Sources checked2026-10-26: [Supabase getUser](https://supabase.com/docs/reference/javascript/auth-getuser), [function authorization headers](https://supabase.com/docs/guides/functions/auth-headers), [dependency imports](https://supabase.com/docs/guides/functions/dependencies), [changelog](https://supabase.com/changelog), [PG17 pg_proc](https://www.postgresql.org/docs/17/catalog-pg-proc.html), [PG17 function metadata](https://www.postgresql.org/docs/17/functions-info.html), [PG17 numeric functions](https://www.postgresql.org/docs/17/functions-math.html), [PG17 binary hash functions](https://www.postgresql.org/docs/17/functions-binarystring.html). Markdown changelog fetch was unsupported; the HTML index was read. No relevant inspected change required weakening auth or SQL guards. Hosted plan/quota/state was not queried.
+
+## GB-B4-REV-001 — SDK CORS correction (2026-10-26)
+
+**P2 / FIXED IN DRAFT / NOT DEPLOYED.** Baseline `e036521e079c514a44b24ed1bf9b706fbddfa5e5`, clean local/remote feature/personal-gradebook. The shared OPTIONS handler omitted x-client-info, so a browser's Supabase SDK preflight could fail before POST; direct Node POST tests did not establish browser header compatibility. No hosted failure was reproduced or inferred.
+
+Only production change: `_shared/handler.js` adds `x-client-info` to the existing explicit authorization/apikey/content-type/x-gradebook-capability header list. Origin allowlist, POST/OPTIONS, no-store/Vary, existing response headers and all Auth/crypto/RPC/DTO/retry logic remain unchanged. Both entrypoints use this same handler; config and migrations are unchanged.
+
+### Pinned SDK header evidence
+
+Installed `@supabase/supabase-js` and `@supabase/functions-js` are2.118.0. Source `supabase-js/src/lib/constants.ts` defines X-Client-Info; `lib/fetch.ts` supplies apikey/Authorization; `FunctionsClient.ts:invoke` supplies application/json for object bodies. A real pinned SDK invoke with synthetic accessToken callback and mocked fetch captured exactly **apikey, authorization, content-type, x-client-info**. A second synthetic invocation also captures the explicitly supplied x-gradebook-capability. Neither invocation performs Auth/network requests; global live fetch remains forbidden.
+
+Other headers were reviewed, not assumed: the SDK's `src/cors.ts` combines headers for multiple products/options. x-retry-count belongs to PostgREST retries, not default Functions invocation. Traceparent/tracestate/baggage are optional, only sent when tracePropagation is explicitly enabled; defaults remain disabled. x-region requires an explicit region and adds forceFunctionRegion query state; the existing Gradebook no-query contract remains unchanged. These optional modes are not enabled/supported by this narrow correction. No wildcard headers/origins or broader SDK default methods were imported. [Official CORS documentation](https://supabase.com/docs/guides/functions/cors) confirms tracing opt-in; public changelog reviewed, no relevant breaking change found. No project endpoint was queried.
+
+### Focused evidence
+
+- `node --test --test-name-pattern='CORS preflight|HTTP boundaries' tests/gradebook-edge.test.js`: **4/4 PASS**, one execution,162.68ms total. Three new finite tests inspect actual OPTIONS responses for both handler kinds, student capability support and unapproved-origin403. They assert exact allowed header/method values, origin/no-store/Vary and zero backend client creation/Auth/RPC/limiter calls. Existing HTTP boundary test also passes, including invalid POST media/size/origin and no diagnostic logger. Current source37 tests; no full37-test execution claimed.
+- `node --check supabase/functions/_shared/handler.js`; `node --check tests/gradebook-edge.test.js`; `git diff --check`: **PASS**. Production diff is one header addition; no dependency changes.
+- Full app/B4/SQL suites, browser/hosted CORS, JWT/RLS/API, native17, Deno and exact-HEAD CI **NOT RUN**. No formatting execution in this correction; prior ENOTCACHED remains NOT RUN / B5, no formatter PASS inferred. Existing teacher/capability/error/DTO/retry tests remain prior evidence, not newly executed acceptance.
+
+### Unchanged mandatory concern matrix
+
+| Concern | Status preserved | Evidence and residual owner |
+| --- | --- | --- |
+| GB-B4-CON-001 | Static assessment PASS (prior); native17 **NOT RUN** | All SQL unchanged; strict guard/runtime verification remains CP01-C. |
+| GB-B4-CON-002 | **PASS offline** (prior, not rerun) | AES-GCM/HMAC/reveal/DTO files unchanged; hosted redaction/Auth/RLS remains CP01-C. |
+| GB-B4-CON-003 | **NOT RUN** | Previous Prettier ENOTCACHED; format/Deno/exact-HEAD CI remains B5. |
+| GB-B4-CON-004 | **PASS static/offline** (prior, not rerun) | No SQL/error/client retry changes; OPTIONS zero-backend assertions are new. Internal PostgREST/hosted behavior remains CP01-C. |
+| GB-B4-CON-005 | **PASS scope compliance** | Hosted Supabase/Auth0, migrations0, Edge deployments0, secretsNO, real dataNONE, stress/load/soak/stretchNONE. Separate authorization required for rollout/security/real-data gates. |
+
+B4 READY FOR FINAL REVIEW only. B5 NOT STARTED; CP01-C, rollout reconciliation and real-personal-data gate NOT RUN. This correction does not authorize or start those checkpoints.

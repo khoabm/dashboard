@@ -1,3 +1,11 @@
+# GB-B4-REV-001 — FIXED IN DRAFT; CP01-B4 READY FOR FINAL REVIEW / 2026-10-26
+
+Baseline `e036521e`, feature/personal-gradebook. Shared OPTIONS allowlist now includes pinned SDK2.118.0's `x-client-info`; explicit origins, POST/OPTIONS, capability header, no-store and authentication unchanged. [Focused review/concern preservation](features/personal-gradebook/B4_INTEGRATION_REVIEW.md#gb-b4-rev-001--sdk-cors-correction-2026-10-26), [bug trace](BUG_FIX_LOG.md#2026-10-26--gb-b4-rev-001--p2-supabase-sdk-cors-header-compatibility-fixed-in-draft). One focused offline run `node --test --test-name-pattern='CORS preflight|HTTP boundaries' tests/gradebook-edge.test.js` **4/4 PASS**; syntax/diff checks PASS. Actual SDK headers captured with synthetic transport; OPTIONS performs no backend work. No full-suite rerun or new crypto/retry acceptance claim.
+
+Hosted Supabase requests/Auth/migrations/deployments0; real dataNONE; stress/load/soak/stretchNONE. Formatting/CI NOT RUN (previous ENOTCACHED), B5 NOT STARTED; native17/hosted JWT/RLS/API/CP01-C/rollout/real-data gates NOT RUN. No deployment or automatic next checkpoint. Earlier snapshots below remain historical.
+
+---
+
 # CP01-B4 — READY FOR REVIEW / 2026-10-26
 
 Baseline `29a7f2a`, feature/personal-gradebook. Implemented draft `grades-admin` and `student-lookup`,13 JS modules plus function config, isolated pinned SDK2.118.0 clients, verified JWT/profile/server actor binding, AES-GCM/HMAC keyrings and secure reveal redaction, encrypted capabilities, B1-bound preview commitments, B3 preflight/atomic apply and committed limiter integration. SQL/B1/Board/frontend/dependencies unchanged. [Five mandatory concern confirmations and HTTP/crypto contracts](features/personal-gradebook/B4_INTEGRATION_REVIEW.md#cp01-b4-implementation--mandatory-concern-confirmations-2026-10-26).
