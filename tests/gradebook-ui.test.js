@@ -2,8 +2,190 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { routes, routeFor, validateLookup, createLookupState } from '../src/utils/gradebook-ui.js';
+import { createAdminEntry, createRouteNavigation } from '../src/utils/app-navigation.js';
 const clock = () => Date.UTC(2026, 9, 26);
 const valid = { documentNumber: '000000009', birthDate: '29/02/2000' };
+
+test('REV-001 admin entry waits for the existing restoration and coalesces duplicate entry intent', async () => {
+  const held = Promise.withResolvers();
+  const session = { active: true, checking: true, failed: false, admin: false, generation: 1 };
+  let logins = 0,
+    notices = 0,
+    waits = 0;
+  const enter = createAdminEntry({
+    ready: () => {
+      waits++;
+      return held.promise;
+    },
+    state: () => session,
+    login: () => logins++,
+    notify: () => notices++,
+  });
+  const pending = enter();
+  await enter();
+  assert.equal(logins, 0);
+  assert.equal(notices, 0);
+  Object.assign(session, { checking: false, admin: true });
+  held.resolve();
+  await pending;
+  assert.deepEqual({ logins, notices, waits }, { logins: 0, notices: 1, waits: 1 });
+});
+
+test('REV-001 anonymous entry opens login; failed/loading sessions do not; inactive/stale intent is ignored', async () => {
+  for (const variant of ['anonymous', 'failed', 'checking', 'inactive', 'stale']) {
+    const session = { active: true, checking: false, failed: false, admin: false, generation: 1 };
+    let logins = 0,
+      notices = 0;
+    const enter = createAdminEntry({
+      ready: async () => {
+        if (variant === 'stale') session.generation++;
+        else if (variant === 'inactive') session.active = false;
+        else if (variant !== 'anonymous') session[variant] = true;
+      },
+      state: () => session,
+      login: () => logins++,
+      notify: () => notices++,
+    });
+    await enter();
+    assert.equal(logins, variant === 'anonymous' ? 1 : 0, variant);
+    assert.equal(notices, ['failed', 'checking'].includes(variant) ? 1 : 0, variant);
+  }
+});
+
+/** Models browser entries/traversals without a DOM or endpoint; go completion is explicitly delivered. */
+function navigationFixture() {
+  const entries = [{ path: '/', state: { unrelated: 'preserved' } }];
+  const shown = [],
+    deltas = [];
+  let cursor = 0,
+    allowed = true,
+    guards = 0;
+  const location = {
+    get pathname() {
+      return entries[cursor].path;
+    },
+  };
+  const history = {
+    get state() {
+      return entries[cursor].state;
+    },
+    replaceState(state, _, path) {
+      entries[cursor] = { state, path };
+    },
+    pushState(state, _, path) {
+      entries.splice(++cursor, Infinity, { state, path });
+    },
+    go(delta) {
+      deltas.push(delta);
+    },
+  };
+  const navigation = createRouteNavigation({
+    history,
+    location,
+    initialPath: '/',
+    newScope: () => 'synthetic-history',
+    prepare: async (target) => {
+      guards++;
+      return typeof allowed === 'function' ? allowed(target) : allowed;
+    },
+    show: async (path) => shown.push(path),
+  });
+  return {
+    navigation,
+    entries,
+    shown,
+    deltas,
+    history,
+    location,
+    guards: () => guards,
+    allow(value) {
+      allowed = value;
+    },
+    pop(index) {
+      cursor = index;
+      return navigation.pop(history.state);
+    },
+    recover() {
+      cursor += deltas.at(-1);
+      return navigation.pop(history.state);
+    },
+  };
+}
+
+test('REV-002 rejected Back restores the existing entry repeatedly; successful Back/Forward retain their targets', async () => {
+  const f = navigationFixture();
+  assert.equal(f.history.state.unrelated, 'preserved');
+  await f.navigation.navigate(routes.student);
+  await f.navigation.navigate('/');
+  f.allow(false);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const guards = f.guards();
+    assert.equal(await f.pop(1), false);
+    assert.equal(f.deltas.at(-1), 1);
+    await f.recover();
+    assert.equal(f.location.pathname, '/');
+    assert.equal(f.entries.length, 3);
+    assert.equal(f.guards(), guards + 1);
+    assert.deepEqual(f.shown, [routes.student, '/']);
+  }
+  f.allow(true);
+  await f.pop(1);
+  assert.equal(f.shown.at(-1), routes.student);
+  await f.pop(2);
+  assert.equal(f.shown.at(-1), '/');
+  assert.deepEqual(
+    f.entries.map((entry) => entry.path),
+    ['/', routes.student, '/'],
+  );
+});
+
+test('REV-002 rejected Forward compensates backward; failed link exits neither add history nor render', async () => {
+  const f = navigationFixture();
+  await f.navigation.navigate(routes.student);
+  await f.pop(0);
+  f.allow(false);
+  await f.pop(1);
+  assert.equal(f.deltas.at(-1), -1);
+  await f.recover();
+  const renders = f.shown.length;
+  assert.equal(await f.navigation.navigate(routes.student), false);
+  assert.equal(f.entries.length, 2);
+  assert.equal(f.location.pathname, '/');
+  assert.equal(f.shown.length, renders);
+});
+
+test('REV-002 latest rapid traversal owns rollback while pending persistence cannot change visible route', async () => {
+  const f = navigationFixture();
+  await f.navigation.navigate(routes.student);
+  await f.navigation.navigate('/');
+  const held = Promise.withResolvers();
+  f.allow(() => held.promise);
+  const first = f.pop(1);
+  const latest = f.pop(0);
+  await Promise.resolve();
+  held.resolve(false);
+  await Promise.all([first, latest]);
+  assert.deepEqual(f.deltas, [2]);
+  await f.recover();
+  assert.equal(f.location.pathname, '/');
+  assert.equal(f.entries.length, 3);
+  assert.deepEqual(f.shown, [routes.student, '/']);
+});
+
+test('REV-002 a stay-on-Board approval cannot authorize a superseding exit with blocked persistence', async () => {
+  const f = navigationFixture();
+  await f.navigation.navigate(routes.student);
+  await f.navigation.navigate('/');
+  f.allow((target) => target === '/');
+  const stay = f.pop(0);
+  const exit = f.pop(1);
+  await Promise.all([stay, exit]);
+  assert.deepEqual(f.deltas, [1]);
+  await f.recover();
+  assert.equal(f.location.pathname, '/');
+  assert.deepEqual(f.shown, [routes.student, '/']);
+  assert.equal(f.entries.length, 3);
+});
 
 test('CP02 routes select Board, student and reserved admin paths without exposing admin navigation', () => {
   assert.deepEqual(routes, {

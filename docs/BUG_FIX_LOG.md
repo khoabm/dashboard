@@ -2,6 +2,18 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-26 — GB-CP02-REV-001 / P2: administrator entry races session restoration (FIXED OFFLINE)
+
+Baseline `1874cbaf7da0bf0d351ac58a84df55cd07af9654`, branch `feature/personal-gradebook`. `app.js` awaited route rendering then clicked `.header-admin`, although Board bootstrap's async refreshAuth was still pending. Admin=false during restoration could open an unnecessary login dialog. `main.js` now shares the existing restoration promise and exports direct openBoardAdmin; the pure entry coordinator fences stale route/Auth generations, waits for pending work, denies failed/checking sessions and preserves anonymous login/admin notice/logout. Both headers use this entry; no new client or extra Auth verification to open it.
+
+Focused pre-final CP02 units12/12 PASS; final curated gate79/79 includes anonymous/loading/failed/stale/admin entry. Installed headed Chrome155, isolated profile + actual localhost app with intercepted synthetic Auth/REST: anonymous login, delayed/already-admin entry without duplicate prompt/reverification and failed restoration PASS; logout PASS. Hosted requests0, no real credentials/data. See current STATUS; this is offline behavior evidence, not real Auth/CP01-C acceptance.
+
+## 2026-10-26 — GB-CP02-REV-002 / P2: rejected popstate grows/replaces history (FIXED OFFLINE)
+
+Same baseline/branch. Rejected draft persistence used pushState to repair the URL after Back, truncating Forward history and potentially creating duplicates on repeated traversal. `src/utils/app-navigation.js` stamps path-only scope/position metadata, restores tracked entries with history.go(delta), ignores compensation events and fences superseded guards. Unowned pre-upgrade entries use replaceState fallback without adding entries. `app.js` renders/disposes only accepted transitions; existing editor-owned prepareRouteExit is unchanged. Pure tests cover rejected Back/Forward/link exits, rapid traversal and preventing a stay-on-Board approval from authorizing a different exit.
+
+Chrome QA used the actual editor with synthetic title and controlled localStorage draft failure: two Back attempts retained text, URL/visible Board and history length5; restoring persistence saved the draft, allowed Back and preserved Forward. Menu/lookup private-input disposal, desktop1440/mobile390 viewport and direct refresh PASS; zero console exceptions. Final check/unit79/79/build/format/diff PASS; Windows CRLF-only format failure corrected locally without unrelated source diff, only format repeated. Artifacts under ignored tests/local/cp02-final; no committed browser harness, hosted calls, backend/deploy/migration, real data or stress test. CP02 OFFLINE ACCEPTED; CP03 not started.
+
 ## 2026-10-26 — GB-B5-REV-001 / P1: PR conflict blocks CI (CONFIRMED / OPEN; reporting corrected)
 
 Baseline `c9e18c173d70198bce8cc53d39a93271e395e181`, feature/personal-gradebook; develop307b6c6. Prior B5 response reported no Actions run but did not diagnose PR5's mergeable=false/mergeable_state=dirty. Confirmed REST evidence plus read-only Git three-tree diagnostic identifies docs/BUG_FIX_LOG.md: develop AUD-020 and feature Gradebook entries compete immediately after the introduction. docs/STATUS.md differs on both sides but has no diagnostic conflict markers. GitHub does not trigger pull_request workflows with merge conflicts; no waiting/retry/trigger bypass can supply that acceptance.

@@ -1,6 +1,6 @@
 # Execution plan and acceptance gates — Personal Gradebook
 
-**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1/B2 ACCEPTED; B3 CORRECTION ACCEPTED at static/offline review (hosted NOT RUN); GB-B4-INT-001 and GB-B4-REV-001 FIXED IN DRAFT; B4 ACCEPTED AS DRAFT; B5 CURATED CODE-QUALITY CI / PR CONFLICT BLOCKS ACTIONS; CP02–CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
+**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1/B2 ACCEPTED; B3 CORRECTION ACCEPTED at static/offline review (hosted NOT RUN); GB-B4-INT-001 and GB-B4-REV-001 FIXED IN DRAFT; B4 ACCEPTED AS DRAFT; B5 CURATED CODE-QUALITY CI (older conflict snapshot below); CP02 OFFLINE ACCEPTED; CP03–CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
 
 **2026-10-26 B5 superseding policy / baselinec9e18c1:** remove only newly staged PGlite/SQL CI/runner; retain accepted B5 and prior evidence. [One consolidated concern/test matrix and non-CI pre-merge inventory](B5_OFFLINE_REVIEW.md#current-policy-correction--baselinec9e18c1-supersedes-sql-ci-approval). Explicit test:ci covers six component/pure-unit files; specialists/SQL/browser excluded and retained separately pending review, no new probe/test file. Temporary20 SQL groups and earlier120 Node tests are historical only. PR5 Draft/dirty (BUG_FIX_LOG), no reconciliation; Actions/native17/Deno/CP01-C/real-data gates remain pending. Current curated gate66/66 PASS, syntax/static/build/format/diff PASS; no specialist/SQL rerun. No automatic CP01-C/CP02.
 
@@ -98,7 +98,7 @@ Acceptance:
 - B2/B3/correction đều **NOT APPLIED**. B4 chỉ được implement Edge handler/crypto/auth/capability/preview signing với synthetic fixtures và focused offline tests. Không tự deploy, cấp secrets, đăng nhập Auth thật, gọi hosted hay dùng dữ liệu học sinh thật.
 - B5/CP01-C và real-data gate là bước nghiệm thu riêng, gồm kiểm tra rollout pending migrations theo [DATABASE](../../DATABASE.md#gradebook-migration-rollout-gate--gb-ops-rev-002) và security evidence khi có phê duyệt và budget.
 - **Mandatory B4 reviewer confirmation:** [GB-B4-CON-001..005 register](B4_INTEGRATION_REVIEW.md#cp01-b4-reviewer-concerns--mandatory-confirmation-register-2026-10-26). Work must explicitly report PostgreSQL17 compatibility as a CP01-C gate, Edge AES/HMAC + strict browser DTO redaction as a B4 P1 gate, previous Prettier ENOTCACHED as a B5 CI gate, PostgREST retry safety as B4 P1, and hosted/real-data restrictions. Each is PASS/FAIL/NOT RUN/BLOCKED with evidence; no implied PASS.
-## CP02 — Navigation and lookup UI (IMPLEMENTED OFFLINE — REVIEW PENDING)
+## CP02 — Navigation and lookup UI (OFFLINE ACCEPTED)
 
 Dependency: CP01 API contract; synthetic UI may use clearly labeled mocks before authorized live integration. Reuse one admin Auth state, clear student capability/private DOM on route exit/expiry, and fence responses after navigation/logout.
 
@@ -108,9 +108,11 @@ Dependency: CP01 API contract; synthetic UI may use clearly labeled mocks before
 - [x] CMND/CCCD string validation, leading zeros, `DD/MM/YYYY` text/native date input, Gregorian/future/Vietnam-day validation via B1. Native calendar popup/device-specific behavior and live DATE round-trip remain separate gates.
 - [x] Offline synthetic invalid/neutral/loading/unavailable/expiry states; cancellation and late-response fencing; no private URL/storage/log output. Production adapter always returns unavailable and makes no lookup request.
 - [x] Memory-only state/private DOM cleared on exit, sign-out, expiry and refresh; synthetic regression and browser observations.
+- [x] GB-CP02-REV-001: direct shared administrator entry waits for existing restoration; anonymous/admin/loading/failed states verified with pure units and installed headed Chrome synthetic QA, no extra Auth verification or synthetic click.
+- [x] GB-CP02-REV-002: rejected Back/Forward uses indexed compensation, no history growth/draft loss; actual editor persistence-failure and recovery/Forward tested in installed Chrome, plus pure race/guard cases.
 - [ ] Hosted anonymous access/JWT/RLS/Edge/limiter integration (CP01-C NOT RUN).
 
-CP02 baseline `7b7656b`, 2026-10-26: [current evidence and limitations](../../STATUS.md#cp02--offline-student-lookup-ui--2026-10-26). Chrome desktop and iframe CSS widths1440/768/390; not Safari/native mobile acceptance. QA adapters/screenshots stay in ignored tests/local/cp02 and are excluded from production/commit. No CP03–05 or CP01-C started.
+CP02 final correction baseline `1874cba`, 2026-10-26: [current evidence and limitations](../../STATUS.md#cp02--offline-student-lookup-ui--2026-10-26). Final unit79/79/check/build/format PASS; seven installed headed Chrome155 scenario outcomes at viewport1440×960/390×844, no console exceptions,31 synthetic REST interceptions/hosted forwarded0. Not native mobile/Safari or hosted authorization acceptance. Artifacts stay in ignored tests/local/cp02-final; no browser harness in CI/production. No CP03–05 or CP01-C started; final-SHA Actions reported separately after push.
 
 ## CP03 — Class/student admin and UPSERT roster import (NOT STARTED)
 

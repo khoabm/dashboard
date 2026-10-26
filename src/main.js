@@ -30,6 +30,7 @@ import { createRequestGate } from './utils/request-gate.js';
 import { createPendingTask } from './utils/pending-task.js';
 import { PulseIndicator, setPendingMessage } from './components/pending.js';
 import { BoardNavigation } from './components/board-navigation.js';
+import { createAdminEntry } from './utils/app-navigation.js';
 const managedRoot = document.querySelector('#board-app');
 const root = managedRoot || document.querySelector('#app');
 let boardActive = !managedRoot || location.pathname === '/';
@@ -37,6 +38,7 @@ const requests = createRequestGate();
 let authRefreshTimer,
   authChecking = false,
   authFailed = false,
+  authRefreshPromise = null,
   logoutPending = false;
 
 // Shared board snapshot, admin session, filters, and synchronization flags.
@@ -87,10 +89,7 @@ const operations = createPendingTask((message) => {
 // Page composition: global header, introductory hero with a live post count, then the board shell.
 root.append(
   AppHeader({
-    onLogin: () => {
-      if (admin) ToastNotification('Bạn đang ở chế độ quản trị.');
-      else LoginScreen(refreshAuth);
-    },
+    onLogin: () => void openBoardAdmin(),
     onRefresh: refresh,
     search,
     admin: false,
@@ -367,7 +366,20 @@ async function refresh({ afterWrite = false, revealSectionId = null } = {}) {
 }
 
 /** Rechecks the admin profile and signed-in user before refreshing board data. */
-export async function refreshAuth() {
+export function refreshAuth() {
+  if (!boardActive) return Promise.resolve();
+  if (authRefreshPromise) return authRefreshPromise;
+  const pending = restoreAuth();
+  authRefreshPromise = pending;
+  const finished = () => {
+    if (authRefreshPromise === pending) authRefreshPromise = null;
+  };
+  void pending.then(finished, finished);
+  return pending;
+}
+
+/** Restores the existing Board session; callers share its promise instead of issuing extra checks. */
+async function restoreAuth() {
   if (!boardActive) return;
   clearSession();
   const generation = requests.generation();
@@ -526,6 +538,7 @@ export async function logout() {
 
 /** Clears private UI synchronously, even if the subsequent anonymous read fails. */
 function clearSession() {
+  authRefreshPromise = null;
   requests.invalidate();
   navigation.reset();
   authChecking = false;
@@ -613,6 +626,20 @@ client?.auth.onAuthStateChange((event) => {
 });
 // Explicit bootstrap also handles persisted sessions without relying on Auth callback timing.
 // SDK reads stay outside the synchronous Auth event callback to avoid its internal lock.
+export const openBoardAdmin = createAdminEntry({
+  ready: () => authRefreshPromise,
+  state: () => ({
+    active: boardActive,
+    generation: requests.generation(),
+    checking: authChecking,
+    failed: authFailed,
+    admin,
+  }),
+  login: () => {
+    if (!document.querySelector('dialog')) LoginScreen(refreshAuth);
+  },
+  notify: ToastNotification,
+});
 if (boardActive) refreshAuth();
 
 /** Suspends Board refreshes without discarding its snapshot, filters, Auth state or saved drafts. */
@@ -620,6 +647,7 @@ export function setBoardActive(active) {
   if (boardActive === active) return;
   boardActive = active;
   if (!active) {
+    authRefreshPromise = null;
     clearTimeout(authRefreshTimer);
     requests.invalidate();
     authChecking = false;

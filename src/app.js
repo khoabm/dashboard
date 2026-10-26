@@ -6,6 +6,7 @@ import { SiteNavigation } from './components/site-navigation.js';
 import { StudentLookup } from './components/student-lookup.js';
 import { verifyStudent } from './services/student-lookup.js';
 import { routeFor, routes } from './utils/gradebook-ui.js';
+import { createRouteNavigation } from './utils/app-navigation.js';
 
 const root = document.querySelector('#app');
 const boardRoot = el('div', { id: 'board-app', hidden: true });
@@ -17,6 +18,17 @@ let boardModule,
   generation = 0,
   current = null;
 const navigation = SiteNavigation(navigate);
+const routeNavigation = createRouteNavigation({
+  history,
+  location,
+  initialPath: routes[routeFor(location.pathname)] || location.pathname,
+  newScope: () => crypto.randomUUID(),
+  prepare: (path) =>
+    current === 'board' && routeFor(path) !== 'board' && boardModule
+      ? boardModule.prepareRouteExit()
+      : true,
+  show: showRoute,
+});
 
 /** Commits only the latest route, preserving Board snapshots while disposing all student state. */
 async function showRoute(path, focus = true) {
@@ -56,7 +68,7 @@ async function showRoute(path, focus = true) {
     boardModule?.setBoardActive(false);
     const header = AppHeader({
       onLogin: async () => {
-        if (await navigate('/')) boardRoot.querySelector('.header-admin')?.click();
+        if (await navigate('/')) await boardModule?.openBoardAdmin();
       },
       onRefresh: () => void navigate('/'),
       search: null,
@@ -85,21 +97,9 @@ async function showRoute(path, focus = true) {
 }
 
 /** Uses same-origin path-only history; navigation never serializes a lookup value or capability. */
-async function navigate(path, { pop = false } = {}) {
-  if (routeFor(path) === 'missing' && !pop) return false;
-  const previous = routes[current] || '/';
-  if (
-    current === 'board' &&
-    routeFor(path) !== 'board' &&
-    boardModule &&
-    !(await boardModule.prepareRouteExit())
-  ) {
-    if (pop) history.pushState(null, '', previous);
-    return false;
-  }
-  if (!pop && location.pathname !== path) history.pushState(null, '', path);
-  await showRoute(path);
-  return true;
+async function navigate(path) {
+  if (routeFor(path) === 'missing') return false;
+  return routeNavigation.navigate(path);
 }
 root.addEventListener('click', (event) => {
   const link = event.target.closest('a[href]');
@@ -120,7 +120,7 @@ root.addEventListener('click', (event) => {
   event.preventDefault();
   void navigate(path);
 });
-window.addEventListener('popstate', () => void navigate(location.pathname, { pop: true }));
+window.addEventListener('popstate', (event) => void routeNavigation.pop(event.state));
 window.addEventListener('app:sign-out', () => {
   if (current === 'student') void showRoute(routes.student);
 });
@@ -130,6 +130,4 @@ window.addEventListener('pagehide', () => {
 window.addEventListener('pageshow', (event) => {
   if (event.persisted && current !== 'board') void showRoute(location.pathname, false);
 });
-if (routeFor(location.pathname) !== 'board')
-  history.replaceState(null, '', routes[routeFor(location.pathname)] || location.pathname);
 void showRoute(location.pathname, false);
