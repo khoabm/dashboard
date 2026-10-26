@@ -1,6 +1,6 @@
 # Personal Gradebook — Codex entry point
 
-**Project:** KHTN8 Board (`khoabm/dashboard`). **Feature:** Bảng điểm cá nhân. **Phase:** CP01 backend drafts; **implementation:** B1/B2 accepted, B3 correction accepted at static/offline review, [GB-B4-INT-001 FIXED IN DRAFT](B4_INTEGRATION_REVIEW.md), B4/B5 NOT STARTED; hosted Gradebook NOT APPLIED. Branch `feature/personal-gradebook` created from `develop` `af43f51` on 2026-10-25.
+**Project:** KHTN8 Board (`khoabm/dashboard`). **Feature:** Bảng điểm cá nhân. **Phase:** CP01 backend drafts; **implementation:** B1/B2 accepted, B3 correction accepted at static/offline review, [GB-B4-INT-001 FIXED IN DRAFT](B4_INTEGRATION_REVIEW.md), B4 READY FOR REVIEW (offline), B5 NOT STARTED; hosted Gradebook NOT APPLIED. Branch `feature/personal-gradebook` created from `develop` `af43f51` on 2026-10-25.
 
 ## Read path (token-efficient)
 
@@ -24,7 +24,7 @@
 
 For every checkpoint report: **branch/HEAD; what changed; requirement IDs; actual tests (PASS/FAIL/NOT RUN/BLOCKED); risks; next unblocked checkpoint**. Do not conflate offline mocks with real Auth/RLS/privacy tests. Update the tracker and root STATUS only with observed evidence.
 
-CP00 correction and [finding dispositions](CHECKPOINTS.md#cp00-finding-dispositions) document readiness only. B1/B2 accepted; B3 correction reviewed offline and accepted; GB-B4-INT-001 fixed in the unapplied forward draft chain; B4/B5 and CP02–CP07 NOT STARTED. Complete the [real-data gate](DATA_AND_SECURITY.md#h-real-personal-data-gate) before using real students' information, even before deployment. No rollover/history workflow or suppression engine is implied by this plan.
+CP00 correction and [finding dispositions](CHECKPOINTS.md#cp00-finding-dispositions) document readiness only. B1/B2 accepted; B3 correction reviewed offline and accepted; GB-B4-INT-001 fixed in the unapplied forward draft chain; B4 READY FOR REVIEW offline; B5 and CP02–CP07 NOT STARTED. Complete the [real-data gate](DATA_AND_SECURITY.md#h-real-personal-data-gate) before using real students' information, even before deployment. No rollover/history workflow or suppression engine is implied by this plan.
 
 CP01-A database/backend design: [CP01_TECHNICAL_DESIGN](CP01_TECHNICAL_DESIGN.md), based on read-only environment verification at `f522266` on 2026-10-26. Read this before proposing CP01-B. Design evidence is distinct from CP01-B implementation, CP01-C authorized integration and the real-data gate; none starts automatically.
 

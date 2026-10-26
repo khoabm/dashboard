@@ -1,0 +1,8 @@
+# Draft only. Do not deploy or apply pending migrations without separate authorization.
+[functions.grades-admin]
+verify_jwt = true
+entrypoint = "./functions/grades-admin/index.js"
+
+[functions.student-lookup]
+verify_jwt = false
+entrypoint = "./functions/student-lookup/index.js"

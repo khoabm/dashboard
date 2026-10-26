@@ -27,8 +27,16 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 | src/styles/ | Tokens CSS, base, layout, component, responsive; không style inline lặp vô ích |
 | supabase/migrations/, seed.sql | Schema/policy có version và seed chạy lại không trùng |
 | tests/ | Regression, integration và bằng chứng QA tương ứng |
+| supabase/functions/grades-admin/index.js, student-lookup/index.js | B4 Edge entrypoints, SDK2.118.0 pin; draft only, not deployed |
+| supabase/functions/_shared/{handler,http,backend,auth}.js | Bounded HTTP/CORS/cancellation, separate Auth/server clients, verified JWT/profile context, no retries |
+| supabase/functions/_shared/{crypto,contracts,imports,dto}.js | Web Crypto keyrings/envelopes/tokens; reuse pure B1 via relative imports; complete score-input framing; explicit response projections |
+| supabase/functions/_shared/{admin,student,runtime}.js | Allowlisted teacher/student operations, actual B3 RPC arguments, completed limiter before sensitive reads, server-only configuration |
+| supabase/config.toml | Unapplied/undeployed per-function entrypoint and gateway flags; no exposed-schema or hosted setting change |
+| tests/gradebook-edge.test.js | Synthetic Web Crypto/real-SDK-with-mocked-fetch regression; global live fetch denied; Deno/hosted/CI acceptance separate |
 
 Các thư mục code trong bảng đã có implementation. Không buộc một file/component nếu ghép module nhỏ rõ nghĩa tiết kiệm hơn; vẫn đáp ứng đủ hành vi các component trong SPEC.
+
+B4 Functions are isolated from the Vite entry graph; they import only the accepted pure B1 modules from src/utils/gradebook, never frontend config/session/UI. No server secret is exported into VITE variables or browser assets. [B4 concern confirmations and actual transport contracts](features/personal-gradebook/B4_INTEGRATION_REVIEW.md#cp01-b4-implementation--mandatory-concern-confirmations-2026-10-26). Deno graph/bundle and exact-HEAD format/CI remain B5 checks; no deployment is implied by this code map.
 
 ## Cách viết
 

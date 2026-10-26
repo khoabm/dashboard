@@ -1,3 +1,13 @@
+# CP01-B4 — READY FOR REVIEW / 2026-10-26
+
+Baseline `29a7f2a`, feature/personal-gradebook. Implemented draft `grades-admin` and `student-lookup`,13 JS modules plus function config, isolated pinned SDK2.118.0 clients, verified JWT/profile/server actor binding, AES-GCM/HMAC keyrings and secure reveal redaction, encrypted capabilities, B1-bound preview commitments, B3 preflight/atomic apply and committed limiter integration. SQL/B1/Board/frontend/dependencies unchanged. [Five mandatory concern confirmations and HTTP/crypto contracts](features/personal-gradebook/B4_INTEGRATION_REVIEW.md#cp01-b4-implementation--mandatory-concern-confirmations-2026-10-26).
+
+**CON-002 and CON-004 PASS offline.** First focused Node/Web Crypto/SDK-with-mocked-fetch run29/29 PASS; self-review fixed GB-B4-001/P2 enum type coercion with2/2 targeted PASS; three additional keyring/claims/GET503 tests3/3 PASS; publication-race mapping GB-B4-002/P2 fixed with2/2 affected cases PASS; Retry-After CORS/limiter check1/1 PASS. No repeat full suite; current34-test source has no claimed final full34/34 run. Syntax/static/diff checks PASS. **CON-001 static assessment PASS; native17 NOT RUN. CON-003 formatting NOT RUN (offline ENOTCACHED), CI/Deno execution NOT RUN. CON-005 scope PASS.**
+
+Hosted project requests/Auth/migrations/deployments0; production secretsNO; real dataNONE; stress/load/soak/stretchNONE. B4 is ready for review, not deployed or security-accepted. B5 NOT STARTED; CP01-C, migration rollout reconciliation, native17, real-data/key-recovery gates NOT RUN. No automatic B5/deploy. Earlier states below are historical.
+
+---
+
 # CP01-B4 reviewer concerns recorded — 2026-10-26
 
 **Independent static/offline review accepted** `GB-B4-INT-001` reveal correction at `feb256a`; no new test/deploy. Before and during B4 implementation Work must explicitly confirm [five carry-forward concerns](features/personal-gradebook/B4_INTEGRATION_REVIEW.md#cp01-b4-reviewer-concerns--mandatory-confirmation-register-2026-10-26): PostgreSQL17 cross-version assumptions **NOT RUN / CP01-C**, full AES-GCM/HMAC verification and Edge DTO redaction **B4 hard gate**, Prettier previously **ENOTCACHED / B5 CI**, prevention of 40001/PostgREST retry storm **B4 hard gate**, and hosted/real-data prohibitions. Work must return a status/evidence/owner for each; neither PG17 nor Edge crypto/CI is claimed PASS here. B4 remains NOT STARTED until implemented. 0 hosted Supabase requests, migrations applied0, deployments0 for this docs-only handoff.

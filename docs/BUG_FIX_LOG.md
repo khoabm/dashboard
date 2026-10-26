@@ -2,6 +2,20 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-26 — GB-B4-002 / P2: apply publication-race error category (FIXED before deployment)
+
+Baseline29a7f2a, B4 draft static self-review. Existing B3 gradebook.plan checks publication before import_run compares the state hash. If publication changes after Edge preflight, that final apply may raise22023/published; the initial Edge draft's generic mapper would return403/422 rather than the promised stale-preview409. This is HTTP conflict classification, not evidence of partial writes or an authorization bypass.
+
+Fix in `_shared/admin.js:executeAdmin`: scope the22023→409 preview_conflict mapping to the verified apply path, mirroring read-only preflight behavior; preserve42501 authorization and genuine40001/unexpected infrastructure503. No SQL edit or retry. `node --test --test-name-pattern='DB-dependent publication|stale preflight' tests/gradebook-edge.test.js` **2/2 PASS**: changed-publication preflight invokes no apply, final-apply conflict invokes it once, existing PT409 handling remains terminal. All traffic mocked, no hosted reproduction. FIXED IN DRAFT / NOT DEPLOYED; B5/CP01-C/real-data gates unchanged.
+
+## 2026-10-26 — GB-B4-001 / P2: non-string operation coercion (FIXED before deployment)
+
+B4 baseline `29a7f2a`, feature/personal-gradebook. Static self-review of the new draft found that Object.hasOwn(specs, body.op) coerces an array such as ['class.read'] into a matching property key. That could pass initial membership validation then fail dispatch with503/unnecessary Auth calls; the student branch could also dispatch an invalid non-string operation. No authorization bypass, data disclosure or deployed incident is asserted.
+
+Fix: `_shared/admin.js:validateAdmin` and `_shared/student.js:validateStudent` require typeof op==='string' before membership lookup. Malformed enum values now return400 before backend clients are invoked. Focused offline regression `node --test --test-name-pattern='client actor|non-string student operation' tests/gradebook-edge.test.js` **2/2 PASS**; other B4 tests had already passed29/29 before this correction, not rerun wholesale. Later three additional focused keyring/claims/GET-retry tests PASS3/3. No existing SQL or Board source changed, no custom retryable business errors or automatic retry introduced.
+
+Status FIXED IN DRAFT / NOT DEPLOYED. Hosted requests/Auth/migrations/deployments0; production secretsNO; real dataNONE; stress/load/soak/stretchNONE. [Five mandatory B4 concern confirmations and limitations](features/personal-gradebook/B4_INTEGRATION_REVIEW.md#cp01-b4-implementation--mandatory-concern-confirmations-2026-10-26). Prettier unavailable ENOTCACHED; exact-HEAD CI/Deno/runtime integration B5, native17 and hosted security CP01-C, real-data gate NOT RUN. The commit containing this entry is the correction/implementation trace, not proof of hosted repair.
+
 ## 2026-10-26 — GB-B4-INT-001 / P1: reveal dependency (FIXED IN DRAFT)
 
 Baseline `0bbd0c3b179c564a0705af97dbdac6a6b9c1a7f6`, feature/personal-gradebook. Static B4 preflight confirms `gb_student_read(reveal=true)` in `20261026030000_gradebook_transactions.sql:172–184` returns ciphertext/nonce/encKid/algVersion but not stored identity_lookup or lookup_key_version; base DTO lacks them too. CP01-A §6 AES-GCM AAD includes the stored lookup hex, and reveal must recompute the generation-specific HMAC before disclosure. B4 cannot safely obtain this context through the accepted RPC surface. Root cause: B3's privileged reveal projection omits required authenticated identity context, not a crypto primitive failure or observed hosted incident.

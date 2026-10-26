@@ -457,3 +457,12 @@ The newer B2 request clarifies stored meaningful precision vs original string sp
 ## CP01-B3 — transaction draft (2026-10-26)
 
 B2 accepted baseline `d86627f`. New `20261026030000_gradebook_transactions.sql` adds 22 service-only invoker RPCs, private validation/planner/framing helpers, shared import preview/apply/state hash, class-scoped audit and atomic limiter. Five prior migrations unchanged, no tables added. [B3 inventory, DTO signatures, evidence and limits](B3_TRANSACTION_REVIEW.md). B3 READY FOR REVIEW; B4/B5 NOT STARTED, CP01-C and real-data gate NOT RUN. 14 B3/18 B2 disposable SQL groups and81 app tests PASS; native17, multi-connection locks, hosted API/security and browser NOT RUN. Draft not applied. Earlier B3 NOT STARTED entries are historical.
+
+
+## CP01-B4 — implemented offline boundary (2026-10-26)
+
+Baseline29a7f2a. [Actual modules, DTO/RPC integration details and all five concern confirmations](B4_INTEGRATION_REVIEW.md#cp01-b4-implementation--mandatory-concern-confirmations-2026-10-26). Two draft entrypoints implement verified teacher Auth/profile/session-context plumbing, protected identity/capability/preview tokens and committed limiter/B3 transaction orchestration. Pure B1 files and every accepted SQL migration remain unchanged. B4 READY FOR REVIEW; no hosted deployment/security acceptance.
+
+Implementation clarifications: manual blank-name clearing requires confirmed:true; class.read may resolve the active context before the admin RPC; single-student scores.read uses a bounded immutable-ID keyset query and verifies the result ID. Student verification supplies class/catalog presentation metadata in memory, while follow-on grades/histogram return selection plus scores/aggregates from the actual B3 arrays. The earlier proposed repeated class metadata is not fabricated. Scores remain strings, imports positional, selected-semester publication/epochs remain B3 checks. No business-label or BRIEF V1.2 change.
+
+B4 uses15-second request cancellation and no retry, not a guarantee that timed-out backend work stopped. No auto-resubmit after a lost-response write; re-preview current state. Native PostgreSQL17, Deno graph/runtime, exact-HEAD format/CI and actual hosted JWT/RLS/security gates retain their B5/CP01-C owners and NOT RUN status. Secrets/key recovery and real-data authorization remain separate gates. Historical implementation evidence above is preserved.
