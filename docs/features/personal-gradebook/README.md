@@ -1,6 +1,6 @@
 # Personal Gradebook — Codex entry point
 
-**Project:** KHTN8 Board (`khoabm/dashboard`). **Feature:** Bảng điểm cá nhân. **Phase:** CP01 backend drafts; **implementation:** B1/B2 accepted, B3 correction accepted at static/offline review, [GB-B4-INT-001 FIXED IN DRAFT](B4_INTEGRATION_REVIEW.md), B4 READY FOR REVIEW (offline), B5 NOT STARTED; hosted Gradebook NOT APPLIED. Branch `feature/personal-gradebook` created from `develop` `af43f51` on 2026-10-25.
+**Project:** KHTN8 Board (`khoabm/dashboard`). **Feature:** Bảng điểm cá nhân. **Current:** CP01 backend drafts not applied/deployed; CP02 OFFLINE ACCEPTED; CP03 OFFLINE ACCEPTED with isolated synthetic Chrome QA; offline evidence tracked in [STATUS](../../STATUS.md#cp03--classstudent-administration-and-roster-import--2026-10-26). Production Gradebook adapters remain unavailable with zero network. CP01-C/real-data gate NOT RUN; CP04/CP05 NOT STARTED. Branch `feature/personal-gradebook` created from `develop` `af43f51` on 2026-10-25. Older snapshots below are historical.
 
 **Latest B5 snapshot (2026-10-26 / baselinec9e18c1):** B4 ACCEPTED AS DRAFT. [Superseding CI policy/concern matrix/asset inventory](B5_OFFLINE_REVIEW.md#current-policy-correction--baselinec9e18c1-supersedes-sql-ci-approval): six explicit component/pure-unit files in test:ci; no API/Supabase/Edge/SQL integration in CI, staged PGlite/runner withdrawn. Prior120 Node and temporary20 SQL groups retained as historical evidence only. PR5 Draft/dirty (BUG_FIX_LOG conflict), Actions blocked; native Deno/PG17, CP01-C and real-data gates NOT RUN. No automatic continuation or pre-merge asset deletion.
 
@@ -26,7 +26,7 @@
 
 For every checkpoint report: **branch/HEAD; what changed; requirement IDs; actual tests (PASS/FAIL/NOT RUN/BLOCKED); risks; next unblocked checkpoint**. Do not conflate offline mocks with real Auth/RLS/privacy tests. Update the tracker and root STATUS only with observed evidence.
 
-CP00 correction and [finding dispositions](CHECKPOINTS.md#cp00-finding-dispositions) document readiness only. B1/B2 accepted; B3 correction reviewed offline and accepted; GB-B4-INT-001 fixed in the unapplied forward draft chain; B4 READY FOR REVIEW offline; B5 and CP02–CP07 NOT STARTED. Complete the [real-data gate](DATA_AND_SECURITY.md#h-real-personal-data-gate) before using real students' information, even before deployment. No rollover/history workflow or suppression engine is implied by this plan.
+CP00 correction and [finding dispositions](CHECKPOINTS.md#cp00-finding-dispositions) document readiness only. CP01 drafts and CP02/CP03 offline UI evidence do not establish backend security acceptance. Complete the [real-data gate](DATA_AND_SECURITY.md#h-real-personal-data-gate) before using real students' information, even before deployment. No rollover/history workflow or suppression engine is implied by this plan.
 
 CP01-A database/backend design: [CP01_TECHNICAL_DESIGN](CP01_TECHNICAL_DESIGN.md), based on read-only environment verification at `f522266` on 2026-10-26. Read this before proposing CP01-B. Design evidence is distinct from CP01-B implementation, CP01-C authorized integration and the real-data gate; none starts automatically.
 

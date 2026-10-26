@@ -366,8 +366,8 @@ async function refresh({ afterWrite = false, revealSectionId = null } = {}) {
 }
 
 /** Rechecks the admin profile and signed-in user before refreshing board data. */
-export function refreshAuth() {
-  if (!boardActive) return Promise.resolve();
+export function refreshAuth({ authOnly = false } = {}) {
+  if (!boardActive && !authOnly) return Promise.resolve();
   if (authRefreshPromise) return authRefreshPromise;
   const pending = restoreAuth();
   authRefreshPromise = pending;
@@ -380,10 +380,10 @@ export function refreshAuth() {
 
 /** Restores the existing Board session; callers share its promise instead of issuing extra checks. */
 async function restoreAuth() {
-  if (!boardActive) return;
   clearSession();
   const generation = requests.generation();
   authChecking = true;
+  window.dispatchEvent(new Event('app:auth-state'));
   syncMessage = 'Đang kiểm tra quyền quản trị…';
   updatePendingUI();
   try {
@@ -392,7 +392,8 @@ async function restoreAuth() {
     admin = !!identity;
     userId = identity?.userId ?? null;
     authChecking = false;
-    await refresh();
+    window.dispatchEvent(new Event('app:auth-state'));
+    if (boardActive) await refresh();
   } catch {
     if (generation !== requests.generation()) return;
     // Do not read with an unverified stored JWT or unlock private UI after an Auth failure.
@@ -408,6 +409,7 @@ async function restoreAuth() {
       authChecking = false;
       syncMessage = '';
       updatePendingUI();
+      window.dispatchEvent(new Event('app:auth-state'));
     }
   }
 }
@@ -673,4 +675,18 @@ export async function prepareRouteExit() {
 /** Reports only the already-verified in-memory Board state; performs no Auth request. */
 export function boardSessionActive() {
   return admin;
+}
+
+/** Shares the existing verified identity; direct admin routes restore Auth without loading Board data. */
+export function ensureBoardAuth() {
+  if (authRefreshPromise) return authRefreshPromise;
+  return admin && !authFailed ? Promise.resolve() : refreshAuth({ authOnly: true });
+}
+
+/** Publishes UI status only; this is never server authorization or a student credential. */
+export function boardAuthState() {
+  return {
+    status: authChecking ? 'loading' : authFailed ? 'error' : admin ? 'admin' : 'anonymous',
+    generation: requests.generation(),
+  };
 }

@@ -2,6 +2,22 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-26 — GB-CP03-001 / P2: route scope requires randomUUID (FIXED OFFLINE)
+
+Baseline `1fcbf29f4d10f595a6f251f54627b8f699f7386d`, feature/personal-gradebook. Direct crypto.randomUUID in src/app.js could prevent routing where that API is unavailable. Route scope now uses existing src/utils/id.js newId fallback, no new identity/Auth mechanism. Pure CP03-T01 exercises missing randomUUID; installed Chrome QA disables the method before app bootstrap and verifies Board/lookup/admin navigation. Hosted requests0; no changes to B1–B4/migrations or CP01-C acceptance.
+
+## 2026-10-26 — GB-CP03-002 / P2: duplicate import errors lack stable category (FIXED OFFLINE)
+
+Same baseline/branch, during CP03 focused testing. rosterBatch detected duplicate identities but omitted error.code, making row/column errors indistinguishable from generic invalid fields. src/utils/roster.js now emits duplicate_identity without cell payload; pure T08 failed before the fix and passed after it. Actual Chrome CSV reports source row4/column1 and disables preview/apply. This is local parsing/UI evidence, not backend atomicity. The commit containing this entry anchors both fixes; CP03 data and screenshots are synthetic and ignored.
+
+## 2026-10-26 — GB-CP03-003 / P2: unresolved confirmation outlives private route (FIXED OFFLINE)
+
+CP03 self-review at the same baseline found component-owned dialogs were disposed but shared ConfirmDialog decisions were not owned. Browser Back/logout could leave a stale confirmation on the next route. primitives.js now accepts an optional AbortSignal (old Board callers unchanged); gradebook-admin.js aborts all pending decisions on route/session disposal. Installed headed Chrome supplemental component QA confirms Back/logout removes the dialog with zero student mutations/console errors, using synthetic session/admin adapters; no backend requests. This is not real Auth acceptance.
+
+## 2026-10-26 — GB-CP03-004 / P3: failed page fetch advances cursor (FIXED OFFLINE)
+
+Same CP03 self-review: pagination updated its cursor stack before the request without restoring it after failure. gradebook-admin.js restores the previous cursor on a failed page read; session cancellation still clears state. Supplemental actual Chrome fault injection confirms failed Next keeps20 rows/page1, subsequent explicit Next reaches page2 with1 row, then Previous returns page1. No automatic retry or hosted requests. Existing pure90-test gate was already green; after these two component changes only affected static/build/format and focused Chrome evidence were repeated, not the unchanged full local unit suite.
+
 ## 2026-10-26 — GB-CP02-REV-001 / P2: administrator entry races session restoration (FIXED OFFLINE)
 
 Baseline `1874cbaf7da0bf0d351ac58a84df55cd07af9654`, branch `feature/personal-gradebook`. `app.js` awaited route rendering then clicked `.header-admin`, although Board bootstrap's async refreshAuth was still pending. Admin=false during restoration could open an unnecessary login dialog. `main.js` now shares the existing restoration promise and exports direct openBoardAdmin; the pure entry coordinator fences stale route/Auth generations, waits for pending work, denies failed/checking sessions and preserves anonymous login/admin notice/logout. Both headers use this entry; no new client or extra Auth verification to open it.

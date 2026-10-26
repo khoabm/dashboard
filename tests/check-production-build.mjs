@@ -15,6 +15,8 @@ async function checkDirectory(directory = 'dist', relative = '') {
       await checkDirectory(file, name);
     } else if (name.startsWith('placeholders/')) {
       assert.deepEqual(await readFile(file), await readFile(path.join('public', name)));
+    } else if (name === 'third-party-notices.txt') {
+      assert.deepEqual(await readFile(file), await readFile(path.join('public', name)));
     } else {
       assert(
         name === 'index.html' || /^assets\/[^/]+-[\w-]+\.(js|css)$/.test(name),

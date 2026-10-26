@@ -1,4 +1,115 @@
 /* Primary navigation and the private lookup surface share the existing Board palette. */
+/* CP03 uses the same cards, controls and modal tokens; only the table scrolls on narrow screens. */
+.gradebook-admin {
+  max-width: 1320px;
+  margin: 36px auto 80px;
+  padding: 0 24px;
+}
+.gradebook-admin h1 {
+  font-size: clamp(26px, 4vw, 38px);
+}
+.gradebook-admin-body {
+  display: grid;
+  gap: 22px;
+}
+.admin-class,
+.admin-table-scroll {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 20px;
+  min-width: 0;
+}
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.admin-actions input,
+.admin-actions select {
+  max-width: 100%;
+  width: auto;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+.admin-table-scroll {
+  overflow-x: auto;
+}
+.admin-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 800px;
+}
+.admin-table caption {
+  text-align: left;
+  color: var(--muted);
+  padding: 0 0 18px;
+}
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  padding: 14px 12px;
+  vertical-align: top;
+}
+.admin-table th {
+  color: var(--green);
+  white-space: nowrap;
+}
+.admin-table td:first-child {
+  min-width: 140px;
+  overflow-wrap: anywhere;
+}
+.admin-table .button {
+  font-size: 12px;
+  padding: 7px 10px;
+}
+.admin-feedback {
+  color: var(--green);
+  overflow-wrap: anywhere;
+}
+.identity-reveal {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.import-detail {
+  padding: 12px 0;
+  overflow-wrap: anywhere;
+}
+.import-detail p {
+  margin: 7px 0;
+}
+.import-counts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.import-counts p {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 10px;
+  border-radius: 8px;
+}
+@media (max-width: 700px) {
+  .gradebook-admin {
+    padding: 0 14px;
+    margin-top: 24px;
+  }
+  .admin-class,
+  .admin-table-scroll {
+    padding: 14px;
+  }
+  .admin-actions > input {
+    width: 100%;
+  }
+}
 [hidden] {
   display: none !important;
 }

@@ -7,6 +7,7 @@ import { StudentLookup } from './components/student-lookup.js';
 import { verifyStudent } from './services/student-lookup.js';
 import { routeFor, routes } from './utils/gradebook-ui.js';
 import { createRouteNavigation } from './utils/app-navigation.js';
+import { newId } from './utils/id.js';
 
 const root = document.querySelector('#app');
 const boardRoot = el('div', { id: 'board-app', hidden: true });
@@ -22,11 +23,13 @@ const routeNavigation = createRouteNavigation({
   history,
   location,
   initialPath: routes[routeFor(location.pathname)] || location.pathname,
-  newScope: () => crypto.randomUUID(),
-  prepare: (path) =>
-    current === 'board' && routeFor(path) !== 'board' && boardModule
+  newScope: newId,
+  prepare: (path) => {
+    if (current === 'admin' && routeFor(path) !== 'admin') return view?.prepareExit() ?? true;
+    return current === 'board' && routeFor(path) !== 'board' && boardModule
       ? boardModule.prepareRouteExit()
-      : true,
+      : true;
+  },
   show: showRoute,
 });
 
@@ -59,6 +62,7 @@ async function showRoute(path, focus = true) {
     if (ticket !== generation) return;
     boardRoot.querySelector('.app-header')?.prepend(navigation.element);
     boardModule.setBoardActive(true);
+    navigation.setAdmin(boardModule.boardSessionActive());
     if (focus) {
       const heading = boardRoot.querySelector('h1');
       heading?.setAttribute('tabindex', '-1');
@@ -82,6 +86,40 @@ async function showRoute(path, focus = true) {
       view = StudentLookup({ verify: verifyStudent, navigate });
       studentRoot.append(view.element);
       if (focus) view.focus();
+    } else if (current === 'admin') {
+      try {
+        const [{ GradebookAdmin }, { requestGradebookAdmin }, { readRosterFile }] =
+          await Promise.all([
+            import('./components/gradebook-admin.js'),
+            import('./services/gradebook-admin.js'),
+            import('./services/roster-file.js'),
+          ]);
+        if (!boardPromise) boardPromise = import('./main.js');
+        boardModule = await boardPromise;
+        if (ticket !== generation) return;
+        boardModule.setBoardActive(false);
+        view = GradebookAdmin({
+          request: requestGradebookAdmin,
+          readFile: readRosterFile,
+          onLogin: async () => {
+            if (await navigate('/')) await boardModule.openBoardAdmin();
+          },
+          onLogout: () => void boardModule.logout(),
+        });
+        studentRoot.append(view.element);
+        const pending = boardModule.ensureBoardAuth();
+        view.setSession(boardModule.boardAuthState());
+        navigation.setAdmin(boardModule.boardSessionActive());
+        void pending.then(() => {
+          if (ticket === generation) view?.setSession(boardModule.boardAuthState());
+        });
+        if (focus) view.focus();
+      } catch {
+        if (ticket === generation)
+          studentRoot.append(
+            el('p', { role: 'alert' }, 'Chưa thể mở quản lý bảng điểm. Hãy tải lại trang.'),
+          );
+      }
     } else
       studentRoot.append(
         el(
@@ -123,6 +161,17 @@ root.addEventListener('click', (event) => {
 window.addEventListener('popstate', (event) => void routeNavigation.pop(event.state));
 window.addEventListener('app:sign-out', () => {
   if (current === 'student') void showRoute(routes.student);
+  if (current === 'admin')
+    view?.setSession(boardModule?.boardAuthState() || { status: 'anonymous', generation: -1 });
+  navigation.setAdmin(false);
+});
+window.addEventListener('app:auth-state', () => {
+  navigation.setAdmin(boardModule?.boardSessionActive() || false);
+  const label = studentRoot.querySelector('.header-admin');
+  if (label)
+    label.textContent = boardModule?.boardSessionActive() ? 'Quản trị viên' : 'Đăng nhập quản trị';
+  if (current === 'admin')
+    view?.setSession(boardModule?.boardAuthState() || { status: 'loading', generation: -1 });
 });
 window.addEventListener('pagehide', () => {
   view?.dispose();

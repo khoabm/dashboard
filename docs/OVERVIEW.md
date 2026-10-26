@@ -16,4 +16,4 @@
 
 Không dùng overview này để thay tiêu chí chi tiết hoặc tuyên bố tính năng đã tồn tại.
 
-**Feature được lên kế hoạch (chưa implement):** [Bảng điểm cá nhân](features/personal-gradebook/README.md) — một lớp, hai học kỳ, xác minh CMND/CCCD và ngày sinh, quản lý học sinh/điểm, import UPSERT Excel/CSV, biểu đồ cột trên modal. Chi tiết và điều kiện nghiệm thu thuộc brief riêng; không hiểu dòng này là đã có UI hoặc dữ liệu runtime.
+**Feature đang phát triển:** [Bảng điểm cá nhân](features/personal-gradebook/README.md) — backend draft chưa áp dụng; CP02 tra cứu và CP03 quản trị lớp/học sinh/import có UI offline, production adapter vẫn fail-closed. Điểm/biểu đồ CP04/CP05 chưa triển khai; CP01-C và real-data gate NOT RUN. Brief quy định nghiệp vụ; [STATUS](STATUS.md) ghi bằng chứng hiện tại, không suy từ UI rằng backend đã an toàn hoặc có dữ liệu thật.

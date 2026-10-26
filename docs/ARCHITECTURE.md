@@ -21,7 +21,12 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 | src/app.js | Path-only History routing; lazy Board/SDK graph; shared navigation; disposes student state on exit/sign-out/page lifecycle |
 | src/utils/app-navigation.js | Pure indexed history/compensation and pending administrator-entry coordinator; no SDK/DOM/network; rejected traversals never push an entry |
 | src/main.js | Board bootstrap/render/Auth; shared restoration promise + direct openBoardAdmin for both headers; suspend route refresh; flush editor-owned drafts before route exit |
-| src/components/app-header.js, site-navigation.js | Pure shared branding/admin controls; accessible two-route disclosure menu |
+| src/components/app-header.js, site-navigation.js | Shared branding/admin controls; accessible Board/lookup menu plus verified-admin entry |
+| src/components/gradebook-admin.js | CP03 class/student dialogs, paged list, reveal/import ownership and route/session disposal |
+| src/utils/gradebook-admin.js, roster.js | Pure input/DTO projection, cancellable operation/preview ownership and bounded positional CSV/roster validation; reuse B1 |
+| src/services/gradebook-admin.js | CP03 B4-shaped production adapter; deliberately no transport or synthetic fallback until authorized integration |
+| src/services/roster-file.js, roster-worker.js, src/utils/roster-archive.js | Memory-only file parsing; bounded ZIP/layout inspection, lazy read-excel-file9.3.12 worker/fflate0.8.3; physical columns/source rows and calendar dates retained |
+| tests/gradebook-admin.test.js, roster.test.js | CP03 curated pure T01–T10 contracts; actual installed-Chrome fixtures/evidence stay ignored under tests/local/cp03, outside CI/production |
 | src/components/student-lookup.js, src/utils/gradebook-ui.js | Date-only lookup form; pure validation/generation/cancellation/expiry; capability/input memory only |
 | src/services/student-lookup.js | CP02 production fail-closed adapter: unavailable, zero network until separately authorized backend integration |
 | src/styles/gradebook.css | Responsive student page/menu; existing Board design tokens |

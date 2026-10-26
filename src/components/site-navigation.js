@@ -17,6 +17,7 @@ export function SiteNavigation(navigate) {
   const links = [
     ['Bảng học liệu', routes.board, '01'],
     ['Bảng điểm cá nhân', routes.student, '02'],
+    ['Quản lý bảng điểm', routes.admin, '03'],
   ].map(([label, href, number]) =>
     el(
       'a',
@@ -41,6 +42,7 @@ export function SiteNavigation(navigate) {
       el('span', { 'aria-hidden': 'true' }, '↗'),
     ),
   );
+  links[2].hidden = true;
   panel.append(el('span', { class: 'navigation-caption' }, 'KHÔNG GIAN HỌC TẬP'), ...links);
   const element = el('div', { class: 'site-navigation' }, toggle, panel);
   /** Keeps disclosure state and focus ownership consistent across click, keyboard and route changes. */
@@ -61,13 +63,14 @@ export function SiteNavigation(navigate) {
         setOpen(true, true);
         return;
       }
-      const index = links.indexOf(document.activeElement);
-      links[
+      const available = links.filter((link) => !link.hidden);
+      const index = available.indexOf(document.activeElement);
+      available[
         event.key === 'Home'
           ? 0
           : event.key === 'End'
-            ? links.length - 1
-            : (index + (event.key === 'ArrowUp' ? -1 : 1) + links.length) % links.length
+            ? available.length - 1
+            : (index + (event.key === 'ArrowUp' ? -1 : 1) + available.length) % available.length
       ].focus();
     }
   });
@@ -79,6 +82,9 @@ export function SiteNavigation(navigate) {
   });
   return {
     element,
+    setAdmin(active) {
+      links[2].hidden = !active;
+    },
     select(path) {
       setOpen(false);
       links.forEach((link) => {

@@ -6,6 +6,27 @@ Nguồn tiêu chí đầy đủ: SPEC R05–08, R10–14, R19–22, R25. Không 
 
 Mỗi case ghi: ID hoặc Rxx/tiểu mục, commit/config, môi trường/browser/viewport/danh tính, bước thực hiện, mong đợi/thực tế, trạng thái và bằng chứng. PASS chỉ khi thực sự chạy và quan sát; FAIL có tái hiện; BLOCKED có nguyên nhân; NOT RUN chưa chạy. Không in secret/PII hoặc token trong log/screenshot.
 
+## CP03 offline concern matrix
+
+Baseline `1fcbf29`, feature/personal-gradebook. Curated CI now explicitly lists **nine** component/pure-unit files in package.json (seven existing plus gradebook-admin.test.js and roster.test.js). Earlier six-file B5 inventories below are historical. No HTTP, SDK, Edge, SQL or browser integration enters CI.
+
+| Group | Pure coverage / installed-Chrome evidence |
+| --- | --- |
+| CP03-T01 | Auth-state gate and UUID fallback; direct admin/anonymous/failed/delayed routes and shared login |
+| CP03-T02 | Independent metadata patch/string revision/no-op; class create/edit and conflict rejection |
+| CP03-T03 | Student fields/confirmation/string IDs; real UI create/edit/status/delete guards |
+| CP03-T04 | Ordinary DTO excludes identity/crypto; explicit reveal and retained-DOM/private-storage cleanup |
+| CP03-T05 | Two-column positional records; actual BOM CSV and blank-header XLSX selection/preview/apply |
+| CP03-T06 | Three-column names/trailing blanks; actual CSV/XLSX preview and preserving existing names |
+| CP03-T07 | Quotes/commas/UTF-8/leading zeros/calendar/typed Excel dates, finite ZIP boundaries; actual numeric-ID/formula rejection and 1900/1904 files |
+| CP03-T08 | Duplicate identity/original row+column; row4 error and mismatched-DOB server preview |
+| CP03-T09 | Class/batch/token/expiry ownership; changed-file, stale/conflicting/failing apply, no automatic write retry |
+| CP03-T10 | Cancellation/changed owner/late results; logout, route exit during pending work and real Back draft guard |
+
+Merge inventory: CP03 component, production no-transport adapter, pure helpers, lazy file/worker parser, routing/Auth/menu/CSS integration; optional confirmation AbortSignal in existing primitives; two pinned parser dependencies/lock and MIT browser notices; two pure test files and exact notice allowlist in production guard; essential OVERVIEW/STATUS/CHECKPOINTS/README/code map/bug log/testing updates. Accepted B1–B4 and migrations/specialist assets are retained unchanged. Fixtures, raw files, screenshots, logs and Chrome tooling stay ignored under tests/local/cp03, never imported by application/CI. Browser adapter is injected only by local interception, never a production fallback. Supplemental Chrome component checks cover failed-page cursor recovery and pending confirmation disposal on Back/logout; their Board session is synthetic, distinct from the main shared-Auth QA.
+
+read-excel-file9.3.12 (MIT) owns XLSX value/shared-string decoding; direct fflate0.8.3 (MIT) bounds actual ZIP output before reading. No custom general XLSX parser or paid service. Library is loaded on file selection in an abortable worker; build verifies separate chunks and static notices. Offline build/curated tests do not prove hosted transaction, authorization, encryption/recovery or real-data gates; these remain NOT RUN. Viewport QA is not native-device/Safari acceptance.
+
 Docs-only kiểm tra tính đầy đủ, link, trạng thái, diff; không cần browser test tài liệu Markdown. Logic mới/được sửa về lưu dữ liệu, phân quyền, upload, sắp xếp, nháp phải có regression có ý nghĩa. Có thể dùng unit/integration miễn phí phù hợp; không test chỉ phản chiếu code. Chỉ cài dependency test khi thực sự cần.
 
 ## Chính sách kiểm thử tiết kiệm quota — bắt buộc
@@ -66,7 +87,7 @@ Workflow `.github/workflows/ci.yml`: `workflow_dispatch`, PR hướng tới `dev
 | --- | --- | --- |
 | `npm ci` | Cài dependency từ lockfile | Chỉ đánh giá khi workflow chạy |
 | `npm run check` | Syntax frontend +13 Edge JS; frontend secret rules unchanged, server env references allowed but literal key/JWT patterns denied; git diff whitespace | Offline |
-| `npm run test:ci` | Explicit six-file component/pure-unit allowlist; npm test delegates to it | No wildcard discovery, SDK/API/Edge/service/SQL/browser integration |
+| `npm run test:ci` | Explicit nine-file component/pure-unit allowlist; npm test delegates to it | No wildcard discovery, SDK/API/Edge/service/SQL/browser integration |
 | `npm run build` | Static bundling Vite | Offline, không deploy |
 | `npm run format:check` | Prettier exact3.6.2 local devDependency/lock; frontend/test/scripts và supabase/functions JS | Không còn baseline miễn trừ; đầy đủ file trong phạm vi script |
 

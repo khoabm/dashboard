@@ -114,17 +114,19 @@ Dependency: CP01 API contract; synthetic UI may use clearly labeled mocks before
 
 CP02 final correction baseline `1874cba`, 2026-10-26: [current evidence and limitations](../../STATUS.md#cp02--offline-student-lookup-ui--2026-10-26). Final unit79/79/check/build/format PASS; seven installed headed Chrome155 scenario outcomes at viewport1440×960/390×844, no console exceptions,31 synthetic REST interceptions/hosted forwarded0. Not native mobile/Safari or hosted authorization acceptance. Artifacts stay in ignored tests/local/cp02-final; no browser harness in CI/production. No CP03–05 or CP01-C started; final-SHA Actions reported separately after push.
 
-## CP03 — Class/student admin and UPSERT roster import (NOT STARTED)
+## CP03 — Class/student admin and UPSERT roster import (OFFLINE ACCEPTED)
 
-Dependency: CP01 transactional/admin/identity contract and CP02 admin navigation. Synthetic-only until §H real-data gate is evidenced, even if UI works.
+Dependency: CP01 transactional/admin/identity contract and CP02 admin navigation. UI implemented from baseline `1fcbf29`; production adapter fail-closed, no Gradebook transport. Synthetic-only until separately authorized CP01-C integration and §H real-data gate. [Current evidence](../../STATUS.md#cp03--classstudent-administration-and-roster-import--2026-10-26); [T01–T10 matrix](../../TESTING.md#cp03-offline-concern-matrix). Boxes below distinguish completed offline UI from unverified backend guarantees.
 
-- [ ] Single active class: edit name/year independently even with scores; IDs/relationships/score values/publication remain unchanged. No new class/rollover or old year-label snapshot promise.
-- [ ] Student create/list/edit/deactivate or safe delete, with both mandatory fields; optional name; no `HS001` key field.
-- [ ] Mask identity in teacher list; explicit authorized reveal only.
-- [ ] Excel + CSV roster accepts **both positional layouts** (header text customizable): `CMND/CCCD`, `Ngày sinh` alone, or `Họ tên`, `CMND/CCCD`, `Ngày sinh`; the optional name column may be entirely absent. Exact physical width is 2 or 3, not inferred from header labels. Preview INSERT/UPDATE/unchanged/error counts; row/column errors and in-file duplicate identities detected.
-- [ ] New document INSERTs; existing document + same DOB permits name UPDATE; different DOB blocks entire batch. Blank name preserves existing name; no imported identity/DOB/class/active-status edits or silent reactivation under §F technical allowlist. Authorized manual identity correction remains separate.
+- [x] Offline class UI: create only after confirmed missing class; edit name/year independently with expectedRevision. Synthetic evidence preserves IDs/relationships/score/publication; no rollover/history promise.
+- [x] Offline student create/list/edit/deactivate/reactivate/safe delete UI, required identity/date, optional name, no teacher-entered ID; conflict reload guidance, confirmations and backend score-delete guard handling.
+- [x] Ordinary DTO projection hides identity; explicit per-student reveal confirmation, temporary memory-only output and cleanup on close/session/route/page lifecycle. Real authorization remains CP01-C.
+- [x] Excel + CSV roster accepts **both positional layouts** (custom/duplicate/blank headers): 2 or 3 physical columns, trailing blanks and original source coordinates. Mapping and INSERT/UPDATE/unchanged/error preview precede confirmation; worker parsing and duplicate detection verified offline.
+- [x] B4 roster.preview/apply UI contract, no per-row writes: new identity, matching-DOB name update, conflict blocking, blank-name preservation and separate manual correction verified synthetically; no reactivation fields sent.
 - [ ] One atomic batch; mixed valid/invalid rows change nothing, including existing records. Stale preview/concurrent CRUD refreshes preview before commit; no frontend per-row writes.
-- [ ] CSV and XLSX fixtures for **two-column-only import**, three columns with blank/missing names, and UPSERT that preserves existing names; leading zero, Excel date, malformed/empty/duplicate file, mixed valid+invalid and retry tests.
+- [x] Pure T01–T10 tests plus ignored actual-Chrome CSV/XLSX two/three-column fixtures: blank names, zeros, Excel dates, malformed/duplicate/conflicting inputs, stale/failing apply and cancellation. Synthetic fixtures are never production sources or CI integration tests.
+
+The unchecked atomic/concurrency item requires real CP01-C evidence; offline acceptance never checks it by inference. Installed-Chrome18 scenario/component groups plus local curated90/90/static/build/format evidence establish CP03 OFFLINE ACCEPTED only. No CP04 or CP01-C started.
 
 ## CP04 — Teacher point CRUD, import and publication (NOT STARTED)
 

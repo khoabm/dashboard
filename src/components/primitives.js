@@ -102,11 +102,15 @@ export function openDialog(title, { drawer = false } = {}) {
  *
  * @param {string} message - The confirmation question.
  * @param {string} description - Optional context for the decision.
+ * @param {object} options - Optional AbortSignal for a route/session-owned confirmation.
  * @returns {Promise<boolean>} True only when the user confirms.
  */
-export function ConfirmDialog(message, description = '') {
+export function ConfirmDialog(message, description = '', { signal } = {}) {
   return new Promise((resolve) => {
+    if (signal?.aborted) return resolve(false);
     const { dialog, content } = openDialog(message);
+    const abort = () => dialog.close();
+    signal?.addEventListener('abort', abort, { once: true });
     // The confirmation actions resolve true only when confirmed; dismissal resolves false.
     content.append(
       el('p', {}, description),
@@ -124,7 +128,14 @@ export function ConfirmDialog(message, description = '') {
         ),
       ),
     );
-    dialog.addEventListener('close', () => resolve(false), { once: true });
+    dialog.addEventListener(
+      'close',
+      () => {
+        signal?.removeEventListener('abort', abort);
+        resolve(false);
+      },
+      { once: true },
+    );
   });
 }
 
