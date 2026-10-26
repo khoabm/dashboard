@@ -1,8 +1,8 @@
 # Execution plan and acceptance gates — Personal Gradebook
 
-**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1 ACCEPTED; B2 ACCEPTED; B3 CORRECTION READY FOR REVIEW; B4/B5 and CP02–CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
+**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1/B2 ACCEPTED; B3 CORRECTION ACCEPTED at static/offline review (hosted NOT RUN); B4/B5 and CP02–CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
 
-CP01-A is a separately authorized **technical-design** slice: [design and original read-only evidence](CP01_TECHNICAL_DESIGN.md), baseline `f522266`; [accepted refinements GB-A-REV-001..003](CP01_TECHNICAL_DESIGN.md#143-accepted-refinement-disposition) reviewed from `31f887bd`, 2026-10-26. **DESIGN REFINED / READY**, documentation checks only. CP01-B1 is ACCEPTED; CP01-B2 is ACCEPTED; CP01-B3 READY FOR REVIEW; CP01-B4/B5 remain NOT STARTED; CP01-C security acceptance and the real-data gate remain NOT RUN. Separate requests are required; no implementation acceptance box is checked by design alone.
+CP01-A is a separately authorized **technical-design** slice: [design and original read-only evidence](CP01_TECHNICAL_DESIGN.md), baseline `f522266`; [accepted refinements GB-A-REV-001..003](CP01_TECHNICAL_DESIGN.md#143-accepted-refinement-disposition) reviewed from `31f887bd`, 2026-10-26. **DESIGN REFINED / READY**, documentation checks only. CP01-B1/B2 are ACCEPTED; CP01-B3 correction is ACCEPTED at static/offline review only; CP01-B4/B5 remain NOT STARTED; CP01-C security acceptance and the real-data gate remain NOT RUN. Separate requests are required; no implementation acceptance box is checked by design alone.
 
 ## Operating workflow for Codex
 
@@ -58,7 +58,7 @@ Docs-only evidence 2026-10-26 at `eba7c18e`: eight Markdown files, 54 relative l
 
 Paths are planning candidates, not permission to create modules or abstractions. Frontend regression/fixtures stay in `tests/`; local outputs in ignored `tests/local/`. Server/migration tests use conventional feature subfolders, with exact commands chosen in CP01 and CI coverage added when implemented.
 
-## CP01 — Data model and security (B1 accepted; B2 draft ready; B3–B5 NOT STARTED)
+## CP01 — Data model and security (B1/B2 accepted; B3 offline accepted; B4/B5 not started)
 
 Deliverables: reviewed additive migration(s), six-table model incl ordered catalogs, minimal secure Functions for identity and admin, unit/security checks, cost check; **do not apply without authorization**.
 
@@ -81,6 +81,12 @@ Acceptance:
 - [ ] §I class-UUID audit with verified admin actor, allowlisted event/counts and no PII/score payload; mutation + audit rollback together; do not reuse board UUID-row trigger on BIGINT/composite keys.
 - [ ] Document exact test evidence (mock vs live, approved environment) and gate status.
 
+### CP01-B4 handoff — retry-safety rule
+
+- Trước Edge/RPC development, đọc [GB-OPS-001 recurrence warning](../../DATABASE.md#cảnh-báo-tái-diễn-gb-ops-001--sqlstate-retryable-cho-xung-đột-nghiệp-vụ). **Không tự raise 40001/class-40 retryable cho business conflict**, không tự retry mutation/PT409/timeout/limiter denial. Phải review error mapping và behavior của client, Edge và PostgREST; genuine PostgreSQL serialization errors không được sửa thành business conflicts.
+- Board hotfix APPLIED theo metadata đã ghi. Ba lượt live smoke test Board BLOCKED trước đăng nhập/RPC vì thiếu secure auth/transport; HTTP409/internal retry vẫn NOT RUN. **Không đòi chạy lại Board smoke test để bắt đầu soạn B4 offline**.
+- B2/B3/correction đều **NOT APPLIED**. B4 chỉ được implement Edge handler/crypto/auth/capability/preview signing với synthetic fixtures và focused offline tests. Không tự deploy, cấp secrets, đăng nhập Auth thật, gọi hosted hay dùng dữ liệu học sinh thật.
+- B5/CP01-C và real-data gate là bước nghiệm thu riêng, gồm kiểm tra rollout pending migrations theo [DATABASE](../../DATABASE.md#gradebook-migration-rollout-gate--gb-ops-rev-002) và security evidence khi có phê duyệt và budget.
 ## CP02 — Navigation and lookup UI (NOT STARTED)
 
 Dependency: CP01 API contract; synthetic UI may use clearly labeled mocks before authorized live integration. Reuse one admin Auth state, clear student capability/private DOM on route exit/expiry, and fence responses after navigation/logout.

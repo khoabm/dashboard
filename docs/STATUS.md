@@ -1,3 +1,10 @@
+# CP01-B3 accepted offline / CP01-B4 handoff — 2026-10-26
+
+**B3 correction ACCEPTED at static/offline review** (baseline 778600d); eight custom 40001 business conflicts corrected to PT409 in draft migration. Focused PGlite SQL 13/13 and DOM 4/4 PASS as reported, not independently rerun. **Not hosted integration acceptance.** Board hotfix applied per previously recorded metadata. Three attempted Work smoke-test workflows BLOCKED before authentication/RPC (0 test requests), so observed HTTP409 and lack of PostgREST internal retries remain NOT RUN/INCONCLUSIVE. See [recurrence warning](DATABASE.md#cảnh-báo-tái-diễn-gb-ops-001--sqlstate-retryable-cho-xung-đột-nghiệp-vụ).
+
+**B4 is next for offline code implementation; NOT STARTED.** B5 NOT STARTED; CP01-C and real-personal-data gate NOT RUN. B2/B3/correction NOT APPLIED on hosted, no new secret deployment or hosted testing approved. Continue with [quota policy](TESTING.md#chính-sách-kiểm-thử-tiết-kiệm-quota--bắt-buộc).
+
+---
 # CP01-B3 focused correction — 2026-10-26
 
 Baseline `13292a3`, feature/personal-gradebook; **B3 CORRECTION READY FOR REVIEW / NOT DEPLOYED**. GB-B3-REV-003 P1 corrected in additive `20261026050000_gradebook_nonretryable_conflicts.sql`: eight exact business-conflict definitions become PT409 with body/metadata guards. Old migrations unchanged. Board PT409 feedback is now localized safely. [Correction evidence](features/personal-gradebook/B3_TRANSACTION_REVIEW.md#gb-b3-rev-003-correction--2026-10-26), [rollout gate](DATABASE.md#gradebook-migration-rollout-gate--gb-ops-rev-002).

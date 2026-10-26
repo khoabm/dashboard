@@ -24,6 +24,11 @@ Docs-only kiểm tra tính đầy đủ, link, trạng thái, diff; không cần
 
 Quy tắc này **không xóa** các yêu cầu kiểm thử an toàn/bảo mật của SPEC hay CP01-C. Chúng là các gate phải được lên kế hoạch xin phép riêng, không phải lệnh chạy ngay. Xem thêm [AGENTS](../AGENTS.md#chính-sách-kiểm-thử-tiết-kiệm-quota--bắt-buộc).
 
+### Chặn lặp sự cố PostgREST retry storm (GB-OPS-001)
+
+**Một POST cũng có thể phát sinh rất nhiều truy vấn PostgreSQL** nếu function tự phát sinh SQLSTATE retryable như 40001 cho business conflict và PostgREST server retry. Trước khi viết/test Edge hoặc RPC mới: phân biệt conflict dự kiến với serialization error thực; dùng mã non-retryable (chẳng hạn PT409), rà soát effective function definitions sau toàn bộ migration, kiểm tra SDK/Edge/PostgREST retry và đặt điều kiện dừng. [Cảnh báo và bằng chứng](DATABASE.md#cảnh-báo-tái-diễn-gb-ops-001--sqlstate-retryable-cho-xung-đột-nghiệp-vụ).
+
+Ba lượt Work thử Board HTTP smoke test trước đó đều BLOCKED trước Auth/RPC do thiếu secure admin-session transport; không được báo PASS, tự nới budget hoặc lặp prompt y hệt. Chỉ kiểm thử live khi có cách xác thực an toàn, budget và phê duyệt riêng. Lỗi lặp/timeout/429/503: dừng ngay, không retry. Đây là quy tắc chung cho mọi milestone.
 ## Ma trận nghiệm thu
 
 | Nhóm | Phạm vi bắt buộc | Bằng chứng |
