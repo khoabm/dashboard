@@ -46,3 +46,7 @@ Hướng dẫn hiện tại: [ADMIN_SETUP](ADMIN_SETUP.md), [BACKUP](BACKUP.md).
 ## Personal Gradebook B2 — unapplied draft
 
 `supabase/migrations/20261026014933_gradebook_foundation.sql` adds six non-exposed Gradebook tables plus catalog seed/RLS/ACL and one restricted boolean session helper. **Not applied to Supabase; the hosted baseline remains four migrations as last documented.** No class/student/auth data is seeded. [B2 review](features/personal-gradebook/B2_MIGRATION_REVIEW.md) records constraints vs future RPC/Edge guarantees, native17/hosted gates and safe pre/post/rollback planning; do not automatically apply all pending files. Existing board migrations/policies/functions are unchanged.
+
+## CP01-B3 — transaction draft (2026-10-26)
+
+B2 accepted baseline `d86627f`. New `20261026030000_gradebook_transactions.sql` adds 22 service-only invoker RPCs, private validation/planner/framing helpers, shared import preview/apply/state hash, class-scoped audit and atomic limiter. Five prior migrations unchanged, no tables added. [B3 inventory, DTO signatures, evidence and limits](features/personal-gradebook/B3_TRANSACTION_REVIEW.md). B3 READY FOR REVIEW; B4/B5 NOT STARTED, CP01-C and real-data gate NOT RUN. 14 B3/18 B2 disposable SQL groups and81 app tests PASS; native17, multi-connection locks, hosted API/security and browser NOT RUN. Draft not applied. Earlier B3 NOT STARTED entries are historical.

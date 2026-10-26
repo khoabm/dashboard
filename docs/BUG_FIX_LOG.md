@@ -138,3 +138,12 @@ Baseline `282bebc89f630fe773c016c0ec7bb94b7681143e`, `feature/personal-gradebook
 | GB-B2-003 / P3 draft | Plain PostgreSQL btrim in the first draft only removed ASCII spaces, leaving a mismatch with accepted B1 Unicode trim for student names | New migration full_name CHECK uses the explicit ECMAScript trim whitespace set and char_length; no silent normalization in DB | FIXED before commit. 200 supplementary characters accepted, 201 rejected, NBSP-surrounded name rejected by actual disposable SQL; B3/B4 still normalize before writing |
 
 Actual evidence: local PGlite 0.5.11/PostgreSQL18.6 WASM, synthetic Auth/Storage + four real old migration files; 81 app offline tests/check/build/format/diff PASS, npm ci PASS. No application/dependency/old migration change. Native17/hosted Auth/JWT/RLS/API/Storage/advisors/concurrency NOT RUN. No hosted SQL or config operation; no migration apply, PR, deploy or merge. B3–B5 NOT STARTED, CP01-C/real-data gate NOT RUN. See [B2 review](features/personal-gradebook/B2_MIGRATION_REVIEW.md) for boundaries and CLI telemetry rejection; it was not retried/bypassed.
+
+## 2026-10-26 — B3 draft corrections
+
+Baseline `d86627f`, feature/personal-gradebook; commit containing this entry is trace. No production Gradebook bug asserted.
+
+- **GB-B3-001 / P2 draft / FIXED:** planner ORDER BY key conflicted with PL/pgSQL key variable, and apply ON CONFLICT semester conflicted with parameter. Actual disposable SQL raised42702. New migration planner qualifies jsonb_each alias; score apply uses named composite PK constraint. Regression14/14 B3 groups includes score insert/update, stale/invalid batch and forced audit rollback. No accepted B2 file changed. Native17/concurrency NOT RUN.
+- **GB-B3-002 / P3 draft / FIXED:** initial pair-check draft selected the active class implicitly despite approved class-scoped HMAC protocol. RPC now receives explicit cid and checks class/key/active state after shared lock. SQL regression checks neutral inactive/mismatch and context. B4 must supply verified/derived class context; no crypto authentication is claimed.
+
+Verification: PGlite0.5.11/PostgreSQL18.6, synthetic bootstrap + actual migration chain, 14 B3 and18 B2 groups PASS; 81 app tests/check/build/format/diff PASS. B4/B5 NOT STARTED; real-data/hosted/native17/security/concurrency NOT RUN. No hosted changes or deploy/merge.

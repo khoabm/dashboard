@@ -118,3 +118,7 @@ Tổ chức kiểm thử: mọi file frontend test/fixture nằm trong `tests/` 
 ## Personal Gradebook B2 SQL draft
 
 `supabase/migrations/20261026014933_gradebook_foundation.sql` is an unapplied six-table foundation; the narrow private boolean session helper is the only new function. `tests/gradebook-b2-sql.mjs` creates fresh in-memory PGlite databases using `tests/gradebook/b2-bootstrap.sql` and four actual board migrations; no DB URL is accepted, no dependency added to the app. [B2 review](features/personal-gradebook/B2_MIGRATION_REVIEW.md) separates local SQL evidence from PostgreSQL17/Supabase/JWT/concurrency gates. RPCs, runtime epochs/stamping, limiter, crypto and UI remain unimplemented.
+
+## CP01-B3 — transaction draft (2026-10-26)
+
+B2 accepted baseline `d86627f`. New `20261026030000_gradebook_transactions.sql` adds 22 service-only invoker RPCs, private validation/planner/framing helpers, shared import preview/apply/state hash, class-scoped audit and atomic limiter. Five prior migrations unchanged, no tables added. [B3 inventory, DTO signatures, evidence and limits](features/personal-gradebook/B3_TRANSACTION_REVIEW.md). B3 READY FOR REVIEW; B4/B5 NOT STARTED, CP01-C and real-data gate NOT RUN. 14 B3/18 B2 disposable SQL groups and81 app tests PASS; native17, multi-connection locks, hosted API/security and browser NOT RUN. Draft not applied. Earlier B3 NOT STARTED entries are historical.

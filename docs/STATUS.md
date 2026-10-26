@@ -1,3 +1,13 @@
+# CP01-B3 — transactional RPC draft, 2026-10-26
+
+Branch `feature/personal-gradebook`, baseline `d86627f` matched remote/clean. B1/B2 ACCEPTED; **B3 READY FOR REVIEW, draft only**. 22 service-only invoker RPCs, class-first serialization, shared preview/apply planner + complete private state hash, atomic audit and separate atomic limiter. [B3 review/evidence/boundaries](features/personal-gradebook/B3_TRANSACTION_REVIEW.md).
+
+PGlite18.6: B3 14/14 groups, B2 18/18 groups PASS; app81/81 and npm ci/check/build/format/diff PASS. Native17/multi-connection/hosted/browser/CI NOT RUN. B4/B5 NOT STARTED; CP01-C/real-data gate NOT RUN. No hosted migration/query/config, deployment, merge/rebase or frontend change.
+
+The B2 and older snapshots below are historical.
+
+---
+
 # CP01-B2 — schema/security migration draft, 2026-10-26
 
 Branch `feature/personal-gradebook`, baseline local/remote `282bebc89f630fe773c016c0ec7bb94b7681143e`, clean; develop `307b6c6`, not merged/rebased. **B1 ACCEPTED; B2 DRAFT READY FOR REVIEW / NOT APPLIED TO SUPABASE.** Six isolated tables, exact catalogs, RLS/ACL and narrow boolean session helper. Migration file exists in Git; no hosted changes, public RPCs, Functions, UI or new project dependency.
