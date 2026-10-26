@@ -312,6 +312,8 @@ Board:
 
 - Các thẻ có chiều cao linh hoạt.
 
+- Phần mô tả của mỗi thẻ có vùng tối thiểu bằng 3 dòng chữ cộng 2 cm CSS (khoảng 76 CSS px bổ sung; đã giảm 3 cm so với mức cộng 5 cm trước đó), áp dụng cả desktop/mobile. Dùng phần chiều cao thêm để hiển thị văn bản, bỏ giới hạn cắt 3 dòng; mô tả dài tiếp tục làm thẻ cao lên. Tiêu đề/mô tả xuống dòng cả với chuỗi liền dài để tránh tràn ngang. Không kéo giãn ảnh xem trước hoặc thêm khoảng trống giả trước footer. Cm CSS không cam kết kích thước vật lý trên mọi màn hình/zoom.
+
 - Cột có thể cuộn dọc nếu cần.
 
 - Board cuộn ngang khi không đủ diện tích.

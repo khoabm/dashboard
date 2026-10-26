@@ -44,9 +44,9 @@ export function AppHeader({ onLogin, onRefresh, search, admin }) {
     { class: 'app-header' },
     el(
       'a',
-      { href: '/', class: 'brand', 'aria-label': 'KHTN8 Board · Trang chính' },
+      { href: '/', class: 'brand', 'aria-label': 'Trang chính' },
       el('img', { src: '/placeholders/mark.svg', alt: '', width: 38, height: 38 }),
-      el('strong', {}, 'KHTN', el('span', {}, '8')),
+      el('strong', {}, 'Vui học cùng cô Quỳnh'),
       el('span', { class: 'brand-divider' }),
       el('span', { class: 'brand-note' }, 'Không gian học liệu'),
     ),
@@ -121,7 +121,7 @@ export function PostCard(post, { admin, onOpen, onEdit, onMove, onDelete, onRest
             event.target.onerror = null;
           },
         }),
-        el('span', {}, post.placeholder_kind ? 'HÌNH MINH HỌA MẪU' : 'HÌNH ẢNH ĐÍNH KÈM'),
+        // el('span', {}, post.placeholder_kind ? 'HÌNH MINH HỌA MẪU' : 'HÌNH ẢNH ĐÍNH KÈM'),
       ),
     );
   if (kind === 'document')

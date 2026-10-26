@@ -156,6 +156,8 @@ Cập nhật 2026-10-25. Repo `khoabm/dashboard`, branch `enhancement/acceptance
 
 ### Kế hoạch đã ghi tại snapshot 2026-10-25 (tham khảo lịch sử)
 
+Trên `develop` baseline `af43f51`, vùng mô tả tối thiểu 3 dòng + 2 cm CSS (giảm 3 cm so với lượt trước), không clamp và cho chuỗi dài xuống dòng; footer giữ khoảng cách cũ. Browser Codex/IAB đã truy cập được Vite chạy loopback ngoài sandbox: QA iframe 360/390/1024/1440 PASS, thẻ ngắn giảm ~113,4 CSS px; mô tả dài/chuỗi liền hiển thị đầy đủ, không tràn ngang. Check/build/format CSS PASS. Xem AUD-020; giữ nguyên thay đổi local khác. Thiết bị thật NOT RUN.
+
 AUD-019 (baseline `34b2ff0`): sửa hai assertion message cũ bằng bất biến nháp/cleanup tại `bd6acb1`, format riêng 5 file upstream tại `c1230c3`. 41/41 unit/check/build/format PASS local; Offline CI run `40152051421` PASS tại `c1230c3`, gồm đủ unit/build/format. Working tree sạch sau khôi phục EOL checkout; chưa merge/đổi Draft/deploy. Commit cập nhật docs sau đó cần kiểm CI riêng theo HEAD. Xem BUG_FIX_LOG.
 
 AUD-018 (2026-10-25, baseline `6bf2069`): bổ sung regression/fixture còn thiếu vào Git, giữ tests/local được ignore. Build production có gate chặn test module và kiểm allowlist dist; 38 unit/check/build cùng hai negative checks PASS. Chỉ deploy dist; URL test production NOT RUN, chưa deploy. Chi tiết BUG_FIX_LOG và DEPLOYMENT.
