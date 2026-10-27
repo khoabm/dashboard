@@ -1,3 +1,9 @@
+# CP05 occupied-only histogram display — 2026-10-27
+
+Branch `feature/personal-gradebook-ui-refinement` (parent `feature/personal-gradebook` untouched), based on `a8d055da65fcaae07584d7e2a9956882c3d80cee`. User-requested visual projection: retain validated 101 aggregate levels but plot only levels with `studentCount > 0`, preserving numeric order and explicit “only occupied levels” explanation. Sparse data renders centered, wider 64px-capped bars without empty categories; dense data retains slider/zoom and one-stop keyboard traversal over occupied levels; all-zero data shows an empty message, not an all-zero chart. Zero/count/hover/zoom tests updated. Main Board, admin, Supabase and fixture UI untouched. **Offline/browser QA and user visual acceptance are separate gates; never assume PASS from source edits.** [Design record](features/personal-gradebook/CP05_UI_REFINEMENT.md#chỉ-vẽ-các-mức-điểm-có-học-sinh--2026-10-27).
+
+---
+
 # CP05 focus, hover and chart-density polish — 2026-10-27
 
 On `feature/personal-gradebook-ui-refinement` (parent `feature/personal-gradebook` untouched): user screenshot-driven refinement gives the student CCCD field, histogram subject/type selects and DOB calendar month/year controls a consistent scoped green focus ring and red CCCD error treatment. ECharts personal bucket hover now remains orange instead of inheriting series-wide green; default chart window is responsive (8–32 intervals) with increased 34px bar maximum and 45% spacing. All 101 aggregate levels, exact half-up, one keyboard stop and dataZoom remain intact. Added pure tests and updated [UI refinement notes](features/personal-gradebook/CP05_UI_REFINEMENT.md#focus-and-bar-hover-correction--2026-10-27). CI, browser QA and user visual acceptance must be evidenced separately; no hosted requests/production deploy authorized.

@@ -77,3 +77,15 @@ User screenshots of the student lookup and chart selectors showed a doubled blue
 - **Width and density:** responsive default dataZoom window derives the number of visible levels from chart width (8–32 intervals). Bars can grow up to 34px; a 45% category gap preserves separation when zooming/resizing. All 101 validated levels remain in the dataset and can be reached with zoom/scroll or keyboard. No artificial minimum bar width that would make crowded zoom-out columns overlap.
 - **Tests:** add pure checks for selected/ordinary hover colors, bar cap/gap and window bounds at widths 280/360/390/768/1024/1440. Browser visual, keyboard and native-select open-state checks must be reported independently; do not infer them from source alone.
 
+## Chỉ vẽ các mức điểm có học sinh — 2026-10-27
+
+Theo phản hồi trực quan, biểu đồ trước đây vẫn trải đều nhiều mức điểm không có học sinh, dẫn đến các cột dữ liệu mảnh và xa nhau. Bản UI này **lọc khi hiển thị** (`studentCount > 0`), không thay đổi API, chuẩn hóa/rounding hay mảng 101 mức được xác thực trước khi render.
+
+- Ví dụ lớp có học sinh ở **0.0, 2.0, 8.3, 10.0**, trục X hiển thị đúng bốn nhãn đó và bốn cột. Những mức không có học sinh bị lược bỏ, **không** ngụ ý khoảng cách giữa các nhãn là một trục số liên tục.
+- Giao diện ghi rõ “Chỉ hiển thị mức điểm có học sinh”; trục Y vẫn đếm học sinh nguyên, tooltip hiện mức điểm và số học sinh. Không suy diễn thêm thống kê.
+- Cột rộng tối đa **64px**, gap category **36%**; với ít cột, chart được căn giữa và giới hạn độ rộng theo số cột; với nhiều cột, ECharts giữ thanh kéo ngang để xem hết các mức có học sinh. Mọi mức có số lượng >0 đều được giữ; không gộp mức điểm.
+- Keyboard Arrow/Home/End chuyển qua **các mức có học sinh**, không còn dừng trên các mức trống; một Tab entry và ESC/focus dialog được giữ. Highlight màu cam theo điểm làm tròn chỉ xuất hiện nếu mức đó có số lượng >0. Nếu điểm cá nhân không có nhóm dữ liệu, phần tóm tắt giữ điểm chính xác nhưng không vẽ cột có số lượng 0.
+- Nếu toàn bộ 101 mức có số lượng bằng 0, hiển thị “Lớp chưa có điểm ở mục này.” và không khởi tạo chart/slider. Với nhóm dữ liệu ít hơn hoặc bằng số cột hiển thị, không có thanh kéo thừa.
+- Regression thuần: sparse/zero/one/large, các mức 0.0/10.0, hover cá nhân và thường, 101 mức đầy đủ, điều hướng và responsive chart windows. Browser QA độc lập phải xác minh cột không dính nhau, thanh kéo chỉ xuất hiện khi cần, không tràn và biểu đồ đọc được ở 360–1440px.
+
+**Lưu ý:** Đây là thay đổi cách trình bày biểu đồ đã được người dùng yêu cầu; **không thay đổi** các điều khoản về dữ liệu lưu trữ, quyền riêng tư, phân quyền, điểm gốc hay công bố học kỳ. Giữ nguyên fixture QA và nội dung main Board/admin.

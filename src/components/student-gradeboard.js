@@ -212,7 +212,7 @@ export function StudentGradeboard({ context, read, onReset }) {
           'div',
           { class: 'student-chart-surface-heading' },
           el('strong', {}, 'Mỗi mức điểm có bao nhiêu học sinh?'),
-          el('span', {}, 'Thang điểm từ 0 đến 10'),
+          el('span', {}, 'Chỉ hiển thị mức điểm có học sinh'),
         ),
         chart,
       ),
@@ -225,7 +225,7 @@ export function StudentGradeboard({ context, read, onReset }) {
       el(
         'div',
         { class: 'student-chart-footer' },
-        el('span', {}, 'Kéo thanh cuộn ngay dưới biểu đồ để xem các mức điểm khác'),
+        el('span', {}, 'Kéo thanh cuộn khi có nhiều mức điểm cần xem'),
         button('Đóng biểu đồ', () => entry.dialog.close(), 'button subtle student-chart-close'),
       ),
     );
@@ -278,8 +278,10 @@ export function StudentGradeboard({ context, read, onReset }) {
           ),
         ),
       );
-      if (!buckets.some((b) => b.studentCount))
-        chart.append(el('p', {}, 'Lớp chưa có điểm ở mục này.'));
+      if (!buckets.some((b) => b.studentCount)) {
+        chart.append(el('p', { role: 'status' }, 'Lớp chưa có điểm ở mục này.'));
+        return;
+      }
       chart.append(
         el('p', { class: 'student-chart-loading', role: 'status' }, 'Đang chuẩn bị biểu đồ…'),
       );

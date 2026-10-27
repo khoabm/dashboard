@@ -282,54 +282,82 @@ test('F03 roving bucket indices stay bounded; Tab is never intercepted', () => {
   assert.equal(bucketIndex(20, 'Tab'), 20);
 });
 
-test('V2 ECharts options retain all101 buckets, exact highlights and integer axes', async () => {
-  const { studentChartOptions, chartWindow } = await import('../src/utils/student-chart.js');
+test('V2 sparse chart shows only occupied levels, preserves full aggregate and hover colors', async () => {
+  const { studentChartOptions, chartWindow, occupiedScoreLevels, occupiedLevelIndex } =
+    await import('../src/utils/student-chart.js');
   for (const peak of [0, 1, 23, 1000]) {
     const rows = distribution().buckets.map((row, index) => ({
       ...row,
       studentCount: index === 83 ? peak : 0,
     }));
-    const option = studentChartOptions(rows, '8.3', chartWindow(83, 390), true);
-    assert.equal(option.xAxis.data.length, 101);
-    assert.equal(option.series[0].data.length, 101);
-    assert.equal(option.series[0].data[83].value, peak);
-    assert.equal(option.series[0].data.filter((row) => row.itemStyle.borderWidth === 1).length, 1);
-    // Highlight never turns the generic green on hover; other buckets keep their own color.
-    assert.equal(option.series[0].data[83].itemStyle.color, '#d28a44');
-    assert.equal(option.series[0].data[83].emphasis.itemStyle.color, '#d28a44');
-    assert.equal(option.series[0].data[83].emphasis.itemStyle.borderWidth, 2);
-    assert.equal(option.series[0].data[50].emphasis.itemStyle.color, '#80b49b');
-    assert.equal(option.series[0].barMaxWidth, 34);
-    assert.equal(option.series[0].barCategoryGap, '45%');
+    const occupied = occupiedScoreLevels(rows);
+    assert.equal(rows.length, 101);
+    assert.deepEqual(occupied.map((row) => row.scoreBucket), peak ? ['8.3'] : []);
+    const option = studentChartOptions(rows, '8.3', chartWindow(0, 390, occupied.length), true);
+    assert.deepEqual(option.xAxis.data, peak ? ['8.3'] : []);
+    assert.equal(option.series[0].data.length, peak ? 1 : 0);
+    assert.equal(option.series[0].data[0]?.value, peak || undefined);
     assert.equal(option.yAxis.minInterval, 1);
     assert.equal(option.yAxis.max, Math.max(1, peak));
     assert.equal(option.animation, false);
-    assert.equal(option.dataZoom[0].filterMode, 'none');
-    assert.ok(option.dataZoom[0].endValue <= 100);
-    assert.equal(
-      studentChartOptions(rows, null, chartWindow(0, 1440)).series[0].data.filter(
-        (row) => row.itemStyle.borderWidth === 1,
-      ).length,
-      0,
-    );
+    assert.equal(option.dataZoom.length, 0);
+    if (peak) {
+      assert.equal(option.series[0].data[0].itemStyle.color, '#d28a44');
+      assert.equal(option.series[0].data[0].emphasis.itemStyle.color, '#d28a44');
+      assert.equal(option.series[0].data[0].emphasis.itemStyle.borderWidth, 2);
+    }
   }
-  assert.deepEqual(chartWindow(0, 390), { start: 0, end: 8 });
-  assert.deepEqual(chartWindow(100, 1440), { start: 68, end: 100 });
+
+  const rows = distribution().buckets.map((row, index) => ({
+    ...row,
+    studentCount: index === 0 ? 1 : index === 20 ? 3 : index === 83 ? 23 : index === 100 ? 2 : 0,
+  }));
+  const option = studentChartOptions(rows, '8.3', chartWindow(2, 390, 4), true);
+  assert.deepEqual(option.xAxis.data, ['0.0', '2.0', '8.3', '10.0']);
+  assert.deepEqual(option.series[0].data.map((row) => row.value), [1, 3, 23, 2]);
+  assert.equal(option.series[0].data.filter((row) => row.itemStyle.borderWidth === 1).length, 1);
+  assert.equal(option.series[0].data[1].emphasis.itemStyle.color, '#80b49b');
+  assert.equal(option.series[0].barMaxWidth, 64);
+  assert.equal(option.series[0].barCategoryGap, '36%');
+  assert.equal(option.dataZoom.length, 0);
+
+  const none = studentChartOptions(rows, null, chartWindow(0, 390, 4));
+  assert.equal(none.series[0].data.filter((row) => row.itemStyle.borderWidth === 1).length, 0);
+  assert.equal(occupiedLevelIndex(0, 'ArrowLeft', 4), 0);
+  assert.equal(occupiedLevelIndex(0, 'ArrowRight', 4), 1);
+  assert.equal(occupiedLevelIndex(2, 'Home', 4), 0);
+  assert.equal(occupiedLevelIndex(0, 'End', 4), 3);
+  assert.equal(occupiedLevelIndex(3, 'ArrowRight', 4), 3);
+  assert.equal(occupiedLevelIndex(0, 'Home', 0), 0);
+});
+
+test('V2 dense occupied levels remain separated, scrollable and reachable across screen widths', async () => {
+  const { studentChartOptions, chartWindow, occupiedScoreLevels } =
+    await import('../src/utils/student-chart.js');
+  const rows = distribution().buckets.map((row) => ({ ...row, studentCount: 2 }));
+  const visible = occupiedScoreLevels(rows);
+  assert.equal(visible.length, 101);
   for (const width of [280, 360, 390, 768, 1024, 1440]) {
-    const first = chartWindow(0, width);
-    const last = chartWindow(100, width);
-    const middle = chartWindow(83, width);
-    const span = first.end - first.start;
-    assert.ok(span >= 8 && span <= 32);
+    const first = chartWindow(0, width, visible.length);
+    const last = chartWindow(100, width, visible.length);
+    const middle = chartWindow(83, width, visible.length);
+    const span = first.end - first.start + 1;
+    assert.ok(span >= 4 && span <= 18);
     assert.equal(first.start, 0);
     assert.equal(last.end, 100);
-    assert.equal(last.end - last.start, span);
-    assert.equal(middle.end - middle.start, span);
+    assert.equal(last.end - last.start + 1, span);
+    assert.equal(middle.end - middle.start + 1, span);
     assert.ok(middle.start <= 83 && middle.end >= 83);
+    const option = studentChartOptions(rows, '8.3', middle, true);
+    assert.equal(option.xAxis.data.length, 101);
+    assert.equal(option.series[0].data.length, 101);
+    assert.equal(option.dataZoom.length, 2);
+    assert.equal(option.dataZoom[0].filterMode, 'none');
+    assert.equal(option.series[0].barMaxWidth, 64);
+    assert.equal(option.series[0].barCategoryGap, '36%');
   }
-  // Larger plots can show more levels without forcing narrow bars at mobile widths.
   assert.ok(
-    chartWindow(40, 390).end - chartWindow(40, 390).start <
-      chartWindow(40, 1024).end - chartWindow(40, 1024).start,
+    chartWindow(40, 390, 101).end - chartWindow(40, 390, 101).start <
+      chartWindow(40, 1024, 101).end - chartWindow(40, 1024, 101).start,
   );
 });
