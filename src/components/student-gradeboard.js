@@ -191,6 +191,11 @@ export function StudentGradeboard({ context, read, onReset }) {
     const chart = el('div', { class: 'student-chart-stage', 'aria-live': 'polite' });
     const insight = el('div', { class: 'student-insight-grid', 'aria-live': 'polite' });
     const contextLine = el('p', { class: 'student-chart-context' });
+    const scrollHint = el(
+      'span',
+      { class: 'student-chart-scroll-hint', hidden: true },
+      'Kéo thanh cuộn bên dưới biểu đồ để xem các mức điểm khác',
+    );
     entry.content.append(
       el(
         'div',
@@ -225,7 +230,7 @@ export function StudentGradeboard({ context, read, onReset }) {
       el(
         'div',
         { class: 'student-chart-footer' },
-        el('span', {}, 'Kéo thanh cuộn khi có nhiều mức điểm cần xem'),
+        scrollHint,
         button('Đóng biểu đồ', () => entry.dialog.close(), 'button subtle student-chart-close'),
       ),
     );
@@ -238,6 +243,7 @@ export function StudentGradeboard({ context, read, onReset }) {
       plotView?.dispose();
       plotView = null;
       chart.replaceChildren();
+      scrollHint.hidden = true;
       chart.setAttribute('aria-busy', String(snapshot.status === 'loading'));
       if (snapshot.status !== 'ready') {
         chart.append(el('p', { role: 'status' }, messages[snapshot.status]));
@@ -288,7 +294,10 @@ export function StudentGradeboard({ context, read, onReset }) {
       void import('./student-chart.js')
         .then(({ StudentChart }) => {
           if (closed || disposed || plotTicket !== plotGeneration) return;
-          plotView = StudentChart(chart, buckets, highlight);
+          plotView = StudentChart(chart, buckets, highlight, (needsScroller) => {
+            if (!closed && !disposed && plotTicket === plotGeneration)
+              scrollHint.hidden = !needsScroller;
+          });
         })
         .catch(() => {
           if (!closed && !disposed && plotTicket === plotGeneration)

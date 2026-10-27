@@ -2,6 +2,10 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-27 — GB-CP05-UIV2-010 / Scrollbar after in-place responsive resize (SOURCE CORRECTION)
+
+Baseline `dd3770e`, only `feature/personal-gradebook-ui-refinement`. Wide charts intentionally omit a scrollbar when every populated category fits. Found a genuine lifecycle issue: the resize handler could not add or remove an ECharts `dataZoom` component after initial render. Rebuild chart option at actual plot-width changes, show/hide guidance only when needed, stack cramped mobile insight cards. Pure regression covers 12 occupied levels at desktop/mobile and zero/one cases. Actual Chrome resize/mobile visual QA still required. No hosted queries/deployments.
+
 ## 2026-10-27 — GB-CP05-UIV2-009 / Sparse chart visualization (SOURCE CORRECTION)
 
 Branch `feature/personal-gradebook-ui-refinement`, baseline `a8d055d`. Previous chart kept 101 zero-count categories visible in a width-limited window, making the few populated bars narrow and widely separated even after the earlier width refinement. The UI now derives occupied score levels solely for chart presentation, preserving the backend's validated 101 aggregate buckets unchanged; ECharts categories/tooltip/one-step keyboard index follow occupied levels, with a 64px cap and 36% positive gap. The empty case skips chart initialization; few levels get a compact centered plot without a redundant zoom slider, and many levels retain horizontal navigation. Regression pure cases cover sparse, dense and empty distributions with exact personal highlight. Check browser QA separately. No hosted requests, deployment or parent-branch edits.

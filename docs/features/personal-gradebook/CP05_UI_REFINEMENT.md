@@ -89,3 +89,13 @@ Theo phản hồi trực quan, biểu đồ trước đây vẫn trải đều n
 - Regression thuần: sparse/zero/one/large, các mức 0.0/10.0, hover cá nhân và thường, 101 mức đầy đủ, điều hướng và responsive chart windows. Browser QA độc lập phải xác minh cột không dính nhau, thanh kéo chỉ xuất hiện khi cần, không tràn và biểu đồ đọc được ở 360–1440px.
 
 **Lưu ý:** Đây là thay đổi cách trình bày biểu đồ đã được người dùng yêu cầu; **không thay đổi** các điều khoản về dữ liệu lưu trữ, quyền riêng tư, phân quyền, điểm gốc hay công bố học kỳ. Giữ nguyên fixture QA và nội dung main Board/admin.
+
+## Responsive scrollbar behavior — 2026-10-27
+
+**Why the scrollbar disappears:** the chart plots only occupied score levels (`studentCount > 0`). The `chartWindow(index, width, count)` helper estimates how many occupied categories fit the actual plot width. When all fit, no scrollbar is needed. In the user screenshot, 12 occupied levels fit the desktop chart, so ECharts appropriately displayed no scrollbar. All 101 validated aggregate buckets still exist upstream.
+
+**Correction:** `dataZoom` was previously configured only at initial render, so a modal opened at a wide width could remain without a scrollbar after shrinking, because `dispatchAction('dataZoom')` cannot create a missing component. The existing ResizeObserver now detects width changes, recalculates the visible window around the keyboard-selected category, and rebuilds options with `notMerge: true`. The inverse wider-screen transition likewise removes an unneeded slider. The footer hint shows only when the scrollbar actually exists.
+
+**Mobile:** at widths up to 420px the score summary cards stack vertically, chart height scales with viewport and the close button retains a usable touch target. Desktop/laptop dialog sizing remains unchanged. The initial 101-level DTO and populated-only chart projection, personal score/hover, keyboard Arrow/Home/End navigation, tooltip, disposal and privacy behavior remain unchanged.
+
+Pure regression tests cover 12 populated levels at desktop/mobile/desktop sizes; 280/360/390/420/700/768/1024/1440 widths; 0/1-level cases and slider/grid decisions. Independent Chrome in-place resize, touch and visual QA remain outstanding; source correction alone does not establish visual acceptance.

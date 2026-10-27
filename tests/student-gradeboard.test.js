@@ -361,3 +361,31 @@ test('V2 dense occupied levels remain separated, scrollable and reachable across
       chartWindow(40, 1024, 101).end - chartWindow(40, 1024, 101).start,
   );
 });
+test('V2 responsive chart shows and hides dataZoom as occupied levels fit different widths', async () => {
+  const { chartWindow, chartNeedsScroller, studentChartOptions } =
+    await import('../src/utils/student-chart.js');
+  const rows = distribution().buckets.map((row, index) => ({
+    ...row,
+    studentCount: [0, 10, 20, 30, 40, 50, 60, 70, 80, 83, 90, 100].includes(index) ? 5 : 0,
+  }));
+  const count = 12;
+  const desktop = chartWindow(9, 1050, count);
+  const mobile = chartWindow(9, 340, count);
+  assert.equal(chartNeedsScroller(count, desktop), false);
+  assert.equal(studentChartOptions(rows, '8.3', desktop).dataZoom.length, 0);
+  assert.equal(chartNeedsScroller(count, mobile), true);
+  assert.equal(studentChartOptions(rows, '8.3', mobile).dataZoom.length, 2);
+  assert.equal(chartNeedsScroller(count, chartWindow(9, 1050, count)), false);
+  assert.ok(mobile.start <= 9 && mobile.end >= 9);
+  for (const width of [280, 360, 390, 420, 700, 768, 1024, 1440]) {
+    const window = chartWindow(9, width, count);
+    const options = studentChartOptions(rows, '8.3', window);
+    const needsScroller = chartNeedsScroller(count, window);
+    assert.equal(options.dataZoom.length, needsScroller ? 2 : 0);
+    assert.equal(options.grid.bottom, needsScroller ? 86 : 44);
+    assert.equal(options.xAxis.data.length, count);
+    assert.ok(window.start <= 9 && window.end >= 9);
+  }
+  assert.equal(chartNeedsScroller(1, chartWindow(0, 280, 1)), false);
+  assert.equal(chartNeedsScroller(0, chartWindow(0, 280, 0)), false);
+});

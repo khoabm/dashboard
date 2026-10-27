@@ -25,11 +25,16 @@ export function chartWindow(index, width, count = 101) {
   return { start, end: start + visible - 1 };
 }
 
+/** True only when some occupied levels cannot fit into the current visible window. */
+export function chartNeedsScroller(count, window) {
+  return count > window.end - window.start + 1;
+}
+
 /** Presents only occupied categories without modifying or re-binning the source aggregate. */
 export function studentChartOptions(buckets, highlight, window, reduced = false) {
   const occupied = occupiedScoreLevels(buckets);
   const scale = histogramScale(buckets.map((row) => row.studentCount));
-  const hasZoom = occupied.length > window.end - window.start + 1;
+  const hasZoom = chartNeedsScroller(occupied.length, window);
   const series = occupied.map((row) => {
     const isPersonal = row.scoreBucket === highlight;
     const color = isPersonal ? '#d28a44' : '#80b49b';

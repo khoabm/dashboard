@@ -1,3 +1,9 @@
+# CP05 responsive scrollbar lifecycle — 2026-10-27
+
+On `feature/personal-gradebook-ui-refinement` (base `dd3770e41d259e3fafb6af897787796016e952cc`), omit scroller when all occupied levels fit desktop. Corrected a resize regression: chart instance previously could not add/remove `dataZoom` after responsive width changes because it used dispatchAction only. ResizeObserver now rebuilds the ECharts options on genuine chart-width changes, preserving the keyboard-selected score; the footer hint is visible only while zoom is needed. <=420px summaries stack for legibility. Focused pure tests cover width-dependent zoom, but browser/device QA is still pending. No Board/admin/API/production/fixture/parent-branch changes. [Details](features/personal-gradebook/CP05_UI_REFINEMENT.md#responsive-scrollbar-behavior--2026-10-27).
+
+---
+
 # CP05 occupied-only histogram display — 2026-10-27
 
 Branch `feature/personal-gradebook-ui-refinement` (parent `feature/personal-gradebook` untouched), based on `a8d055da65fcaae07584d7e2a9956882c3d80cee`. User-requested visual projection: retain validated 101 aggregate levels but plot only levels with `studentCount > 0`, preserving numeric order and explicit “only occupied levels” explanation. Sparse data renders centered, wider 64px-capped bars without empty categories; dense data retains slider/zoom and one-stop keyboard traversal over occupied levels; all-zero data shows an empty message, not an all-zero chart. Zero/count/hover/zoom tests updated. Main Board, admin, Supabase and fixture UI untouched. **Offline/browser QA and user visual acceptance are separate gates; never assume PASS from source edits.** [Design record](features/personal-gradebook/CP05_UI_REFINEMENT.md#chỉ-vẽ-các-mức-điểm-có-học-sinh--2026-10-27).

@@ -10,6 +10,7 @@ import {
 import { SVGRenderer } from 'echarts/renderers';
 import { el } from '../utils/dom.js';
 import {
+  chartNeedsScroller,
   chartWindow,
   occupiedLevelIndex,
   occupiedScoreLevels,
@@ -19,7 +20,7 @@ import {
 use([BarChart, GridComponent, TooltipComponent, DataZoomComponent, AriaComponent, SVGRenderer]);
 
 /** Owns chart keyboard navigation, responsive zoom and disposal for one histogram request. */
-export function StudentChart(container, buckets, highlight) {
+export function StudentChart(container, buckets, highlight, onScrollerChange = () => {}) {
   const occupied = occupiedScoreLevels(buckets);
   const personal = occupied.findIndex((row) => row.scoreBucket === highlight);
   let selected = Math.max(0, personal);
@@ -44,8 +45,10 @@ export function StudentChart(container, buckets, highlight) {
   }
   const chart = init(plot, null, { renderer: 'svg' });
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let window = chartWindow(selected, plot.clientWidth, occupied.length);
+  let chartWidth = plot.clientWidth;
+  let window = chartWindow(selected, chartWidth, occupied.length);
   chart.setOption(studentChartOptions(buckets, highlight, window, reduced));
+  onScrollerChange(chartNeedsScroller(occupied.length, window));
 
   function describe(index) {
     const row = occupied[index];
@@ -59,7 +62,7 @@ export function StudentChart(container, buckets, highlight) {
     selected = index;
     describe(index);
     window = chartWindow(index, plot.clientWidth, occupied.length);
-    if (occupied.length > window.end - window.start + 1)
+    if (chartNeedsScroller(occupied.length, window))
       chart.dispatchAction({ type: 'dataZoom', startValue: window.start, endValue: window.end });
     chart.dispatchAction({ type: 'showTip', seriesIndex: 0, dataIndex: index });
   }
@@ -73,10 +76,14 @@ export function StudentChart(container, buckets, highlight) {
     if (Number.isInteger(event.dataIndex)) select(event.dataIndex);
   });
   const observer = new ResizeObserver(() => {
+    const nextWidth = plot.clientWidth;
+    if (nextWidth === chartWidth) return;
+    chartWidth = nextWidth;
     chart.resize();
-    window = chartWindow(selected, plot.clientWidth, occupied.length);
-    if (occupied.length > window.end - window.start + 1)
-      chart.dispatchAction({ type: 'dataZoom', startValue: window.start, endValue: window.end });
+    window = chartWindow(selected, chartWidth, occupied.length);
+    // dataZoom is an ECharts component: dispatchAction cannot add/remove it after a resize.
+    chart.setOption(studentChartOptions(buckets, highlight, window, reduced), { notMerge: true });
+    onScrollerChange(chartNeedsScroller(occupied.length, window));
   });
   observer.observe(plot);
   describe(selected);

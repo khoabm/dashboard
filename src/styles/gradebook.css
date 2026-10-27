@@ -1663,3 +1663,23 @@
     transition: none;
   }
 }
+/* On narrow phones, stack insight cards instead of wrapping their long Vietnamese labels. */
+@media (max-width: 420px) {
+  .student-chart-dialog .student-insight-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .student-chart-dialog .student-insight-primary,
+  .student-chart-dialog .student-insight-secondary {
+    padding: 12px 16px;
+  }
+  .student-chart-dialog .student-echart {
+    height: clamp(220px, 32dvh, 280px);
+  }
+  .student-chart-dialog .student-chart-footer {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .student-chart-dialog .student-chart-close {
+    min-height: 44px;
+  }
+}
