@@ -1,3 +1,11 @@
+# CP05 UI visual refinement — isolated review branch / 2026-10-27
+
+Branch `feature/personal-gradebook-ui-refinement` forked from accepted offline CP05 `09de67787621d64527073ca0f1f16b13dea8d6ee`. Student Gradeboard + Analytics Drawer visual composition: class/year context heading, integrated semester switcher and legible sticky-first-column table; contextual histogram controls, exact raw-score/same-bucket aggregate summary cards, quiet plot/grid and responsive mobile sheet. The 101 half-up buckets, on-demand only, roving focus, modal Escape/close, request cancellation and fail-closed production remain unchanged. All styling is scoped to CP05 component/dialog; Board main page, shared navigation and CP03/CP04 admin intentionally untouched.
+
+**Status: IMPLEMENTED AS DESIGN CANDIDATE — NOT YET VISUALLY ACCEPTED.** Current task does not confer visual approval; see [CP05_UI_REFINEMENT](features/personal-gradebook/CP05_UI_REFINEMENT.md) for wireframe, library decision and manual acceptance matrix. No new dependency/package lock/CDN/API/SQL/Edge/deployment changes. Do not treat GitHub source commit alone as browser/device evidence. CI/browser result must be reported separately; CP01-C, hosted Auth/RLS/API, native17 and real-data gate remain NOT RUN.
+
+---
+
 # CP05 F01–F05 corrections / 2026-10-27
 
 Baseline `a99569b956861e00d7a21c679ffa52bb890c67a7`, feature/personal-gradebook. F01 context/publication/catalog projection now precedes capability retention; invalid context remains unavailable. F02 visible integer Y-axis/grid, F03 one roving chart entry with arrows/Home/End/scroll and normal Tab out, F04 reset/expiry/401 focus recovery. F05 maintained synthetic component fixture under tests and [exact local reproduction steps](../tests/README.md#cp05--browser-qa-offline-tái-lập-f01f05). No ignored file or prior Work session needed. Production verify/private reads remain fail-closed; CP03/CP04, SQL/Edge, dependency/lock/workflow/deploy config unchanged.

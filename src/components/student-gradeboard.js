@@ -29,7 +29,7 @@ export function StudentGradeboard({ context, read, onReset }) {
     modal = null;
   const element = el('section', { class: 'student-gradeboard', 'aria-label': 'Bảng điểm của bạn' });
   const tabs = el('div', { class: 'student-semesters', role: 'tablist', 'aria-label': 'Học kỳ' });
-  const panel = el('div', { id: 'student-semester-panel', role: 'tabpanel', tabindex: '0' });
+  const panel = el('div', { id: 'student-semester-panel', class: 'student-board-panel', role: 'tabpanel', tabindex: '0' });
   const controls = [1, 2].map((value) =>
     button(`Học kỳ ${value === 1 ? 'I' : 'II'}`, () => select(value), 'button', {
       role: 'tab',
@@ -45,19 +45,38 @@ export function StudentGradeboard({ context, read, onReset }) {
       controls[semester - 1].focus();
     }
   });
+  // Keep the accepted student routes and publication controls; change only this private view.
   element.append(
     el(
       'div',
       { class: 'student-board-heading' },
       el(
         'div',
-        {},
-        el('p', { class: 'eyebrow' }, 'HÀNH TRÌNH CỦA BẠN'),
-        el('h2', {}, 'Từng nỗ lực, từng tiến bộ'),
+        { class: 'student-board-title' },
+        el('span', { class: 'student-overline' }, 'KẾT QUẢ HỌC TẬP'),
+        el('h2', {}, 'Bảng điểm của bạn'),
+        el(
+          'p',
+          { class: 'student-classline' },
+          context.class.name,
+          ' · Năm học ',
+          context.class.schoolYear,
+        ),
       ),
-      button('Xác minh lại', onReset, 'button subtle'),
+      el('div', { class: 'student-board-counter', 'aria-label': '8 môn học và 7 cột điểm' }, '8 môn học', el('span', {}, '·'), '7 cột điểm'),
     ),
-    tabs,
+    el(
+      'div',
+      { class: 'student-semester-row' },
+      tabs,
+      button('Xác minh lại', onReset, 'button subtle student-reset-button'),
+    ),
+    el(
+      'p',
+      { class: 'student-board-guide' },
+      el('span', { 'aria-hidden': 'true' }, '↗'),
+      'Chọn một ô điểm để khám phá phân bố điểm của lớp. Điểm trống được ký hiệu bằng dấu —.',
+    ),
     panel,
   );
   const grades = createStudentRead(read, (snapshot) => {
@@ -76,7 +95,7 @@ export function StudentGradeboard({ context, read, onReset }) {
     const table = el(
       'table',
       { class: 'student-score-table' },
-      el('caption', {}, 'Điểm hiển thị một chữ số thập phân. Chọn một ô để xem phân bố điểm.'),
+      el('caption', {}, 'Điểm hiển thị một chữ số thập phân. Điểm gốc được giữ nguyên khi mở phân bố.'),
     );
     const head = el(
       'tr',
@@ -112,12 +131,21 @@ export function StudentGradeboard({ context, read, onReset }) {
     panel.append(
       el(
         'div',
-        {
-          class: 'student-table-scroll',
-          tabindex: '0',
-          'aria-label': 'Cuộn ngang để xem đủ bảy cột điểm',
-        },
-        table,
+        { class: 'student-table-card' },
+        el(
+          'div',
+          {
+            class: 'student-table-scroll',
+            tabindex: '0',
+            'aria-label': 'Cuộn ngang để xem đủ bảy cột điểm',
+          },
+          table,
+        ),
+        el(
+          'p',
+          { class: 'student-table-footnote' },
+          'Kết quả hiển thị một chữ số thập phân; bấm vào điểm để xem số học sinh theo nhóm điểm.',
+        ),
       ),
     );
   });
@@ -151,22 +179,47 @@ export function StudentGradeboard({ context, read, onReset }) {
     );
     subject.value = subjectCode;
     column.value = columnCode;
-    const chart = el('div', { 'aria-live': 'polite' });
+    const chart = el('div', { class: 'student-chart-stage', 'aria-live': 'polite' });
+    const insight = el('div', { class: 'student-insight-grid', 'aria-live': 'polite' });
+    const contextLine = el('p', { class: 'student-chart-context' });
     entry.content.append(
+      el(
+        'div',
+        { class: 'student-chart-lead' },
+        el('span', { class: 'student-overline' }, 'PHÂN TÍCH KẾT QUẢ'),
+        contextLine,
+      ),
       el(
         'div',
         { class: 'student-chart-selectors' },
         el('label', {}, 'Môn học', subject),
         el('label', {}, 'Cột điểm', column),
       ),
+      insight,
+      el(
+        'section',
+        { class: 'student-chart-surface', 'aria-label': 'Biểu đồ phân bố điểm của lớp' },
+        el(
+          'div',
+          { class: 'student-chart-surface-heading' },
+          el('strong', {}, 'Phân bố điểm của lớp'),
+          el('span', {}, '101 nhóm · 0,0 đến 10,0'),
+        ),
+        chart,
+      ),
       el(
         'p',
-        {},
-        'Mỗi cột là một nhóm điểm làm tròn đến 0,1 theo quy tắc half-up; không phải mọi bạn trong nhóm có cùng điểm gốc.',
+        { class: 'student-chart-explanation' },
+        'Mỗi cột gom các điểm được làm tròn đến một chữ số thập phân (half-up). ',
+        'Các bạn trong cùng nhóm có thể có điểm gốc khác nhau.',
       ),
-      chart,
+      el(
+        'div',
+        { class: 'student-chart-footer' },
+        el('span', {}, 'Vuốt hoặc cuộn ngang để xem toàn bộ nhóm điểm'),
+        button('Đóng biểu đồ', () => entry.dialog.close(), 'button subtle student-chart-close'),
+      ),
     );
-    entry.content.append(button('Đóng biểu đồ', () => entry.dialog.close(), 'button subtle'));
     let closed = false;
     const channel = createStudentRead(read, (snapshot) => {
       if (closed || disposed) return;
@@ -187,13 +240,21 @@ export function StudentGradeboard({ context, read, onReset }) {
         buckets = snapshot.value,
         scale = histogramScale(buckets.map((b) => b.studentCount)),
         max = scale.maximum;
-      chart.append(
+      const count = highlight === null ? null : buckets.find((b) => b.scoreBucket === highlight)?.studentCount;
+      insight.replaceChildren(
         el(
-          'p',
-          { class: 'student-exact-score' },
-          raw === null
-            ? 'Bạn chưa có điểm ở ô này.'
-            : `Điểm gốc của bạn: ${raw} · Nhóm ${highlight}`,
+          'div',
+          { class: 'student-insight-primary' },
+          el('span', { class: 'student-insight-label' }, 'ĐIỂM GỐC CỦA BẠN'),
+          el('strong', { class: 'student-insight-value' }, raw === null ? '—' : raw),
+          el('span', { class: 'student-insight-detail' }, raw === null ? 'Ô này chưa có điểm' : `Thuộc nhóm ${highlight}`),
+        ),
+        el(
+          'div',
+          { class: 'student-insight-secondary' },
+          el('span', { class: 'student-insight-label' }, 'SỐ HỌC SINH CÙNG NHÓM'),
+          el('strong', { class: 'student-insight-value' }, count === null ? '—' : String(count)),
+          el('span', { class: 'student-insight-detail' }, count === null ? 'Không có nhóm được đánh dấu' : `Nhóm ${highlight} · trên biểu đồ`),
         ),
       );
       if (!buckets.some((b) => b.studentCount))
@@ -292,6 +353,10 @@ export function StudentGradeboard({ context, read, onReset }) {
     });
     const load = () => {
       const selection = { semester, subjectCode: subject.value, columnCode: column.value };
+      const chosenSubject = catalog.subjects.find((item) => item.code === selection.subjectCode);
+      const chosenColumn = catalog.scoreColumns.find((item) => item.code === selection.columnCode);
+      contextLine.textContent = `Học kỳ ${semester === 1 ? 'I' : 'II'} · ${chosenSubject.displayName} · ${chosenColumn.displayName}`;
+      insight.replaceChildren();
       void channel.run({ op: 'histogram', ...selection }, (value) => histogram(value, selection));
     };
     subject.addEventListener('change', load);
