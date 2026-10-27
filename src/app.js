@@ -4,7 +4,7 @@ import { el } from './utils/dom.js';
 import { AppHeader } from './components/app-header.js';
 import { SiteNavigation } from './components/site-navigation.js';
 import { StudentLookup } from './components/student-lookup.js';
-import { verifyStudent } from './services/student-lookup.js';
+import { verifyStudent, readStudent } from './services/student-lookup.js';
 import { routeFor, routes } from './utils/gradebook-ui.js';
 import { createRouteNavigation } from './utils/app-navigation.js';
 import { newId } from './utils/id.js';
@@ -83,7 +83,7 @@ async function showRoute(path, focus = true) {
     header.querySelector('[aria-label="Làm mới học liệu"]').hidden = true;
     studentRoot.append(header);
     if (current === 'student') {
-      view = StudentLookup({ verify: verifyStudent, navigate });
+      view = StudentLookup({ verify: verifyStudent, request: readStudent, navigate });
       studentRoot.append(view.element);
       if (focus) view.focus();
     } else if (current === 'admin') {

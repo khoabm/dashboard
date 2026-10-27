@@ -38,6 +38,9 @@ export function validateLookup(values, clock = Date.now) {
 export function createLookupState({
   verify,
   onChange = () => {},
+  request = async () => {
+    throw { status: 503 };
+  },
   clock = Date.now,
   setTimer = setTimeout,
   clearTimer = clearTimeout,
@@ -46,7 +49,8 @@ export function createLookupState({
     disposed = false,
     controller,
     timer,
-    capability = null;
+    capability = null,
+    verifiedContext = null;
   let state = { status: 'idle', errors: {} };
   const emit = (next) => {
     state = next;
@@ -57,6 +61,7 @@ export function createLookupState({
     controller?.abort();
     clearTimer(timer);
     capability = null;
+    verifiedContext = null;
   };
   const expire = () => {
     if (!disposed && state.status === 'verified' && clock() >= state.expiresAt * 1000) {
@@ -67,6 +72,44 @@ export function createLookupState({
   return {
     snapshot: () => ({ ...state }),
     checkExpiry: expire,
+    context: () => verifiedContext,
+    async read(body, { signal } = {}) {
+      expire();
+      if (disposed || !capability || state.status !== 'verified') throw { status: 401 };
+      const owner = generation;
+      const combined = AbortSignal.any([
+        controller.signal,
+        signal || new AbortController().signal,
+        AbortSignal.timeout(15000),
+      ]);
+      if (combined.aborted) throw { status: 503 };
+      try {
+        let abort;
+        const interrupted = new Promise((_, reject) => {
+          abort = () => reject({ status: 503 });
+          combined.addEventListener('abort', abort, { once: true });
+          if (combined.aborted) abort();
+        });
+        let value;
+        try {
+          value = await Promise.race([
+            request(body, { capability, signal: combined }),
+            interrupted,
+          ]);
+        } finally {
+          combined.removeEventListener('abort', abort);
+        }
+        expire();
+        if (disposed || owner !== generation || combined.aborted) throw { status: 401 };
+        return value;
+      } catch (error) {
+        if (error?.status === 401 && !disposed && owner === generation) {
+          invalidate();
+          emit({ status: 'expired', errors: {} });
+        }
+        throw error;
+      }
+    },
     reset() {
       if (!disposed) {
         invalidate();
@@ -110,6 +153,7 @@ export function createLookupState({
           result.expiresAt * 1000 <= clock() + 600000
         ) {
           capability = result.capability;
+          verifiedContext = result.context || null;
           emit({ status: 'verified', errors: {}, expiresAt: result.expiresAt });
           timer = setTimer(expire, result.expiresAt * 1000 - clock());
         } else

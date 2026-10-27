@@ -2,6 +2,10 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-27 — GB-CP05-001 / P2: histogram denial must invalidate the visible semester (FIXED OFFLINE)
+
+During CP05 self-review on baseline741ee3d, chart error handling initially cleared only the chart. A403 on histogram can indicate publication/access changed since the table was read. student-gradeboard.js now clears the owning semester scores/table immediately on denial, retains the capability for the other semester, and never retries automatically. Synthetic Chrome denial check observed table count0; switching back to an allowed semester succeeds.401 separately clears capability and all private DOM through CP02 state. Pure DTO/terminal-status tests and Browser QA are offline evidence only; backend publication/Auth enforcement remains CP01-C NOT RUN. No SQL/Edge or production deployment changed.
+
 ## 2026-10-27 — GB-CP04-001 / P2: structured422 previews lose actionable counts/errors (FIXED OFFLINE)
 
 Baseline `60fd760`, feature/personal-gradebook. B4 deliberately returns422 for a preview plan with safe counts/errors; CP03's shared gate previously propagated every rejection as a generic operation failure, losing that structured plan for future integration. src/utils/gradebook-admin.js now projects only validated counts/source coordinates for roster.preview/scores.preview errors supplied as status422 + payload; discards diagnostics, internal state and tokens; mutations/other statuses still reject. CP04-T11 pure/component coverage and actual installed-Chrome synthetic422 unknown/DOB-conflict previews PASS, apply remains disabled. Production adapter still has no transport: authorized future transport must extract the422 body into error.payload; no SDK/HTTP/backend integration acceptance inferred.

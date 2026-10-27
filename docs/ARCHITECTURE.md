@@ -31,8 +31,9 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 | src/services/roster-file.js, roster-worker.js, src/utils/roster-archive.js | Shared roster/score memory-only parsing; bounded ZIP/layout inspection, lazy read-excel-file9.3.12 worker/fflate0.8.3; original rows/calendar dates and lexical XML numeric scores retained |
 | public/templates/score-template.csv, score-template.xlsx; tests/gradebook-scores.test.js | Header-only default score templates and CP04 curated pure/component contracts; no student data, HTTP/SDK/SQL/browser integration in CI |
 | tests/gradebook-admin.test.js, roster.test.js | CP03 curated pure T01–T10 contracts; actual installed-Chrome fixtures/evidence stay ignored under tests/local/cp03, outside CI/production |
+| src/components/student-gradeboard.js, src/utils/student-gradeboard.js | CP05 own-grade table, semester tabs and on-demand aggregate-only histogram; DTO projection, exact B1 bucket grouping and cancellable read channels |
 | src/components/student-lookup.js, src/utils/gradebook-ui.js | Date-only lookup form; pure validation/generation/cancellation/expiry; capability/input memory only |
-| src/services/student-lookup.js | CP02 production fail-closed adapter: unavailable, zero network until separately authorized backend integration |
+| src/services/student-lookup.js | CP02/CP05 production fail-closed verify/private-read adapter: unavailable, zero network until separately authorized backend integration |
 | src/styles/gradebook.css | Responsive student page/menu; existing Board design tokens |
 | tests/gradebook-ui.test.js | Curated pure unit validation/route/disposal/late-response plus pending admin entry and blocked-history regression; no API or SDK |
 | src/components/ | Render/interaction của 20 component tại SPEC R06; cleanup listeners khi unmount |

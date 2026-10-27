@@ -181,3 +181,9 @@ Unit `board-navigation.test.js` kiểm anchor bị cắt một phần, refresh, 
 - `/tests/viewport.html?fixture=audit&scenario=navigation` kiểm iframe360/390/768/1024/1440; mobile giữ một cột và chọn đúng chủ đề mới sau save. Kiểm DOM root clientWidth=scrollWidth, nav chỉ hiện desktop overflow. Không suy iframe thành Safari/iPhone/Android thật. Reduced-motion đã có nhánh source; OS preference thật chưa nghiệm thu.
 
 Logs/ảnh local tại `tests/local/`, không đưa vào Git/ZIP nguồn. CI không đổi cấu hình, không tự chạy backend và cần kiểm ở đúng commit khi push. Backend save/RLS/JWT thật vẫn thuộc lượt nghiệm thu riêng; không dùng kết quả mock để báo đã lưu vào project thật.
+
+## CP05 offline concern matrix
+
+Baseline741ee3d; `tests/student-gradeboard.test.js` is an explicit curated pure-unit addition, with no HTTP/SDK/SQL/browser integration. DTO projection/catalog ordering, exact B1 half-up bucketing, zero/absence, scope mismatch/peer-field rejection, terminal errors, latest-generation ownership, capability revocation/disposal and pre-cancelled reads are finite offline cases. Existing CP02 tests remain in CI. Actual Chrome UI QA uses ignored tests/local/cp05 adapters; never a production synthetic fallback.
+
+Browser evidence: same-origin iframe CSS widths360/390/768/1024/1440; table horizontal containment,101-bucket chart, selected raw score/highlight, dropdowns, Escape/focus, unavailable semester/other-semester continuity, empty/429/503, held-response selection/close/route cancellation, server401 and sign-out cleanup. Browser fixtures block external fetch and mock Board client; no real credentials or student information. Physical devices/Safari, real Auth/RLS/DB/Edge/limiter/publication and CP01-C NOT RUN. No specialist assets removed or additional dependencies.

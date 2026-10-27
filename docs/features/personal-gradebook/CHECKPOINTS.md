@@ -1,6 +1,6 @@
 # Execution plan and acceptance gates — Personal Gradebook
 
-**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1/B2 ACCEPTED; B3 CORRECTION ACCEPTED at static/offline review (hosted NOT RUN); GB-B4-INT-001 and GB-B4-REV-001 FIXED IN DRAFT; B4 ACCEPTED AS DRAFT; B5 CURATED CODE-QUALITY CI (older conflict snapshot below); CP02 OFFLINE ACCEPTED; CP03–CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
+**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1/B2 ACCEPTED; B3 CORRECTION ACCEPTED at static/offline review (hosted NOT RUN); GB-B4-INT-001 and GB-B4-REV-001 FIXED IN DRAFT; B4 ACCEPTED AS DRAFT; B5 CURATED CODE-QUALITY CI (older conflict snapshot below); CP02 OFFLINE ACCEPTED; CP03/CP04 OFFLINE ACCEPTED; CP05 OFFLINE ACCEPTED; CP06/CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
 
 **2026-10-26 B5 superseding policy / baselinec9e18c1:** remove only newly staged PGlite/SQL CI/runner; retain accepted B5 and prior evidence. [One consolidated concern/test matrix and non-CI pre-merge inventory](B5_OFFLINE_REVIEW.md#current-policy-correction--baselinec9e18c1-supersedes-sql-ci-approval). Explicit test:ci covers six component/pure-unit files; specialists/SQL/browser excluded and retained separately pending review, no new probe/test file. Temporary20 SQL groups and earlier120 Node tests are historical only. PR5 Draft/dirty (BUG_FIX_LOG), no reconciliation; Actions/native17/Deno/CP01-C/real-data gates remain pending. Current curated gate66/66 PASS, syntax/static/build/format/diff PASS; no specialist/SQL rerun. No automatic CP01-C/CP02.
 
@@ -141,18 +141,21 @@ Dependency: CP01 + CP03; verify publication/import locks and authorized preview 
 - [x] Independent publish/unpublish UI with class revision/confirmation; conservative possible-missing warning/acknowledgement (B4 has no missing-count preflight DTO); import lock and published manual warning verified synthetically.
 - [ ] CP01-C: real authorization/publication locks, atomic rollback and same-value timestamp preservation, NUMERIC API/DB precision round-trip, teacher catalog/preflight integration. Offline mocks never check these by inference.
 
-## CP05 — Student board and per-cell histogram modal (NOT STARTED)
+## CP05 — Student board and per-cell histogram modal (OFFLINE ACCEPTED)
 
 Dependency: CP01/02 and CP04 publication/data contract. Real-data access additionally requires §H; statistical suppression is outside V1.
 
-- [ ] Verified student sees only own published grades and two **Học kỳ I / Học kỳ II** tabs, not two tables on one screen.
-- [ ] Exact names/order everywhere; null/absent displays `—`; 0 remains 0; mobile table/card responsive.
-- [ ] Clicking/tapping cell opens selected subject+score column modal; two dropdowns and progress/errors.
-- [ ] X-axis point scale 0–10, Y-axis number of pupils; aggregate only, no other pupil identities/rows.
-- [ ] Exact raw personal point retained; highlight **correct rounded-tenth bucket** and label grouping honestly. Empty score shows no highlight.
-- [ ] One chart on demand, no all-56 prefetch; bottom-sheet/near-fullscreen mobile; keyboard/ESC/focus restore/scroll.
-- [ ] Unpublished semester returns no histogram even with old token; no peer names/identities/DOB/raw scores reach client. Own raw score is separate from aggregate API data.
-- [ ] Inference risk recorded as Accepted/Deferred for V1; no minimum cohort, bucket suppression, extra table or privacy framework. Lack of suppression does not fail CP05.
+- [x] Verified student sees only own published grades and two **Học kỳ I / Học kỳ II** tabs, not two tables on one screen.
+- [x] Exact names/order everywhere; null/absent displays `—`; 0 remains 0; mobile table/card responsive.
+- [x] Clicking/tapping cell opens selected subject+score column modal; two dropdowns and progress/errors.
+- [x] X-axis point scale 0–10, Y-axis number of pupils; aggregate only, no other pupil identities/rows.
+- [x] Exact raw personal point retained; highlight **correct rounded-tenth bucket** and label grouping honestly. Empty score shows no highlight.
+- [x] One chart on demand, no all-56 prefetch; bottom-sheet/near-fullscreen mobile; keyboard/ESC/focus restore/scroll.
+- [ ] CP01-C real backend acceptance: unpublished semester returns no histogram even with old token; no peer names/identities/DOB/raw scores reach client. Own raw score is separate from aggregate API data.
+- [x] Inference risk recorded as Accepted/Deferred for V1; no minimum cohort, bucket suppression, extra table or privacy framework. Lack of suppression does not fail CP05.
+
+
+2026-10-27, baseline `741ee3d`: implementation and synthetic-only evidence in root STATUS. Checked items mean offline UI/contracts, never hosted authorization. Production verify/private reads remain unavailable. Native device/Safari, deployed deep links, CP01-C and real-data gate NOT RUN.
 
 ## CP06 — Integration, regression, and QA (NOT STARTED)
 

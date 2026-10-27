@@ -1,6 +1,7 @@
 /** Renders a date-only student lookup form; private inputs and capability never leave this view's memory. */
 import { el, button } from '../utils/dom.js';
 import { uiDate, displayDate, vietnamToday } from '../utils/gradebook/dates.js';
+import { StudentGradeboard } from './student-gradeboard.js';
 import { createLookupState } from '../utils/gradebook-ui.js';
 
 const messages = {
@@ -9,12 +10,12 @@ const messages = {
   neutral: 'Chưa thể xác minh thông tin. Vui lòng kiểm tra và thử lại.',
   limited: 'Vui lòng chờ trước khi thử lại.',
   unavailable: 'Tra cứu hiện chưa sẵn sàng. Vui lòng quay lại sau.',
-  verified: 'Đã xác minh. Bảng điểm sẽ được bổ sung ở bước tiếp theo.',
+  verified: 'Đã xác minh thông tin.',
   expired: 'Phiên tra cứu đã hết hạn. Vui lòng nhập lại thông tin.',
 };
 
 /** Creates a disposable form around an explicitly supplied verification adapter. */
-export function StudentLookup({ verify, navigate, clock = Date.now }) {
+export function StudentLookup({ verify, request, navigate, clock = Date.now }) {
   const heading = el(
     'h1',
     { id: 'gradebook-title', tabindex: '-1' },
@@ -160,7 +161,8 @@ export function StudentLookup({ verify, navigate, clock = Date.now }) {
     ),
     el('footer', { class: 'gradebook-footer' }, 'Một hành trình nhỏ, một tiến bộ mỗi ngày.'),
   );
-  let disposed = false;
+  let disposed = false,
+    gradeboard = null;
   /** Drops sensitive controls on every completed/cancelled generation, including native date state. */
   function clearInputs() {
     documentInput.value = '';
@@ -170,6 +172,26 @@ export function StudentLookup({ verify, navigate, clock = Date.now }) {
   /** Projects only public state categories; input, token and backend diagnostics are never rendered. */
   function render(snapshot) {
     if (disposed) return;
+    gradeboard?.dispose();
+    gradeboard = null;
+    element.querySelector('.student-gradeboard')?.remove();
+    form.closest('.lookup-card').hidden = snapshot.status === 'verified';
+    element.querySelector('.gradebook-intro').hidden = snapshot.status === 'verified';
+    if (snapshot.status === 'verified' && state.context()) {
+      try {
+        gradeboard = StudentGradeboard({
+          context: state.context(),
+          read: state.read,
+          onReset: () => state.reset(),
+        });
+        element.prepend(gradeboard.element);
+        const title = gradeboard.element.querySelector('h2');
+        title.setAttribute('tabindex', '-1');
+        title.focus();
+      } catch {
+        queueMicrotask(() => state.reset());
+      }
+    }
     const loading = snapshot.status === 'loading';
     form.setAttribute('aria-busy', String(loading));
     documentInput.disabled =
@@ -194,7 +216,7 @@ export function StudentLookup({ verify, navigate, clock = Date.now }) {
     if (snapshot.status === 'invalid')
       (snapshot.errors.documentNumber ? documentInput : dateInput).focus();
   }
-  const state = createLookupState({ verify, clock, onChange: render });
+  const state = createLookupState({ verify, request, clock, onChange: render });
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     void state.submit({ documentNumber: documentInput.value, birthDate: dateInput.value });
@@ -248,6 +270,7 @@ export function StudentLookup({ verify, navigate, clock = Date.now }) {
     dispose() {
       disposed = true;
       state.dispose();
+      gradeboard?.dispose();
       clearInputs();
       form.reset();
       element.replaceChildren();
