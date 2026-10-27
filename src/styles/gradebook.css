@@ -777,3 +777,913 @@
   outline: 3px solid #315d8a;
   outline-offset: 2px;
 }
+
+/* CP05-only visual refinement: no shared Board, admin or route selectors are overridden. */
+.student-gradeboard {
+  --student-forest: #204f41;
+  --student-mint: #eaf4ed;
+  --student-border: #dce8df;
+  --student-shadow: 0 20px 55px #173f2b0c;
+  width: 100%;
+  padding: 6px 0 38px;
+}
+
+.student-gradeboard .student-board-heading {
+  padding: 30px 35px;
+  border: 1px solid var(--student-border);
+  border-radius: 24px 24px 0 0;
+  background: linear-gradient(115deg, #f4faf6, #ffffff 76%);
+  margin: 0;
+  align-items: center;
+}
+
+.student-overline {
+  display: block;
+  color: #537a63;
+  letter-spacing: 1.8px;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.student-board-title h2 {
+  margin: 9px 0;
+  font-size: clamp(25px, 3vw, 36px);
+  letter-spacing: -1.3px;
+  color: #1d493b;
+  line-height: 1.2;
+}
+
+.student-classline {
+  margin: 0;
+  color: #65776d;
+  font-size: 13px;
+}
+
+.student-board-counter {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding: 11px 15px;
+  background: #ffffff;
+  border: 1px solid #dfeae2;
+  border-radius: 30px;
+  color: #456554;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.student-semester-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 30px;
+  background: white;
+  border: 1px solid var(--student-border);
+  border-top: 0;
+}
+
+.student-gradeboard .student-semesters {
+  display: flex;
+  padding: 5px;
+  gap: 4px;
+  background: #f0f5f1;
+  border-radius: 13px;
+  margin: 0;
+}
+
+.student-gradeboard .student-semesters button {
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  min-height: 42px;
+  padding: 10px 22px;
+  color: #607668;
+  font-weight: 650;
+  font-size: 13px;
+}
+
+.student-gradeboard .student-semesters button[aria-selected='true'] {
+  color: var(--student-forest);
+  background: #ffffff;
+  box-shadow: 0 3px 12px #1e584119;
+}
+
+.student-gradeboard .student-reset-button {
+  border: 1px solid var(--student-border);
+  color: #365c49;
+  background: white;
+  border-radius: 11px;
+}
+
+.student-board-guide {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 13px 30px;
+  color: #5e7467;
+  font-size: 12px;
+  background: #f8fbf9;
+  border-left: 1px solid var(--student-border);
+  border-right: 1px solid var(--student-border);
+}
+
+.student-board-guide span {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  width: 23px;
+  height: 23px;
+  background: #e0f1e5;
+  color: #247351;
+  flex: 0 0 auto;
+  font-size: 16px;
+}
+
+.student-board-panel {
+  border: 1px solid var(--student-border);
+  border-top: 0;
+  border-radius: 0 0 24px 24px;
+  padding: 0 20px 20px;
+  background: white;
+  box-shadow: var(--student-shadow);
+  min-width: 0;
+}
+
+.student-table-card {
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e1e9e3;
+}
+
+.student-gradeboard .student-table-scroll {
+  border: 0;
+  border-radius: 0;
+}
+
+.student-gradeboard .student-score-table {
+  min-width: 830px;
+  font-variant-numeric: tabular-nums;
+}
+
+.student-gradeboard .student-score-table caption {
+  padding: 12px 19px;
+  background: #fbfdfb;
+  color: #748678;
+  font-size: 11px;
+}
+
+.student-gradeboard .student-score-table thead th {
+  background: #f2f7f3;
+  color: #41604e;
+  font-weight: 750;
+  padding: 17px 11px;
+  border-bottom: 1px solid #dbe7dd;
+}
+
+.student-gradeboard .student-score-table tbody th {
+  background: white;
+  font-size: 13px;
+  font-weight: 720;
+  color: #234c3b;
+  border-right: 1px solid #e7eee7;
+  padding: 16px;
+}
+
+.student-gradeboard .student-score-table tbody tr:nth-child(even) {
+  background: #fbfdfa;
+}
+
+.student-gradeboard .student-score-table tbody tr:hover,
+.student-gradeboard .student-score-table tbody tr:hover th {
+  background: #f3f9f5;
+}
+
+.student-gradeboard .student-score-cell {
+  border: 1px solid transparent;
+  min-width: 54px;
+  min-height: 42px;
+  border-radius: 11px;
+  background: #eaf4ed;
+  color: #215b41;
+  font-weight: 750;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.student-gradeboard .student-score-cell:hover,
+.student-gradeboard .student-score-cell:focus-visible {
+  border-color: #81ab90;
+  background: #d8ecde;
+}
+
+.student-table-footnote {
+  margin: 0;
+  padding: 13px 19px;
+  color: #738476;
+  font-size: 11px;
+  border-top: 1px solid #e7eee8;
+  background: #fbfdfb;
+}
+
+/* Only the CP05 histogram uses the analytics dialog skin. */
+.student-chart-dialog {
+  --chart-forest: #205744;
+  --chart-mint: #ebf5ef;
+  border: 1px solid #dfe9e2;
+  border-radius: 23px;
+  box-shadow: 0 34px 110px #102b2140;
+  max-height: 92dvh;
+  padding: 0;
+  background: #f9fbf9;
+  color: #233f33;
+}
+
+.student-chart-dialog::backdrop {
+  background: #112b20a1;
+  backdrop-filter: blur(5px);
+}
+
+.student-chart-dialog .dialog-heading {
+  padding: 20px 28px;
+  background: white;
+  border-bottom: 1px solid #edf1ed;
+}
+
+.student-chart-dialog .dialog-heading h2 {
+  font-size: 19px;
+  letter-spacing: -0.35px;
+}
+
+.student-chart-dialog .dialog-content {
+  padding: 25px 30px 24px;
+}
+
+.student-chart-lead {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.student-chart-context {
+  font-size: 14px;
+  color: #365849;
+  font-weight: 720;
+  margin: 0;
+}
+
+.student-chart-dialog .student-chart-selectors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.student-chart-dialog .student-chart-selectors label {
+  min-width: 0;
+  font-size: 12px;
+  color: #557064;
+  font-weight: 670;
+}
+
+.student-chart-dialog .student-chart-selectors select {
+  background: white;
+  border: 1px solid #dbe6de;
+  border-radius: 11px;
+  color: #254d3d;
+  padding: 10px 12px;
+  min-height: 46px;
+  font-weight: 630;
+}
+
+.student-insight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.student-insight-primary,
+.student-insight-secondary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px 22px;
+  border-radius: 15px;
+  background: var(--chart-mint);
+  border: 1px solid #d9ebde;
+}
+
+.student-insight-secondary {
+  background: white;
+  border-color: #e3eae5;
+}
+
+.student-insight-label {
+  color: #547764;
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: 1px;
+}
+
+.student-insight-value {
+  color: #1d553e;
+  font-size: 29px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.6px;
+}
+
+.student-insight-detail {
+  font-size: 12px;
+  color: #63806a;
+}
+
+.student-chart-surface {
+  border: 1px solid #e0eae3;
+  border-radius: 18px;
+  background: white;
+  padding: 18px 19px 12px;
+}
+
+.student-chart-surface-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.student-chart-surface-heading strong {
+  font-size: 14px;
+  color: #204f3c;
+}
+
+.student-chart-surface-heading span {
+  color: #7d9183;
+  font-size: 11px;
+}
+
+.student-chart-stage .student-chart-plot {
+  grid-template-columns: 55px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.student-chart-stage .student-chart-scroll {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  scrollbar-color: #a9c9b2 #f4f8f5;
+  scrollbar-width: thin;
+}
+
+.student-chart-stage .student-histogram {
+  padding-top: 35px;
+}
+
+.student-chart-stage .histogram-grid i {
+  border-top: 1px dashed #dbe7df;
+}
+
+.student-chart-stage .histogram-bucket {
+  border-radius: 6px;
+  padding-inline: 1px;
+}
+
+.student-chart-stage .histogram-track {
+  border-radius: 6px 6px 0 0;
+  background: #eff6f1;
+  overflow: hidden;
+}
+
+.student-chart-stage .histogram-bar {
+  border-radius: 5px 5px 0 0;
+  background: linear-gradient(0deg, #83b597, #b1d7bd);
+}
+
+.student-chart-stage .histogram-bucket.is-personal {
+  outline: 2px solid #256c48;
+  outline-offset: 1px;
+}
+
+.student-chart-stage .histogram-bucket.is-personal .histogram-bar {
+  background: linear-gradient(0deg, #216442, #4c966b);
+}
+
+.student-chart-stage .histogram-count {
+  font-size: 10px;
+  color: #738b7a;
+}
+
+.student-chart-stage .histogram-tick {
+  color: #728777;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.student-chart-stage .histogram-y-axis {
+  font-variant-numeric: tabular-nums;
+  color: #577361;
+}
+
+.student-chart-explanation {
+  margin: 15px 3px 0;
+  color: #64796b;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.student-chart-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  align-items: center;
+  padding-top: 22px;
+}
+
+.student-chart-footer > span {
+  font-size: 11px;
+  color: #819487;
+}
+
+.student-chart-close {
+  border-radius: 10px;
+  padding-inline: 20px;
+  min-height: 43px;
+}
+
+@media (max-width: 700px) {
+  .student-gradeboard .student-board-heading {
+    padding: 24px 19px;
+    align-items: flex-start;
+    flex-direction: column;
+    border-radius: 17px 17px 0 0;
+    gap: 14px;
+  }
+
+  .student-gradeboard .student-board-counter {
+    padding: 7px 12px;
+  }
+
+  .student-gradeboard .student-semester-row {
+    flex-wrap: wrap;
+    padding: 13px 16px;
+  }
+
+  .student-gradeboard .student-semesters {
+    width: 100%;
+  }
+
+  .student-gradeboard .student-semesters button {
+    flex: 1;
+    padding-inline: 11px;
+  }
+
+  .student-board-guide {
+    padding: 12px 16px;
+  }
+
+  .student-board-panel {
+    padding: 0 10px 11px;
+    border-radius: 0 0 17px 17px;
+  }
+
+  .student-chart-dialog {
+    max-height: 94dvh;
+    width: 100vw;
+    max-width: 100vw;
+    height: 94dvh;
+    border-radius: 22px 22px 0 0;
+    margin: auto 0 0;
+  }
+
+  .student-chart-dialog .dialog-heading {
+    padding: 13px 18px;
+  }
+
+  .student-chart-dialog .dialog-content {
+    padding: 18px 15px 20px;
+  }
+
+  .student-chart-dialog .student-chart-selectors {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 11px;
+  }
+
+  .student-insight-grid {
+    gap: 9px;
+  }
+
+  .student-insight-primary,
+  .student-insight-secondary {
+    padding: 15px 13px;
+  }
+
+  .student-insight-value {
+    font-size: 25px;
+  }
+
+  .student-chart-surface {
+    padding: 15px 9px 10px;
+  }
+
+  .student-chart-surface-heading {
+    flex-wrap: wrap;
+  }
+
+  .student-chart-stage .student-chart-plot {
+    grid-template-columns: 45px minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .student-chart-footer > span {
+    max-width: 55%;
+  }
+
+  .student-chart-close {
+    flex: 0 0 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-gradeboard .student-score-cell,
+  .student-chart-dialog .histogram-bar {
+    transition: none;
+  }
+}
+
+/* V2 feature-local visualization and calendar; no shared Board/admin selectors. */
+.student-chart-dialog .student-chart-surface {
+  background: #fff;
+  border: 1px solid #e3ebe6;
+  border-radius: 18px;
+  padding: 20px 15px 12px;
+}
+.student-chart-dialog .student-echart {
+  height: 330px;
+  width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+}
+.student-chart-dialog .student-insight-primary {
+  background: linear-gradient(120deg, #e4f0e8, #f5faf7);
+  border: 0;
+}
+.student-chart-dialog .student-insight-secondary {
+  background: #fbf1e6;
+  border: 0;
+}
+.birthday-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f9fbfa;
+}
+.lookup-form .birthday-field > input {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  min-width: 0;
+  padding-right: 0;
+}
+.birthday-field:focus-within {
+  outline: 2px solid #739c85;
+  outline-offset: 2px;
+}
+.birthday-trigger {
+  width: 48px;
+  height: 46px;
+  flex: 0 0 48px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #35684c;
+  font-size: 26px;
+  border-radius: 10px;
+}
+.birthday-trigger:hover {
+  background: #e8f1eb;
+}
+.birthday-calendar {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 10px);
+  z-index: 120;
+  width: min(340px, calc(100vw - 70px));
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #e3ebe5;
+  border-radius: 18px;
+  box-shadow: 0 14px 50px #25453222;
+}
+.birthday-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #264e38;
+}
+.birthday-close,
+.birthday-month-step {
+  border: 0;
+  background: #f1f6f2;
+  color: #41644d;
+  min-width: 36px;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 23px;
+  cursor: pointer;
+}
+.birthday-close {
+  background: transparent;
+}
+.birthday-caption,
+.birthday-footer {
+  font-size: 11px;
+  color: #74877a;
+  line-height: 1.6;
+  margin: 8px 0 14px;
+}
+.birthday-navigation {
+  display: grid;
+  grid-template-columns: 38px 1fr 78px 38px;
+  gap: 5px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.lookup-form .birthday-navigation input,
+.birthday-navigation select {
+  min-width: 0;
+  width: 100%;
+  height: 44px;
+  padding: 7px;
+  border: 1px solid #dee7e0;
+  border-radius: 9px;
+  background: #f8faf8;
+  font: inherit;
+  font-size: 12px;
+}
+.birthday-weekdays,
+.birthday-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}
+.birthday-weekdays {
+  margin-bottom: 6px;
+  color: #87988c;
+  font-size: 10px;
+  text-align: center;
+}
+.birthday-day {
+  min-width: 0;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  color: #365640;
+  font: inherit;
+  font-size: 12px;
+}
+.birthday-day:hover {
+  background: #ecf4ee;
+}
+.birthday-day.is-selected {
+  background: #377d59;
+  color: white;
+}
+.birthday-day:disabled {
+  color: #c7d2ca;
+  cursor: default;
+}
+.birthday-day:focus-visible {
+  outline: 2px solid #bd8b54;
+  outline-offset: -2px;
+}
+@media (max-width: 600px) {
+  .student-chart-dialog .student-echart {
+    height: 300px;
+  }
+  .student-chart-dialog .student-chart-surface {
+    padding: 15px 7px 10px;
+  }
+  .student-chart-dialog .student-insight-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .student-chart-dialog .student-insight-label {
+    font-size: 10px;
+  }
+}
+.birthday-trigger {
+  display: grid;
+  place-items: center;
+}
+@media (max-width: 600px) {
+  .birthday-calendar {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: 12px;
+    width: auto;
+    max-width: none;
+    padding: 8px;
+    border-radius: 22px;
+    box-shadow: 0 -10px 70px #1d422c33;
+  }
+  .birthday-navigation {
+    grid-template-columns: 44px 1fr 78px 44px;
+  }
+  .birthday-weekdays,
+  .birthday-week {
+    gap: 0;
+  }
+  .birthday-heading,
+  .birthday-caption,
+  .birthday-footer {
+    padding-inline: 4px;
+  }
+}
+
+/* Date of birth behaves as one field: the focus/error ring belongs to its wrapper. */
+.lookup-form .birthday-field {
+  min-height: 50px;
+  border-color: #d6e1da;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+.lookup-form .birthday-field > input {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 48px;
+  min-height: 48px;
+  padding: 11px 14px;
+  font-size: 15px;
+  color: var(--ink);
+  outline: none;
+  border: 0;
+  border-radius: 12px 0 0 12px;
+}
+.lookup-form .birthday-field > input:focus,
+.lookup-form .birthday-field > input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.lookup-form .birthday-field:focus-within {
+  border-color: #397a5c;
+  box-shadow: 0 0 0 3px #397a5c2a;
+  outline: none;
+}
+.lookup-form .birthday-field:has(> input[aria-invalid='true']) {
+  border-color: #b65243;
+  background: #fff9f8;
+}
+.lookup-form .birthday-field:has(> input[aria-invalid='true']):focus-within {
+  box-shadow: 0 0 0 3px #b6524330;
+}
+.lookup-form .birthday-field .birthday-trigger {
+  margin-right: 2px;
+  border-radius: 0 10px 10px 0;
+}
+.lookup-form .birthday-field .birthday-trigger:focus-visible {
+  outline: 2px solid #397a5c;
+  outline-offset: -5px;
+}
+.student-chart-dialog .student-chart-loading {
+  padding: 28px 14px;
+  color: #577666;
+  font-size: 13px;
+  text-align: center;
+}
+.student-chart-dialog .student-echart:focus-visible {
+  outline: 3px solid #3c805f;
+  outline-offset: -3px;
+  border-radius: 8px;
+}
+/* Fit the chart dialog across laptop and desktop widths, keeping vertical space for the plot. */
+@media (min-width: 801px) {
+  .student-chart-dialog {
+    width: min(1120px, 95vw);
+    max-width: 1120px;
+    max-height: calc(100dvh - 24px);
+  }
+  .student-chart-dialog .student-echart {
+    height: clamp(205px, 30dvh, 290px);
+  }
+}
+@media (min-width: 801px) and (max-height: 850px) {
+  .student-chart-dialog .dialog-heading {
+    padding: 10px 22px;
+  }
+  .student-chart-dialog .dialog-content {
+    padding: 13px 22px 13px;
+  }
+  .student-chart-dialog .student-chart-lead {
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+  .student-chart-dialog .student-chart-selectors,
+  .student-chart-dialog .student-insight-grid {
+    margin-bottom: 10px;
+  }
+  .student-chart-dialog .student-insight-primary,
+  .student-chart-dialog .student-insight-secondary {
+    padding: 10px 14px;
+    gap: 3px;
+  }
+  .student-chart-dialog .student-insight-value {
+    font-size: 24px;
+  }
+  .student-chart-dialog .student-chart-surface {
+    padding: 10px 13px 4px;
+  }
+  .student-chart-dialog .student-chart-surface-heading {
+    margin-bottom: 4px;
+  }
+  .student-chart-dialog .student-chart-explanation {
+    margin-top: 7px;
+    line-height: 1.45;
+  }
+  .student-chart-dialog .student-chart-footer {
+    padding-top: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lookup-form .birthday-field {
+    transition: none;
+  }
+}
+
+/* CP05 focus polish: the Gradebook owns one calm green ring, not a nested blue native/global outline. */
+.lookup-form > input:not([type='hidden']),
+.student-chart-dialog .student-chart-selectors select,
+.lookup-form .birthday-navigation select,
+.lookup-form .birthday-navigation input {
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+.lookup-form > input:not([type='hidden']):hover,
+.student-chart-dialog .student-chart-selectors select:hover,
+.lookup-form .birthday-navigation select:hover,
+.lookup-form .birthday-navigation input:hover {
+  border-color: #abc8b7;
+}
+.lookup-form > input:not([type='hidden']):focus,
+.lookup-form > input:not([type='hidden']):focus-visible,
+.student-chart-dialog .student-chart-selectors select:focus,
+.student-chart-dialog .student-chart-selectors select:focus-visible,
+.lookup-form .birthday-navigation select:focus,
+.lookup-form .birthday-navigation select:focus-visible,
+.lookup-form .birthday-navigation input:focus,
+.lookup-form .birthday-navigation input:focus-visible {
+  outline: none;
+  outline-offset: 0;
+  border-color: #367c58;
+  box-shadow: 0 0 0 3px #367c582b;
+}
+.lookup-form > input[aria-invalid='true']:not([type='hidden']),
+.lookup-form > input[aria-invalid='true']:not([type='hidden']):focus,
+.lookup-form > input[aria-invalid='true']:not([type='hidden']):focus-visible {
+  border-color: #b65243;
+}
+.lookup-form > input[aria-invalid='true']:not([type='hidden']):focus,
+.lookup-form > input[aria-invalid='true']:not([type='hidden']):focus-visible {
+  box-shadow: 0 0 0 3px #b6524330;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lookup-form > input:not([type='hidden']),
+  .student-chart-dialog .student-chart-selectors select,
+  .lookup-form .birthday-navigation select,
+  .lookup-form .birthday-navigation input {
+    transition: none;
+  }
+}
+/* On narrow phones, stack insight cards instead of wrapping their long Vietnamese labels. */
+@media (max-width: 420px) {
+  .student-chart-dialog .student-insight-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .student-chart-dialog .student-insight-primary,
+  .student-chart-dialog .student-insight-secondary {
+    padding: 12px 16px;
+  }
+  .student-chart-dialog .student-echart {
+    height: clamp(220px, 32dvh, 280px);
+  }
+  .student-chart-dialog .student-chart-footer {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .student-chart-dialog .student-chart-close {
+    min-height: 44px;
+  }
+}

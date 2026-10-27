@@ -281,3 +281,119 @@ test('F03 roving bucket indices stay bounded; Tab is never intercepted', () => {
   assert.equal(bucketIndex(20, 'End'), 100);
   assert.equal(bucketIndex(20, 'Tab'), 20);
 });
+
+test('V2 sparse chart shows only occupied levels, preserves full aggregate and hover colors', async () => {
+  const { studentChartOptions, chartWindow, occupiedScoreLevels, occupiedLevelIndex } =
+    await import('../src/utils/student-chart.js');
+  for (const peak of [0, 1, 23, 1000]) {
+    const rows = distribution().buckets.map((row, index) => ({
+      ...row,
+      studentCount: index === 83 ? peak : 0,
+    }));
+    const occupied = occupiedScoreLevels(rows);
+    assert.equal(rows.length, 101);
+    assert.deepEqual(
+      occupied.map((row) => row.scoreBucket),
+      peak ? ['8.3'] : [],
+    );
+    const option = studentChartOptions(rows, '8.3', chartWindow(0, 390, occupied.length), true);
+    assert.deepEqual(option.xAxis.data, peak ? ['8.3'] : []);
+    assert.equal(option.series[0].data.length, peak ? 1 : 0);
+    assert.equal(option.series[0].data[0]?.value, peak || undefined);
+    assert.equal(option.yAxis.minInterval, 1);
+    assert.equal(option.yAxis.max, Math.max(1, peak));
+    assert.equal(option.animation, false);
+    assert.equal(option.dataZoom.length, 0);
+    if (peak) {
+      assert.equal(option.series[0].data[0].itemStyle.color, '#d28a44');
+      assert.equal(option.series[0].data[0].emphasis.itemStyle.color, '#d28a44');
+      assert.equal(option.series[0].data[0].emphasis.itemStyle.borderWidth, 2);
+    }
+  }
+
+  const rows = distribution().buckets.map((row, index) => ({
+    ...row,
+    studentCount: index === 0 ? 1 : index === 20 ? 3 : index === 83 ? 23 : index === 100 ? 2 : 0,
+  }));
+  const option = studentChartOptions(rows, '8.3', chartWindow(2, 390, 4), true);
+  assert.deepEqual(option.xAxis.data, ['0.0', '2.0', '8.3', '10.0']);
+  assert.deepEqual(
+    option.series[0].data.map((row) => row.value),
+    [1, 3, 23, 2],
+  );
+  assert.equal(option.series[0].data.filter((row) => row.itemStyle.borderWidth === 1).length, 1);
+  assert.equal(option.series[0].data[1].emphasis.itemStyle.color, '#80b49b');
+  assert.equal(option.series[0].barMaxWidth, 64);
+  assert.equal(option.series[0].barCategoryGap, '36%');
+  assert.equal(option.dataZoom.length, 0);
+
+  const none = studentChartOptions(rows, null, chartWindow(0, 390, 4));
+  assert.equal(none.series[0].data.filter((row) => row.itemStyle.borderWidth === 1).length, 0);
+  assert.equal(occupiedLevelIndex(0, 'ArrowLeft', 4), 0);
+  assert.equal(occupiedLevelIndex(0, 'ArrowRight', 4), 1);
+  assert.equal(occupiedLevelIndex(2, 'Home', 4), 0);
+  assert.equal(occupiedLevelIndex(0, 'End', 4), 3);
+  assert.equal(occupiedLevelIndex(3, 'ArrowRight', 4), 3);
+  assert.equal(occupiedLevelIndex(0, 'Home', 0), 0);
+});
+
+test('V2 dense occupied levels remain separated, scrollable and reachable across screen widths', async () => {
+  const { studentChartOptions, chartWindow, occupiedScoreLevels } = await import(
+    '../src/utils/student-chart.js'
+  );
+  const rows = distribution().buckets.map((row) => ({ ...row, studentCount: 2 }));
+  const visible = occupiedScoreLevels(rows);
+  assert.equal(visible.length, 101);
+  for (const width of [280, 360, 390, 768, 1024, 1440]) {
+    const first = chartWindow(0, width, visible.length);
+    const last = chartWindow(100, width, visible.length);
+    const middle = chartWindow(83, width, visible.length);
+    const span = first.end - first.start + 1;
+    assert.ok(span >= 4 && span <= 18);
+    assert.equal(first.start, 0);
+    assert.equal(last.end, 100);
+    assert.equal(last.end - last.start + 1, span);
+    assert.equal(middle.end - middle.start + 1, span);
+    assert.ok(middle.start <= 83 && middle.end >= 83);
+    const option = studentChartOptions(rows, '8.3', middle, true);
+    assert.equal(option.xAxis.data.length, 101);
+    assert.equal(option.series[0].data.length, 101);
+    assert.equal(option.dataZoom.length, 2);
+    assert.equal(option.dataZoom[0].filterMode, 'none');
+    assert.equal(option.series[0].barMaxWidth, 64);
+    assert.equal(option.series[0].barCategoryGap, '36%');
+  }
+  assert.ok(
+    chartWindow(40, 390, 101).end - chartWindow(40, 390, 101).start <
+      chartWindow(40, 1024, 101).end - chartWindow(40, 1024, 101).start,
+  );
+});
+test('V2 responsive chart shows and hides dataZoom as occupied levels fit different widths', async () => {
+  const { chartWindow, chartNeedsScroller, studentChartOptions } = await import(
+    '../src/utils/student-chart.js'
+  );
+  const rows = distribution().buckets.map((row, index) => ({
+    ...row,
+    studentCount: [0, 10, 20, 30, 40, 50, 60, 70, 80, 83, 90, 100].includes(index) ? 5 : 0,
+  }));
+  const count = 12;
+  const desktop = chartWindow(9, 1050, count);
+  const mobile = chartWindow(9, 340, count);
+  assert.equal(chartNeedsScroller(count, desktop), false);
+  assert.equal(studentChartOptions(rows, '8.3', desktop).dataZoom.length, 0);
+  assert.equal(chartNeedsScroller(count, mobile), true);
+  assert.equal(studentChartOptions(rows, '8.3', mobile).dataZoom.length, 2);
+  assert.equal(chartNeedsScroller(count, chartWindow(9, 1050, count)), false);
+  assert.ok(mobile.start <= 9 && mobile.end >= 9);
+  for (const width of [280, 360, 390, 420, 700, 768, 1024, 1440]) {
+    const window = chartWindow(9, width, count);
+    const options = studentChartOptions(rows, '8.3', window);
+    const needsScroller = chartNeedsScroller(count, window);
+    assert.equal(options.dataZoom.length, needsScroller ? 2 : 0);
+    assert.equal(options.grid.bottom, needsScroller ? 86 : 44);
+    assert.equal(options.xAxis.data.length, count);
+    assert.ok(window.start <= 9 && window.end >= 9);
+  }
+  assert.equal(chartNeedsScroller(1, chartWindow(0, 280, 1)), false);
+  assert.equal(chartNeedsScroller(0, chartWindow(0, 280, 0)), false);
+});

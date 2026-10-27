@@ -7,13 +7,13 @@ import { fixtureContext } from './student-gradeboard-data.js';
 const controls = document.querySelector('#qa-controls');
 controls.style.cssText =
   'padding:12px;background:#fff1d1;display:flex;gap:12px;align-items:center;flex-wrap:wrap;overflow-wrap:anywhere;font-size:12px';
-controls.append(el('strong', {}, 'QA SYNTHETIC · OFFLINE · KHÔNG DÙNG DỮ LIỆU THẬT'));
+controls.append(el('strong', {}, 'BẢN XEM THỬ · DỮ LIỆU GIẢ · KHÔNG NHẬP THÔNG TIN THẬT'));
 const root = document.querySelector('#app');
 const embedded = new URL(location.href).searchParams.has('embedded');
 if (!embedded) {
   const width = el(
     'select',
-    { 'aria-label': 'Chiều rộng QA' },
+    { 'aria-label': 'Chiều rộng màn hình mô phỏng' },
     ...[360, 390, 768, 1024, 1440].map((n) => el('option', { value: String(n) }, String(n))),
   );
   width.value = '1440';
@@ -28,17 +28,19 @@ if (!embedded) {
     frame.width = width.value;
   });
   controls.append(
-    el('label', {}, 'CSS px ', width),
-    button('Thu hồi phiên (401)', () =>
+    el('label', {}, 'Màn hình mô phỏng (px) ', width),
+    button('Hủy quyền xem', () =>
       frame.contentWindow.postMessage({ action: 'revoke' }, location.origin),
     ),
-    button('Hết phiên trong modal', () =>
+    button('Hết thời gian xem', () =>
       frame.contentWindow.postMessage({ action: 'expire' }, location.origin),
     ),
-    button('Trả phản hồi đang giữ', () =>
+    button('Hoàn tất yêu cầu đang chờ', () =>
       frame.contentWindow.postMessage({ action: 'release' }, location.origin),
     ),
-    button('Rời view', () => frame.contentWindow.postMessage({ action: 'leave' }, location.origin)),
+    button('Rời màn hình', () =>
+      frame.contentWindow.postMessage({ action: 'leave' }, location.origin),
+    ),
   );
   root.style.overflow = 'auto';
   root.append(frame);
@@ -67,15 +69,32 @@ if (!embedded) {
     const input = el(
       'select',
       { 'aria-label': name },
-      ...values.map((v) => el('option', { value: v }, v)),
+      ...values.map((option) =>
+        typeof option === 'string'
+          ? el('option', { value: option }, option)
+          : el('option', { value: option.value }, option.label),
+      ),
     );
     controls.append(el('label', {}, name, input));
     return input;
   };
-  const contextMode = select('Context', ['valid', 'missing', 'bad-catalog', 'bad-publication']);
-  const response = select('Phản hồi', ['ready', 'empty', 'denied', '401', '429', '503', 'hold']);
-  const maximum = select('Số học sinh cao nhất', ['23', '0', '1', '1000']);
-  const output = el('output', { 'aria-label': 'Bộ đếm QA' });
+  const contextMode = select('Thông tin lớp mô phỏng', [
+    { value: 'valid', label: 'Đầy đủ và hợp lệ' },
+    { value: 'missing', label: 'Thiếu thông tin lớp' },
+    { value: 'bad-catalog', label: 'Thiếu danh sách môn học' },
+    { value: 'bad-publication', label: 'Thông tin học kỳ không hợp lệ' },
+  ]);
+  const response = select('Tình huống tải điểm', [
+    { value: 'ready', label: 'Tải thành công' },
+    { value: 'empty', label: 'Chưa có dữ liệu' },
+    { value: 'denied', label: 'Không có quyền xem' },
+    { value: '401', label: 'Thời gian xem đã hết' },
+    { value: '429', label: 'Cần chờ trước khi thử lại' },
+    { value: '503', label: 'Tạm thời không tải được' },
+    { value: 'hold', label: 'Giữ yêu cầu để thử hủy' },
+  ]);
+  const maximum = select('Số học sinh ở cột cao nhất', ['23', '0', '1', '1000']);
+  const output = el('output', { 'aria-label': 'Thông tin dành cho kiểm thử' });
   const inspect = () => {
     output.textContent = JSON.stringify({
       verifyCalls,
@@ -172,11 +191,11 @@ if (!embedded) {
       actions[event.data?.action]?.();
   });
   controls.append(
-    button('Hết phiên', expire),
-    button('Trả phản hồi', release),
+    button('Giả lập hết thời gian xem', expire),
+    button('Hoàn tất yêu cầu', release),
     button('Rời view', leave),
-    button('Mở lại fixture', mount),
-    button('Inspect', inspect),
+    button('Mở lại bản xem thử', mount),
+    button('Xem thông tin kiểm thử', inspect),
     output,
   );
   window.addEventListener('pagehide', () => view?.dispose());

@@ -4,6 +4,8 @@
 
 **Latest B5 snapshot (2026-10-26 / baselinec9e18c1):** B4 ACCEPTED AS DRAFT. [Superseding CI policy/concern matrix/asset inventory](B5_OFFLINE_REVIEW.md#current-policy-correction--baselinec9e18c1-supersedes-sql-ci-approval): six explicit component/pure-unit files in test:ci; no API/Supabase/Edge/SQL integration in CI, staged PGlite/runner withdrawn. Prior120 Node and temporary20 SQL groups retained as historical evidence only. PR5 Draft/dirty (BUG_FIX_LOG conflict), Actions blocked; native Deno/PG17, CP01-C and real-data gates NOT RUN. No automatic continuation or pre-merge asset deletion.
 
+**UI visual refinement proposal (2026-10-27):** [CP05_UI_REFINEMENT](CP05_UI_REFINEMENT.md) is the branch-local design candidate for the student gradeboard/histogram. It does not supersede accepted CP05 data/security contracts or imply final visual acceptance. `develop`, main Board and CP03/CP04 remain untouched.
+
 ## Read path (token-efficient)
 
 1. Read root [AGENTS](../../../AGENTS.md), [OVERVIEW](../../OVERVIEW.md), and [STATUS](../../STATUS.md) once at the chosen HEAD.

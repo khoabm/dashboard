@@ -143,6 +143,8 @@ Dependency: CP01 + CP03; verify publication/import locks and authorized preview 
 
 ## CP05 — Student board and per-cell histogram modal (OFFLINE ACCEPTED)
 
+**UI refinement candidate only:** separate branch `feature/personal-gradebook-ui-refinement` now includes V2 lazy ECharts6 SVG/keyboard range and a feature-local strict DOB calendar. Offline implementation/browser evidence is recorded in STATUS; explicit user visual approval remains pending. See [CP05_UI_REFINEMENT](CP05_UI_REFINEMENT.md). Do not mark visual acceptance or change CP01-C/CP06 status based on a UI branch.
+
 2026-10-27 reviewer corrections F01–F05, baseline a99569b: validated verify context, visual integer Y-axis/grid, bounded roving keyboard navigation and reset/expiry focus; maintained synthetic fixture and reproduction steps in tests/README.md. Current evidence in root STATUS; no hosted/CP01-C acceptance inferred.
 
 Dependency: CP01/02 and CP04 publication/data contract. Real-data access additionally requires §H; statistical suppression is outside V1.
