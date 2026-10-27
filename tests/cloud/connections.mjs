@@ -124,12 +124,13 @@ try {
   await a.query('BEGIN');
   await a.query('SELECT id FROM gradebook.classes WHERE id=$1 FOR UPDATE', [cid]);
   pending = settled(
-    b.query('SELECT public.gb_class_patch($1,$2,$3,$4,$5)', [
+    b.query('SELECT public.gb_class_patch($1,$2,$3,$4,$5,$6)', [
       actor,
       session,
       cid,
       String(Number(revision) + 1),
-      JSON.stringify({ name: 'MUST NOT SAVE' }),
+      'MUST NOT SAVE',
+      '2026',
     ]),
   );
   await blocked(pidB);
@@ -223,6 +224,21 @@ try {
   );
   const raw = randomBytes(32),
     iv = randomBytes(12);
+  const time = Math.floor(Date.now() / 1000);
+  const claims = { classId: cid, studentId: student.id, classEpoch: '1', studentEpoch: '1' };
+  const binding = { actor, session, classId: cid, kind: 'roster', semester: null };
+  const capability = await cryptography.issueCapability(claims, time);
+  const signedPreview = await cryptography.issuePreview(
+    binding,
+    'synthetic-input',
+    '0'.repeat(64),
+    time,
+  );
+  // Simulates retained generation 1 and new active generation 2 without touching any deployed key.
+  for (const ring of Object.values(settings)) {
+    ring.keys['2'] = randomBytes(32).toString('base64url');
+    ring.active = '2';
+  }
   const wrapping = await webcrypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt']);
   const encrypted = Buffer.from(
     await webcrypto.subtle.encrypt(
@@ -238,6 +254,10 @@ try {
       wrapping: raw.toString('base64'),
       cid,
       sid: student.id,
+      time,
+      capability: capability.token,
+      signedPreview: signedPreview.token,
+      binding,
     }),
     stdio: ['pipe', 'pipe', 'pipe'],
   });

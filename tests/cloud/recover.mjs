@@ -44,7 +44,21 @@ try {
       1,
     );
     for (const purpose of ['identity', 'lookup', 'capability', 'preview'])
-      assert.equal(settings[purpose].active, '1');
+      assert.deepEqual(
+        [settings[purpose].active, Object.keys(settings[purpose].keys)],
+        ['2', ['1', '2']],
+      );
+    assert.equal(
+      (await cryptography.capability(envelope.capability, envelope.time)).studentId,
+      envelope.sid,
+    );
+    await cryptography.preview(
+      envelope.signedPreview,
+      envelope.binding,
+      'synthetic-input',
+      envelope.time,
+    );
+    assert.equal((await cryptography.encryptIdentity(envelope.cid, 1, '000000000009')).encKid, '2');
   } finally {
     await db.end();
   }

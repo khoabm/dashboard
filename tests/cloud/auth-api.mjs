@@ -115,16 +115,19 @@ try {
   bootstrap = bootstrap.replace(
     /CREATE SCHEMA auth;[\s\S]*?CREATE SCHEMA storage;/,
     () =>
-      `CREATE FUNCTION auth.uid() RETURNS UUID LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$; CREATE SCHEMA storage;`,
+      `CREATE OR REPLACE FUNCTION auth.uid() RETURNS UUID LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$; CREATE SCHEMA storage;`,
   );
   bootstrap = bootstrap.replace(
     /CREATE ROLE (anon|authenticated|service_role) ([^;]+);/g,
     (_, role, flags) =>
       `DO $$ BEGIN CREATE ROLE ${role} ${flags}; EXCEPTION WHEN duplicate_object THEN NULL; END $$;`,
   );
+  phase = 'bootstrap';
   await db.query(bootstrap);
-  for (const file of (await readdir('supabase/migrations')).sort())
+  for (const file of (await readdir('supabase/migrations')).sort()) {
+    phase = `migration ${file}`;
     await db.query(await readFile(`supabase/migrations/${file}`, 'utf8'));
+  }
   phase = 'PostgREST startup';
   docker(
     [
@@ -284,6 +287,8 @@ try {
   console.log('Runner-only HTTP requests (including bounded readiness):', requests);
 } catch (error) {
   console.error('BLOCKED/FAIL disposable Auth/API', phase, error.code || error.name);
+  if (phase === 'bootstrap' || phase.startsWith('migration '))
+    console.error(error.message?.slice(0, 180));
   if (typeof error.actual === 'number') console.error('Actual status/value:', error.actual);
   process.exitCode = 1;
 } finally {
