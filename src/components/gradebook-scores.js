@@ -55,7 +55,7 @@ export function GradebookScores({
       () => owner,
     ),
     catalogGate = createAdminGate(
-      (_body, options) => loadCatalog(options),
+      (_body, options) => loadCatalog({ ...options, classId: currentClass.id }),
       () => owner,
     );
   const preview = createRosterPreview(clock, 'scores');

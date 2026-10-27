@@ -2,6 +2,14 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-27 — GB-CP06-B-CATALOG / P2: teacher loader omits class scope (FIXED OFFLINE)
+
+Baseline64b6e92, feature/personal-gradebook. GradebookScores previously called loadCatalog with only signal; accepted B4 catalog.read requires classId. It now passes currentClass.id through createTeacherCatalog/the shared teacher session transport. Pure strict V1 projection and specialist catalog scope/header tests PASS; actual Chrome score workspace loads all8 subjects/7 columns through synthetic HTTP boundary. Server authorization/migrations unchanged; production transport disabled; hosted integration NOT RUN.
+
+## 2026-10-27 — GB-CP06-B-EMPTY / P3: unavailable class renders false text (FIXED OFFLINE)
+
+Actual app-route Chrome QA with disabled integration displayed literal false beneath the unavailable class message: GradebookAdmin passed classKnown && button directly into native body.append, which stringifies false. Replace the optional argument with an empty spread when unknown. Browser after correction shows only unavailable feedback and no false text/create-class action. No design/Board/Auth/backend behavior change; source at64b6e92 plus local diff, not deployed.
+
 ## 2026-10-27 — B4-FIX-CATALOG / P2: missing teacher catalog operation (FIXED IN UNDEPLOYED DRAFT)
 
 Baseline `e8333ef`, feature/personal-gradebook. B4 had no teacher catalog allowlist/dispatcher operation while the frontend correctly remained catalog_unavailable. `_shared/admin.js` adds narrowly scoped catalog.read and calls trusted-actor/session gb_class_read before active-context lookup/class matching. `_shared/dto.js` adds opt-in strict V1 metadata projection (8/7 active, canonical names/order, unique codes/names/positions and four row fields); server rows/codes remain authoritative, not a fallback source. Existing student/internal projection behavior unchanged; no private metadata/PII/keys/epochs returned. Focused pure real-seed-code test and14 selected specialist offline cases PASS; no network or retry. Current STATUS records final gates. Production adapters still disabled, Functions undeployed, SQL untouched; hosted authorization/locking CP01-C NOT RUN. Commit containing this entry anchors the correction, not a deployment.

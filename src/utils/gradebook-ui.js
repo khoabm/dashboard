@@ -94,7 +94,7 @@ export function createLookupState({
         let value;
         try {
           value = await Promise.race([
-            request(body, { capability, signal: combined }),
+            request(body, { capability, context: verifiedContext, signal: combined }),
             interrupted,
           ]);
         } finally {

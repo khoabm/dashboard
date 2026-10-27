@@ -34,7 +34,7 @@ function contextPayload(payload) {
 }
 
 /** B4 adds only requestId to every body. Drop that correlation field, rejecting other envelope drift. */
-function envelope(payload, fields) {
+export function envelope(payload, fields) {
   allowFields(payload, [...fields, 'requestId'], [...fields, 'requestId']);
   requireContract(
     typeof payload.requestId === 'string' &&

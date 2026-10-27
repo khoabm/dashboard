@@ -1,6 +1,48 @@
 # CP06-A — Offline integration readiness
 
-**Current follow-up:** B4-FIX-CATALOG is implemented in an undeployed offline draft; see the disposition below. Original CP06-A scope/evidence remains historical. Frontend transport is still disabled.
+## CP06-B — Frontend integration / 2026-10-27
+
+Baseline `64b6e9248d2be7332a5378e54bc408364d10e549`, feature/personal-gradebook. Frontend implementation is independently reviewed and OFFLINE ACCEPTED; user approved publication to the existing feature branch. Prior CP01-C0A documentation/evidence is preserved. This is offline implementation evidence, not backend/security acceptance.
+
+| Concern | Implementation / offline evidence |
+| --- | --- |
+| Activation and transport | `src/services/gradebook-transport.js`: only exact build setting `VITE_GRADEBOOK_ENABLED=true` opts into production HTTP; absent/invalid/disabled remains unavailable and makes0 Gradebook requests. Not set/activated in this task. Explicit endpoint names, POST JSON, publishable apikey, admin Bearer or student capability header, credentials omitted/no redirect/cache/referrer;14s full-request deadline,4MiB request/2MiB response cap, one attempt and safe status mapping. No synthetic production fallback. |
+| Teacher Auth and DTOs | App injects createGradebookAdmin with main.boardGradebookSession: cached SDK Auth-event session, verified Board admin/user/generation and expiry checks, no getSession/getUser/refresh call per operation. B4 independently authorizes. All CP03/CP04 operation families project strict operation DTOs through new pure gradebook-admin-responses; no raw envelopes/private properties or numeric ID/score conversion. Session replacement/abort fences late results. |
+| Catalog | createTeacherCatalog uses the same teacher request and `{op:'catalog.read',classId}`. GradebookScores now supplies its current class ID; teacherCatalog plus V1 envelope checks preserve8/7 exact labels/order and authoritative codes. No backend/catalog fixture fallback. |
+| Student | createStudentLookup uses verificationPayload/studentReadPayload and safe failure helpers. Lookup state supplies its verified context for projection; identity pair appears only in verify JSON, capability only in x-gradebook-capability on reads. Existing owner retains capability/context in memory until expiry/reset/401/disposal;403 retains capability for another published semester. No storage/log/URL persistence or client-selected student identity. |
+| Preview and mutations | Validated422 preview body becomes AdminError.payload and createAdminGate/previewErrors still handles it.409/429/503 terminal; no automatic retry. Sent-write cancellation/timeout remains an unknown outcome requiring explicit reload, never rollback proof. Publication warning/acknowledgement unchanged; no missing-count API. |
+| Tests | Focused manual specialist+pure run16/16 PASS; new specialist gradebook-transport.test.js remains outside test:ci. Existing curated gradebook-admin tests gain two pure DTO cases; no allowlist/workflow/dependency change.20 synthetic operation-family dispatches are a finite contract matrix, not API/load tests. |
+| Chrome | Installed Chrome extension, localhost Vite4181, real components/services with injected synthetic HTTP Response boundary, CSP+fetch guard; teacher class patch/catalog/list/score edit/import preview→apply/publish+ack/409/logout pending, student verify/own grades/histogram/keyboard Escape/403/401/TTL/late-response disposal. Actual app route/menu/header restoration/Back/Forward via reused audit mock; Board local draft saved and restored. Viewports1440/768/390; no page overflow in affected workspaces, console errors0, fixture external0. No physical-device/Safari/real API claim. |
+
+Final source gate (one run): npm run check PASS (13 Edge modules), npm run test:ci128/128 PASS, npm run format:check PASS, npm run build PASS4.05s plus production test/source exclusion; git diff --check PASS. Format used byte-verified temporary LF normalization of78 unchanged tracked code files, restored to their exact original checkout bytes afterward; no unrelated content diff. The existing large-chart bundle warning remains; no threshold or CI bypass.
+
+Local file chooser via Chrome extension is BLOCKED by its existing Allow access to file URLs setting; no permission change. Import preview/apply used a synthetic File/DataTransfer only at the file-picker boundary, followed by real parser/component/service logic. This does not re-accept native picker/XLSX handling from prior CP03/04. Initial Vite dependency discovery timed out; disposable loopback preview ran with discovery disabled, no project config change. Existing ignored CP03/04 fixtures were reused; new QA wrappers/logs/screenshot stay in `tests/local/cp06-b/`, not CI/dist/source modules. Preview stopped and temporary viewport reset after QA.
+
+Independent review supplement: concern A PASS without source correction. SDK stopAutoRefresh removes the ticker/visibility callback, but SupabaseClient._getSessionToken still calls auth.getSession and GoTrueClient.__loadSession can refresh on demand. Actual IAB synthetic expired-session → local401 → explicit return to Board restored a live credential with no duplicate login or mutation replay. Pinned SDK restore/deny and transport expiry/abort checks4/4 PASS. Concern B PASS after targeted Codex/IAB QA at360/390/768/1024/1440: teacher catalog/raw-score dialog, student verification/aggregate histogram, Home/End/Escape/focus,403/other-semester and disposal; no page overflow, external/errors0. Earlier Chrome evidence remains applicable but is not relabeled as IAB. No full suite repeat or retained speculative recovery code.
+
+Native PostgreSQL17/Deno remain BLOCKED from C0A; hosted JWT/Auth/RLS/API/atomicity/concurrency/publication enforcement, CP01-C and real-data gate NOT RUN. No migrations/Edge/security/dependency/CI policy modification, hosted Supabase requests0, deployments0, real data/secrets NONE. CP07 not started. Feature-branch commit/push is now explicitly authorized; hosted verification/activation remains separately gated. See the publication handoff for the final SHA/CI, without inferring hosted acceptance from source publication.
+
+## CP01-C0A Phase 2 — Offline preflight / 2026-10-27
+
+Baseline `64b6e9248d2be7332a5378e54bc408364d10e549`, feature/personal-gradebook. Authorized offline verification only; **PARTIAL**, not native/security acceptance.
+
+| Concern | Actual evidence | Result / boundary |
+| --- | --- | --- |
+| Runtime availability | PATH lookup for postgres/psql/pg_ctl/deno/docker; standard Program Files PostgreSQL17 and user .deno paths absent;13/15 contain only data directories; checked bundled runtime has no matching engine | Native PostgreSQL17 and Deno BLOCKED; no download/install or existing service access |
+| Edge import graph | Existing `node --test tests/gradebook-runtime.test.js`, once:1/1,1746.47ms; pinned installed SDK2.118.0, actual two entrypoints/B1, captured Deno.serve, fetch guard asserts0 requests | PASS Node adapter only; native Deno cached npm resolution/runtime/packaging BLOCKED |
+| Reviewed body hashes | Existing CON-004 test selected once using --test-name-pattern:1/1,313.14ms; original test runs against LF SQL execution copies from HEAD Git blobs | PASS static8 conflict old/new hash pairs; separate static reveal old/new hash comparison PASS; not pg_get_functiondef/prosrc execution |
+| Migration dependencies | Recorded Board baseline plus already-applied Board hotfix, then pending B2→B3→PT409→reveal; B2 postgres/auth.sessions/admin_profiles/BYPASSRLS checks and B3 audit grants inspected | Source dependency review only; actual server prerequisites/ledger NOT VERIFIED; no hosted access |
+| RLS/ACL and rollback | B2 six RLS-enabled tables/no client policies, explicit revokes/service grants; B3 per-signature execute grants; corrections fail on body/metadata drift; existing conflict/reveal specialists contain replay/missing/drift rollback cases | Source review only; native17 RLS/ACL/default privileges/guard rollback execution BLOCKED; specialists requiring SQL engine NOT RUN |
+
+**LF input requirement:** unchanged working-tree B3 has613 CRLF and0/8 old hash matches; the immutable Git LF blob matches8/8. Guard source hashes depend on exact body bytes. Future disposable execution must use reviewed LF Git bytes and preserve strict expected hashes/metadata checks. Do not normalize deployed definitions, modify migration guards or interpret checkout-only CRLF mismatch as permission to bypass them. No migration was executed in this phase.
+
+**Evidence inventory:** ignored `tests/local/cp01-c0a/static-chain.log`, `static-evidence.json` and three LF SQL execution copies; maintained specialist source unchanged. No new permanent harness because native runtimes are unavailable. Node runtime results are recorded above, not rerun merely to capture another log. No PGlite substitute run and no native17 compatibility claim.
+
+**Remaining authorized-scope gates:** when an already-installed17 runtime is available, use a separate disposable cluster (cluster-global synthetic roles must never be created in a shared cluster), bootstrap synthetic Auth/Storage prerequisites, reproduce recorded Board baseline/hotfix, then full pending chain. Verify strict original/replay/drift/missing-target behavior, catalog/ACL/default metadata and failure rollback with existing specialist assertions adapted only as necessary. Native Deno requires the real pinned npm graph already cached; do not fetch missing dependencies under this scope. Engine availability and cached dependencies require verification before execution; none are assumed. No CP01-C0B or hosted operation is authorized by this note.
+
+Browser QA N/A: no UI change. Hosted Supabase requests/queries0; SQL execution/migrations0; deployments0; installs0; real data/secrets NONE; no commit/push. CP01-C acceptance and real-data gate NOT RUN; production adapters remain fail-closed; CP06-B/CP07 NOT STARTED.
+
+**Historical CP06-A/B4 follow-up snapshot (superseded by CP06-B above):** B4-FIX-CATALOG is implemented in an undeployed offline draft; see the disposition below. Original CP06-A scope/evidence remains historical. Frontend transport is still disabled.
 
 Baseline `4fc986e7e6d74c1a95452825838acb2822efa4b4`, `feature/personal-gradebook`, PR5 Draft → develop. Scope: A1 contract reconciliation, A2 pure decoded-body projections and A3 finite offline regression/browser QA. No backend edits, transport enablement, migrations, deployment, secrets or real data. CP06-B/CP07 NOT STARTED; CP01-C and real-data gate NOT RUN.
 
@@ -49,11 +91,11 @@ Success body is only subjects,scoreColumns,requestId; the shared handler owns th
 
 All production adapters remain byte-unchanged and fail-closed. G-CATALOG backend gap is corrected only in source; transport/deployment/native/hosted acceptance remains separate. Publication stays on the accepted conservative missing-data warning and boolean acknowledgement, with no preflight added. Next recommended CP01-C0 is not authorized by this correction.
 
-## Remaining backend and transport proposals
+## Backend and transport gap disposition (current)
 
-- **G-CATALOG / B4-FIX-CATALOG:** FIXED IN UNDEPLOYED OFFLINE DRAFT as described above; production loadTeacherCatalog remains unavailable until separately authorized transport integration.
+- **G-CATALOG / B4-FIX-CATALOG:** FIXED IN UNDEPLOYED OFFLINE DRAFT as described above; CP06-B now implements the class-bound frontend loader; default production transport remains disabled pending separately authorized real API acceptance.
 - **G-PUBLICATION / decision needed:** retain the accepted conservative warning and boolean acknowledgement, or authorize a separate readonly publication-preview contract for actual missing counts. If added, count must be class/semester scoped, admin-authorized and no-PII; mutation must still recheck current state atomically. A displayed preflight count cannot promise race-free publication. Do not infer a count from incomplete client pages. No new RPC/operation/count added here.
-- **G-TRANSPORT / CP06-B (separate CP01-C security acceptance):** authorized future transport must normalize verification, strip correlation metadata from student reads, pass capability only in its header, bind teacher JWT through the shared session, safely extract top-level422 plans and use bounded deadlines/no automatic retry. Do not enable any part merely because offline projection tests pass.
+- **G-TRANSPORT / CP06-B:** IMPLEMENTED OFFLINE in the local diff described above: strict response projection, capability-only header, cached verified teacher JWT, structured422, bounded deadline and no retry. Default hosted activation is OFF. CP01-C real API/security acceptance remains separate and NOT RUN.
 
 ## A3 — Verification evidence
 

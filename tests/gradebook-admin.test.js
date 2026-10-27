@@ -11,6 +11,7 @@ import {
   adminMessage,
 } from '../src/utils/gradebook-admin.js';
 import { newId } from '../src/utils/id.js';
+import { adminPayload, adminRequest } from '../src/utils/gradebook-admin-responses.js';
 
 const classroom = {
   id: '00000000-0000-4000-8000-000000000001',
@@ -172,4 +173,69 @@ test('CP03-T10 cancellation/session change fences slow reveal or mutation result
   owner.generation++;
   another.resolve({ class: classroom });
   await assert.rejects(p2, { name: 'AbortError' });
+});
+
+test('CP06-B pure teacher envelopes preserve raw values, BIGINT strings and reject private fields', () => {
+  const requestId = '40000000-0000-4000-8000-000000000001';
+  const body = { op: 'scores.read', classId: classroom.id, semester: 1, limit: 20 };
+  const payload = {
+    requestId,
+    students: [
+      {
+        studentId: '9007199254740993',
+        scores: [
+          {
+            subjectCode: 'math',
+            columnCode: 'continuous_1',
+            rawScore: '8.12345',
+            revision: '9007199254740994',
+          },
+        ],
+      },
+    ],
+    nextCursor: null,
+  };
+  const result = adminPayload(body, payload);
+  assert.equal(result.students[0].scores[0].rawScore, '8.12345');
+  assert.equal(result.students[0].studentId, '9007199254740993');
+  assert.ok(!('requestId' in result));
+  assert.throws(() => adminPayload(body, { ...payload, identityLookup: 'private' }));
+  assert.throws(() =>
+    adminPayload(body, {
+      ...payload,
+      students: [{ ...payload.students[0], birthDate: '2000-01-01' }],
+    }),
+  );
+  assert.throws(() => adminRequest({ ...body, session: 'forged' }));
+  assert.throws(() => adminRequest({ op: 'score.put', score: 8.12345 }));
+});
+
+test('CP06-B pure projections cover confirmed mutations, class absence and safe error previews', () => {
+  const requestId = '40000000-0000-4000-8000-000000000001';
+  assert.deepEqual(adminPayload({ op: 'class.read' }, { requestId, class: null }), { class: null });
+  for (const op of ['student.delete', 'score.delete'])
+    assert.deepEqual(adminPayload({ op }, { requestId, deleted: true }), { deleted: true });
+  assert.deepEqual(adminPayload({ op: 'score.put' }, { requestId, changed: false }), {
+    changed: false,
+  });
+  assert.throws(() =>
+    adminPayload({ op: 'score.put' }, { requestId, changed: true, rawScore: '8' }),
+  );
+  const preview = {
+    requestId,
+    counts: { insert: 0, update: 0, unchanged: 0, error: 1, skippedBlank: 0 },
+    errors: [{ row: 4, column: 3, code: 'invalid' }],
+    previewToken: null,
+    expiresAt: null,
+  };
+  assert.equal(adminPayload({ op: 'scores.preview' }, preview).errors[0].row, 4);
+  assert.throws(() =>
+    adminPayload({ op: 'scores.preview' }, { ...preview, previewToken: 'sensitive' }),
+  );
+  assert.throws(() =>
+    adminPayload(
+      { op: 'scores.apply' },
+      { requestId, counts: preview.counts, errors: [], committed: true },
+    ),
+  );
 });

@@ -25,9 +25,11 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 | src/components/gradebook-admin.js | CP03 class/student dialogs, paged list, reveal/import ownership and route/session disposal |
 | src/components/gradebook-scores.js | CP04 teacher-only semester/subject/student workspace, bounded score-page joins, cell CRUD, publication and score import; owned dialogs/previews/late-response disposal |
 | src/utils/gradebook-scores.js | Pure ordered catalog projection, B1 decimal comparison/input, score-page DTOs, mutation/publication preconditions and A–J batch validation |
-| src/services/gradebook-catalog.js | Explicit teacher catalog integration gap; no invented operation/network or production fixture fallback |
+| src/services/gradebook-catalog.js | Scoped catalog.read through the same verified teacher request; current classId required, strict teacher catalog projection |
 | src/utils/gradebook-admin.js, roster.js | Pure input/DTO projection, cancellable operation/preview ownership and bounded positional CSV/roster validation; reuse B1 |
-| src/services/gradebook-admin.js | CP03 B4-shaped production adapter; deliberately no transport or synthetic fallback until authorized integration |
+| src/services/gradebook-admin.js | CP06-B teacher service with injected cached Board session; operation DTO validation, safe structured422 and terminal errors |
+| src/services/gradebook-transport.js | Explicit opt-in Edge HTTP boundary, publishable config/headers, abort+deadline and bounded JSON; disabled by default, no retries/fallback |
+| src/utils/gradebook-admin-responses.js | Pure teacher request allowlist and strict response projection; no HTTP/SDK/credentials/storage |
 | src/services/roster-file.js, roster-worker.js, src/utils/roster-archive.js | Shared roster/score memory-only parsing; bounded ZIP/layout inspection, lazy read-excel-file9.3.12 worker/fflate0.8.3; original rows/calendar dates and lexical XML numeric scores retained |
 | public/templates/score-template.csv, score-template.xlsx; tests/gradebook-scores.test.js | Header-only default score templates and CP04 curated pure/component contracts; no student data, HTTP/SDK/SQL/browser integration in CI |
 | tests/gradebook-admin.test.js, roster.test.js | CP03 curated pure T01–T10 contracts; actual installed-Chrome fixtures/evidence stay ignored under tests/local/cp03, outside CI/production |
@@ -36,7 +38,7 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 | src/components/birth-date-picker.js, src/utils/birth-calendar.js | CP05 V2 feature-local nonmodal DOB calendar, month/year/day keyboard navigation; manual field remains source of truth, strict B1 Gregorian/Vietnam-day validation, memory-only cleanup |
 | src/components/student-lookup.js, src/utils/gradebook-ui.js | Date-only lookup form; pure validation/generation/cancellation/expiry; capability/input memory only |
 | src/utils/gradebook-responses.js | CP06-A pure decoded B4 verification/read envelope validation, detached context, terminal error categories; strips requestId, preserves decimal strings and aggregate-only DTOs; no transport/storage/SDK and no production enablement |
-| src/services/student-lookup.js | CP02/CP05 production fail-closed verify/private-read adapter: unavailable, zero network until separately authorized backend integration |
+| src/services/student-lookup.js | CP06-B verify/grades/histogram adapter using CP06-A projections; memory owner supplies capability/context; transport default disabled |
 | src/styles/gradebook.css | Responsive student page/menu; existing Board design tokens |
 | tests/gradebook-ui.test.js | Curated pure unit validation/route/disposal/late-response plus pending admin entry and blocked-history regression; no API or SDK |
 | src/components/ | Render/interaction của 20 component tại SPEC R06; cleanup listeners khi unmount |

@@ -688,7 +688,7 @@ export function GradebookAdmin({
             ? 'Chưa có lớp đang hoạt động.'
             : 'Chưa tải được dữ liệu lớp. Hãy tải lại khi backend sẵn sàng.',
         ),
-        classKnown && button('Tạo lớp', editClass, 'button primary'),
+        ...(classKnown ? [button('Tạo lớp', editClass, 'button primary')] : []),
       );
       return;
     }

@@ -620,7 +620,9 @@ document.addEventListener('visibilitychange', () => {
     refresh();
 });
 matchMedia('(max-width:700px)').addEventListener('change', renderBoard);
-client?.auth.onAuthStateChange((event) => {
+let gradebookAuthSession = null;
+client?.auth.onAuthStateChange((event, session) => {
+  gradebookAuthSession = session;
   if (event === 'SIGNED_OUT') {
     clearSession();
     schedulePublicRefresh();
@@ -687,6 +689,17 @@ export function ensureBoardAuth() {
 export function boardAuthState() {
   return {
     status: authChecking ? 'loading' : authFailed ? 'error' : admin ? 'admin' : 'anonymous',
+    generation: requests.generation(),
+  };
+}
+
+/** Reads only the cached SDK event session after Board verification; never refreshes Auth. */
+export function boardGradebookSession() {
+  if (!admin || authChecking || authFailed || gradebookAuthSession?.user?.id !== userId)
+    return null;
+  return {
+    token: gradebookAuthSession.access_token,
+    expiresAt: gradebookAuthSession.expires_at,
     generation: requests.generation(),
   };
 }

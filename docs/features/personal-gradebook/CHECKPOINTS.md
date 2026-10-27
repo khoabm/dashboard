@@ -163,9 +163,9 @@ Dependency: CP01/02 and CP04 publication/data contract. Real-data access additio
 
 2026-10-27, baseline `741ee3d`: implementation and synthetic-only evidence in root STATUS. Checked items mean offline UI/contracts, never hosted authorization. Production verify/private reads remain unavailable. Native device/Safari, deployed deep links, CP01-C and real-data gate NOT RUN.
 
-## CP06 — Integration, regression, and QA (A1–A3 offline slice implemented; full checkpoint OPEN)
+## CP06 — Integration, regression, and QA (A/B implemented offline; full checkpoint OPEN)
 
-**CP06-A PASS offline / accepted e8333ef:** [A1 contract matrix, A2 pure projections and A3 regression/browser QA](CP06_OFFLINE_READINESS.md). B4-FIX-CATALOG adds catalog.read in an undeployed draft; production adapters remain disabled and publication missing-count preflight is unchanged/unimplemented. Offline work does not tick the DB/API/concurrency/security rows below; CP06-B/CP07 NOT STARTED, CP01-C and real-data gate NOT RUN. Current root STATUS records evidence. Historical B5 six-file counts/PR conflict/candidate notes are not current-state claims.
+**CP06-A PASS offline / accepted e8333ef:** [A1 contract matrix, A2 pure projections and A3 regression/browser QA](CP06_OFFLINE_READINESS.md). B4-FIX-CATALOG adds catalog.read in an undeployed draft; production adapters remain disabled and publication missing-count preflight is unchanged/unimplemented. Offline work does not tick the DB/API/concurrency/security rows below; CP06-B OFFLINE ACCEPTED after independent review: frontend adapters implemented, opt-in transport disabled by default; Chrome plus targeted Codex/IAB360/390/768/1024/1440 evidence in CP06_OFFLINE_READINESS. Feature-branch publication authorized; full CP06/DB/API security gates remain open. CP07 NOT STARTED; CP01-C and real-data gate NOT RUN. Current root STATUS records evidence. Historical B5 six-file counts/PR conflict/candidate notes are not current-state claims.
 
 Dependency: CP01–CP05 integration. Keep separate evidence for offline units, browser Codex/IAB, approved live API/Auth/RLS, migration verification and §H data-governance acceptance; none substitutes for the others.
 
