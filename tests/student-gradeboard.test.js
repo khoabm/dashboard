@@ -281,3 +281,31 @@ test('F03 roving bucket indices stay bounded; Tab is never intercepted', () => {
   assert.equal(bucketIndex(20, 'End'), 100);
   assert.equal(bucketIndex(20, 'Tab'), 20);
 });
+
+test('V2 ECharts options retain all101 buckets, exact highlights and integer axes', async () => {
+  const { studentChartOptions, chartWindow } = await import('../src/utils/student-chart.js');
+  for (const peak of [0, 1, 23, 1000]) {
+    const rows = distribution().buckets.map((row, index) => ({
+      ...row,
+      studentCount: index === 83 ? peak : 0,
+    }));
+    const option = studentChartOptions(rows, '8.3', chartWindow(83, 390), true);
+    assert.equal(option.xAxis.data.length, 101);
+    assert.equal(option.series[0].data.length, 101);
+    assert.equal(option.series[0].data[83].value, peak);
+    assert.equal(option.series[0].data.filter((row) => row.itemStyle.borderWidth === 1).length, 1);
+    assert.equal(option.yAxis.minInterval, 1);
+    assert.equal(option.yAxis.max, Math.max(1, peak));
+    assert.equal(option.animation, false);
+    assert.equal(option.dataZoom[0].filterMode, 'none');
+    assert.ok(option.dataZoom[0].endValue <= 100);
+    assert.equal(
+      studentChartOptions(rows, null, chartWindow(0, 1440)).series[0].data.filter(
+        (row) => row.itemStyle.borderWidth === 1,
+      ).length,
+      0,
+    );
+  }
+  assert.deepEqual(chartWindow(0, 390), { start: 0, end: 20 });
+  assert.deepEqual(chartWindow(100, 1440), { start: 60, end: 100 });
+});

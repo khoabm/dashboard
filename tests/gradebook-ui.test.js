@@ -326,3 +326,22 @@ test('CP02 failures remain neutral/unavailable with no automatic retry or backen
     state.dispose();
   }
 });
+
+test('V2 birthday calendar stays Gregorian, string-based and Vietnam-day bounded', async () => {
+  const { monthLength, calendarWeekday, typedBirthday, shiftCalendarDay } = await import(
+    '../src/utils/birth-calendar.js'
+  );
+  assert.equal(monthLength(2000, 2), 29);
+  assert.equal(monthLength(1900, 2), 28);
+  assert.equal(calendarWeekday(2000, 2, 29), 2);
+  assert.equal(typedBirthday('29/02/2000', clock), '2000-02-29');
+  for (const value of ['31/02/2000', '29/02/1900', '2/3/2000', '2000-02-29', '27/10/2026'])
+    assert.equal(typedBirthday(value, clock), null);
+  assert.equal(shiftCalendarDay('2000-03-01', -1), '2000-02-29');
+  assert.equal(shiftCalendarDay('1900-02-28', 1), '1900-03-01');
+  assert.equal(
+    typedBirthday('27/10/2026', () => Date.UTC(2026, 9, 26, 17)),
+    '2026-10-27',
+  );
+  assert.equal(typedBirthday('', clock), null);
+});

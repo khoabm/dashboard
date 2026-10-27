@@ -2,6 +2,12 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-27 — GB-CP05-UIV2-001 / P2: calendar edit synchronization (FIXED IN V2 DRAFT)
+
+On baseline75590c1, feature/personal-gradebook-ui-refinement, local QA of the newly introduced calendar found an uncommitted integration defect: a year edit followed immediately by month selection could be redrawn with the previous year; Enter in the year field could submit the enclosing verification form. The new BirthDatePicker now synchronizes bounded year input before redraw and handles Enter as calendar navigation. Static review also found its input listener ran before the existing digit-only slash formatter, leaving the open calendar one input event behind. StudentLookup registers normalization first; the single text field remains the selected DOB source, with no second selected-date store.
+
+Actual synthetic Chrome checks: invalid31/02/2000 and29/02/1900 preserved/rejected; year2000/month2 exposes29, Enter stays in calendar, digit-only29022000 becomes29/02/2000 with the same selected grid date; Arrow/Home/End/PageUp/Escape work. Manual reset, expiry-in-chart and held401 restore empty enabled inputs and remove chart; calendar navigation state is explicitly cleared on reset/disposal. Existing pure date/Vietnam-day tests plus the V2 helper case cover the strict contract. No hosted request or production deployment; this was a development-candidate issue, not a confirmed production incident. Native-device/screen-reader/CP01-C acceptance remains NOT RUN.
+
 ## 2026-10-27 — GB-CP05-F01..F05 / focused reviewer corrections (FIXED OFFLINE)
 
 Baseline a99569b, feature/personal-gradebook. **F01/P2:** createLookupState accepted capability without a usable context, hiding both form and board. Shared studentContext now projects required class/publication metadata and existing ordered catalog validation before retaining capability or emitting verified; malformed responses stay unavailable and permit recovery. Pure F01 cases and actual browser missing/bad-catalog/bad-publication→valid checks pass; no private read after invalid context.

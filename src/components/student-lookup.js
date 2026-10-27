@@ -1,6 +1,6 @@
 /** Renders a date-only student lookup form; private inputs and capability never leave this view's memory. */
 import { el, button } from '../utils/dom.js';
-import { uiDate, displayDate, vietnamToday } from '../utils/gradebook/dates.js';
+import { BirthDatePicker } from './birth-date-picker.js';
 import { StudentGradeboard } from './student-gradeboard.js';
 import { createLookupState } from '../utils/gradebook-ui.js';
 
@@ -41,14 +41,17 @@ export function StudentLookup({ verify, request, navigate, clock = Date.now }) {
     placeholder: 'DD/MM/YYYY',
     'aria-describedby': 'lookup-date-help lookup-date-error',
   });
-  const picker = el('input', {
-    type: 'date',
-    class: 'lookup-date-picker',
-    min: '0001-01-01',
-    max: vietnamToday(clock),
-    'aria-label': 'Chọn ngày sinh từ lịch',
-    autocomplete: 'off',
+  // Normalize digit-only typing before the calendar observes the shared text value.
+  dateInput.addEventListener('input', () => {
+    if (/^[0-9]+$/.test(dateInput.value)) {
+      const digits = dateInput.value.slice(0, 8);
+      dateInput.value = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4)]
+        .filter(Boolean)
+        .join('/');
+    }
   });
+  const birthday = BirthDatePicker(dateInput, clock);
+  const picker = birthday.trigger;
   const documentError = el('p', { id: 'lookup-document-error', class: 'field-error' });
   const dateError = el('p', { id: 'lookup-date-error', class: 'field-error' });
   const status = el('div', {
@@ -80,7 +83,7 @@ export function StudentLookup({ verify, request, navigate, clock = Date.now }) {
     ),
     documentError,
     el('label', { class: 'lookup-label', for: dateInput.id }, 'Ngày sinh'),
-    el('div', { class: 'lookup-date-control' }, dateInput, picker),
+    birthday.element,
     el(
       'p',
       { id: 'lookup-date-help', class: 'field-help' },
@@ -163,11 +166,11 @@ export function StudentLookup({ verify, request, navigate, clock = Date.now }) {
   );
   let disposed = false,
     gradeboard = null;
-  /** Drops sensitive controls on every completed/cancelled generation, including native date state. */
+  /** Drops sensitive controls on every completed/cancelled generation, including calendar navigation state. */
   function clearInputs() {
     documentInput.value = '';
     dateInput.value = '';
-    picker.value = '';
+    birthday.clear();
   }
   /** Projects only public state categories; input, token and backend diagnostics are never rendered. */
   function render(snapshot) {
@@ -200,6 +203,7 @@ export function StudentLookup({ verify, request, navigate, clock = Date.now }) {
       picker.disabled =
       submit.disabled =
         loading || snapshot.status === 'verified';
+    birthday.setDisabled(loading || snapshot.status === 'verified');
     submit.textContent = loading ? 'Đang xác minh…' : 'Xác minh thông tin';
     documentError.textContent = snapshot.errors.documentNumber || '';
     dateError.textContent = snapshot.errors.birthDate || '';
@@ -236,33 +240,6 @@ export function StudentLookup({ verify, request, navigate, clock = Date.now }) {
       documentError.textContent = 'Vui lòng nhập từ 9 đến 12 chữ số.';
     }
   });
-  picker.addEventListener('click', () => {
-    picker.max = vietnamToday(clock);
-    picker.showPicker?.();
-  });
-  picker.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      picker.max = vietnamToday(clock);
-      picker.showPicker?.();
-    }
-  });
-  picker.addEventListener('change', () => {
-    dateInput.value = picker.value ? displayDate(picker.value) : '';
-  });
-  dateInput.addEventListener('input', () => {
-    if (/^[0-9]+$/.test(dateInput.value)) {
-      const digits = dateInput.value.slice(0, 8);
-      dateInput.value = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4)]
-        .filter(Boolean)
-        .join('/');
-    }
-    try {
-      picker.value = uiDate(dateInput.value);
-    } catch {
-      picker.value = '';
-    }
-  });
   const checkExpiry = () => state.checkExpiry();
   document.addEventListener('visibilitychange', checkExpiry);
   render(state.snapshot());
@@ -272,6 +249,7 @@ export function StudentLookup({ verify, request, navigate, clock = Date.now }) {
     dispose() {
       disposed = true;
       state.dispose();
+      birthday.dispose();
       gradeboard?.dispose();
       clearInputs();
       form.reset();

@@ -38,7 +38,9 @@ if (!embedded) {
     button('Hoàn tất yêu cầu đang chờ', () =>
       frame.contentWindow.postMessage({ action: 'release' }, location.origin),
     ),
-    button('Rời màn hình', () => frame.contentWindow.postMessage({ action: 'leave' }, location.origin)),
+    button('Rời màn hình', () =>
+      frame.contentWindow.postMessage({ action: 'leave' }, location.origin),
+    ),
   );
   root.style.overflow = 'auto';
   root.append(frame);

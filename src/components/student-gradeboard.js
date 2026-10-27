@@ -4,8 +4,6 @@ import { openDialog } from './primitives.js';
 import { displayScore } from '../utils/gradebook/decimal.js';
 import {
   studentContext,
-  histogramScale,
-  bucketIndex,
   ownGrades,
   histogram,
   bucketFor,
@@ -29,7 +27,12 @@ export function StudentGradeboard({ context, read, onReset }) {
     modal = null;
   const element = el('section', { class: 'student-gradeboard', 'aria-label': 'Bảng điểm của bạn' });
   const tabs = el('div', { class: 'student-semesters', role: 'tablist', 'aria-label': 'Học kỳ' });
-  const panel = el('div', { id: 'student-semester-panel', class: 'student-board-panel', role: 'tabpanel', tabindex: '0' });
+  const panel = el('div', {
+    id: 'student-semester-panel',
+    class: 'student-board-panel',
+    role: 'tabpanel',
+    tabindex: '0',
+  });
   const controls = [1, 2].map((value) =>
     button(`Học kỳ ${value === 1 ? 'I' : 'II'}`, () => select(value), 'button', {
       role: 'tab',
@@ -63,7 +66,13 @@ export function StudentGradeboard({ context, read, onReset }) {
           context.class.schoolYear,
         ),
       ),
-      el('div', { class: 'student-board-counter', 'aria-label': '8 môn học và 2 học kỳ' }, '8 môn học', el('span', {}, '·'), '2 học kỳ'),
+      el(
+        'div',
+        { class: 'student-board-counter', 'aria-label': '8 môn học và 2 học kỳ' },
+        '8 môn học',
+        el('span', {}, '·'),
+        '2 học kỳ',
+      ),
     ),
     el(
       'div',
@@ -193,7 +202,7 @@ export function StudentGradeboard({ context, read, onReset }) {
         'div',
         { class: 'student-chart-selectors' },
         el('label', {}, 'Môn học', subject),
-        el('label', {}, 'Cột điểm', column),
+        el('label', {}, 'Loại điểm', column),
       ),
       insight,
       el(
@@ -216,13 +225,18 @@ export function StudentGradeboard({ context, read, onReset }) {
       el(
         'div',
         { class: 'student-chart-footer' },
-        el('span', {}, 'Vuốt hoặc cuộn ngang để xem thêm mức điểm'),
+        el('span', {}, 'Kéo thanh bên dưới để xem từ 0 đến 10'),
         button('Đóng biểu đồ', () => entry.dialog.close(), 'button subtle student-chart-close'),
       ),
     );
-    let closed = false;
+    let closed = false,
+      plotView = null,
+      plotGeneration = 0;
     const channel = createStudentRead(read, (snapshot) => {
       if (closed || disposed) return;
+      const plotTicket = ++plotGeneration;
+      plotView?.dispose();
+      plotView = null;
       chart.replaceChildren();
       chart.setAttribute('aria-busy', String(snapshot.status === 'loading'));
       if (snapshot.status !== 'ready') {
@@ -237,119 +251,46 @@ export function StudentGradeboard({ context, read, onReset }) {
       }
       const raw = personal(subject.value, column.value),
         highlight = bucketFor(raw),
-        buckets = snapshot.value,
-        scale = histogramScale(buckets.map((b) => b.studentCount)),
-        max = scale.maximum;
-      const count = highlight === null ? null : buckets.find((b) => b.scoreBucket === highlight)?.studentCount;
+        buckets = snapshot.value;
+      const count =
+        highlight === null ? null : buckets.find((b) => b.scoreBucket === highlight)?.studentCount;
       insight.replaceChildren(
         el(
           'div',
           { class: 'student-insight-primary' },
           el('span', { class: 'student-insight-label' }, 'ĐIỂM CHƯA LÀM TRÒN'),
           el('strong', { class: 'student-insight-value' }, raw === null ? '—' : raw),
-          el('span', { class: 'student-insight-detail' }, raw === null ? 'Chưa có điểm ở mục này' : `Trên biểu đồ: mức ${highlight}`),
+          el(
+            'span',
+            { class: 'student-insight-detail' },
+            raw === null ? 'Chưa có điểm ở mục này' : `Trên biểu đồ: mức ${highlight}`,
+          ),
         ),
         el(
           'div',
           { class: 'student-insight-secondary' },
           el('span', { class: 'student-insight-label' }, 'SỐ HỌC SINH Ở MỨC ĐIỂM NÀY'),
           el('strong', { class: 'student-insight-value' }, count === null ? '—' : String(count)),
-          el('span', { class: 'student-insight-detail' }, count === null ? 'Chưa có mức điểm để đánh dấu' : `Mức điểm ${highlight}`),
+          el(
+            'span',
+            { class: 'student-insight-detail' },
+            count === null ? 'Chưa có mức điểm để đánh dấu' : `Mức điểm ${highlight}`,
+          ),
         ),
       );
       if (!buckets.some((b) => b.studentCount))
         chart.append(el('p', {}, 'Lớp chưa có điểm ở mục này.'));
-      const bars = el('div', {
-        class: 'student-histogram',
-        role: 'list',
-        'aria-label': 'Số học sinh ở mỗi mức điểm từ 0 đến 10',
-      });
-      buckets.forEach((b, index) => {
-        const bar = el('span', { class: 'histogram-bar', 'aria-hidden': 'true' });
-        bar.style.height = `${(b.studentCount / max) * 100}%`;
-        bars.append(
-          el(
-            'div',
-            {
-              class: `histogram-bucket${b.scoreBucket === highlight ? ' is-personal' : ''}`,
-              role: 'listitem',
-              'aria-label': `Mức ${b.scoreBucket} điểm: ${b.studentCount} học sinh${b.scoreBucket === highlight ? ', có điểm của bạn' : ''}`,
-              title: `${b.scoreBucket} điểm: ${b.studentCount} học sinh`,
-              tabindex: String(
-                index ===
-                  (highlight === null
-                    ? 0
-                    : buckets.findIndex((row) => row.scoreBucket === highlight))
-                  ? 0
-                  : -1,
-              ),
-            },
-            el('span', { class: 'histogram-count' }, String(b.studentCount)),
-            el('div', { class: 'histogram-track' }, bar),
-            el(
-              'span',
-              { class: 'histogram-tick' },
-              index % 10 === 0 || b.scoreBucket === highlight ? b.scoreBucket : '',
-            ),
-          ),
-        );
-      });
-      chart.append(
-        el('p', { class: 'muted' }, 'Số học sinh'),
-        el(
-          'div',
-          {
-            class: 'student-chart-scroll',
-            'aria-label': 'Cuộn ngang để xem các mức điểm từ 0 đến 10',
-          },
-          bars,
-        ),
-        el(
-          'p',
-          { class: 'muted' },
-          'Các mức điểm từ 0 đến 10. Cột có viền đậm là mức điểm của bạn.',
-        ),
-      );
-      const scroll = chart.querySelector('.student-chart-scroll');
-      const axis = el('div', { class: 'histogram-y-axis', 'aria-label': 'Trục số học sinh' });
-      const grid = el('div', { class: 'histogram-grid', 'aria-hidden': 'true' });
-      for (const tick of scale.ticks) {
-        const label = el('span', {}, String(tick));
-        label.style.bottom = `${(tick / max) * 100}%`;
-        axis.append(label);
-        const line = el('i');
-        line.style.bottom = `${(tick / max) * 100}%`;
-        grid.append(line);
-      }
-      bars.prepend(grid);
-      const plot = el('div', { class: 'student-chart-plot' });
-      scroll.before(plot);
-      plot.append(axis, scroll);
-      const bucketNodes = [...bars.querySelectorAll('.histogram-bucket')];
-      const move = (index) => {
-        bucketNodes.forEach((node, i) => {
-          node.tabIndex = i === index ? 0 : -1;
+      void import('./student-chart.js')
+        .then(({ StudentChart }) => {
+          if (closed || disposed || plotTicket !== plotGeneration) return;
+          plotView = StudentChart(chart, buckets, highlight);
+        })
+        .catch(() => {
+          if (!closed && !disposed && plotTicket === plotGeneration)
+            chart.replaceChildren(
+              el('p', { role: 'status' }, 'Chưa mở được biểu đồ. Bạn có thể đóng và thử lại.'),
+            );
         });
-        bucketNodes[index].focus();
-        bucketNodes[index].scrollIntoView({ block: 'nearest', inline: 'nearest' });
-      };
-      bars.addEventListener('keydown', (event) => {
-        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-        const index = bucketNodes.indexOf(event.target.closest('.histogram-bucket'));
-        if (index < 0) return;
-        event.preventDefault();
-        move(bucketIndex(index, event.key));
-      });
-      bars.addEventListener('click', (event) => {
-        const index = bucketNodes.indexOf(event.target.closest('.histogram-bucket'));
-        if (index >= 0) move(index);
-      });
-      const personalBar = bars.querySelector('.is-personal');
-      if (personalBar)
-        scroll.scrollLeft = Math.max(
-          0,
-          personalBar.offsetLeft - bars.offsetLeft - scroll.clientWidth / 2,
-        );
     });
     const load = () => {
       const selection = { semester, subjectCode: subject.value, columnCode: column.value };
@@ -365,6 +306,9 @@ export function StudentGradeboard({ context, read, onReset }) {
       if (closed) return;
       closed = true;
       channel.dispose();
+      plotGeneration++;
+      plotView?.dispose();
+      plotView = null;
       entry.content.replaceChildren();
       entry.dialog.close();
       if (modal?.dispose === dispose) modal = null;

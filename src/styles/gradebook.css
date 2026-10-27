@@ -1314,3 +1314,238 @@
     transition: none;
   }
 }
+
+/* V2 feature-local visualization and calendar; no shared Board/admin selectors. */
+.student-chart-dialog .student-chart-surface {
+  background: #fff;
+  border: 1px solid #e3ebe6;
+  border-radius: 18px;
+  padding: 20px 15px 12px;
+}
+.student-chart-dialog .student-echart {
+  height: 330px;
+  width: 100%;
+  min-width: 0;
+}
+.student-chart-dialog .student-chart-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 0 12px 14px;
+}
+.student-chart-dialog .student-chart-tools span {
+  font-size: 11px;
+  color: #708276;
+}
+.student-chart-dialog .student-chart-return {
+  min-height: 44px;
+  border-radius: 10px;
+  background: #f5ebe0;
+  color: #875b2c;
+  border: 0;
+}
+.student-chart-dialog .student-chart-reader {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f4f8f5;
+  color: #536b5d;
+  font-size: 12px;
+}
+.student-chart-reader input[type='range'] {
+  width: 100%;
+  min-height: 44px;
+  accent-color: #387e5d;
+  cursor: pointer;
+}
+.student-chart-reading {
+  font-size: 13px;
+  font-weight: 600;
+  color: #315c45;
+}
+.student-chart-dialog .student-insight-primary {
+  background: linear-gradient(120deg, #e4f0e8, #f5faf7);
+  border: 0;
+}
+.student-chart-dialog .student-insight-secondary {
+  background: #fbf1e6;
+  border: 0;
+}
+.birthday-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f9fbfa;
+}
+.lookup-form .birthday-field > input {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  min-width: 0;
+  padding-right: 0;
+}
+.birthday-field:focus-within {
+  outline: 2px solid #739c85;
+  outline-offset: 2px;
+}
+.birthday-trigger {
+  width: 48px;
+  height: 46px;
+  flex: 0 0 48px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #35684c;
+  font-size: 26px;
+  border-radius: 10px;
+}
+.birthday-trigger:hover {
+  background: #e8f1eb;
+}
+.birthday-calendar {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 10px);
+  z-index: 120;
+  width: min(340px, calc(100vw - 70px));
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #e3ebe5;
+  border-radius: 18px;
+  box-shadow: 0 14px 50px #25453222;
+}
+.birthday-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #264e38;
+}
+.birthday-close,
+.birthday-month-step {
+  border: 0;
+  background: #f1f6f2;
+  color: #41644d;
+  min-width: 36px;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 23px;
+  cursor: pointer;
+}
+.birthday-close {
+  background: transparent;
+}
+.birthday-caption,
+.birthday-footer {
+  font-size: 11px;
+  color: #74877a;
+  line-height: 1.6;
+  margin: 8px 0 14px;
+}
+.birthday-navigation {
+  display: grid;
+  grid-template-columns: 38px 1fr 78px 38px;
+  gap: 5px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.lookup-form .birthday-navigation input,
+.birthday-navigation select {
+  min-width: 0;
+  width: 100%;
+  height: 44px;
+  padding: 7px;
+  border: 1px solid #dee7e0;
+  border-radius: 9px;
+  background: #f8faf8;
+  font: inherit;
+  font-size: 12px;
+}
+.birthday-weekdays,
+.birthday-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}
+.birthday-weekdays {
+  margin-bottom: 6px;
+  color: #87988c;
+  font-size: 10px;
+  text-align: center;
+}
+.birthday-day {
+  min-width: 0;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  color: #365640;
+  font: inherit;
+  font-size: 12px;
+}
+.birthday-day:hover {
+  background: #ecf4ee;
+}
+.birthday-day.is-selected {
+  background: #377d59;
+  color: white;
+}
+.birthday-day:disabled {
+  color: #c7d2ca;
+  cursor: default;
+}
+.birthday-day:focus-visible {
+  outline: 2px solid #bd8b54;
+  outline-offset: -2px;
+}
+@media (max-width: 600px) {
+  .student-chart-dialog .student-echart {
+    height: 300px;
+  }
+  .student-chart-dialog .student-chart-surface {
+    padding: 15px 7px 10px;
+  }
+  .student-chart-dialog .student-insight-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .student-chart-dialog .student-insight-label {
+    font-size: 10px;
+  }
+}
+.birthday-trigger {
+  display: grid;
+  place-items: center;
+}
+@media (max-width: 600px) {
+  .birthday-calendar {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: 12px;
+    width: auto;
+    max-width: none;
+    padding: 8px;
+    border-radius: 22px;
+    box-shadow: 0 -10px 70px #1d422c33;
+  }
+  .birthday-navigation {
+    grid-template-columns: 44px 1fr 78px 44px;
+  }
+  .birthday-weekdays,
+  .birthday-week {
+    gap: 0;
+  }
+  .birthday-heading,
+  .birthday-caption,
+  .birthday-footer {
+    padding-inline: 4px;
+  }
+}
