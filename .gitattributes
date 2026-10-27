@@ -1,0 +1,2 @@
+# Keep reviewed PostgreSQL function-body bytes stable across Windows and Linux checkouts.
+supabase/migrations/*.sql text eol=lf

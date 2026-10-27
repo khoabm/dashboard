@@ -2,6 +2,18 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-28 — GB-CP01-C-LF / P2: checkout line endings change guarded SQL bodies (FIXED / ROLLOUT VERIFIED)
+
+Baselinea8f055e, feature/personal-gradebook. C0A found B3 checkout613 CRLF/0 of8 expected old-body hashes versus8 of8 in reviewed LF Git source. `.gitattributes` pins migration SQL to LF. Only four previously unapplied SQL files were normalized to exact reviewed Git blobs and, with explicit owner approval, renamed to actual MCP versions; no SQL/guard or applied Board file/ledger rewrite. All four migrations succeeded once on hosted PostgreSQL17.11; strict guards passed and9/9 effective correction-body hashes match. Existing CON-004 static test passed before rollout; mapped-path regression is included in final focused validation. [Ledger mapping and acceptance boundaries](DATABASE.md#gradebook-migration-rollout-gate--gb-ops-rev-002). Native single-transaction ACL/precision/RPC rollback evidence does not prove multi-connection races or full CP01-C security acceptance.
+
+## 2026-10-28 — GB-CP01-C-ORIGIN / P3: wildcard-looking environment entries accepted (FIXED / DEPLOYED v2)
+
+`runtimeConfig()` rejected bare * but URL parsing accepted a literal wildcard hostname such as https://*.example.com. The handler never expanded that string into a pattern, so arbitrary-origin authorization was not demonstrated; nevertheless the owner requires an exact non-wildcard allowlist. Reject any non-string/star-containing entry before URL parsing. Existing specialist test covers bare/hostname wildcard rejection and environment-only origin replacement without keys/DB; CORS denial regression2/2 PASS, one post-deploy allowed-origin OPTIONS204 PASS. Both Edge Functions deployed v2, unchanged JWT settings. Only localhost4173 is configured for synthetic CP01-C; no production origin/secrets activation.
+
+## 2026-10-28 — GB-CP01-C-COPY / P2: active lookup claims no information is sent (FIXED)
+
+Actual enabled localhost4173 QA found the accepted offline form still said information was not sent to the system. `src/components/student-lookup.js` now describes verification/unavailable feedback without that false promise; privacy copy explicitly addresses browser persistence/route cleanup. No Auth, transport, endpoint, data retention or layout change. Browser verifies real verification/read/histogram with synthetic data; the final local build verifies revised copy. Production activation remains disabled by default.
+
 ## 2026-10-27 — GB-CP06-B-CATALOG / P2: teacher loader omits class scope (FIXED OFFLINE)
 
 Baseline64b6e92, feature/personal-gradebook. GradebookScores previously called loadCatalog with only signal; accepted B4 catalog.read requires classId. It now passes currentClass.id through createTeacherCatalog/the shared teacher session transport. Pure strict V1 projection and specialist catalog scope/header tests PASS; actual Chrome score workspace loads all8 subjects/7 columns through synthetic HTTP boundary. Server authorization/migrations unchanged; production transport disabled; hosted integration NOT RUN.

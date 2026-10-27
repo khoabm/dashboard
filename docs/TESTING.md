@@ -6,6 +6,10 @@ Nguồn tiêu chí đầy đủ: SPEC R05–08, R10–14, R19–22, R25. Không 
 
 Mỗi case ghi: ID hoặc Rxx/tiểu mục, commit/config, môi trường/browser/viewport/danh tính, bước thực hiện, mong đợi/thực tế, trạng thái và bằng chứng. PASS chỉ khi thực sự chạy và quan sát; FAIL có tái hiện; BLOCKED có nguyên nhân; NOT RUN chưa chạy. Không in secret/PII hoặc token trong log/screenshot.
 
+## CP01-C bounded hosted evidence — 2026-10-28
+
+Owner-authorized synthetic-only acceptance is PARTIAL; [actual cases, finite query/request accounting and open gates](features/personal-gradebook/CP06_OFFLINE_READINESS.md#cp01-c--bounded-hosted-acceptance--2026-10-28). Native SQL/Edge/browser tests remain specialist and outside CI. Do not rerun the failed supplemental SQL transaction or infer limiter/concurrency PASS. The CP06-A matrix below is its historical offline baseline, not current deployment status; curated CI policy/allowlist is unchanged.
+
 ## CP06-A current offline concern matrix
 
 Baseline4fc986e, feature/personal-gradebook. CP05 refinement is merged; [A1–A3 matrix and actual evidence](features/personal-gradebook/CP06_OFFLINE_READINESS.md). Eleven explicit pure/component test files remain the current curated allowlist. New decoded B4 payload projections are tested as plain data/functions/state; no HTTP/SDK/Edge/SQL/browser cases enter CI. Production services remain fail-closed. Historical counts and branch-specific QA snapshots below do not supersede this boundary.

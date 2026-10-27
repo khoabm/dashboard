@@ -6,7 +6,7 @@ const modulePath = process.env.PGLITE_MODULE_PATH;
 assert(modulePath?.startsWith('/'), 'Set the existing local PGlite module path.');
 const { PGlite } = await import(pathToFileURL(modulePath).href);
 const db = new PGlite();
-const correctionName = '20261026050000_gradebook_nonretryable_conflicts.sql';
+const correctionName = '20261027173313_gradebook_nonretryable_conflicts.sql';
 const correction = await readFile('supabase/migrations/' + correctionName, 'utf8');
 const signatures = [
   ...correction.matchAll(

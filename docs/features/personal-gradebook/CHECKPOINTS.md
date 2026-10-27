@@ -1,6 +1,6 @@
 # Execution plan and acceptance gates — Personal Gradebook
 
-**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1/B2 ACCEPTED; B3 CORRECTION ACCEPTED at static/offline review (hosted NOT RUN); GB-B4-INT-001 and GB-B4-REV-001 FIXED IN DRAFT; B4 ACCEPTED AS DRAFT; B5 CURATED CODE-QUALITY CI (older conflict snapshot below); CP02 OFFLINE ACCEPTED; CP03/CP04 OFFLINE ACCEPTED; CP05 OFFLINE ACCEPTED; CP06-A PASS OFFLINE; B4-FIX-CATALOG IMPLEMENTED IN UNDEPLOYED DRAFT; CP06-B/CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
+**Current status (2026-10-28): CP00/CP01-A accepted; CP01-B1–B5/offline source accepted; CP02–CP05 and CP06-B OFFLINE ACCEPTED. CP01-C PARTIAL / bounded native-hosted acceptance recorded:4 migrations applied,2 Edge Functions deployed; full security and real-data gates remain open. CP07 NOT STARTED.** [Current CP01-C evidence/limits](CP06_OFFLINE_READINESS.md#cp01-c--bounded-hosted-acceptance--2026-10-28). Earlier dated B5/B4/NOT STARTED snapshots below are historical and do not override current source/deployment evidence. Acceptance boxes remain evidence-specific, never inferred from documentation or CI.
 
 **2026-10-26 B5 superseding policy / baselinec9e18c1:** remove only newly staged PGlite/SQL CI/runner; retain accepted B5 and prior evidence. [One consolidated concern/test matrix and non-CI pre-merge inventory](B5_OFFLINE_REVIEW.md#current-policy-correction--baselinec9e18c1-supersedes-sql-ci-approval). Explicit test:ci covers six component/pure-unit files; specialists/SQL/browser excluded and retained separately pending review, no new probe/test file. Temporary20 SQL groups and earlier120 Node tests are historical only. PR5 Draft/dirty (BUG_FIX_LOG), no reconciliation; Actions/native17/Deno/CP01-C/real-data gates remain pending. Current curated gate66/66 PASS, syntax/static/build/format/diff PASS; no specialist/SQL rerun. No automatic CP01-C/CP02.
 
@@ -68,7 +68,7 @@ Docs-only evidence 2026-10-26 at `eba7c18e`: eight Markdown files, 54 relative l
 
 Paths are planning candidates, not permission to create modules or abstractions. Frontend regression/fixtures stay in `tests/`; local outputs in ignored `tests/local/`. Server/migration tests use conventional feature subfolders, with exact commands chosen in CP01 and CI coverage added when implemented.
 
-## CP01 — Data model and security (B1–B5 offline artifacts available; CP01-C NOT RUN)
+## CP01 — Data model and security (B1–B5 available; CP01-C PARTIAL)
 
 Deliverables: reviewed additive migration(s), six-table model incl ordered catalogs, minimal secure Functions for identity and admin, unit/security checks, cost check; **do not apply without authorization**.
 

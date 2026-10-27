@@ -1396,6 +1396,15 @@ test('server configuration contains only explicit project/origins and isolated s
   );
   assert.throws(() => runtimeConfig((name) => ({ ...env, GB_ALLOWED_ORIGINS: '["*"]' })[name]));
   assert.throws(() =>
+    runtimeConfig((name) => ({ ...env, GB_ALLOWED_ORIGINS: '["https://*.example.com"]' })[name]),
+  );
+  const qaOrigins = ['http://localhost:4173', 'https://qa.example.invalid'];
+  assert.deepEqual(
+    runtimeConfig((name) => (name === 'GB_ALLOWED_ORIGINS' ? JSON.stringify(qaOrigins) : env[name]))
+      .origins,
+    qaOrigins,
+  );
+  assert.throws(() =>
     runtimeConfig((name) => ({ ...env, SUPABASE_URL: 'http://untrusted.invalid' })[name]),
   );
 });
@@ -1485,11 +1494,11 @@ test('real SDK profile GET503 is terminal with retry(false) and no privileged RP
 
 test('CON-004 static chain guard verifies eight reviewed replacements and unchanged reveal semantics', async () => {
   const sql = await readFile(
-    'supabase/migrations/20261026030000_gradebook_transactions.sql',
+    'supabase/migrations/20261027173300_gradebook_transactions.sql',
     'utf8',
   );
   const fix = await readFile(
-    'supabase/migrations/20261026050000_gradebook_nonretryable_conflicts.sql',
+    'supabase/migrations/20261027173313_gradebook_nonretryable_conflicts.sql',
     'utf8',
   );
   const signatures = [
@@ -1513,7 +1522,7 @@ test('CON-004 static chain guard verifies eight reviewed replacements and unchan
   }
   assert.doesNotMatch(effective, /ERRCODE='40[0-9A-Z]{3}'|serialization_failure|deadlock_detected/);
   const reveal = await readFile(
-    'supabase/migrations/20261026060000_gradebook_reveal_identity_context.sql',
+    'supabase/migrations/20261027173327_gradebook_reveal_identity_context.sql',
     'utf8',
   );
   assert.match(reveal, /identityLookup.*,encode\(s\.identity_lookup/);

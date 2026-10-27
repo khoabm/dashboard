@@ -38,3 +38,8 @@ Phạm vi riêng của feature, không thay D01–D10 của bảng học liệu.
 ## Các gate còn lại của bảng học liệu (baseline)
 
 Còn thiếu: ảnh wireframe quản trị để visual acceptance; tạo tài khoản Auth/tắt signup; E2E admin/upload/sync; full backup/restore; xác minh Sites hosting 0 USD/audience trước Phase 6. Các mặc định agent chọn không được gắn nhãn là người dùng đã duyệt ảnh/retention hoặc toàn sản phẩm.
+
+## CP01-C deployment decisions — 2026-10-28
+
+- **GB-OPS-D01 / owner-approved:** only four unapplied Gradebook filenames follow actual MCP-assigned versions; exact SQL/guards and five applied Board ledger entries stay unchanged. Current mapping/evidence: [DATABASE](DATABASE.md#gradebook-migration-rollout-gate--gb-ops-rev-002). No general timestamp-renumbering or ledger-repair authority.
+- **GB-OPS-D02 / owner-approved synthetic scope:** four separate256-bit keyrings and local Windows DPAPI backup; origin allowlist is environment configuration, CP01-C localhost:4173 only. Origin changes do not rotate keys or mutate DB. DPAPI is not sufficient for real-data backup; independent recovery/production custody remains gated in [DATA §H](features/personal-gradebook/DATA_AND_SECURITY.md#h-real-personal-data-gate).

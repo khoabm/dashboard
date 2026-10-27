@@ -7,7 +7,7 @@ const modulePath = process.env.PGLITE_MODULE_PATH;
 assert(modulePath?.startsWith('/'), 'Set the existing local PGlite module path.');
 const { PGlite } = await import(pathToFileURL(modulePath).href);
 const db = new PGlite();
-const migrationName = '20261026060000_gradebook_reveal_identity_context.sql';
+const migrationName = '20261027173327_gradebook_reveal_identity_context.sql';
 const signature = 'public.gb_student_read(uuid,uuid,uuid,bigint,boolean)';
 const actor = '10000000-0000-4000-8000-000000000001';
 const session = '20000000-0000-4000-8000-000000000001';
@@ -272,7 +272,7 @@ try {
   );
 
   const conflicts = await readFile(
-    'supabase/migrations/20261026050000_gradebook_nonretryable_conflicts.sql',
+    'supabase/migrations/20261027173313_gradebook_nonretryable_conflicts.sql',
     'utf8',
   );
   const conflictSignatures = [

@@ -16,6 +16,7 @@ export function runtimeConfig(get) {
     origins.length < 1 ||
     origins.length > 16 ||
     !origins.every((origin) => {
+      if (typeof origin !== 'string' || origin.includes('*')) return false;
       const value = new URL(origin);
       return (
         value.origin === origin &&

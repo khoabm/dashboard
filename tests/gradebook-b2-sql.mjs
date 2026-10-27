@@ -9,7 +9,7 @@ const { PGlite } = await import(pathToFileURL(modulePath).href);
 const db = new PGlite();
 const root = new URL('../', import.meta.url);
 const sql = await readFile(
-  new URL('supabase/migrations/20261026014933_gradebook_foundation.sql', root),
+  new URL('supabase/migrations/20261027173228_gradebook_foundation.sql', root),
   'utf8',
 );
 let checks = 0;
