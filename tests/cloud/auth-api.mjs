@@ -23,6 +23,7 @@ const roleKey = (role) => sign({ role, iss: issuer, iat: now, exp: now + 3600 })
 const serviceKey = roleKey('service_role');
 const password = randomBytes(24).toString('base64url');
 let requests = 0,
+  database409 = 0,
   phase = 'database startup',
   server,
   db;
@@ -193,13 +194,18 @@ try {
     serviceKey,
     origins: ['http://localhost:4173'],
   };
-  const sdkFetch = (url, init) => {
+  const sdkFetch = async (url, init) => {
     const value = new URL(url);
     assert.equal(value.origin, config.url);
     if (value.pathname.startsWith('/auth/v1/'))
       return localFetch('http://127.0.0.1:19999' + value.pathname.slice(8) + value.search, init);
     assert.ok(value.pathname.startsWith('/rest/v1/'));
-    return localFetch('http://127.0.0.1:13000' + value.pathname.slice(8) + value.search, init);
+    const response = await localFetch(
+      'http://127.0.0.1:13000' + value.pathname.slice(8) + value.search,
+      init,
+    );
+    if (response.status === 409 && (await response.clone().json()).code === 'PT409') database409++;
+    return response;
   };
   const crypto = await createCrypto(
     config.project,
@@ -276,6 +282,22 @@ try {
   await call(users[0].token, apply, 409, '/expired-preview');
   await db.query('UPDATE gradebook.classes SET revision=revision+1 WHERE id=$1', [cid]);
   await call(users[0].token, apply, 409);
+  const conflict = await call(
+    users[0].token,
+    {
+      op: 'class.patch',
+      classId: cid,
+      expectedRevision: created.class.revision,
+      name: 'MUST NOT SAVE',
+    },
+    409,
+  );
+  assert.equal(conflict.error.code, 'conflict');
+  assert.equal(database409, 1);
+  assert.equal(
+    (await db.query('SELECT name FROM gradebook.classes WHERE id=$1', [cid])).rows[0].name,
+    'Synthetic API',
+  );
   assert.equal((await db.query('SELECT count(*)::int n FROM gradebook.students')).rows[0].n, 0);
   assert.equal((await db.query('SELECT count(*)::int n FROM public.audit_logs')).rows[0].n, before);
   console.log(
