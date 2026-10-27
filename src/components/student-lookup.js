@@ -1,6 +1,7 @@
 /** Renders a date-only student lookup form; private inputs and capability never leave this view's memory. */
 import { el, button } from '../utils/dom.js';
 import { BirthDatePicker } from './birth-date-picker.js';
+import { formatBirthdayInput } from '../utils/birth-calendar.js';
 import { StudentGradeboard } from './student-gradeboard.js';
 import { createLookupState } from '../utils/gradebook-ui.js';
 
@@ -41,13 +42,12 @@ export function StudentLookup({ verify, request, navigate, clock = Date.now }) {
     placeholder: 'DD/MM/YYYY',
     'aria-describedby': 'lookup-date-help lookup-date-error',
   });
-  // Normalize digit-only typing before the calendar observes the shared text value.
+  // Keep separators and cursor position in sync before the calendar reads the shared text field.
   dateInput.addEventListener('input', () => {
-    if (/^[0-9]+$/.test(dateInput.value)) {
-      const digits = dateInput.value.slice(0, 8);
-      dateInput.value = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4)]
-        .filter(Boolean)
-        .join('/');
+    const { text, caret } = formatBirthdayInput(dateInput.value, dateInput.selectionStart);
+    if (text !== dateInput.value) {
+      dateInput.value = text;
+      dateInput.setSelectionRange(caret, caret);
     }
   });
   const birthday = BirthDatePicker(dateInput, clock);

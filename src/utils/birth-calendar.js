@@ -60,3 +60,20 @@ export function shiftCalendarDay(value, delta) {
   }
   return calendarDay(year, month, day);
 }
+
+/** Formats a partially typed birthday without changing its calendar validity or dropping leading zeroes. */
+export function formatBirthdayInput(value, caret = value.length) {
+  if (typeof value !== 'string' || !/^[0-9/]*$/.test(value))
+    return { text: value, caret };
+
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  const before = value.slice(0, caret).replace(/\D/g, '').length;
+  const text = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4)]
+    .filter(Boolean)
+    .join('/');
+  const position =
+    before +
+    Number(before > 2 && digits.length > 2) +
+    Number(before > 4 && digits.length > 4);
+  return { text, caret: Math.min(text.length, position) };
+}

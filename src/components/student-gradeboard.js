@@ -225,7 +225,7 @@ export function StudentGradeboard({ context, read, onReset }) {
       el(
         'div',
         { class: 'student-chart-footer' },
-        el('span', {}, 'Kéo thanh bên dưới để xem từ 0 đến 10'),
+        el('span', {}, 'Kéo thanh cuộn ngay dưới biểu đồ để xem các mức điểm khác'),
         button('Đóng biểu đồ', () => entry.dialog.close(), 'button subtle student-chart-close'),
       ),
     );
@@ -280,6 +280,9 @@ export function StudentGradeboard({ context, read, onReset }) {
       );
       if (!buckets.some((b) => b.studentCount))
         chart.append(el('p', {}, 'Lớp chưa có điểm ở mục này.'));
+      chart.append(
+        el('p', { class: 'student-chart-loading', role: 'status' }, 'Đang chuẩn bị biểu đồ…'),
+      );
       void import('./student-chart.js')
         .then(({ StudentChart }) => {
           if (closed || disposed || plotTicket !== plotGeneration) return;

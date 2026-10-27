@@ -92,11 +92,17 @@ export function BirthDatePicker(input, clock = Date.now) {
   }
   function render(focusDate = null) {
     if (disposed) return;
+    const today = vietnamToday(clock);
+    const [currentYear, currentMonth] = today.split('-').map(Number);
+    // Future months cannot contain an eligible birthday: disable them instead of displaying dead cells.
+    if (year === currentYear && month > currentMonth) month = currentMonth;
+    monthSelect.querySelectorAll('option').forEach((option) => {
+      option.disabled = year === currentYear && Number(option.value) > currentMonth;
+    });
     monthSelect.value = String(month);
     yearInput.value = String(year);
-    yearInput.max = vietnamToday(clock).slice(0, 4);
+    yearInput.max = String(currentYear);
     const selected = typedBirthday(input.value, clock),
-      today = vietnamToday(clock),
       days = monthLength(year, month),
       offset = (calendarWeekday(year, month) + 6) % 7;
     previous.disabled = year === 1 && month === 1;
@@ -167,7 +173,8 @@ export function BirthDatePicker(input, clock = Date.now) {
     render();
   }
   monthSelect.addEventListener('change', () => {
-    month = Number(monthSelect.value);
+    const today = vietnamToday(clock).split('-').map(Number);
+    month = year === today[0] ? Math.min(Number(monthSelect.value), today[1]) : Number(monthSelect.value);
     render();
   });
   yearInput.addEventListener('input', () => {

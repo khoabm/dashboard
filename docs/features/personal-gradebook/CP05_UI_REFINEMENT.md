@@ -53,3 +53,17 @@ npm run dev
 ```
 
 Open **http://localhost:4173/tests/student-gradeboard.html**, never `/` for offline QA. Use only synthetic **000000009 /29/02/2000**. Try the calendar before verification; open Toán → Thường xuyên1 and compare exact8.25, level8.3 and aggregate count. Change **Loại điểm**, use the overview slider, **Chọn mức điểm** and **Về mức điểm của bạn**, then Escape. Try widths/counts/failure modes from the fixture toolbar. Reset/expiry/401 must restore an empty enabled form with no chart. Detailed reproducible scenarios are in [tests/README](../../../tests/README.md#cp05--browser-qa-offline-tái-lập-f01f05).
+
+## Screenshot-based correction — 2026-10-27
+
+Source feedback: three user screenshots showed nested input/outer focus rings, missing slash after the birthday month during continuous typing, and excessive controls below the chart. Applied directly on `feature/personal-gradebook-ui-refinement`, **without touching the parent feature branch**.
+
+- **V2-01 / P2:** a visible `Đang chuẩn bị biểu đồ…` status covers the first lazy ECharts import instead of a blank area; fallback remains available if the library fails.
+- **V2-02 / P2:** one coherent DOB field: the text input no longer has its own blue browser focus rectangle; the wrapper shows the green focus ring and a red error ring when validation fails, including focus. The calendar button has a distinct keyboard focus outline.
+- **V2-03:** removed both the redundant exact-score range and the `Về mức điểm của bạn` button. ECharts' built-in horizontal slider remains the only *visible* chart navigation control. The chart plot itself has a single keyboard focus stop, ArrowLeft/Right/Home/End, and a live accessible score/count description through `aria-valuetext`.
+- **V2-04:** month choices after Vietnam's current month are disabled when navigating the current year; switching to the current year clamps a formerly selected future month.
+- **Input correction:** typed/pasted digits normalize to `DD/MM/YYYY` as each digit is entered (e.g. `29022000 → 29/02/2000`), preserving the logical cursor position. This does **not** fix invalid calendar dates or change the existing B1 validation.
+- **Laptop/desktop:** wider chart dialog (up to 1120 CSS px) and height-sensitive spacing/plot sizing to avoid typical vertical overflow. Short viewport browser checks remain required; content must never be hidden merely to suppress scroll.
+
+The synthetic QA fixture and its developer-only labels are deliberately **unchanged**, per user approval. The feature-local chart/date controls and documents are the only scope. Unit/CI/browser evidence of this correction must be recorded separately rather than inheriting Work's earlier V2 PASS. No hosted calls, migrations or deployment authorized.
+

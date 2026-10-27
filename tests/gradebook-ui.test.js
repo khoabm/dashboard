@@ -345,3 +345,24 @@ test('V2 birthday calendar stays Gregorian, string-based and Vietnam-day bounded
   );
   assert.equal(typedBirthday('', clock), null);
 });
+
+test('V2 DOB typing adds both slashes incrementally, preserves cursor and does not repair invalid dates', async () => {
+  const { formatBirthdayInput } = await import('../src/utils/birth-calendar.js');
+  let value = '';
+  for (const digit of '29022000') {
+    value = formatBirthdayInput(value + digit).text;
+  }
+  assert.equal(value, '29/02/2000');
+  assert.deepEqual(formatBirthdayInput('29022000'), { text: '29/02/2000', caret: 10 });
+  assert.deepEqual(formatBirthdayInput('29/022000'), { text: '29/02/2000', caret: 10 });
+  assert.deepEqual(formatBirthdayInput('29/02/2000'), { text: '29/02/2000', caret: 10 });
+  assert.deepEqual(formatBirthdayInput('2912000', 4), { text: '29/12/000', caret: 5 });
+  assert.equal(formatBirthdayInput('31022000').text, '31/02/2000');
+  assert.equal(formatBirthdayInput('29/02/1900').text, '29/02/1900');
+  assert.equal(formatBirthdayInput('29/a2/2000').text, '29/a2/2000');
+  assert.equal(typedBirthdayForTest('31/02/2000'), null);
+});
+
+function typedBirthdayForTest(value) {
+  return validateLookup({ ...valid, birthDate: value }, clock).value?.birthDate ?? null;
+}

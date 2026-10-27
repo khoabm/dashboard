@@ -1,3 +1,11 @@
+# CP05 UI screenshot corrections — 2026-10-27
+
+Branch `feature/personal-gradebook-ui-refinement`, baseline `71f72766ded4d22cec80da29ced43daec55d4ef7`. User approved focused V2-01..V2-04 fixes plus screenshot-driven DOB focus, continuous DD/MM/YYYY typing and a compact wider desktop chart. Redundant chart exploration range/return controls removed; one keyboard-accessible chart surface and ECharts horizontal scrollbar remain. Invalid DOB now visually highlights the complete field; calendar disallows future months in the current year; lazy import displays a preparation state. Synthetic QA fixture and its developer labels remain unchanged. [Correction matrix](features/personal-gradebook/CP05_UI_REFINEMENT.md#screenshot-based-correction--2026-10-27).
+
+**Status:** Source correction implemented; independent browser/user visual acceptance not inferred. Source changed only on UI refinement branch. CP01-C/hosted/Auth/RLS/real-personal-data remain NOT RUN.
+
+---
+
 # CP05 UI Refinement V2 — chart and birthday calendar / 2026-10-27
 
 Branch `feature/personal-gradebook-ui-refinement`, baseline `75590c16a3d5a4ccdcfc6377106f93e23e66c4b2`, Draft PR7 → `feature/personal-gradebook`. **IMPLEMENTED CANDIDATE — USER VISUAL APPROVAL PENDING.** ECharts6.0.0 locally bundled with modular SVG/axes/tooltip/DataZoom, lazy-loaded only for an opened chart; all101 exact aggregates retained, personal raw score separate, one-stop native keyboard range and return-to-personal action. Resize/close/replacement/expiry/route cleanup disposes the chart and observer. Feature-local Gregorian DOB calendar replaces the narrow native date control, supports manual DD/MM/YYYY, direct month/year selection, day/week/month/year keys and mobile sheet; strict B1/Vietnam-day validation and memory-only cleanup retained. No Board/shared header/nav/admin/backend/SQL/Edge/production adapter or CI-policy changes. Library/license decisions and concern matrix: [CP05_UI_REFINEMENT](features/personal-gradebook/CP05_UI_REFINEMENT.md); GB-CP05-UIV2-001 records a local candidate synchronization correction.

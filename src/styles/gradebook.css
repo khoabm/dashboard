@@ -1327,45 +1327,6 @@
   width: 100%;
   min-width: 0;
 }
-.student-chart-dialog .student-chart-tools {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 0 12px 14px;
-}
-.student-chart-dialog .student-chart-tools span {
-  font-size: 11px;
-  color: #708276;
-}
-.student-chart-dialog .student-chart-return {
-  min-height: 44px;
-  border-radius: 10px;
-  background: #f5ebe0;
-  color: #875b2c;
-  border: 0;
-}
-.student-chart-dialog .student-chart-reader {
-  display: grid;
-  gap: 8px;
-  padding: 14px;
-  border-radius: 12px;
-  background: #f4f8f5;
-  color: #536b5d;
-  font-size: 12px;
-}
-.student-chart-reader input[type='range'] {
-  width: 100%;
-  min-height: 44px;
-  accent-color: #387e5d;
-  cursor: pointer;
-}
-.student-chart-reading {
-  font-size: 13px;
-  font-weight: 600;
-  color: #315c45;
-}
 .student-chart-dialog .student-insight-primary {
   background: linear-gradient(120deg, #e4f0e8, #f5faf7);
   border: 0;
@@ -1547,5 +1508,113 @@
   .birthday-caption,
   .birthday-footer {
     padding-inline: 4px;
+  }
+}
+
+/* Date of birth behaves as one field: the focus/error ring belongs to its wrapper. */
+.lookup-form .birthday-field {
+  min-height: 50px;
+  border-color: #d6e1da;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.lookup-form .birthday-field > input {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 48px;
+  min-height: 48px;
+  padding: 11px 14px;
+  font-size: 15px;
+  color: var(--ink);
+  outline: none;
+  border: 0;
+  border-radius: 12px 0 0 12px;
+}
+.lookup-form .birthday-field > input:focus,
+.lookup-form .birthday-field > input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.lookup-form .birthday-field:focus-within {
+  border-color: #397a5c;
+  box-shadow: 0 0 0 3px #397a5c2a;
+  outline: none;
+}
+.lookup-form .birthday-field:has(> input[aria-invalid='true']) {
+  border-color: #b65243;
+  background: #fff9f8;
+}
+.lookup-form .birthday-field:has(> input[aria-invalid='true']):focus-within {
+  box-shadow: 0 0 0 3px #b6524330;
+}
+.lookup-form .birthday-field .birthday-trigger {
+  margin-right: 2px;
+  border-radius: 0 10px 10px 0;
+}
+.lookup-form .birthday-field .birthday-trigger:focus-visible {
+  outline: 2px solid #397a5c;
+  outline-offset: -5px;
+}
+.student-chart-dialog .student-chart-loading {
+  padding: 28px 14px;
+  color: #577666;
+  font-size: 13px;
+  text-align: center;
+}
+.student-chart-dialog .student-echart:focus-visible {
+  outline: 3px solid #3c805f;
+  outline-offset: -3px;
+  border-radius: 8px;
+}
+/* Fit the chart dialog across laptop and desktop widths, keeping vertical space for the plot. */
+@media (min-width: 801px) {
+  .student-chart-dialog {
+    width: min(1120px, 95vw);
+    max-width: 1120px;
+    max-height: calc(100dvh - 24px);
+  }
+  .student-chart-dialog .student-echart {
+    height: clamp(205px, 30dvh, 290px);
+  }
+}
+@media (min-width: 801px) and (max-height: 850px) {
+  .student-chart-dialog .dialog-heading {
+    padding: 10px 22px;
+  }
+  .student-chart-dialog .dialog-content {
+    padding: 13px 22px 13px;
+  }
+  .student-chart-dialog .student-chart-lead {
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+  .student-chart-dialog .student-chart-selectors,
+  .student-chart-dialog .student-insight-grid {
+    margin-bottom: 10px;
+  }
+  .student-chart-dialog .student-insight-primary,
+  .student-chart-dialog .student-insight-secondary {
+    padding: 10px 14px;
+    gap: 3px;
+  }
+  .student-chart-dialog .student-insight-value {
+    font-size: 24px;
+  }
+  .student-chart-dialog .student-chart-surface {
+    padding: 10px 13px 4px;
+  }
+  .student-chart-dialog .student-chart-surface-heading {
+    margin-bottom: 4px;
+  }
+  .student-chart-dialog .student-chart-explanation {
+    margin-top: 7px;
+    line-height: 1.45;
+  }
+  .student-chart-dialog .student-chart-footer {
+    padding-top: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lookup-form .birthday-field {
+    transition: none;
   }
 }
