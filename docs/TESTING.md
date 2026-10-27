@@ -8,7 +8,7 @@ Mỗi case ghi: ID hoặc Rxx/tiểu mục, commit/config, môi trường/browse
 
 ## CP01-C bounded hosted evidence — 2026-10-28
 
-Owner-authorized synthetic-only acceptance is PARTIAL; [actual cases, finite query/request accounting and open gates](features/personal-gradebook/CP06_OFFLINE_READINESS.md#cp01-c--bounded-hosted-acceptance--2026-10-28). Native SQL/Edge/browser tests remain specialist and outside CI. Do not rerun the failed supplemental SQL transaction or infer limiter/concurrency PASS. The CP06-A matrix below is its historical offline baseline, not current deployment status; curated CI policy/allowlist is unchanged.
+Owner-authorized synthetic-only acceptance is PARTIAL; [current cloud scope, exact runs and gate dispositions](features/personal-gradebook/CP06_OFFLINE_READINESS.md#cp01-c--cloud-only-security-verification--2026-10-28) supersedes earlier missing-runtime/Auth-context notes. The owner explicitly permits the separate zero-cost public standard-runner specialist workflow for finite disposable PostgreSQL/Auth/API tests, with no hosted project/secrets, artifacts or caches. This narrow exception does not expand curated test:ci or authorize hosted testing. Earlier [hosted case/request accounting](features/personal-gradebook/CP06_OFFLINE_READINESS.md#cp01-c--bounded-hosted-acceptance--2026-10-28) remains historical evidence; do not replay its failed transaction. Browser/native Deno/deployed gateway coverage is not inferred from cloud Node/native SQL tests. The CP06-A matrix below is its historical offline baseline, not current deployment status.
 
 ## CP06-A current offline concern matrix
 
