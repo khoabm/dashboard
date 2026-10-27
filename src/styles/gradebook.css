@@ -1326,6 +1326,7 @@
   height: 330px;
   width: 100%;
   min-width: 0;
+  margin-inline: auto;
 }
 .student-chart-dialog .student-insight-primary {
   background: linear-gradient(120deg, #e4f0e8, #f5faf7);

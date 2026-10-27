@@ -52,7 +52,7 @@ npm ci
 npm run dev
 ```
 
-Open **http://localhost:4173/tests/student-gradeboard.html**, never `/` for offline QA. Use only synthetic **000000009 /29/02/2000**. Try the calendar before verification; open Toán → Thường xuyên1 and compare exact8.25, level8.3 and aggregate count. Change **Loại điểm**, use the overview slider, **Chọn mức điểm** and **Về mức điểm của bạn**, then Escape. Try widths/counts/failure modes from the fixture toolbar. Reset/expiry/401 must restore an empty enabled form with no chart. Detailed reproducible scenarios are in [tests/README](../../../tests/README.md#cp05--browser-qa-offline-tái-lập-f01f05).
+Open **http://localhost:4173/tests/student-gradeboard.html**, never `/` for offline QA. Use only synthetic **000000009 /29/02/2000**. Try the calendar before verification; open Toán → Thường xuyên1 and compare exact8.25, level8.3 and aggregate count. Change **Loại điểm**, use the ECharts slider only when there are many occupied levels, then Escape. Try widths/counts/failure modes from the fixture toolbar. Reset/expiry/401 must restore an empty enabled form with no chart. Detailed reproducible scenarios are in [tests/README](../../../tests/README.md#cp05--browser-qa-offline-tái-lập-f01f05).
 
 ## Screenshot-based correction — 2026-10-27
 
