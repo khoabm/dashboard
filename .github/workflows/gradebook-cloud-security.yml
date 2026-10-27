@@ -50,14 +50,15 @@ jobs:
           echo 'PGUSER=postgres' >> "$GITHUB_ENV"
           echo "GB_QA_DEPENDENCIES=$RUNNER_TEMP/gb-dependencies" >> "$GITHUB_ENV"
           echo "PGLITE_MODULE_PATH=$GITHUB_WORKSPACE/tests/cloud/native-adapter.mjs" >> "$GITHUB_ENV"
-          docker network create --internal gb-security > /dev/null
+          docker network create gb-security > /dev/null
           docker run -d --name gb-postgres --network gb-security --memory=2g --cpus=2 -p 127.0.0.1:15432:5432 -e POSTGRES_PASSWORD postgres:17.6-bookworm > /dev/null
           for attempt in {1..20}; do
             test "$(docker inspect gb-postgres --format '{{.State.Running}}')" = true || { echo 'Disposable DB exited; STOP'; exit 1; }
-            if docker exec gb-postgres pg_isready -U postgres > /dev/null; then break; fi
+            if docker exec gb-postgres pg_isready -h 127.0.0.1 -U postgres > /dev/null; then break; fi
             sleep 1
           done
-          docker exec gb-postgres pg_isready -U postgres
+          docker exec gb-postgres pg_isready -h 127.0.0.1 -U postgres
+          timeout 5 bash -c 'until echo > /dev/tcp/127.0.0.1/15432; do sleep 0.2; done'
           npm install --prefix "$RUNNER_TEMP/gb-dependencies" --no-audit --no-fund --ignore-scripts pg@8.16.3
           npm ci --ignore-scripts --no-audit --no-fund
       - name: Native migration constraints, recovery and replay

@@ -7,13 +7,13 @@ assert.equal(process.env.GITHUB_ACTIONS, 'true');
 assert.equal(process.env.RUNNER_ENVIRONMENT, 'github-hosted');
 assert.equal(process.env.PGHOST, '127.0.0.1');
 assert.equal(process.env.PGPORT, '15432');
-assert.match(process.env.GB_QA_DATABASE || '', /^gbqa_[a-z_]+$/);
+assert.match(process.env.GB_QA_DATABASE || '', /^gbqa_[a-z0-9_]+$/);
 const require = createRequire(path.join(process.env.GB_QA_DEPENDENCIES, 'package.json'));
 const { Client } = require('pg');
 
 /** Restricts every client to the disposable loopback container and bounded SQL execution. */
 export async function connect(database = process.env.GB_QA_DATABASE) {
-  assert.match(database, /^(postgres|gbqa_[a-z_]+)$/);
+  assert.match(database, /^(postgres|gbqa_[a-z0-9_]+)$/);
   const client = new Client({
     host: '127.0.0.1',
     port: 15432,

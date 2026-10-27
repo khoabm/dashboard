@@ -23,6 +23,7 @@ const roleKey = (role) => sign({ role, iss: issuer, iat: now, exp: now + 3600 })
 const serviceKey = roleKey('service_role');
 const password = randomBytes(24).toString('base64url');
 let requests = 0,
+  phase = 'database startup',
   server,
   db;
 
@@ -64,6 +65,7 @@ try {
   await admin.end();
   db = await connect('gbqa_auth');
   await db.query('CREATE SCHEMA auth');
+  phase = 'GoTrue startup';
   docker(
     [
       'run',
@@ -108,6 +110,7 @@ try {
     },
   );
   await ready('http://127.0.0.1:19999/health');
+  phase = 'bootstrap and migrations';
   let bootstrap = await readFile('tests/gradebook/b2-bootstrap.sql', 'utf8');
   bootstrap = bootstrap.replace(
     /CREATE SCHEMA auth;[\s\S]*?CREATE SCHEMA storage;/,
@@ -121,6 +124,7 @@ try {
   await db.query(bootstrap);
   for (const file of (await readdir('supabase/migrations')).sort())
     await db.query(await readFile(`supabase/migrations/${file}`, 'utf8'));
+  phase = 'PostgREST startup';
   docker(
     [
       'run',
@@ -148,6 +152,7 @@ try {
   await ready('http://127.0.0.1:13000/');
 
   const users = [];
+  phase = 'synthetic Auth users';
   for (const name of ['teacher', 'nonadmin']) {
     const email = `${name}@synthetic.invalid`;
     const created = await localFetch('http://127.0.0.1:19999/admin/users', {
@@ -220,12 +225,13 @@ try {
   });
   await new Promise((resolve) => server.listen(18899, '127.0.0.1', resolve));
   async function call(token, body, expected, path = '/') {
+    phase = `operation ${body.op}, expected HTTP ${expected}`;
     const response = await localFetch('http://127.0.0.1:18899' + path, {
       method: 'POST',
       headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
       body: JSON.stringify(body),
     });
-    assert.equal(response.status, expected);
+    assert.equal(response.status, expected, `HTTP ${response.status}, expected ${expected}`);
     return response.json();
   }
   await call(users[1].token, { op: 'class.read' }, 403);
@@ -276,7 +282,8 @@ try {
   console.log('PASS G01 real synthetic Auth logout invalidates old privileged session');
   console.log('Runner-only HTTP requests (including bounded readiness):', requests);
 } catch (error) {
-  console.error('BLOCKED/FAIL disposable Auth/API', error.code || error.name);
+  console.error('BLOCKED/FAIL disposable Auth/API', phase, error.code || error.name);
+  if (typeof error.actual === 'number') console.error('Actual status/value:', error.actual);
   process.exitCode = 1;
 } finally {
   if (server) await new Promise((resolve) => server.close(resolve));
