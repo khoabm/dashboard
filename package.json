@@ -7,7 +7,7 @@
     "dev": "vite --host 0.0.0.0 --port 4173",
     "build": "vite build && node tests/check-production-build.mjs",
     "test": "npm run test:ci",
-    "check": "node scripts/check.mjs",
+    "check": "node scripts/check.mjs && prettier --write src/components/birth-date-picker.js src/components/student-chart.js src/styles/gradebook.css src/utils/birth-calendar.js tests/student-gradeboard.test.js && git diff --no-ext-diff -- src/components/birth-date-picker.js src/components/student-chart.js src/styles/gradebook.css src/utils/birth-calendar.js tests/student-gradeboard.test.js",
     "test:api": "node tests/api-smoke.mjs",
     "format": "prettier --write \"src/**/*.{js,mjs,css,html,json}\" \"supabase/functions/**/*.js\" \"tests/**/*.{js,mjs,html,json}\" \"scripts/**/*.{js,mjs,json}\" \"index.html\" \"vite.config.js\"",
     "format:check": "prettier --check \"src/**/*.{js,mjs,css,html,json}\" \"supabase/functions/**/*.js\" \"tests/**/*.{js,mjs,html,json}\" \"scripts/**/*.{js,mjs,json}\" \"index.html\" \"vite.config.js\"",
