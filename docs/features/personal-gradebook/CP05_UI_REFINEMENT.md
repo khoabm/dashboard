@@ -1,9 +1,13 @@
 # CP05 UI Refinement V2 — Chart & Date Picker
 
-**Branch:** `feature/personal-gradebook-ui-refinement`
-**Starting HEAD:** `75590c16a3d5a4ccdcfc6377106f93e23e66c4b2`
-**PR:** [#7, Draft → feature/personal-gradebook](https://github.com/khoabm/dashboard/pull/7)
-**Status:** implementation candidate for user visual review; **NOT visually accepted**. No merge/deployment authorized.
+**Current branch:** `feature/personal-gradebook` (UI refinement merged)
+**Historical V2 starting HEAD:** `75590c16a3d5a4ccdcfc6377106f93e23e66c4b2`
+**PR:** [#7, merged → feature/personal-gradebook](https://github.com/khoabm/dashboard/pull/7)
+**Current status:** CP05 OFFLINE ACCEPTED; PR7 merged at4fc986e. CP06-A adds offline readiness/regression evidence below. Production deployment/security acceptance is not implied. Earlier V2 candidate/approval notes are historical.
+
+## Current merged state — CP06-A (2026-10-27)
+
+PR7 was merged into `feature/personal-gradebook` at4fc986e; the branch-local candidate instructions below are historical. Current rendering follows the later occupied-only and responsive-scroller decisions at the end of this document. CP06-A actually exercised the same open chart across1440→360→390→768→1024→1440, with scroller shown/hidden as appropriate, dense/sparse/empty cases and no page overflow. It also fixed ECharts auto-label changing the interactive plot role to img: the component now retains its own slider semantics. [Evidence, strict decoded DTO helpers and pending integration gates](CP06_OFFLINE_READINESS.md). No hosted/security acceptance inferred; physical device/Safari/screen-reader remains NOT RUN. Manual checkout is now `feature/personal-gradebook`, with the maintained tests fixture; obsolete external range/return-button instructions do not describe current UI.
 
 ## Scope and change inventory
 

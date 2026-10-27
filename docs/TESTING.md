@@ -6,6 +6,18 @@ Nguồn tiêu chí đầy đủ: SPEC R05–08, R10–14, R19–22, R25. Không 
 
 Mỗi case ghi: ID hoặc Rxx/tiểu mục, commit/config, môi trường/browser/viewport/danh tính, bước thực hiện, mong đợi/thực tế, trạng thái và bằng chứng. PASS chỉ khi thực sự chạy và quan sát; FAIL có tái hiện; BLOCKED có nguyên nhân; NOT RUN chưa chạy. Không in secret/PII hoặc token trong log/screenshot.
 
+## CP06-A current offline concern matrix
+
+Baseline4fc986e, feature/personal-gradebook. CP05 refinement is merged; [A1–A3 matrix and actual evidence](features/personal-gradebook/CP06_OFFLINE_READINESS.md). Eleven explicit pure/component test files remain the current curated allowlist. New decoded B4 payload projections are tested as plain data/functions/state; no HTTP/SDK/Edge/SQL/browser cases enter CI. Production services remain fail-closed. Historical counts and branch-specific QA snapshots below do not supersede this boundary.
+
+| Concern | Focused evidence / gate |
+| --- | --- |
+| Verification envelope/requestId/expiry/context/catalog and strict private-field rejection | student-gradeboard.test.js; finite pure cases, generic errors, detached presentation metadata |
+| Decimal strings,101 aggregates/occupied rendering, terminal401/403/409/422/429/503 and ownership | New projection/state tests plus retained CP03/CP04/CP05 pure cases; no network |
+| Resize/ARIA/calendar/cancellation/private cleanup | Actual Work Chrome synthetic student fixture at360/390/768/1024/1440; iframe is not physical mobile/Safari |
+| Board/nav/draft | Existing audit fixture column-navigation/refresh and text draft restoration with zero live requests; pure route/history/draft regression, no Board redesign |
+| Server/runtime/deployment/security | Native17/Deno/hosted JWT/RLS/API/transactions/limiter/key recovery/CP01-C and real-data gate NOT RUN; no hosted request authorized |
+
 ## CP04 offline concern matrix
 
 Baseline60fd760, feature/personal-gradebook. Current test:ci explicitly lists ten pure/component files, adding gradebook-scores.test.js; earlier nine/six-file snapshots are historical. No HTTP/API/SDK/Edge/SQL/browser integration enters CI. Production adapter remains unavailable; local Chrome intercepts Board/Auth and injects an isolated teacher adapter/catalog.

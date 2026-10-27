@@ -1,6 +1,6 @@
 # Execution plan and acceptance gates — Personal Gradebook
 
-**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1/B2 ACCEPTED; B3 CORRECTION ACCEPTED at static/offline review (hosted NOT RUN); GB-B4-INT-001 and GB-B4-REV-001 FIXED IN DRAFT; B4 ACCEPTED AS DRAFT; B5 CURATED CODE-QUALITY CI (older conflict snapshot below); CP02 OFFLINE ACCEPTED; CP03/CP04 OFFLINE ACCEPTED; CP05 OFFLINE ACCEPTED; CP06/CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
+**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1/B2 ACCEPTED; B3 CORRECTION ACCEPTED at static/offline review (hosted NOT RUN); GB-B4-INT-001 and GB-B4-REV-001 FIXED IN DRAFT; B4 ACCEPTED AS DRAFT; B5 CURATED CODE-QUALITY CI (older conflict snapshot below); CP02 OFFLINE ACCEPTED; CP03/CP04 OFFLINE ACCEPTED; CP05 OFFLINE ACCEPTED; CP06-A1–A3 IMPLEMENTED OFFLINE / REVIEW; CP06-B/CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
 
 **2026-10-26 B5 superseding policy / baselinec9e18c1:** remove only newly staged PGlite/SQL CI/runner; retain accepted B5 and prior evidence. [One consolidated concern/test matrix and non-CI pre-merge inventory](B5_OFFLINE_REVIEW.md#current-policy-correction--baselinec9e18c1-supersedes-sql-ci-approval). Explicit test:ci covers six component/pure-unit files; specialists/SQL/browser excluded and retained separately pending review, no new probe/test file. Temporary20 SQL groups and earlier120 Node tests are historical only. PR5 Draft/dirty (BUG_FIX_LOG), no reconciliation; Actions/native17/Deno/CP01-C/real-data gates remain pending. Current curated gate66/66 PASS, syntax/static/build/format/diff PASS; no specialist/SQL rerun. No automatic CP01-C/CP02.
 
@@ -143,7 +143,7 @@ Dependency: CP01 + CP03; verify publication/import locks and authorized preview 
 
 ## CP05 — Student board and per-cell histogram modal (OFFLINE ACCEPTED)
 
-**UI refinement candidate only:** separate branch `feature/personal-gradebook-ui-refinement` now includes V2 lazy ECharts6 SVG/keyboard range and a feature-local strict DOB calendar. Offline implementation/browser evidence is recorded in STATUS; explicit user visual approval remains pending. See [CP05_UI_REFINEMENT](CP05_UI_REFINEMENT.md). Do not mark visual acceptance or change CP01-C/CP06 status based on a UI branch.
+**UI refinement merged:** PR7 merged at4fc986e into `feature/personal-gradebook`, preserving CP05 OFFLINE ACCEPTED. Current chart displays only occupied levels from the validated101-bucket aggregate, with responsive dataZoom; date picker and focus changes are included. [CP06-A evidence](CP06_OFFLINE_READINESS.md) supersedes the older resize/browser-pending snapshot for the executed local cases only. This does not complete CP01-C.
 
 2026-10-27 reviewer corrections F01–F05, baseline a99569b: validated verify context, visual integer Y-axis/grid, bounded roving keyboard navigation and reset/expiry focus; maintained synthetic fixture and reproduction steps in tests/README.md. Current evidence in root STATUS; no hosted/CP01-C acceptance inferred.
 
@@ -161,7 +161,9 @@ Dependency: CP01/02 and CP04 publication/data contract. Real-data access additio
 
 2026-10-27, baseline `741ee3d`: implementation and synthetic-only evidence in root STATUS. Checked items mean offline UI/contracts, never hosted authorization. Production verify/private reads remain unavailable. Native device/Safari, deployed deep links, CP01-C and real-data gate NOT RUN.
 
-## CP06 — Integration, regression, and QA (NOT STARTED)
+## CP06 — Integration, regression, and QA (A1–A3 offline slice implemented; full checkpoint OPEN)
+
+**2026-10-27 / baseline4fc986e:** [CP06-A1 contract matrix, A2 pure projections and A3 regression/browser QA](CP06_OFFLINE_READINESS.md). Production adapters remain disabled, backend catalog/preflight proposals not implemented. Completed offline work does not tick the DB/API/concurrency/security rows below; CP06-B/CP07 NOT STARTED, CP01-C and real-data gate NOT RUN. Current root STATUS records final gate evidence. Historical B5 six-file counts/PR conflict/candidate notes above are not current-state claims.
 
 Dependency: CP01–CP05 integration. Keep separate evidence for offline units, browser Codex/IAB, approved live API/Auth/RLS, migration verification and §H data-governance acceptance; none substitutes for the others.
 

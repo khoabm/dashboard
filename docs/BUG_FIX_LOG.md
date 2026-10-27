@@ -2,6 +2,14 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-27 — GB-CP06-A-ARIA / P2: ECharts overwrites keyboard-control semantics (FIXED OFFLINE)
+
+Baseline4fc986e, feature/personal-gradebook. Actual local Chrome exposed role=img on the CP05 plot although StudentChart creates role=slider with one keyboard stop. ECharts6 lib/visual/aria.js automatically calls setAttribute(role,img) when generating its label; this also runs on rebuilt resize options. Disable only aria.label.enabled in the pure chart options, retaining the component's explicit label/role/valuetext and Arrow/Home/End/focus/disposal behavior. No visual, score, histogram, backend, Board or admin contract change. Pure option assertion added; browser observed slider before/after1440→360→390→768→1024→1440 on the same chart instance, normal Tab out and Escape focus return. Full screen-reader/native-device acceptance NOT RUN. This is a merged-source accessibility defect observed synthetically, not a hosted incident.
+
+## 2026-10-27 — GB-CP06-A-QA / P3: synthetic correlation UUID requires secure context (FIXED IN TASK)
+
+While integrating the new decoded-response projection into the local fixture, requestId initially used crypto.randomUUID directly. That API is unavailable on the Work HTTP preview origin, so verification failed before projection; unit Node crypto did not reproduce it. tests/student-gradeboard-fixture.js now reuses existing src/utils/id.js newId UUIDv4/getRandomValues fallback. Actual browser valid verification and each missing/bad-catalog/bad-publication case then reached the intended projection, with external/error counters0. Safe fixture rejection categories contain no payload or diagnostics. No B4/Auth weakening, real credential, dependency or hosted request; production services unchanged.
+
 ## 2026-10-27 — GB-CP05-UIV2-010 / Scrollbar after in-place responsive resize (SOURCE CORRECTION)
 
 Baseline `dd3770e`, only `feature/personal-gradebook-ui-refinement`. Wide charts intentionally omit a scrollbar when every populated category fits. Found a genuine lifecycle issue: the resize handler could not add or remove an ECharts `dataZoom` component after initial render. Rebuild chart option at actual plot-width changes, show/hide guidance only when needed, stack cramped mobile insight cards. Pure regression covers 12 occupied levels at desktop/mobile and zero/one cases. Actual Chrome resize/mobile visual QA still required. No hosted queries/deployments.

@@ -70,8 +70,8 @@ export function studentChartOptions(buckets, highlight, window, reduced = false)
     aria: {
       enabled: true,
       label: {
-        description:
-          'Biểu đồ chỉ hiển thị các mức điểm có học sinh. Các mức điểm không có học sinh được ẩn. Dùng phím trái và phải để đọc từng mức điểm.',
+        // ECharts' automatic label changes role to img; the interactive plot owns its slider semantics.
+        enabled: false,
       },
     },
     grid: { left: 48, right: 18, top: 36, bottom: hasZoom ? 86 : 44 },

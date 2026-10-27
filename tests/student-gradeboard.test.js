@@ -297,6 +297,7 @@ test('V2 sparse chart shows only occupied levels, preserves full aggregate and h
       peak ? ['8.3'] : [],
     );
     const option = studentChartOptions(rows, '8.3', chartWindow(0, 390, occupied.length), true);
+    assert.equal(option.aria.label.enabled, false); // Preserve the plot's interactive role, not ECharts role=img.
     assert.deepEqual(option.xAxis.data, peak ? ['8.3'] : []);
     assert.equal(option.series[0].data.length, peak ? 1 : 0);
     assert.equal(option.series[0].data[0]?.value, peak || undefined);
@@ -396,4 +397,178 @@ test('V2 responsive chart shows and hides dataZoom as occupied levels fit differ
   }
   assert.equal(chartNeedsScroller(1, chartWindow(0, 280, 1)), false);
   assert.equal(chartNeedsScroller(0, chartWindow(0, 280, 0)), false);
+});
+
+// These are decoded data/state contracts, never HTTP/SDK/Edge execution in curated CI.
+const requestId = '00000000-0000-4000-8000-000000000006';
+const responseClock = () => Date.UTC(2026, 9, 27, 6);
+const verifiedBody = () => ({
+  requestId,
+  capability: 'opaque-synthetic-capability',
+  expiresAt: responseClock() / 1000 + 600,
+  ...fixtureContext(),
+});
+
+test('CP06-A2 B4 verification envelope normalizes once into a detached internal context', async () => {
+  const { verificationPayload } = await import('../src/utils/gradebook-responses.js');
+  const payload = verifiedBody();
+  payload.subjects.reverse();
+  const result = verificationPayload(payload, responseClock);
+  assert.equal(result.kind, 'verified');
+  assert.equal(result.capability, payload.capability);
+  assert.equal(result.expiresAt, payload.expiresAt);
+  assert.deepEqual(result.context, fixtureContext());
+  assert.equal(Object.hasOwn(result, 'requestId'), false);
+  payload.class.name = 'Changed after projection';
+  payload.subjects[0].displayName = 'Changed after projection';
+  assert.deepEqual(result.context, fixtureContext());
+});
+
+test('CP06-A2 incomplete, incompatible or private verification metadata fails closed without echo', async () => {
+  const { verificationPayload } = await import('../src/utils/gradebook-responses.js');
+  for (const mutate of [
+    (v) => delete v.class,
+    (v) => delete v.requestId,
+    (v) => (v.requestId = 'invalid'),
+    (v) => (v.capability = ''),
+    (v) => (v.capability = 'with whitespace'),
+    (v) => (v.expiresAt = responseClock() / 1000),
+    (v) => (v.expiresAt += 1),
+    (v) => (v.expiresAt = String(v.expiresAt)),
+    (v) => delete v.class.semester2Published,
+    (v) => (v.class.semester1Published = 'true'),
+    (v) => (v.class.id = 'private'),
+    (v) => v.subjects.pop(),
+    (v) => (v.subjects[0].code = v.subjects[1].code),
+    (v) => (v.subjects[0].displayName = 'Unknown subject'),
+    (v) => (v.scoreColumns[0].active = false),
+    (v) => (v.scoreColumns[0].sortOrder = v.scoreColumns[1].sortOrder),
+    (v) => (v.subjects[0].identityLookup = 'private'),
+    (v) => (v.internalStateHash = 'private'),
+  ]) {
+    const payload = verifiedBody();
+    mutate(payload);
+    assert.throws(
+      () => verificationPayload(payload, responseClock),
+      (error) => {
+        assert.doesNotMatch(error.message, /opaque-synthetic-capability|private|Unknown subject/);
+        return true;
+      },
+    );
+  }
+  let getterCalls = 0;
+  const payload = verifiedBody();
+  Object.defineProperty(payload, 'capability', { enumerable: true, get: () => getterCalls++ });
+  assert.throws(() => verificationPayload(payload, responseClock));
+  assert.equal(getterCalls, 0);
+});
+
+test('CP06-A2 read envelopes drop requestId and preserve exact own decimals and aggregate-only selection', async () => {
+  const { studentReadPayload } = await import('../src/utils/gradebook-responses.js');
+  const context = fixtureContext(),
+    body = { op: 'grades', semester: 1 };
+  const payload = {
+    requestId,
+    semester: 1,
+    scores: ['0', '10', '8.12345'].map((rawScore, index) => ({
+      subjectCode: 'item_0',
+      columnCode: `item_${index}`,
+      rawScore,
+    })),
+  };
+  assert.deepEqual(
+    studentReadPayload(body, payload, context).scores.map((s) => s.rawScore),
+    ['0', '10', '8.12345'],
+  );
+  assert.deepEqual(studentReadPayload(body, { requestId, semester: 1, scores: [] }, context), {
+    semester: 1,
+    scores: [],
+  });
+  for (const rawScore of ['8.123456', '8.123450', '8e0', 8.1]) {
+    const invalid = structuredClone(payload);
+    invalid.scores[0].rawScore = rawScore;
+    assert.throws(() => studentReadPayload(body, invalid, context));
+  }
+  assert.throws(() => studentReadPayload({ ...body, studentId: '1' }, payload, context));
+  assert.throws(() => studentReadPayload(body, { ...payload, ciphertext: 'private' }, context));
+  const selected = { op: 'histogram', semester: 1, subjectCode: 'item_0', columnCode: 'item_0' };
+  const aggregate = { ...distribution(), requestId, subjectCode: 'item_0', columnCode: 'item_0' };
+  const result = studentReadPayload(selected, aggregate, context);
+  assert.equal(result.buckets.length, 101);
+  assert.equal(Object.hasOwn(result, 'requestId'), false);
+  for (const change of [
+    (v) => v.buckets.pop(),
+    (v) => (v.buckets[0].studentId = 'peer'),
+    (v) => (v.columnCode = 'item_1'),
+    (v) => (v.semester = 2),
+  ]) {
+    const invalid = structuredClone(aggregate);
+    change(invalid);
+    assert.throws(() => studentReadPayload(selected, invalid, context));
+  }
+});
+
+test('CP06-A3 normalized capability stays private through publication denial, revocation and expiry', async () => {
+  const { verificationPayload, studentReadFailure, verificationFailure } = await import(
+    '../src/utils/gradebook-responses.js'
+  );
+  let now = responseClock(),
+    calls = 0,
+    denied = 403;
+  const state = createLookupState({
+    clock: () => now,
+    setTimer: () => 0,
+    clearTimer: () => {},
+    verify: async () => verificationPayload(verifiedBody(), () => now),
+    request: async () => {
+      calls++;
+      throw studentReadFailure(denied);
+    },
+  });
+  await state.submit({ documentNumber: '000000009', birthDate: '29/02/2000' });
+  assert.equal(state.snapshot().status, 'verified');
+  assert.doesNotMatch(JSON.stringify(state.snapshot()), /opaque-synthetic|000000009|2000-02-29/);
+  await assert.rejects(state.read({ op: 'grades', semester: 2 }), { status: 403 });
+  assert.equal(state.snapshot().status, 'verified'); // The other semester's capability remains owned.
+  denied = 401;
+  await assert.rejects(state.read({ op: 'grades', semester: 1 }), { status: 401 });
+  assert.equal(state.snapshot().status, 'expired');
+  assert.equal(state.context(), null);
+  assert.equal(calls, 2);
+  await state.submit({ documentNumber: '000000009', birthDate: '29/02/2000' });
+  now += 600000;
+  state.checkExpiry();
+  await assert.rejects(state.read({ op: 'grades', semester: 1 }), { status: 401 });
+  assert.equal(calls, 2);
+  state.dispose();
+  for (const status of [400, 401, 403, 409, 413, 415, 422, 429, 503, 500]) {
+    const fault = studentReadFailure(status);
+    assert.equal(fault.status, status === 500 ? 503 : status);
+    assert.equal(fault.message, 'Student request unavailable');
+    assert.deepEqual(verificationFailure(status), {
+      kind: status === 401 ? 'neutral' : status === 429 ? 'limited' : 'unavailable',
+    });
+  }
+  assert.equal(studentReadFailure('40001').status, 503);
+});
+
+test('CP06-A3 a normalized late verification cannot resurrect a reset or disposed view', async () => {
+  const { verificationPayload } = await import('../src/utils/gradebook-responses.js');
+  for (const action of ['reset', 'dispose']) {
+    const held = Promise.withResolvers();
+    const state = createLookupState({
+      clock: responseClock,
+      setTimer: () => 0,
+      clearTimer: () => {},
+      verify: async () => verificationPayload(await held.promise, responseClock),
+    });
+    const pending = state.submit({ documentNumber: '000000009', birthDate: '29/02/2000' });
+    state[action]();
+    held.resolve(verifiedBody());
+    await pending;
+    assert.equal(state.context(), null);
+    assert.equal(state.snapshot().status, action === 'reset' ? 'idle' : 'disposed');
+    assert.doesNotMatch(JSON.stringify(state.snapshot()), /opaque-synthetic|000000009|2000-02-29/);
+    state.dispose();
+  }
 });

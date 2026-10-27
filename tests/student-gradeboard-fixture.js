@@ -2,7 +2,13 @@
 import '../src/styles/main.css';
 import { StudentLookup } from '../src/components/student-lookup.js';
 import { el, button } from '../src/utils/dom.js';
+import { newId } from '../src/utils/id.js';
 import { fixtureContext } from './student-gradeboard-data.js';
+import {
+  verificationPayload,
+  studentReadPayload,
+  studentReadFailure,
+} from '../src/utils/gradebook-responses.js';
 
 const controls = document.querySelector('#qa-controls');
 controls.style.cssText =
@@ -50,6 +56,7 @@ if (!embedded) {
     errors = 0,
     verifyCalls = 0,
     readCalls = 0,
+    projectionRejected = null,
     nowOffset = 0,
     view,
     issued = null;
@@ -99,10 +106,13 @@ if (!embedded) {
     output.textContent = JSON.stringify({
       verifyCalls,
       readCalls,
+      projectionRejected,
       external,
       errors,
       privateView: !!root.querySelector('.student-gradeboard'),
       dialogs: document.querySelectorAll('dialog').length,
+      capabilityInDom: !!issued && document.body.outerHTML.includes(issued),
+      storageEntries: [localStorage.length, sessionStorage.length],
     });
   };
   const release = () => pending.splice(0).forEach((resolve) => resolve());
@@ -125,53 +135,87 @@ if (!embedded) {
       clock: () => Date.now() + nowOffset,
       verify: async () => {
         verifyCalls++;
+        projectionRejected = null;
         const context = fixtureContext();
         if (contextMode.value === 'bad-catalog') context.subjects = [];
         if (contextMode.value === 'bad-publication') context.class.semester1Published = 'true';
         issued = Array.from(crypto.getRandomValues(new Uint8Array(24)), (n) =>
           n.toString(16).padStart(2, '0'),
         ).join('');
-        return {
-          kind: 'verified',
+        const payload = {
+          requestId: newId(),
           capability: issued,
           expiresAt: Math.floor((Date.now() + nowOffset) / 1000) + 600,
-          ...(contextMode.value === 'missing' ? {} : { context }),
+          ...(contextMode.value === 'missing' ? {} : context),
         };
+        try {
+          return verificationPayload(payload, () => Date.now() + nowOffset);
+        } catch (error) {
+          issued = null;
+          projectionRejected = [
+            'structure',
+            'fields',
+            'response',
+            'catalog',
+            'verification',
+          ].includes(error.code)
+            ? error.code
+            : 'invalid';
+          throw error;
+        }
       },
       request: async (body, { capability }) => {
         readCalls++;
-        if (!issued || capability !== issued) throw { status: 401 };
+        if (!issued || capability !== issued) throw studentReadFailure(401);
         let mode = response.value,
           peak = Number(maximum.value);
         if (mode === 'hold') {
           await new Promise((resolve) => pending.push(resolve));
           mode = response.value;
         }
-        if (mode === 'denied') throw { status: 403 };
-        if (['401', '429', '503'].includes(mode)) throw { status: Number(mode) };
+        if (mode === 'denied' || body.semester === 2) throw studentReadFailure(403);
+        if (['401', '429', '503'].includes(mode)) throw studentReadFailure(Number(mode));
         if (body.op === 'grades')
-          return {
+          return studentReadPayload(
+            body,
+            {
+              requestId: newId(),
+              semester: body.semester,
+              scores:
+                mode === 'empty'
+                  ? []
+                  : [
+                      { subjectCode: 'item_0', columnCode: 'item_0', rawScore: '8.25' },
+                      { subjectCode: 'item_0', columnCode: 'item_1', rawScore: '0' },
+                      { subjectCode: 'item_0', columnCode: 'item_2', rawScore: '10' },
+                    ],
+            },
+            fixtureContext(),
+          );
+        return studentReadPayload(
+          body,
+          {
+            requestId: newId(),
             semester: body.semester,
-            scores:
-              mode === 'empty'
-                ? []
-                : [
-                    { subjectCode: 'item_0', columnCode: 'item_0', rawScore: '8.25' },
-                    { subjectCode: 'item_0', columnCode: 'item_1', rawScore: '0' },
-                    { subjectCode: 'item_0', columnCode: 'item_2', rawScore: '10' },
-                  ],
-          };
-        return {
-          semester: body.semester,
-          subjectCode: body.subjectCode,
-          columnCode: body.columnCode,
-          grouping: 'display_tenth_half_up',
-          buckets: Array.from({ length: 101 }, (_, i) => ({
-            scoreBucket: `${Math.floor(i / 10)}.${i % 10}`,
-            studentCount:
-              mode === 'empty' ? 0 : i === 83 ? peak : i % 10 === 0 ? Math.floor(peak / 2) : 0,
-          })),
-        };
+            subjectCode: body.subjectCode,
+            columnCode: body.columnCode,
+            grouping: 'display_tenth_half_up',
+            buckets: Array.from({ length: 101 }, (_, i) => ({
+              scoreBucket: `${Math.floor(i / 10)}.${i % 10}`,
+              studentCount:
+                mode === 'empty' || peak === 0
+                  ? 0
+                  : i === 83
+                    ? peak
+                    : body.subjectCode === 'item_1'
+                      ? Math.max(1, Math.floor(peak / 2))
+                      : i % 10 === 0
+                        ? Math.floor(peak / 2)
+                        : 0,
+            })),
+          },
+          fixtureContext(),
+        );
       },
     });
     root.replaceChildren(view.element);
