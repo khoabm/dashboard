@@ -37,10 +37,12 @@ jobs:
           test "$(gh api repos/khoabm/dashboard --jq .visibility)" = public
           echo 'Public repository + standard ubuntu-24.04. No artifacts, caches, hosted secrets or paid resources.'
       - name: Prepare disposable PostgreSQL 17 and test-only driver
+        id: prepare
         run: |
           set -euo pipefail
           export PGHOST=127.0.0.1 PGPORT=15432 PGUSER=postgres
           export PGPASSWORD="$(openssl rand -hex 24)"
+          export POSTGRES_PASSWORD="$PGPASSWORD"
           echo "::add-mask::$PGPASSWORD"
           echo "PGPASSWORD=$PGPASSWORD" >> "$GITHUB_ENV"
           echo 'PGHOST=127.0.0.1' >> "$GITHUB_ENV"
@@ -48,8 +50,10 @@ jobs:
           echo 'PGUSER=postgres' >> "$GITHUB_ENV"
           echo "GB_QA_DEPENDENCIES=$RUNNER_TEMP/gb-dependencies" >> "$GITHUB_ENV"
           echo "PGLITE_MODULE_PATH=$GITHUB_WORKSPACE/tests/cloud/native-adapter.mjs" >> "$GITHUB_ENV"
-          docker run -d --name gb-postgres --memory=2g --cpus=2 -p 127.0.0.1:15432:5432 -e POSTGRES_PASSWORD postgres:17.6-bookworm > /dev/null
+          docker network create --internal gb-security > /dev/null
+          docker run -d --name gb-postgres --network gb-security --memory=2g --cpus=2 -p 127.0.0.1:15432:5432 -e POSTGRES_PASSWORD postgres:17.6-bookworm > /dev/null
           for attempt in {1..20}; do
+            test "$(docker inspect gb-postgres --format '{{.State.Running}}')" = true || { echo 'Disposable DB exited; STOP'; exit 1; }
             if docker exec gb-postgres pg_isready -U postgres > /dev/null; then break; fi
             sleep 1
           done
@@ -69,6 +73,13 @@ jobs:
         run: node tests/cloud/connections.mjs
       - name: Existing finite Edge fault and signed-preview contracts
         run: node --test --test-name-pattern 'limiter denial/failure|preview HMAC canonicalization|stale preflight|timeout/cancellation' tests/gradebook-edge.test.js
+      - name: Real disposable Supabase Auth and API acceptance
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
+        env:
+          GB_QA_DATABASE: gbqa_auth
+        run: node tests/cloud/auth-api.mjs
       - name: Dispose runner-only database
         if: always()
-        run: docker rm -f gb-postgres > /dev/null 2>&1 || true
+        run: |
+          docker rm -fv gb-auth gb-rest gb-postgres > /dev/null 2>&1 || true
+          docker network rm gb-security > /dev/null 2>&1 || true
