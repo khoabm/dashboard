@@ -1618,3 +1618,47 @@
     transition: none;
   }
 }
+
+/* CP05 focus polish: the Gradebook owns one calm green ring, not a nested blue native/global outline. */
+.lookup-form > input:not([type='hidden']),
+.student-chart-dialog .student-chart-selectors select,
+.lookup-form .birthday-navigation select,
+.lookup-form .birthday-navigation input {
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+.lookup-form > input:not([type='hidden']):hover,
+.student-chart-dialog .student-chart-selectors select:hover,
+.lookup-form .birthday-navigation select:hover,
+.lookup-form .birthday-navigation input:hover {
+  border-color: #abc8b7;
+}
+.lookup-form > input:not([type='hidden']):focus,
+.lookup-form > input:not([type='hidden']):focus-visible,
+.student-chart-dialog .student-chart-selectors select:focus,
+.student-chart-dialog .student-chart-selectors select:focus-visible,
+.lookup-form .birthday-navigation select:focus,
+.lookup-form .birthday-navigation select:focus-visible,
+.lookup-form .birthday-navigation input:focus,
+.lookup-form .birthday-navigation input:focus-visible {
+  outline: none;
+  outline-offset: 0;
+  border-color: #367c58;
+  box-shadow: 0 0 0 3px #367c582b;
+}
+.lookup-form > input[aria-invalid='true']:not([type='hidden']),
+.lookup-form > input[aria-invalid='true']:not([type='hidden']):focus,
+.lookup-form > input[aria-invalid='true']:not([type='hidden']):focus-visible {
+  border-color: #b65243;
+}
+.lookup-form > input[aria-invalid='true']:not([type='hidden']):focus,
+.lookup-form > input[aria-invalid='true']:not([type='hidden']):focus-visible {
+  box-shadow: 0 0 0 3px #b6524330;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lookup-form > input:not([type='hidden']),
+  .student-chart-dialog .student-chart-selectors select,
+  .lookup-form .birthday-navigation select,
+  .lookup-form .birthday-navigation input {
+    transition: none;
+  }
+}

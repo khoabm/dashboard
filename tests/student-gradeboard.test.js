@@ -294,6 +294,13 @@ test('V2 ECharts options retain all101 buckets, exact highlights and integer axe
     assert.equal(option.series[0].data.length, 101);
     assert.equal(option.series[0].data[83].value, peak);
     assert.equal(option.series[0].data.filter((row) => row.itemStyle.borderWidth === 1).length, 1);
+    // Highlight never turns the generic green on hover; other buckets keep their own color.
+    assert.equal(option.series[0].data[83].itemStyle.color, '#d28a44');
+    assert.equal(option.series[0].data[83].emphasis.itemStyle.color, '#d28a44');
+    assert.equal(option.series[0].data[83].emphasis.itemStyle.borderWidth, 2);
+    assert.equal(option.series[0].data[50].emphasis.itemStyle.color, '#80b49b');
+    assert.equal(option.series[0].barMaxWidth, 34);
+    assert.equal(option.series[0].barCategoryGap, '45%');
     assert.equal(option.yAxis.minInterval, 1);
     assert.equal(option.yAxis.max, Math.max(1, peak));
     assert.equal(option.animation, false);
@@ -306,6 +313,21 @@ test('V2 ECharts options retain all101 buckets, exact highlights and integer axe
       0,
     );
   }
-  assert.deepEqual(chartWindow(0, 390), { start: 0, end: 20 });
-  assert.deepEqual(chartWindow(100, 1440), { start: 60, end: 100 });
+  assert.deepEqual(chartWindow(0, 390), { start: 0, end: 8 });
+  assert.deepEqual(chartWindow(100, 1440), { start: 68, end: 100 });
+  for (const width of [280, 360, 390, 768, 1024, 1440]) {
+    const first = chartWindow(0, width);
+    const last = chartWindow(100, width);
+    const middle = chartWindow(83, width);
+    const span = first.end - first.start;
+    assert.ok(span >= 8 && span <= 32);
+    assert.equal(first.start, 0);
+    assert.equal(last.end, 100);
+    assert.equal(last.end - last.start, span);
+    assert.equal(middle.end - middle.start, span);
+    assert.ok(middle.start <= 83 && middle.end >= 83);
+  }
+  // Larger plots can show more levels without forcing narrow bars at mobile widths.
+  assert.ok(chartWindow(40, 390).end - chartWindow(40, 390).start <
+    chartWindow(40, 1024).end - chartWindow(40, 1024).start);
 });

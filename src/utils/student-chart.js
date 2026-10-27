@@ -1,8 +1,11 @@
 /** Builds a presentation-only ECharts option from the already validated 101 aggregate buckets. */
 import { histogramScale } from './student-gradeboard.js';
 
+/** Fits readable bar widths to the plot rather than showing a fixed 20/40 levels at any width. */
 export function chartWindow(index, width) {
-  const span = width < 600 ? 20 : 40;
+  const usableWidth = Number.isFinite(width) ? Math.max(0, width - 60) : 0;
+  // Never force a minimum rendered bar width: the user may zoom out to see all 101 levels.
+  const span = Math.max(8, Math.min(32, Math.floor(usableWidth / 38)));
   const start = Math.max(0, Math.min(100 - span, index - Math.floor(span / 2)));
   return { start, end: start + span };
 }
@@ -88,23 +91,37 @@ export function studentChartOptions(buckets, highlight, window, reduced = false)
     series: [
       {
         type: 'bar',
-        barMaxWidth: 24,
-        barCategoryGap: '32%',
-        data: buckets.map((row) => ({
-          value: row.studentCount,
-          itemStyle: {
-            color: row.scoreBucket === highlight ? '#d28a44' : '#80b49b',
-            borderRadius: [5, 5, 0, 0],
-            ...(row.scoreBucket === highlight ? { borderColor: '#915b27', borderWidth: 1 } : {}),
-          },
-          label: {
-            show: row.scoreBucket === highlight && row.studentCount > 0,
-            position: 'top',
-            color: '#915b27',
-            fontWeight: 700,
-          },
-        })),
-        emphasis: { itemStyle: { color: '#276a4e' } },
+        barMaxWidth: 34,
+        // Positive category gap prevents bars touching as the visible range or plot width changes.
+        barCategoryGap: '45%',
+        data: buckets.map((row) => {
+          const isPersonal = row.scoreBucket === highlight;
+          const color = isPersonal ? '#d28a44' : '#80b49b';
+          return {
+            value: row.studentCount,
+            itemStyle: {
+              color,
+              borderRadius: [5, 5, 0, 0],
+              ...(isPersonal ? { borderColor: '#915b27', borderWidth: 1 } : {}),
+            },
+            // ECharts' old series-wide green hover obscured the orange personal bucket.
+            emphasis: {
+              itemStyle: {
+                color,
+                borderColor: isPersonal ? '#915b27' : '#407f61',
+                borderWidth: isPersonal ? 2 : 1,
+                shadowBlur: isPersonal ? 8 : 4,
+                shadowColor: isPersonal ? '#915b2740' : '#205a3c20',
+              },
+            },
+            label: {
+              show: isPersonal && row.studentCount > 0,
+              position: 'top',
+              color: '#915b27',
+              fontWeight: 700,
+            },
+          };
+        }),
       },
     ],
   };

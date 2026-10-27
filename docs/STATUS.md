@@ -1,3 +1,9 @@
+# CP05 focus, hover and chart-density polish — 2026-10-27
+
+On `feature/personal-gradebook-ui-refinement` (parent `feature/personal-gradebook` untouched): user screenshot-driven refinement gives the student CCCD field, histogram subject/type selects and DOB calendar month/year controls a consistent scoped green focus ring and red CCCD error treatment. ECharts personal bucket hover now remains orange instead of inheriting series-wide green; default chart window is responsive (8–32 intervals) with increased 34px bar maximum and 45% spacing. All 101 aggregate levels, exact half-up, one keyboard stop and dataZoom remain intact. Added pure tests and updated [UI refinement notes](features/personal-gradebook/CP05_UI_REFINEMENT.md#focus-and-bar-hover-correction--2026-10-27). CI, browser QA and user visual acceptance must be evidenced separately; no hosted requests/production deploy authorized.
+
+---
+
 # CP05 UI screenshot corrections — 2026-10-27
 
 Branch `feature/personal-gradebook-ui-refinement`, baseline `71f72766ded4d22cec80da29ced43daec55d4ef7`. User approved focused V2-01..V2-04 fixes plus screenshot-driven DOB focus, continuous DD/MM/YYYY typing and a compact wider desktop chart. Redundant chart exploration range/return controls removed; one keyboard-accessible chart surface and ECharts horizontal scrollbar remain. Invalid DOB now visually highlights the complete field; calendar disallows future months in the current year; lazy import displays a preparation state. Synthetic QA fixture and its developer labels remain unchanged. [Correction matrix](features/personal-gradebook/CP05_UI_REFINEMENT.md#screenshot-based-correction--2026-10-27).

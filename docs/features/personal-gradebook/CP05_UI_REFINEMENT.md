@@ -66,4 +66,14 @@ Source feedback: three user screenshots showed nested input/outer focus rings, m
 - **Laptop/desktop:** wider chart dialog (up to 1120 CSS px) and height-sensitive spacing/plot sizing to avoid typical vertical overflow. Short viewport browser checks remain required; content must never be hidden merely to suppress scroll.
 
 The synthetic QA fixture and its developer-only labels are deliberately **unchanged**, per user approval. The feature-local chart/date controls and documents are the only scope. Unit/CI/browser evidence of this correction must be recorded separately rather than inheriting Work's earlier V2 PASS. No hosted calls, migrations or deployment authorized.
+ 
+## Focus and bar-hover correction — 2026-10-27
+
+User screenshots of the student lookup and chart selectors showed a doubled blue focus outline, while hovering the highlighted personal bar changed its orange fill to generic dark green. The histogram bars also looked too thin in the default laptop/desktop window.
+
+- **Scope:** feature-local `gradebook.css`, pure ECharts option/window helper and targeted unit tests only; no global `main.css`, Board, admin, Supabase, fixture labels or parent-branch changes.
+- **Focus:** student CCCD input, chart subject/type selectors and calendar month/year selectors get one consistent green border/ring; invalid CCCD shows red. Native keyboard focus remains visually apparent. Date field retains its previously accepted wrapper focus and invalid presentation.
+- **Hover:** the personal bar retains orange even when hovered; emphasis adds a subtle border/shadow instead of recoloring it green. Other bars keep their green fill.
+- **Width and density:** responsive default dataZoom window derives the number of visible levels from chart width (8–32 intervals). Bars can grow up to 34px; a 45% category gap preserves separation when zooming/resizing. All 101 validated levels remain in the dataset and can be reached with zoom/scroll or keyboard. No artificial minimum bar width that would make crowded zoom-out columns overlap.
+- **Tests:** add pure checks for selected/ordinary hover colors, bar cap/gap and window bounds at widths 280/360/390/768/1024/1440. Browser visual, keyboard and native-select open-state checks must be reported independently; do not infer them from source alone.
 
