@@ -1,0 +1,74 @@
+name: Gradebook disposable security
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/personal-gradebook]
+    paths:
+      - .github/workflows/gradebook-cloud-security.yml
+      - tests/cloud/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gradebook-disposable-security
+  cancel-in-progress: false
+
+jobs:
+  disposable:
+    if: github.repository == 'khoabm/dashboard' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Enforce public standard-runner zero-cost boundary
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          test "$(gh api repos/khoabm/dashboard --jq .visibility)" = public
+          echo 'Public repository + standard ubuntu-24.04. No artifacts, caches, hosted secrets or paid resources.'
+      - name: Prepare disposable PostgreSQL 17 and test-only driver
+        run: |
+          set -euo pipefail
+          export PGHOST=127.0.0.1 PGPORT=15432 PGUSER=postgres
+          export PGPASSWORD="$(openssl rand -hex 24)"
+          echo "::add-mask::$PGPASSWORD"
+          echo "PGPASSWORD=$PGPASSWORD" >> "$GITHUB_ENV"
+          echo 'PGHOST=127.0.0.1' >> "$GITHUB_ENV"
+          echo 'PGPORT=15432' >> "$GITHUB_ENV"
+          echo 'PGUSER=postgres' >> "$GITHUB_ENV"
+          echo "GB_QA_DEPENDENCIES=$RUNNER_TEMP/gb-dependencies" >> "$GITHUB_ENV"
+          echo "PGLITE_MODULE_PATH=$GITHUB_WORKSPACE/tests/cloud/native-adapter.mjs" >> "$GITHUB_ENV"
+          docker run -d --name gb-postgres --memory=2g --cpus=2 -p 127.0.0.1:15432:5432 -e POSTGRES_PASSWORD postgres:17.6-bookworm > /dev/null
+          for attempt in {1..20}; do
+            if docker exec gb-postgres pg_isready -U postgres > /dev/null; then break; fi
+            sleep 1
+          done
+          docker exec gb-postgres pg_isready -U postgres
+          npm install --prefix "$RUNNER_TEMP/gb-dependencies" --no-audit --no-fund --ignore-scripts pg@8.16.3
+          npm ci --ignore-scripts --no-audit --no-fund
+      - name: Native migration constraints, recovery and replay
+        run: |
+          set -euo pipefail
+          for suite in b2 b3 conflicts reveal; do
+            export GB_QA_DATABASE="gbqa_$suite"
+            node "tests/gradebook-$suite-sql.mjs"
+          done
+      - name: Independent-connection security and synthetic key recovery
+        env:
+          GB_QA_DATABASE: gbqa_connections
+        run: node tests/cloud/connections.mjs
+      - name: Existing finite Edge fault and signed-preview contracts
+        run: node --test --test-name-pattern 'limiter denial/failure|preview HMAC canonicalization|stale preflight|timeout/cancellation' tests/gradebook-edge.test.js
+      - name: Dispose runner-only database
+        if: always()
+        run: docker rm -f gb-postgres > /dev/null 2>&1 || true
