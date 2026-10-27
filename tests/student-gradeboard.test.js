@@ -292,7 +292,10 @@ test('V2 sparse chart shows only occupied levels, preserves full aggregate and h
     }));
     const occupied = occupiedScoreLevels(rows);
     assert.equal(rows.length, 101);
-    assert.deepEqual(occupied.map((row) => row.scoreBucket), peak ? ['8.3'] : []);
+    assert.deepEqual(
+      occupied.map((row) => row.scoreBucket),
+      peak ? ['8.3'] : [],
+    );
     const option = studentChartOptions(rows, '8.3', chartWindow(0, 390, occupied.length), true);
     assert.deepEqual(option.xAxis.data, peak ? ['8.3'] : []);
     assert.equal(option.series[0].data.length, peak ? 1 : 0);
@@ -314,7 +317,10 @@ test('V2 sparse chart shows only occupied levels, preserves full aggregate and h
   }));
   const option = studentChartOptions(rows, '8.3', chartWindow(2, 390, 4), true);
   assert.deepEqual(option.xAxis.data, ['0.0', '2.0', '8.3', '10.0']);
-  assert.deepEqual(option.series[0].data.map((row) => row.value), [1, 3, 23, 2]);
+  assert.deepEqual(
+    option.series[0].data.map((row) => row.value),
+    [1, 3, 23, 2],
+  );
   assert.equal(option.series[0].data.filter((row) => row.itemStyle.borderWidth === 1).length, 1);
   assert.equal(option.series[0].data[1].emphasis.itemStyle.color, '#80b49b');
   assert.equal(option.series[0].barMaxWidth, 64);
@@ -332,8 +338,9 @@ test('V2 sparse chart shows only occupied levels, preserves full aggregate and h
 });
 
 test('V2 dense occupied levels remain separated, scrollable and reachable across screen widths', async () => {
-  const { studentChartOptions, chartWindow, occupiedScoreLevels } =
-    await import('../src/utils/student-chart.js');
+  const { studentChartOptions, chartWindow, occupiedScoreLevels } = await import(
+    '../src/utils/student-chart.js'
+  );
   const rows = distribution().buckets.map((row) => ({ ...row, studentCount: 2 }));
   const visible = occupiedScoreLevels(rows);
   assert.equal(visible.length, 101);
@@ -362,8 +369,9 @@ test('V2 dense occupied levels remain separated, scrollable and reachable across
   );
 });
 test('V2 responsive chart shows and hides dataZoom as occupied levels fit different widths', async () => {
-  const { chartWindow, chartNeedsScroller, studentChartOptions } =
-    await import('../src/utils/student-chart.js');
+  const { chartWindow, chartNeedsScroller, studentChartOptions } = await import(
+    '../src/utils/student-chart.js'
+  );
   const rows = distribution().buckets.map((row, index) => ({
     ...row,
     studentCount: [0, 10, 20, 30, 40, 50, 60, 70, 80, 83, 90, 100].includes(index) ? 5 : 0,

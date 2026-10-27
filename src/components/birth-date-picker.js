@@ -174,7 +174,8 @@ export function BirthDatePicker(input, clock = Date.now) {
   }
   monthSelect.addEventListener('change', () => {
     const today = vietnamToday(clock).split('-').map(Number);
-    month = year === today[0] ? Math.min(Number(monthSelect.value), today[1]) : Number(monthSelect.value);
+    month =
+      year === today[0] ? Math.min(Number(monthSelect.value), today[1]) : Number(monthSelect.value);
     render();
   });
   yearInput.addEventListener('input', () => {

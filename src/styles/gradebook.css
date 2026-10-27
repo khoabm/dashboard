@@ -1516,7 +1516,9 @@
 .lookup-form .birthday-field {
   min-height: 50px;
   border-color: #d6e1da;
-  transition: border-color 120ms ease, box-shadow 120ms ease;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
 }
 .lookup-form .birthday-field > input {
   flex: 1 1 auto;
@@ -1625,7 +1627,9 @@
 .student-chart-dialog .student-chart-selectors select,
 .lookup-form .birthday-navigation select,
 .lookup-form .birthday-navigation input {
-  transition: border-color 140ms ease, box-shadow 140ms ease;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
 }
 .lookup-form > input:not([type='hidden']):hover,
 .student-chart-dialog .student-chart-selectors select:hover,

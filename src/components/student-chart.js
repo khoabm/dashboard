@@ -41,7 +41,11 @@ export function StudentChart(container, buckets, highlight, onScrollerChange = (
     container.replaceChildren(
       el('p', { class: 'student-chart-loading', role: 'status' }, 'Lớp chưa có điểm ở mục này.'),
     );
-    return { dispose() { container.replaceChildren(); } };
+    return {
+      dispose() {
+        container.replaceChildren();
+      },
+    };
   }
   const chart = init(plot, null, { renderer: 'svg' });
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
