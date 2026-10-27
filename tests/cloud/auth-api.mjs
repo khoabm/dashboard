@@ -90,6 +90,8 @@ try {
         'GOTRUE_EXTERNAL_EMAIL_ENABLED',
         'GOTRUE_MAILER_AUTOCONFIRM',
         'GOTRUE_JWT_ADMIN_ROLES',
+        'GOTRUE_JWT_AUD',
+        'GOTRUE_JWT_DEFAULT_GROUP_NAME',
         'GOTRUE_LOG_LEVEL',
       ].flatMap((key) => ['-e', key]),
       'supabase/gotrue:v2.197.0',
@@ -106,6 +108,8 @@ try {
       GOTRUE_EXTERNAL_EMAIL_ENABLED: 'true',
       GOTRUE_MAILER_AUTOCONFIRM: 'true',
       GOTRUE_JWT_ADMIN_ROLES: 'service_role',
+      GOTRUE_JWT_AUD: 'authenticated',
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: 'authenticated',
       GOTRUE_LOG_LEVEL: 'error',
     },
   );
@@ -173,6 +177,11 @@ try {
     });
     assert.equal(login.status, 200);
     const session = await login.json();
+    const claims = JSON.parse(Buffer.from(session.access_token.split('.')[1], 'base64url'));
+    assert.equal(claims.iss, issuer, 'Synthetic Auth issuer configuration');
+    assert.equal(claims.aud, 'authenticated', 'Synthetic Auth audience configuration');
+    assert.equal(claims.role, 'authenticated', 'Synthetic Auth role configuration');
+    assert.equal(typeof claims.session_id, 'string', 'Synthetic Auth session claim');
     users.push({ id: user.id, token: session.access_token });
   }
   await db.query('INSERT INTO public.admin_profiles(user_id) VALUES($1)', [users[0].id]);

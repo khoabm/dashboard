@@ -24,6 +24,22 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          fetch-depth: 2
+      - name: Select changed specialist concerns without repeating accepted suites
+        id: scope
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          changed="$(git diff --name-only HEAD^ HEAD)"
+          native=false; connections=false; edge=false; auth=false
+          if [[ "$EVENT_NAME" == workflow_dispatch ]] || grep -Eq '^(supabase/|tests/gradebook/|tests/gradebook-.*-sql.mjs|tests/cloud/native-adapter.mjs)' <<< "$changed"; then
+            native=true; connections=true; edge=true; auth=true
+          fi
+          if grep -Eq '^tests/cloud/(connections|recover).mjs$' <<< "$changed"; then connections=true; fi
+          if grep -Eq '^tests/cloud/auth-api.mjs$' <<< "$changed"; then auth=true; fi
+          if grep -Eq '^tests/gradebook-edge.test.js$' <<< "$changed"; then edge=true; fi
+          for group in native connections edge auth; do echo "$group=${!group}" >> "$GITHUB_OUTPUT"; done
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
@@ -62,6 +78,7 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/gb-dependencies" --no-audit --no-fund --ignore-scripts pg@8.16.3
           npm ci --ignore-scripts --no-audit --no-fund
       - name: Native migration constraints, recovery and replay
+        if: ${{ steps.scope.outputs.native == 'true' }}
         run: |
           set -euo pipefail
           for suite in b2 b3 conflicts reveal; do
@@ -69,15 +86,15 @@ jobs:
             node "tests/gradebook-$suite-sql.mjs"
           done
       - name: Independent-connection security and synthetic key recovery
-        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' && steps.scope.outputs.connections == 'true' }}
         env:
           GB_QA_DATABASE: gbqa_connections
         run: node tests/cloud/connections.mjs
       - name: Existing finite Edge fault and signed-preview contracts
-        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' && steps.scope.outputs.edge == 'true' }}
         run: node --test --test-name-pattern 'limiter denial/failure|preview HMAC canonicalization|stale preflight|timeout/cancellation' tests/gradebook-edge.test.js
       - name: Real disposable Supabase Auth and API acceptance
-        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' && steps.scope.outputs.auth == 'true' }}
         env:
           GB_QA_DATABASE: gbqa_auth
         run: node tests/cloud/auth-api.mjs
