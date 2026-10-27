@@ -1,4 +1,5 @@
 /** Defines English routes and memory-only lookup state without DOM, storage or network dependencies. */
+import { studentContext } from './student-gradeboard.js';
 import { documentNumber } from './gradebook/contracts.js';
 import { uiDate, birthDate, vietnamToday } from './gradebook/dates.js';
 
@@ -152,8 +153,9 @@ export function createLookupState({
           result.expiresAt * 1000 > clock() &&
           result.expiresAt * 1000 <= clock() + 600000
         ) {
+          const context = studentContext(result.context);
           capability = result.capability;
-          verifiedContext = result.context || null;
+          verifiedContext = context;
           emit({ status: 'verified', errors: {}, expiresAt: result.expiresAt });
           timer = setTimer(expire, result.expiresAt * 1000 - clock());
         } else

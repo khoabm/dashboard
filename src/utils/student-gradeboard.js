@@ -12,6 +12,63 @@ const exact = (value, fields) =>
 export const studentCatalog = teacherCatalog;
 export const bucketFor = (value) => (value === null ? null : displayScore(value));
 
+/** Validates and projects the complete public verify context before any capability is retained. */
+export function studentContext(value) {
+  exact(value, ['class', 'subjects', 'scoreColumns']);
+  const catalog = studentCatalog(value);
+  const classroom = value.class;
+  exact(classroom, ['name', 'schoolYear', 'semester1Published', 'semester2Published']);
+  for (const [field, limit] of [
+    ['name', 100],
+    ['schoolYear', 32],
+  ]) {
+    requireValue(
+      typeof classroom[field] === 'string' &&
+        classroom[field].trim().length > 0 &&
+        classroom[field].length <= limit &&
+        classroom[field].isWellFormed() &&
+        !classroom[field].includes('\0'),
+    );
+  }
+  requireValue(
+    typeof classroom.semester1Published === 'boolean' &&
+      typeof classroom.semester2Published === 'boolean',
+  );
+  return {
+    ...catalog,
+    class: {
+      name: classroom.name,
+      schoolYear: classroom.schoolYear,
+      semester1Published: classroom.semester1Published,
+      semester2Published: classroom.semester2Published,
+    },
+  };
+}
+
+/** Keeps a small integer axis with an exact safe-integer ceiling, including all-zero charts. */
+export function histogramScale(counts) {
+  requireValue(Array.isArray(counts) && counts.every((n) => Number.isSafeInteger(n) && n >= 0));
+  const peak = Math.max(1, ...counts);
+  const step = Math.max(1, Math.ceil(peak / 4));
+  const ticks = [0];
+  for (let value = step; value < peak; value += step) ticks.push(value);
+  ticks.push(peak);
+  return { maximum: peak, ticks };
+}
+
+/** Maps chart navigation keys to one bounded roving focus index. */
+export function bucketIndex(index, key, length = 101) {
+  return key === 'Home'
+    ? 0
+    : key === 'End'
+      ? length - 1
+      : key === 'ArrowLeft'
+        ? Math.max(0, index - 1)
+        : key === 'ArrowRight'
+          ? Math.min(length - 1, index + 1)
+          : index;
+}
+
 /** Rejects unexpected peer fields, duplicate coordinates and mismatched semester responses. */
 export function ownGrades(value, semester, catalog) {
   exact(value, ['semester', 'scores']);

@@ -3,11 +3,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   studentCatalog,
+  studentContext,
+  histogramScale,
+  bucketIndex,
   ownGrades,
   histogram,
   bucketFor,
   createStudentRead,
 } from '../src/utils/student-gradeboard.js';
+import { fixtureContext } from './student-gradeboard-data.js';
 import { createLookupState } from '../src/utils/gradebook-ui.js';
 const catalog = {
   subjects: ['Toán', 'Văn', 'Anh', 'KHTN', 'LS / ĐL', 'Công Nghệ', 'Tin Học', 'GDCD'].map(
@@ -147,7 +151,7 @@ test('CP05 capability remains private; semester denial preserves it; revocation 
       kind: 'verified',
       capability: 'synthetic-memory',
       expiresAt: clock() / 1000 + 60,
-      context: catalog,
+      context: { ...catalog, class: fixtureContext().class },
     }),
     request: async (body, options) => {
       calls++;
@@ -178,7 +182,7 @@ test('CP05 leaving route aborts an ignored transport without private result resu
       kind: 'verified',
       capability: 'synthetic-memory',
       expiresAt: clock() / 1000 + 60,
-      context: catalog,
+      context: { ...catalog, class: fixtureContext().class },
     }),
     request: async (_, o) => {
       signal = o.signal;
@@ -203,6 +207,7 @@ test('CP05 an already cancelled caller starts no private read', async () => {
       kind: 'verified',
       capability: 'synthetic-memory',
       expiresAt: clock() / 1000 + 60,
+      context: fixtureContext(),
     }),
     request: async () => {
       calls++;
@@ -214,4 +219,65 @@ test('CP05 an already cancelled caller starts no private read', async () => {
   await assert.rejects(state.read({ op: 'grades', semester: 1 }, { signal: controller.signal }));
   assert.equal(calls, 0);
   state.dispose();
+});
+
+test('F01 verification context must be complete before capability can authorize reads; reset recovers', async () => {
+  for (const context of [
+    undefined,
+    {},
+    { ...fixtureContext(), subjects: [] },
+    { ...fixtureContext(), class: { ...fixtureContext().class, semester1Published: 'true' } },
+    { ...fixtureContext(), class: undefined },
+  ]) {
+    let selected = context,
+      calls = 0;
+    const clock = () => Date.UTC(2026, 9, 27);
+    const state = createLookupState({
+      clock,
+      verify: async () => ({
+        kind: 'verified',
+        capability: 'synthetic-memory',
+        expiresAt: clock() / 1000 + 60,
+        context: selected,
+      }),
+      request: async () => {
+        calls++;
+      },
+    });
+    await state.submit({ documentNumber: '000000009', birthDate: '29/02/2000' });
+    assert.equal(state.snapshot().status, 'unavailable');
+    assert.equal(state.context(), null);
+    await assert.rejects(state.read({ op: 'grades', semester: 1 }));
+    assert.equal(calls, 0);
+    state.reset();
+    selected = fixtureContext();
+    await state.submit({ documentNumber: '000000009', birthDate: '29/02/2000' });
+    assert.equal(state.snapshot().status, 'verified');
+    state.dispose();
+  }
+  const projected = studentContext({ ...fixtureContext() });
+  assert.equal(projected.class.semester2Published, false);
+});
+test('F02 integer axes cover zero, one, mixed and large safe counts with proportional values', () => {
+  for (const counts of [[0, 0], [1], [1, 2, 3, 4, 5], [6, 14, 23], [Number.MAX_SAFE_INTEGER]]) {
+    const scale = histogramScale(counts);
+    assert.equal(scale.ticks[0], 0);
+    assert.equal(scale.ticks.at(-1), Math.max(1, ...counts));
+    assert.ok(scale.ticks.length <= 6);
+    assert.ok(scale.ticks.every(Number.isSafeInteger));
+    assert.ok(counts.every((n) => n / scale.maximum <= 1));
+  }
+  assert.deepEqual(histogramScale([0]).ticks, [0, 1]);
+  assert.deepEqual(histogramScale([1]).ticks, [0, 1]);
+  assert.deepEqual(['0', '8.25', '10'].map(bucketFor), ['0.0', '8.3', '10.0']);
+  assert.throws(() => histogramScale([-1]));
+});
+test('F03 roving bucket indices stay bounded; Tab is never intercepted', () => {
+  assert.equal(bucketIndex(0, 'ArrowLeft'), 0);
+  assert.equal(bucketIndex(100, 'ArrowRight'), 100);
+  assert.equal(bucketIndex(20, 'ArrowLeft'), 19);
+  assert.equal(bucketIndex(20, 'ArrowRight'), 21);
+  assert.equal(bucketIndex(20, 'Home'), 0);
+  assert.equal(bucketIndex(20, 'End'), 100);
+  assert.equal(bucketIndex(20, 'Tab'), 20);
 });

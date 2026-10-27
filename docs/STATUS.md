@@ -1,3 +1,13 @@
+# CP05 F01–F05 corrections / 2026-10-27
+
+Baseline `a99569b956861e00d7a21c679ffa52bb890c67a7`, feature/personal-gradebook. F01 context/publication/catalog projection now precedes capability retention; invalid context remains unavailable. F02 visible integer Y-axis/grid, F03 one roving chart entry with arrows/Home/End/scroll and normal Tab out, F04 reset/expiry/401 focus recovery. F05 maintained synthetic component fixture under tests and [exact local reproduction steps](../tests/README.md#cp05--browser-qa-offline-tái-lập-f01f05). No ignored file or prior Work session needed. Production verify/private reads remain fail-closed; CP03/CP04, SQL/Edge, dependency/lock/workflow/deploy config unchanged.
+
+Focused tests24/24 PASS (173ms). Browser local Chrome: context missing/bad-catalog/bad-publication never shows board, valid recovery works; axis0/1/23/1000 and personal bucket0.0/8.3/10.0; one Tab entry, Arrow/Home/End/scroll, Tab to footer close, Escape to trigger; reset Enter and expiry-in-modal return focus to empty enabled identity input; held401 and leave/release clear private DOM. Actual iframe CSS widths360/390/768/1024/1440 have no page overflow, fixed64px axis and101 internally scrollable buckets. Not physical mobile/Safari. Screenshots stay ignored in tests/local; `npm run check`, `npm run test:ci`115/115 (414ms), `npm run format:check`, `npm run build` (95 modules,201ms; production fixture exclusion) and `git diff --check` all PASS, one final-code gate execution. Exact-SHA Actions result is read after push. Prior CP05/CP03/CP04 evidence below remains historical.
+
+Hosted Supabase/Auth/SQL/API/metadata/log requests0; migrations/deployments0; secretsNO; real dataNONE; stress/load/retryNONE. Native17/Deno/hosted Auth/RLS/publication/limiter/CP01-C and real-data gate NOT RUN. No CP06/CP07 or merge.
+
+---
+
 # CP05 — Student gradeboard and histogram / 2026-10-27
 
 Baseline `741ee3ddf8f19483621a23a8bb8ff0cf0e947bae`, feature/personal-gradebook. **CP05 OFFLINE ACCEPTED — ready for review.** Eight catalog-ordered subjects/seven columns, two semester tabs, B1 one-place display with raw strings preserved and null/zero distinction. One on-demand101-bucket aggregate chart with exact half-up highlight, raw personal score, two dropdowns, accessible native dialog/Escape/focus restore and mobile fullscreen layout. No average/ranking, teacher chart, new dependency, backend or migration change.

@@ -3,7 +3,9 @@ import { el, button } from '../utils/dom.js';
 import { openDialog } from './primitives.js';
 import { displayScore } from '../utils/gradebook/decimal.js';
 import {
-  studentCatalog,
+  studentContext,
+  histogramScale,
+  bucketIndex,
   ownGrades,
   histogram,
   bucketFor,
@@ -20,7 +22,7 @@ const messages = {
 
 /** A verified context is server-issued presentation metadata, not a browser-selected student identity. */
 export function StudentGradeboard({ context, read, onReset }) {
-  const catalog = studentCatalog(context);
+  const catalog = studentContext(context);
   let semester = context.class?.semester1Published ? 1 : 2,
     scores = [],
     disposed = false,
@@ -164,6 +166,7 @@ export function StudentGradeboard({ context, read, onReset }) {
       ),
       chart,
     );
+    entry.content.append(button('Đóng biểu đồ', () => entry.dialog.close(), 'button subtle'));
     let closed = false;
     const channel = createStudentRead(read, (snapshot) => {
       if (closed || disposed) return;
@@ -182,7 +185,8 @@ export function StudentGradeboard({ context, read, onReset }) {
       const raw = personal(subject.value, column.value),
         highlight = bucketFor(raw),
         buckets = snapshot.value,
-        max = Math.max(1, ...buckets.map((b) => b.studentCount));
+        scale = histogramScale(buckets.map((b) => b.studentCount)),
+        max = scale.maximum;
       chart.append(
         el(
           'p',
@@ -210,7 +214,14 @@ export function StudentGradeboard({ context, read, onReset }) {
               role: 'listitem',
               'aria-label': `Nhóm ${b.scoreBucket}: ${b.studentCount} học sinh${b.scoreBucket === highlight ? ', nhóm điểm của bạn' : ''}`,
               title: `${b.scoreBucket}: ${b.studentCount}`,
-              tabindex: '0',
+              tabindex: String(
+                index ===
+                  (highlight === null
+                    ? 0
+                    : buckets.findIndex((row) => row.scoreBucket === highlight))
+                  ? 0
+                  : -1,
+              ),
             },
             el('span', { class: 'histogram-count' }, String(b.studentCount)),
             el('div', { class: 'histogram-track' }, bar),
@@ -223,12 +234,11 @@ export function StudentGradeboard({ context, read, onReset }) {
         );
       });
       chart.append(
-        el('p', { class: 'muted' }, `Số học sinh · Trục dọc 0–${max}`),
+        el('p', { class: 'muted' }, 'Số học sinh'),
         el(
           'div',
           {
             class: 'student-chart-scroll',
-            tabindex: '0',
             'aria-label': 'Biểu đồ cuộn ngang: điểm 0 đến 10',
           },
           bars,
@@ -240,6 +250,39 @@ export function StudentGradeboard({ context, read, onReset }) {
         ),
       );
       const scroll = chart.querySelector('.student-chart-scroll');
+      const axis = el('div', { class: 'histogram-y-axis', 'aria-label': 'Trục số học sinh' });
+      const grid = el('div', { class: 'histogram-grid', 'aria-hidden': 'true' });
+      for (const tick of scale.ticks) {
+        const label = el('span', {}, String(tick));
+        label.style.bottom = `${(tick / max) * 100}%`;
+        axis.append(label);
+        const line = el('i');
+        line.style.bottom = `${(tick / max) * 100}%`;
+        grid.append(line);
+      }
+      bars.prepend(grid);
+      const plot = el('div', { class: 'student-chart-plot' });
+      scroll.before(plot);
+      plot.append(axis, scroll);
+      const bucketNodes = [...bars.querySelectorAll('.histogram-bucket')];
+      const move = (index) => {
+        bucketNodes.forEach((node, i) => {
+          node.tabIndex = i === index ? 0 : -1;
+        });
+        bucketNodes[index].focus();
+        bucketNodes[index].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      };
+      bars.addEventListener('keydown', (event) => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        const index = bucketNodes.indexOf(event.target.closest('.histogram-bucket'));
+        if (index < 0) return;
+        event.preventDefault();
+        move(bucketIndex(index, event.key));
+      });
+      bars.addEventListener('click', (event) => {
+        const index = bucketNodes.indexOf(event.target.closest('.histogram-bucket'));
+        if (index >= 0) move(index);
+      });
       const personalBar = bars.querySelector('.is-personal');
       if (personalBar)
         scroll.scrollLeft = Math.max(

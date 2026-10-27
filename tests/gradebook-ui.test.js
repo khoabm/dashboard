@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { routes, routeFor, validateLookup, createLookupState } from '../src/utils/gradebook-ui.js';
+import { fixtureContext } from './student-gradeboard-data.js';
 import { createAdminEntry, createRouteNavigation } from '../src/utils/app-navigation.js';
 const clock = () => Date.UTC(2026, 9, 26);
 const valid = { documentNumber: '000000009', birthDate: '29/02/2000' };
@@ -286,7 +287,12 @@ test('CP02 reset/new verification fences old results; expiry drops memory-only c
     verify: async () =>
       ++calls === 1
         ? held.promise
-        : { kind: 'verified', capability: 'synthetic-only', expiresAt: now / 1000 + 2 },
+        : {
+            kind: 'verified',
+            capability: 'synthetic-only',
+            expiresAt: now / 1000 + 2,
+            context: fixtureContext(),
+          },
   });
   const old = state.submit(valid);
   state.reset();

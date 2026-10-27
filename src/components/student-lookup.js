@@ -172,6 +172,7 @@ export function StudentLookup({ verify, request, navigate, clock = Date.now }) {
   /** Projects only public state categories; input, token and backend diagnostics are never rendered. */
   function render(snapshot) {
     if (disposed) return;
+    const returningFromPrivate = !!gradeboard;
     gradeboard?.dispose();
     gradeboard = null;
     element.querySelector('.student-gradeboard')?.remove();
@@ -215,6 +216,7 @@ export function StudentLookup({ verify, request, navigate, clock = Date.now }) {
     if (snapshot.status !== 'invalid') clearInputs();
     if (snapshot.status === 'invalid')
       (snapshot.errors.documentNumber ? documentInput : dateInput).focus();
+    else if (returningFromPrivate) documentInput.focus();
   }
   const state = createLookupState({ verify, request, clock, onChange: render });
   form.addEventListener('submit', (event) => {

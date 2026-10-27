@@ -724,3 +724,56 @@
     min-width: 120px;
   }
 }
+
+/* Axis stays visible while the exact tenth-point buckets scroll horizontally. */
+.student-chart-plot {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+}
+.histogram-y-axis {
+  position: relative;
+  height: 180px;
+  margin-top: 55px;
+  border-right: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--muted);
+}
+.histogram-y-axis span {
+  position: absolute;
+  right: 7px;
+  transform: translateY(50%);
+}
+.student-histogram {
+  position: relative;
+  align-items: initial;
+  padding: 35px 12px 25px;
+}
+.histogram-grid {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  height: 180px;
+  top: 55px;
+  pointer-events: none;
+}
+.histogram-grid i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid #c7d5cc;
+}
+.histogram-track {
+  background: transparent;
+}
+.histogram-bucket {
+  position: relative;
+}
+.histogram-bar {
+  min-height: 0;
+}
+.histogram-bucket:focus-visible {
+  outline: 3px solid #315d8a;
+  outline-offset: 2px;
+}
