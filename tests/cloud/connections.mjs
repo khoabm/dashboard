@@ -161,6 +161,7 @@ try {
   const failed = await connect();
   await failed.end();
   let sensitiveRead = false;
+  let limiterCalls = 0;
   const handler = createHandler('student', {
     config: { origins: ['http://localhost:4173'] },
     cryptography,
@@ -168,6 +169,7 @@ try {
       async rpc(name, values) {
         if (name === 'gb_lookup_context') return scalar('SELECT public.gb_lookup_context()');
         if (name !== 'gb_limit') sensitiveRead = true;
+        else limiterCalls++;
         try {
           return (await failed.query('SELECT public.gb_limit(false,NULL)')).rows[0];
         } catch (error) {
@@ -188,6 +190,7 @@ try {
     }),
   );
   assert.equal(response.status, 503);
+  assert.equal(limiterCalls, 1);
   assert.equal(sensitiveRead, false);
   console.log('PASS G03 real closed-DB limiter fault:503 and no pair read');
 

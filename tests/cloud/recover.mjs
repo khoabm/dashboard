@@ -43,6 +43,10 @@ try {
       (await db.query('SELECT count(*)::int n FROM gradebook.student_scores')).rows[0].n,
       1,
     );
+    assert.equal(
+      (await db.query('SELECT score::text value FROM gradebook.student_scores')).rows[0].value,
+      '8.25',
+    );
     for (const purpose of ['identity', 'lookup', 'capability', 'preview'])
       assert.deepEqual(
         [settings[purpose].active, Object.keys(settings[purpose].keys)],
