@@ -117,6 +117,7 @@ export function GradebookAdmin({
   /** Uses the existing dialog focus/escape behavior, adding memory-only private cleanup. */
   function dialog(title) {
     const entry = openDialog(title);
+    entry.dialog.classList.add('gradebook-dialog');
     dialogs.add(entry);
     entry.dialog.addEventListener('input', () => {
       dirty = true;
@@ -762,10 +763,12 @@ export function GradebookAdmin({
         { class: 'admin-actions' },
         button('Thêm học sinh', () => studentForm(), 'button primary'),
         button('Nhập CSV/XLSX', importRoster),
-        search,
-        filter,
+        field('Tìm tên trong trang', search),
+        field('Trạng thái trong trang', filter),
       ),
     );
+    const resultCount = el('p', { class: 'admin-result-count', role: 'status' });
+    body.append(resultCount);
     const tableBody = el('tbody');
     const table = el(
       'table',
@@ -793,6 +796,7 @@ export function GradebookAdmin({
             .includes(search.value.toLocaleLowerCase('vi')) &&
           (filter.value === 'all' || s.active === (filter.value === 'active')),
       );
+      resultCount.textContent = `${visible.length} / ${students.length} học sinh trong trang hiện tại`;
       for (const student of visible)
         tableBody.append(
           el(

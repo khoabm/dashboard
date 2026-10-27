@@ -141,6 +141,7 @@ export function GradebookScores({
   /** Retains edits on dismissal until explicitly discarded; closes sensitive work on route/session disposal. */
   function dialog(title) {
     const entry = openDialog(title);
+    entry.dialog.classList.add('gradebook-dialog');
     dialogs.add(entry);
     entry.dialog.addEventListener('input', () => {
       dirty = true;
@@ -711,8 +712,8 @@ export function GradebookScores({
       el(
         'div',
         { class: 'admin-actions' },
-        subjectSelect,
-        pupil,
+        field('Môn học', subjectSelect),
+        field('Học sinh trong trang', pupil),
         upload,
         button(published ? 'Tạm ẩn học kỳ' : 'Công bố học kỳ', publication),
         button('Tải lại điểm', reload),

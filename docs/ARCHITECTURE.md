@@ -22,8 +22,8 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 | src/utils/app-navigation.js | Pure indexed history/compensation and pending administrator-entry coordinator; no SDK/DOM/network; rejected traversals never push an entry |
 | src/main.js | Board bootstrap/render/Auth; shared restoration promise + direct openBoardAdmin for both headers; suspend route refresh; flush editor-owned drafts before route exit |
 | src/components/app-header.js, site-navigation.js | Shared branding/admin controls; accessible Board/lookup menu plus verified-admin entry |
-| src/components/gradebook-admin.js | CP03 class/student dialogs, paged list, reveal/import ownership and route/session disposal |
-| src/components/gradebook-scores.js | CP04 teacher-only semester/subject/student workspace, bounded score-page joins, cell CRUD, publication and score import; owned dialogs/previews/late-response disposal |
+| src/components/gradebook-admin.js | CP03 class/student dialogs, visibly labeled paged search/filter with local result feedback, reveal/import ownership and route/session disposal |
+| src/components/gradebook-scores.js | CP04 teacher-only semester/subject/student workspace with visible control labels, bounded score-page joins, cell CRUD, publication and score import; owned dialogs/previews/late-response disposal |
 | src/utils/gradebook-scores.js | Pure ordered catalog projection, B1 decimal comparison/input, score-page DTOs, mutation/publication preconditions and A–J batch validation |
 | src/services/gradebook-catalog.js | Scoped catalog.read through the same verified teacher request; current classId required, strict teacher catalog projection |
 | src/utils/gradebook-admin.js, roster.js | Pure input/DTO projection, cancellable operation/preview ownership and bounded positional CSV/roster validation; reuse B1 |
@@ -39,7 +39,7 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 | src/components/student-lookup.js, src/utils/gradebook-ui.js | Date-only lookup form; pure validation/generation/cancellation/expiry; capability/input memory only |
 | src/utils/gradebook-responses.js | CP06-A pure decoded B4 verification/read envelope validation, detached context, terminal error categories; strips requestId, preserves decimal strings and aggregate-only DTOs; no transport/storage/SDK and no production enablement |
 | src/services/student-lookup.js | CP06-B verify/grades/histogram adapter using CP06-A projections; memory owner supplies capability/context; transport default disabled |
-| src/styles/gradebook.css | Responsive student page/menu; existing Board design tokens |
+| src/styles/gradebook.css | Responsive student page/menu and Gradebook-scoped teacher controls, sticky score row context/focus/dialog sizing; existing Board design tokens |
 | tests/gradebook-ui.test.js | Curated pure unit validation/route/disposal/late-response plus pending admin entry and blocked-history regression; no API or SDK |
 | src/components/ | Render/interaction của 20 component tại SPEC R06; cleanup listeners khi unmount |
 | src/services/ | Một Supabase client; truy vấn/Auth/Storage/sync, trả lỗi rõ ràng; không thao tác DOM |
