@@ -65,6 +65,22 @@ The earlier review suggested Apache ECharts and Shoelace for richer charts and n
 
 For this narrowly scoped branch, **no library is installed**: preserving deterministic offline QA (CSP denies third-party network), exact 101 keyboard-focusable buckets, the pinned npm lockfile, a zero-cost static bundle and current fail-closed production outweighs adding a new chart/UI dependency before visual sign-off. The candidate keeps native dialog/select and locally rendered HTML/CSS bars, with redesigned layout and typography. This is an explicit technical trade-off, not a claim that the previous library recommendations were user-rejected. If visual review still finds the bars poor, prototype ECharts and Web Awesome **in the same feature scope** only after verifying licenses, bundle/lockfile/offline assets and accessibility. Do not add CDN dependencies or change the Board's UI kit.
 
+## Nguyên tắc ngôn ngữ hiển thị
+
+Giao diện hướng đến học sinh và phụ huynh, không sử dụng từ kỹ thuật như `half-up`, `DTO`, `101 bucket` hay các mã trạng thái HTTP trong nhãn. Những thay đổi này chỉ tác động bản hiển thị, **không** sửa cách tính điểm hoặc phân quyền.
+
+| Cách gọi cũ | Cách gọi mới | Ý nghĩa vẫn được bảo toàn |
+| --- | --- | --- |
+| 7 cột điểm (thanh tóm tắt) | 2 học kỳ | Bảng vẫn đủ 7 loại điểm |
+| Phân bố điểm / 101 nhóm | Biểu đồ điểm của lớp / Thang điểm từ 0 đến 10 | Vẫn là 101 mức điểm 0.0–10.0 |
+| Cột điểm | Loại điểm | Không đổi danh sách 7 loại điểm |
+| Điểm gốc | Điểm chưa làm tròn | Giữ nguyên giá trị chính xác cấp từ backend |
+| Số học sinh cùng nhóm | Số học sinh ở mức điểm này | Cùng mức *sau làm tròn*, không khẳng định cùng điểm thực tế |
+| half-up | Ví dụ 8.25 được xếp vào mức 8.3 | Quy tắc nhóm không đổi |
+| Phiên tra cứu hết hạn | Thời gian xem bảng điểm đã hết | Vẫn cần xác minh lại |
+
+Thông báo lỗi dùng ngôn ngữ trung tính, có hành động tiếp theo; không suy diễn lý do không được xem học kỳ từ một mã 403. Các lựa chọn trong bản xem thử QA được Việt hóa để thuận tiện đánh giá UI, nhưng giá trị tình huống và công cụ đo đếm chỉ phục vụ phát triển, không xuất hiện ở production.
+
 ## Manual reproduction and gate
 
 ```sh

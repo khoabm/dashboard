@@ -1,3 +1,9 @@
+# CP05 student-facing wording refinement / 2026-10-27
+
+On `feature/personal-gradebook-ui-refinement`, replaced technical/debug UI vocabulary in Gradeboard/lookup/chart with student-friendly Vietnamese, including rounded score explanation and neutral error/expiry copy. QA-only synthetic controls now have readable Vietnamese choices while internal test values remain unchanged. UI terms documented in [CP05_UI_REFINEMENT](features/personal-gradebook/CP05_UI_REFINEMENT.md) and manual labels in [tests/README.md](../tests/README.md). No changes to B1 score precision, 101 buckets, student capability, Gradebook backend, Board main page, shared nav or admin. Awaiting explicit UI acceptance and separate verification evidence.
+
+---
+
 # CP05 UI visual refinement — isolated review branch / 2026-10-27
 
 Branch `feature/personal-gradebook-ui-refinement` forked from accepted offline CP05 `09de67787621d64527073ca0f1f16b13dea8d6ee`. Student Gradeboard + Analytics Drawer visual composition: class/year context heading, integrated semester switcher and legible sticky-first-column table; contextual histogram controls, exact raw-score/same-bucket aggregate summary cards, quiet plot/grid and responsive mobile sheet. The 101 half-up buckets, on-demand only, roving focus, modal Escape/close, request cancellation and fail-closed production remain unchanged. All styling is scoped to CP05 component/dialog; Board main page, shared navigation and CP03/CP04 admin intentionally untouched.

@@ -13,11 +13,11 @@ import {
 } from '../utils/student-gradeboard.js';
 
 const messages = {
-  loading: 'Đang tải…',
-  denied: 'Học kỳ này hiện chưa thể xem.',
-  expired: 'Phiên tra cứu đã hết hạn. Vui lòng xác minh lại.',
-  limited: 'Vui lòng chờ trước khi thử lại.',
-  unavailable: 'Chưa thể tải dữ liệu. Vui lòng thử lại sau.',
+  loading: 'Đang tải điểm…',
+  denied: 'Hiện chưa thể xem điểm của học kỳ này.',
+  expired: 'Thời gian xem bảng điểm đã hết. Vui lòng xác minh lại.',
+  limited: 'Vui lòng đợi một lúc trước khi thử lại.',
+  unavailable: 'Tạm thời chưa tải được thông tin. Vui lòng thử lại sau.',
 };
 
 /** A verified context is server-issued presentation metadata, not a browser-selected student identity. */
@@ -63,7 +63,7 @@ export function StudentGradeboard({ context, read, onReset }) {
           context.class.schoolYear,
         ),
       ),
-      el('div', { class: 'student-board-counter', 'aria-label': '8 môn học và 7 cột điểm' }, '8 môn học', el('span', {}, '·'), '7 cột điểm'),
+      el('div', { class: 'student-board-counter', 'aria-label': '8 môn học và 2 học kỳ' }, '8 môn học', el('span', {}, '·'), '2 học kỳ'),
     ),
     el(
       'div',
@@ -75,7 +75,7 @@ export function StudentGradeboard({ context, read, onReset }) {
       'p',
       { class: 'student-board-guide' },
       el('span', { 'aria-hidden': 'true' }, '↗'),
-      'Chọn một ô điểm để khám phá phân bố điểm của lớp. Điểm trống được ký hiệu bằng dấu —.',
+      'Chọn một ô điểm để xem có bao nhiêu bạn trong lớp đạt từng mức điểm. Dấu — nghĩa là chưa có điểm.',
     ),
     panel,
   );
@@ -95,7 +95,7 @@ export function StudentGradeboard({ context, read, onReset }) {
     const table = el(
       'table',
       { class: 'student-score-table' },
-      el('caption', {}, 'Điểm hiển thị một chữ số thập phân. Điểm gốc được giữ nguyên khi mở phân bố.'),
+      el('caption', {}, 'Điểm được làm tròn đến một chữ số thập phân khi hiển thị.'),
     );
     const head = el(
       'tr',
@@ -120,7 +120,7 @@ export function StudentGradeboard({ context, read, onReset }) {
                 () => openHistogram(subject.code, column.code),
                 'student-score-cell',
                 {
-                  'aria-label': `${subject.displayName}, ${column.displayName}: ${raw === null ? 'chưa có điểm' : displayScore(raw)}. Xem phân bố điểm`,
+                  'aria-label': `${subject.displayName}, ${column.displayName}: ${raw === null ? 'chưa có điểm' : displayScore(raw)}. Xem số học sinh theo từng mức điểm`,
                 },
               ),
             );
@@ -144,7 +144,7 @@ export function StudentGradeboard({ context, read, onReset }) {
         el(
           'p',
           { class: 'student-table-footnote' },
-          'Kết quả hiển thị một chữ số thập phân; bấm vào điểm để xem số học sinh theo nhóm điểm.',
+          'Chọn một ô điểm để xem biểu đồ của lớp. Các điểm trong bảng đã được làm tròn.',
         ),
       ),
     );
@@ -165,7 +165,7 @@ export function StudentGradeboard({ context, read, onReset }) {
   }
   function openHistogram(subjectCode, columnCode) {
     modal?.dispose();
-    const entry = openDialog('Phân bố điểm');
+    const entry = openDialog('Biểu đồ điểm của lớp');
     entry.dialog.classList.add('student-chart-dialog');
     const subject = el(
       'select',
@@ -174,7 +174,7 @@ export function StudentGradeboard({ context, read, onReset }) {
     );
     const column = el(
       'select',
-      { 'aria-label': 'Cột điểm' },
+      { 'aria-label': 'Loại điểm' },
       ...catalog.scoreColumns.map((c) => el('option', { value: c.code }, c.displayName)),
     );
     subject.value = subjectCode;
@@ -186,7 +186,7 @@ export function StudentGradeboard({ context, read, onReset }) {
       el(
         'div',
         { class: 'student-chart-lead' },
-        el('span', { class: 'student-overline' }, 'PHÂN TÍCH KẾT QUẢ'),
+        el('span', { class: 'student-overline' }, 'CÙNG XEM ĐIỂM CỦA LỚP'),
         contextLine,
       ),
       el(
@@ -202,21 +202,21 @@ export function StudentGradeboard({ context, read, onReset }) {
         el(
           'div',
           { class: 'student-chart-surface-heading' },
-          el('strong', {}, 'Phân bố điểm của lớp'),
-          el('span', {}, '101 nhóm · 0,0 đến 10,0'),
+          el('strong', {}, 'Mỗi mức điểm có bao nhiêu học sinh?'),
+          el('span', {}, 'Thang điểm từ 0 đến 10'),
         ),
         chart,
       ),
       el(
         'p',
         { class: 'student-chart-explanation' },
-        'Mỗi cột gom các điểm được làm tròn đến một chữ số thập phân (half-up). ',
-        'Các bạn trong cùng nhóm có thể có điểm gốc khác nhau.',
+        'Điểm trên biểu đồ được làm tròn đến một chữ số thập phân. ',
+        'Ví dụ, 8.25 được xếp vào mức 8.3; các bạn trong cùng cột có thể có điểm chưa làm tròn khác nhau.',
       ),
       el(
         'div',
         { class: 'student-chart-footer' },
-        el('span', {}, 'Vuốt hoặc cuộn ngang để xem toàn bộ nhóm điểm'),
+        el('span', {}, 'Vuốt hoặc cuộn ngang để xem thêm mức điểm'),
         button('Đóng biểu đồ', () => entry.dialog.close(), 'button subtle student-chart-close'),
       ),
     );
@@ -245,24 +245,24 @@ export function StudentGradeboard({ context, read, onReset }) {
         el(
           'div',
           { class: 'student-insight-primary' },
-          el('span', { class: 'student-insight-label' }, 'ĐIỂM GỐC CỦA BẠN'),
+          el('span', { class: 'student-insight-label' }, 'ĐIỂM CHƯA LÀM TRÒN'),
           el('strong', { class: 'student-insight-value' }, raw === null ? '—' : raw),
-          el('span', { class: 'student-insight-detail' }, raw === null ? 'Ô này chưa có điểm' : `Thuộc nhóm ${highlight}`),
+          el('span', { class: 'student-insight-detail' }, raw === null ? 'Chưa có điểm ở mục này' : `Trên biểu đồ: mức ${highlight}`),
         ),
         el(
           'div',
           { class: 'student-insight-secondary' },
-          el('span', { class: 'student-insight-label' }, 'SỐ HỌC SINH CÙNG NHÓM'),
+          el('span', { class: 'student-insight-label' }, 'SỐ HỌC SINH Ở MỨC ĐIỂM NÀY'),
           el('strong', { class: 'student-insight-value' }, count === null ? '—' : String(count)),
-          el('span', { class: 'student-insight-detail' }, count === null ? 'Không có nhóm được đánh dấu' : `Nhóm ${highlight} · trên biểu đồ`),
+          el('span', { class: 'student-insight-detail' }, count === null ? 'Chưa có mức điểm để đánh dấu' : `Mức điểm ${highlight}`),
         ),
       );
       if (!buckets.some((b) => b.studentCount))
-        chart.append(el('p', {}, 'Chưa có điểm trong phân bố này.'));
+        chart.append(el('p', {}, 'Lớp chưa có điểm ở mục này.'));
       const bars = el('div', {
         class: 'student-histogram',
         role: 'list',
-        'aria-label': 'Phân bố điểm từ 0 đến 10; chiều cao là số học sinh',
+        'aria-label': 'Số học sinh ở mỗi mức điểm từ 0 đến 10',
       });
       buckets.forEach((b, index) => {
         const bar = el('span', { class: 'histogram-bar', 'aria-hidden': 'true' });
@@ -273,8 +273,8 @@ export function StudentGradeboard({ context, read, onReset }) {
             {
               class: `histogram-bucket${b.scoreBucket === highlight ? ' is-personal' : ''}`,
               role: 'listitem',
-              'aria-label': `Nhóm ${b.scoreBucket}: ${b.studentCount} học sinh${b.scoreBucket === highlight ? ', nhóm điểm của bạn' : ''}`,
-              title: `${b.scoreBucket}: ${b.studentCount}`,
+              'aria-label': `Mức ${b.scoreBucket} điểm: ${b.studentCount} học sinh${b.scoreBucket === highlight ? ', có điểm của bạn' : ''}`,
+              title: `${b.scoreBucket} điểm: ${b.studentCount} học sinh`,
               tabindex: String(
                 index ===
                   (highlight === null
@@ -300,14 +300,14 @@ export function StudentGradeboard({ context, read, onReset }) {
           'div',
           {
             class: 'student-chart-scroll',
-            'aria-label': 'Biểu đồ cuộn ngang: điểm 0 đến 10',
+            'aria-label': 'Cuộn ngang để xem các mức điểm từ 0 đến 10',
           },
           bars,
         ),
         el(
           'p',
           { class: 'muted' },
-          'Trục ngang: điểm từ 0 đến 10 · Cột viền xanh là nhóm điểm của bạn.',
+          'Các mức điểm từ 0 đến 10. Cột có viền đậm là mức điểm của bạn.',
         ),
       );
       const scroll = chart.querySelector('.student-chart-scroll');

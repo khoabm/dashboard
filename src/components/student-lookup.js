@@ -7,11 +7,11 @@ import { createLookupState } from '../utils/gradebook-ui.js';
 const messages = {
   idle: 'Nhập thông tin để xác minh và xem bảng điểm của riêng bạn.',
   loading: 'Đang xác minh thông tin…',
-  neutral: 'Chưa thể xác minh thông tin. Vui lòng kiểm tra và thử lại.',
-  limited: 'Vui lòng chờ trước khi thử lại.',
-  unavailable: 'Tra cứu hiện chưa sẵn sàng. Vui lòng quay lại sau.',
-  verified: 'Đã xác minh thông tin.',
-  expired: 'Phiên tra cứu đã hết hạn. Vui lòng nhập lại thông tin.',
+  neutral: 'Thông tin chưa khớp. Bạn hãy kiểm tra và thử lại.',
+  limited: 'Vui lòng đợi một lúc trước khi thử lại.',
+  unavailable: 'Chức năng xem bảng điểm hiện chưa sẵn sàng. Vui lòng quay lại sau.',
+  verified: 'Bạn đã xác minh thành công.',
+  expired: 'Thời gian xem bảng điểm đã hết. Vui lòng nhập lại thông tin.',
 };
 
 /** Creates a disposable form around an explicitly supplied verification adapter. */
