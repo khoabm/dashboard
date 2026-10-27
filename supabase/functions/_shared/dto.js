@@ -1,5 +1,6 @@
 /** Explicit response projections: raw SQL JSON never becomes an HTTP payload. */
 import {
+  allowFields,
   bigintId,
   uuid,
   apiDate,
@@ -67,8 +68,22 @@ export function scoreDtos(value, revisions = false) {
   });
 }
 
-/** Returns only catalog presentation metadata, with bounded arrays and deterministic order. */
-export function catalogDtos(context) {
+// V1 response invariants only; all returned rows/codes still come from the authoritative RPC.
+const v1Labels = {
+  subjects: ['Toán', 'Văn', 'Anh', 'KHTN', 'LS / ĐL', 'Công Nghệ', 'Tin Học', 'GDCD'],
+  scoreColumns: [
+    'Thường xuyên 1',
+    'Thường xuyên 2',
+    'Thường xuyên 3',
+    'Thường xuyên 4',
+    '1 tiết',
+    'Giữa kì',
+    'Cuối kì',
+  ],
+};
+
+/** Projects catalogs; teacher-only strict V1 mode does not change existing student/internal callers. */
+export function catalogDtos(context, { v1 = false } = {}) {
   return checked(() => {
     const project = (rows) => {
       requireContract(Array.isArray(rows) && rows.length >= 1 && rows.length <= 32, 'backend');
@@ -88,7 +103,30 @@ export function catalogDtos(context) {
         })
         .sort((a, b) => a.sortOrder - b.sortOrder);
     };
-    return { subjects: project(context.subjects), scoreColumns: project(context.scoreColumns) };
+    const result = {
+      subjects: project(context.subjects),
+      scoreColumns: project(context.scoreColumns),
+    };
+    if (v1) {
+      for (const [field, labels] of Object.entries(v1Labels)) {
+        requireContract(result[field].length === labels.length, 'catalog');
+        for (const row of context[field]) {
+          allowFields(
+            row,
+            ['code', 'displayName', 'sortOrder', 'active'],
+            ['code', 'displayName', 'sortOrder', 'active'],
+          );
+          requireContract(row.displayName === row.displayName.trim(), 'catalog');
+        }
+        result[field].forEach((row, index) =>
+          requireContract(
+            row.active && row.sortOrder === index + 1 && row.displayName === labels[index],
+            'catalog',
+          ),
+        );
+      }
+    }
+    return result;
   });
 }
 

@@ -167,6 +167,8 @@ Success is not a guarantee of strong identity: knowing the pair permits imperson
 
 Common request `{op,...}`; all require verified admin/session, class scope and server validation. Return BIGINT IDs/revisions as strings, score values as decimal strings. Defaults: student-page limit 100/max 200 for roster and class score reads; no documents in list responses and no API to list all decrypted identifiers. These are technical bounds, not new business fields.
 
+**B4-FIX-CATALOG (offline draft, 2026-10-27):** `catalog.read` requires only `classId` in addition to op. After the existing B4 administrator authentication, gb_class_read(actor,session,cid) rechecks the actual B3 session/class under its existing lock; gb_lookup_context must match the active requested class. Response is only `{subjects,scoreColumns,requestId}` with strict active V1 presentation metadata; requestId is added by the shared handler. No new SQL API/grant, student verification flow or production frontend transport. See [current disposition](CP06_OFFLINE_READINESS.md#b4-fix-catalog-disposition--2026-10-27).
+
 | Operations | Request shape (after op) | Response / transaction / publication |
 | --- | --- | --- |
 | class.read / class.create / class.patch | Read none; create `{name,schoolYear}` if no class; patch `{classId,expectedRevision,name?,schoolYear?}` | Class DTO; create/patch + audit atomically. Patch only the supplied metadata, never scores/publication/relationships |

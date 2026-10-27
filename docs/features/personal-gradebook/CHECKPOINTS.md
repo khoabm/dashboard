@@ -1,6 +1,6 @@
 # Execution plan and acceptance gates — Personal Gradebook
 
-**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1/B2 ACCEPTED; B3 CORRECTION ACCEPTED at static/offline review (hosted NOT RUN); GB-B4-INT-001 and GB-B4-REV-001 FIXED IN DRAFT; B4 ACCEPTED AS DRAFT; B5 CURATED CODE-QUALITY CI (older conflict snapshot below); CP02 OFFLINE ACCEPTED; CP03/CP04 OFFLINE ACCEPTED; CP05 OFFLINE ACCEPTED; CP06-A1–A3 IMPLEMENTED OFFLINE / REVIEW; CP06-B/CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
+**Status: CP00 docs PASS; CP01-A design REFINED / READY; CP01-B1/B2 ACCEPTED; B3 CORRECTION ACCEPTED at static/offline review (hosted NOT RUN); GB-B4-INT-001 and GB-B4-REV-001 FIXED IN DRAFT; B4 ACCEPTED AS DRAFT; B5 CURATED CODE-QUALITY CI (older conflict snapshot below); CP02 OFFLINE ACCEPTED; CP03/CP04 OFFLINE ACCEPTED; CP05 OFFLINE ACCEPTED; CP06-A PASS OFFLINE; B4-FIX-CATALOG IMPLEMENTED IN UNDEPLOYED DRAFT; CP06-B/CP07 NOT STARTED; CP01-C NOT RUN.** This plan follows BRIEF V1.2 / user D01–D05 plus the approved positional-import clarification (2026-10-26). Documentation checks do not prove a schema, API, security control or feature works. Add dated SHA/evidence at acceptance; never tick implementation boxes from a plan or unrelated CI.
 
 **2026-10-26 B5 superseding policy / baselinec9e18c1:** remove only newly staged PGlite/SQL CI/runner; retain accepted B5 and prior evidence. [One consolidated concern/test matrix and non-CI pre-merge inventory](B5_OFFLINE_REVIEW.md#current-policy-correction--baselinec9e18c1-supersedes-sql-ci-approval). Explicit test:ci covers six component/pure-unit files; specialists/SQL/browser excluded and retained separately pending review, no new probe/test file. Temporary20 SQL groups and earlier120 Node tests are historical only. PR5 Draft/dirty (BUG_FIX_LOG), no reconciliation; Actions/native17/Deno/CP01-C/real-data gates remain pending. Current curated gate66/66 PASS, syntax/static/build/format/diff PASS; no specialist/SQL rerun. No automatic CP01-C/CP02.
 
@@ -68,7 +68,7 @@ Docs-only evidence 2026-10-26 at `eba7c18e`: eight Markdown files, 54 relative l
 
 Paths are planning candidates, not permission to create modules or abstractions. Frontend regression/fixtures stay in `tests/`; local outputs in ignored `tests/local/`. Server/migration tests use conventional feature subfolders, with exact commands chosen in CP01 and CI coverage added when implemented.
 
-## CP01 — Data model and security (B1/B2 accepted; B3 offline accepted; B4 ready for review; B5 not started)
+## CP01 — Data model and security (B1–B5 offline artifacts available; CP01-C NOT RUN)
 
 Deliverables: reviewed additive migration(s), six-table model incl ordered catalogs, minimal secure Functions for identity and admin, unit/security checks, cost check; **do not apply without authorization**.
 
@@ -92,6 +92,8 @@ Acceptance:
 - [ ] Document exact test evidence (mock vs live, approved environment) and gate status.
 
 ### CP01-B4 handoff — retry-safety rule
+
+> Historical handoff status snapshot (2026-10-26). B4/B5 implementation labels below are superseded by the current status above; retry-safety and hosted-authorization rules still apply.
 
 - Trước Edge/RPC development, đọc [GB-OPS-001 recurrence warning](../../DATABASE.md#cảnh-báo-tái-diễn-gb-ops-001--sqlstate-retryable-cho-xung-đột-nghiệp-vụ). **Không tự raise 40001/class-40 retryable cho business conflict**, không tự retry mutation/PT409/timeout/limiter denial. Phải review error mapping và behavior của client, Edge và PostgREST; genuine PostgreSQL serialization errors không được sửa thành business conflicts.
 - Board hotfix APPLIED theo metadata đã ghi. Ba lượt live smoke test Board BLOCKED trước đăng nhập/RPC vì thiếu secure auth/transport; HTTP409/internal retry vẫn NOT RUN. **Không đòi chạy lại Board smoke test để bắt đầu soạn B4 offline**.
@@ -132,7 +134,7 @@ The unchecked atomic/concurrency item requires real CP01-C evidence; offline acc
 
 Dependency: CP01 + CP03; verify publication/import locks and authorized preview semantics together. No real data before §H. [Current implementation/evidence](../../STATUS.md#cp04--teacher-score-management-import-and-publication--2026-10-27), [T01–T14 matrix](../../TESTING.md#cp04-offline-concern-matrix). Below, checked items are offline UI/contracts only; production adapter remains fail-closed.
 
-- [x] Two semester tabs, ordered eight-subject/seven-column catalog workspace; no technical abbreviations. Teacher catalog supplied by isolated QA adapter only; B4 currently lacks teacher exposure, production hook fails locally.
+- [x] Two semester tabs, ordered eight-subject/seven-column catalog workspace; no technical abbreviations. Teacher catalog supplied by isolated QA adapter only; B4 catalog.read is now implemented in an undeployed draft, production hook still fails locally.
 - [x] Manual put/delete with decimal strings, null expected absence/string revisions, delete confirmation, published-edit acknowledgement, pending/conflict/unknown-outcome handling and private cleanup.
 - [x] CSV/XLSX ten physical A–J columns, customizable headers, preserved source positions/trailing slots/calendar dates/text identities and numeric XML score lexemes; selected semester before file; downloadable header-only templates.
 - [x] Local coordinate/subject/decimal validation; same student/different subject allowed; synthetic server ID/DOB match/conflict and whole-batch rejection; no silent duplicate overwrite.
@@ -163,7 +165,7 @@ Dependency: CP01/02 and CP04 publication/data contract. Real-data access additio
 
 ## CP06 — Integration, regression, and QA (A1–A3 offline slice implemented; full checkpoint OPEN)
 
-**2026-10-27 / baseline4fc986e:** [CP06-A1 contract matrix, A2 pure projections and A3 regression/browser QA](CP06_OFFLINE_READINESS.md). Production adapters remain disabled, backend catalog/preflight proposals not implemented. Completed offline work does not tick the DB/API/concurrency/security rows below; CP06-B/CP07 NOT STARTED, CP01-C and real-data gate NOT RUN. Current root STATUS records final gate evidence. Historical B5 six-file counts/PR conflict/candidate notes above are not current-state claims.
+**CP06-A PASS offline / accepted e8333ef:** [A1 contract matrix, A2 pure projections and A3 regression/browser QA](CP06_OFFLINE_READINESS.md). B4-FIX-CATALOG adds catalog.read in an undeployed draft; production adapters remain disabled and publication missing-count preflight is unchanged/unimplemented. Offline work does not tick the DB/API/concurrency/security rows below; CP06-B/CP07 NOT STARTED, CP01-C and real-data gate NOT RUN. Current root STATUS records evidence. Historical B5 six-file counts/PR conflict/candidate notes are not current-state claims.
 
 Dependency: CP01–CP05 integration. Keep separate evidence for offline units, browser Codex/IAB, approved live API/Auth/RLS, migration verification and §H data-governance acceptance; none substitutes for the others.
 
@@ -209,6 +211,8 @@ No merge/deploy/production personal-data write unless separately authorized.
 
 ## CP01-B1 — Exact-value contracts (2026-10-26)
 
+> Historical implementation snapshot. NOT STARTED/READY/B5 labels describe that baseline only; use current status above. Original evidence and NOT RUN limitations are retained.
+
 **PASS — READY FOR REVIEW (offline only).** Baseline `48ae91bdb722467432498b06bf218e22acd26db6`, branch `feature/personal-gradebook`; the commit containing this entry is the implementation evidence anchor. No newer feature commits at start; no merge/rebase of develop (feature ahead 6/behind 1 at baseline).
 
 - Implemented five pure modules under `src/utils/gradebook/`: safe contract errors/field allowlists/identity and BIGINT text; exact decimal normalization/comparison/half-up display; Gregorian UI/API and Excel calendar codecs; bounded roster normalization/name intent and score-cell skip/value; UTF-8 framing and deterministic input transcripts.
@@ -220,6 +224,8 @@ No merge/deploy/production personal-data write unless separately authorized.
 B2–B5 remain **NOT STARTED**; CP01-C and real-personal-data gate **NOT RUN**. No migration/RPC/Function/UI or real student data created, no Supabase requests, no server changes, merge or deployment. XLSX file parsing, score-batch/catalog matching and full API operation DTOs remain later responsibilities; the B1 Excel codec is not an XLSX parser. Main CP01 acceptance boxes above remain unchecked because they require integration evidence.
 
 ## B1 review corrections — 2026-10-26
+
+> Historical implementation snapshot. NOT STARTED/READY/B5 labels describe that baseline only; use current status above. Original evidence and NOT RUN limitations are retained.
 
 Baseline `f810f03ab8f101607553d73c19438c7fff14689a`, same feature branch/local/remote and clean working tree before editing. The commit containing this entry is the fix anchor. GB-B1-REV-001/002 FIXED; GB-B1-REV-003 B1 mapping and design FIXED, full file/score importer DEFERRED CP03/CP04. BRIEF V1.2 supersedes literal header matching, not catalog/UI labels or UPSERT rules.
 
@@ -233,6 +239,8 @@ Future CP03/CP04 acceptance: parser preserves exact physical width including tra
 
 ## CP01-B2 — Migration draft ready for review (2026-10-26)
 
+> Historical implementation snapshot. NOT STARTED/READY/B5 labels describe that baseline only; use current status above. Original evidence and NOT RUN limitations are retained.
+
 Baseline local/remote `282bebc89f630fe773c016c0ec7bb94b7681143e`, clean; develop `307b6c6`, no merge/rebase. Commit containing this entry anchors the draft. [B2 review](B2_MIGRATION_REVIEW.md) lists migration/tests, constraints, least privileges, helper owner preflight, audit dependencies and pre/post/rollback plan.
 
 **PASS — DRAFT READY FOR REVIEW, NOT APPLIED TO SUPABASE.** One additive SQL file, six tables, ordered catalogs, RLS/no client policies, explicit server ACL and narrow boolean session helper. 18/18 disposable SQL groups PASS on PGlite 0.5.11 / PostgreSQL 18.6 WASM with synthetic Auth/Storage and four actual old migrations. Native PostgreSQL 17 and hosted API/JWT/security/concurrency acceptance NOT RUN. npm ci/check/test/build/format:check and diff check PASS; 81/81 app offline tests. No runtime/CI/dependency/frontend change. B3–B5 and CP02–CP07 NOT STARTED; CP01-C and real-data gate NOT RUN; no PR/deploy/merge.
@@ -241,8 +249,12 @@ Main CP01 integration acceptance boxes stay unchecked. SQL helpers/tables passin
 
 ## CP01-B3 — transaction draft (2026-10-26)
 
+> Historical implementation snapshot. NOT STARTED/READY/B5 labels describe that baseline only; use current status above. Original evidence and NOT RUN limitations are retained.
+
 B2 accepted baseline `d86627f`. New `20261026030000_gradebook_transactions.sql` adds 22 service-only invoker RPCs, private validation/planner/framing helpers, shared import preview/apply/state hash, class-scoped audit and atomic limiter. Five prior migrations unchanged, no tables added. [B3 inventory, DTO signatures, evidence and limits](B3_TRANSACTION_REVIEW.md). B3 READY FOR REVIEW; B4/B5 NOT STARTED, CP01-C and real-data gate NOT RUN. 14 B3/18 B2 disposable SQL groups and81 app tests PASS; native17, multi-connection locks, hosted API/security and browser NOT RUN. Draft not applied. Earlier B3 NOT STARTED entries are historical.
 
 ## B3 focused conflict correction — 2026-10-26
+
+> Historical implementation snapshot. NOT STARTED/READY/B5 labels describe that baseline only; use current status above. Original evidence and NOT RUN limitations are retained.
 
 At `13292a3` baseline, GB-B3-REV-003 P1 confirmed eight application40001 paths. Additive20261026050000 corrective draft replaces them with PT409; no B2/B3/history rewrite. Correction offline13/13 SQL groups +4/4 DOM tests PASS, one focused execution each. No hosted requests, broad suite, quota/load/stress or migration deployment. Board conflict guidance fixed; GB-OPS-REV-002 rollout plan in DATABASE, GB-OPS-REV-003 policy remains RESOLVED. B4/B5 NOT STARTED, CP01-C and real-data gate NOT RUN. [Detailed correction evidence](B3_TRANSACTION_REVIEW.md#gb-b3-rev-003-correction--2026-10-26). This entry supersedes earlier B3 draft-ready/blocker summaries for this specific error-code finding; it does not certify unrelated B3 security/runtime behavior.

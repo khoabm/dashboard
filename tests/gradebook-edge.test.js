@@ -15,6 +15,7 @@ import { backendFactory } from '../supabase/functions/_shared/backend.js';
 import { Failure, rpcFailure, bodyJson } from '../supabase/functions/_shared/http.js';
 import { runtimeConfig } from '../supabase/functions/_shared/runtime.js';
 import { frameTuple } from '../src/utils/gradebook/canonical.js';
+import { teacherCatalog } from '../src/utils/gradebook-scores.js';
 
 globalThis.fetch = async () => {
   throw Error('Live network forbidden in B4 tests');
@@ -183,6 +184,180 @@ function fixture(kind = 'admin', replies = {}, options = {}) {
     },
   };
 }
+
+test('catalog.read returns only ordered V1 metadata after authenticated B3 class/session authorization', async () => {
+  const context = { ...lookupContext, private: 'never disclose', students: [student] };
+  context.subjects = [...catalogs.subjects].reverse();
+  context.scoreColumns = [...catalogs.scoreColumns].reverse();
+  const f = fixture('admin', {
+    gb_class_read: { ...clazz, private: 'never disclose' },
+    gb_lookup_context: context,
+  });
+  const result = await f.send({ op: 'catalog.read', classId: cid });
+  assert.equal(result.status, 200);
+  assert.deepEqual(
+    f.calls.map((c) => c.name),
+    ['getUser', 'profile', 'gb_class_read', 'gb_lookup_context'],
+  );
+  assert.deepEqual(f.calls[2].args, { actor, session, cid });
+  assert.deepEqual(f.calls[3].args, {});
+  assert.deepEqual(Object.keys(result.body).sort(), ['requestId', 'scoreColumns', 'subjects']);
+  assert.match(
+    result.body.requestId,
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+  );
+  assert.deepEqual(teacherCatalog(result.body), catalogs);
+  assert.equal(result.body.subjects[0].code, 'math');
+  assert.equal(result.body.scoreColumns[0].code, 'continuous_1');
+  for (const row of [...result.body.subjects, ...result.body.scoreColumns])
+    assert.deepEqual(Object.keys(row).sort(), ['active', 'code', 'displayName', 'sortOrder']);
+  assert.doesNotMatch(
+    JSON.stringify(result.body),
+    /never disclose|lookupKeyVersion|classId|birthDate|identity|epoch/,
+  );
+  assert.equal(result.headers.get('cache-control'), 'no-store');
+});
+
+test('catalog.read rejects absent/invalid class and forbidden client selectors before Auth or RPC', async () => {
+  const valid = { op: 'catalog.read', classId: cid };
+  for (const body of [
+    { op: 'catalog.read' },
+    { ...valid, classId: 'invalid' },
+    ...[
+      'actor',
+      'session',
+      'studentId',
+      'lookupKeyVersion',
+      'identityLookup',
+      'ciphertext',
+      'semester',
+    ].map((key) => ({ ...valid, [key]: other })),
+  ]) {
+    const f = fixture();
+    assert.equal((await f.send(body)).status, 400);
+    assert.equal(f.calls.length, 0);
+  }
+});
+
+test('catalog.read denies missing/malformed/expired JWT, invalid Auth user and inactive/non-admin before RPC', async () => {
+  for (const authorization of [
+    '',
+    'Bearer invalid',
+    `Bearer ${jwt({ exp: now })}`,
+    `Bearer ${jwt({ session_id: null })}`,
+  ]) {
+    const f = fixture();
+    assert.equal(
+      (await f.send({ op: 'catalog.read', classId: cid }, { authorization })).status,
+      401,
+    );
+    assert.equal(f.calls.length, 0);
+  }
+  for (const backend of [
+    { user: async () => ({ id: actor, is_anonymous: true }) },
+    { user: async () => ({ id: other }) },
+    {
+      user: async () => {
+        throw new Failure(401, 'verification');
+      },
+    },
+    { admin: async () => false },
+  ]) {
+    const f = fixture('admin', {}, { backend });
+    assert([401, 403].includes((await f.send({ op: 'catalog.read', classId: cid })).status));
+    assert.equal(f.calls.filter((c) => c.name.startsWith('gb_')).length, 0);
+  }
+});
+
+test('catalog.read never reaches service-role catalog lookup after B3 session/class denial; PT409 is terminal', async () => {
+  for (const sqlstate of ['42501', 'PT409']) {
+    const f = fixture('admin', {
+      gb_class_read: () => {
+        throw rpcFailure({ code: sqlstate, message: 'private revoked session/class details' });
+      },
+    });
+    const result = await f.send({ op: 'catalog.read', classId: cid });
+    assert.equal(result.status, sqlstate === '42501' ? 403 : 409);
+    assert.deepEqual(
+      f.calls.filter((c) => c.name.startsWith('gb_')).map((c) => c.name),
+      ['gb_class_read'],
+    );
+    assert.doesNotMatch(JSON.stringify(result.body), /private revoked|subjects|scoreColumns/);
+  }
+});
+
+test('catalog.read fails closed for mismatched class-read identity and missing/inactive/different active context', async () => {
+  const mismatch = fixture('admin', { gb_class_read: { ...clazz, id: other } });
+  assert.equal((await mismatch.send({ op: 'catalog.read', classId: cid })).status, 403);
+  assert.equal(
+    mismatch.calls.some((c) => c.name === 'gb_lookup_context'),
+    false,
+  );
+  for (const context of [null, { ...lookupContext, classId: other }]) {
+    const f = fixture('admin', { gb_class_read: clazz, gb_lookup_context: context });
+    assert.equal((await f.send({ op: 'catalog.read', classId: cid })).status, 403);
+    assert.equal(f.calls.filter((c) => c.name === 'gb_class_read').length, 1);
+    assert.equal(f.calls.filter((c) => c.name === 'gb_lookup_context').length, 1);
+  }
+});
+
+test('catalog.read rejects malformed V1 catalogs and private entry fields without leaking diagnostics or retrying', async () => {
+  const broken = [
+    (context) => {
+      delete context.subjects;
+    },
+    (context) => {
+      context.scoreColumns = [];
+    },
+    (context) => {
+      context.subjects.pop();
+    },
+    (context) => {
+      context.scoreColumns.push({ ...context.scoreColumns[0], code: 'extra', sortOrder: 8 });
+    },
+    (context) => {
+      context.subjects[0].active = false;
+    },
+    (context) => {
+      context.subjects[1].code = context.subjects[0].code;
+    },
+    (context) => {
+      context.subjects[1].displayName = context.subjects[0].displayName;
+    },
+    (context) => {
+      context.subjects[1].sortOrder = context.subjects[0].sortOrder;
+    },
+    (context) => {
+      context.subjects[0].sortOrder = 2;
+      context.subjects[1].sortOrder = 1;
+    },
+    (context) => {
+      context.scoreColumns[0].sortOrder = 99;
+    },
+    (context) => {
+      context.subjects[0].displayName = 'Toán ';
+    },
+    (context) => {
+      context.subjects[0].private = 'never disclose';
+    },
+    (context) => {
+      context.scoreColumns[0].code = 'INVALID';
+    },
+  ];
+  for (const change of broken) {
+    const context = structuredClone(lookupContext);
+    change(context);
+    const f = fixture('admin', { gb_class_read: clazz, gb_lookup_context: context });
+    const result = await f.send({ op: 'catalog.read', classId: cid });
+    assert.equal(result.status, 503);
+    assert.equal(f.calls.filter((c) => c.name === 'gb_lookup_context').length, 1);
+    assert.equal(Object.hasOwn(result.body, 'subjects'), false);
+    assert.doesNotMatch(
+      JSON.stringify(result.body),
+      /never disclose|Toán|lookupKeyVersion|birthDate/,
+    );
+  }
+});
 
 test('HMAC framing matches independent Node reference and separates class/project/generation', async () => {
   const expected = createHmac('sha256', bytes(2))
@@ -668,6 +843,8 @@ test('verify commits limiter first, issues no grades, and sends only protected m
   ]);
   assert.equal(Object.hasOwn(result.body.class, 'id'), false);
   assert.equal(Object.hasOwn(result.body, 'scores'), false);
+  assert.deepEqual(result.body.subjects, catalogs.subjects);
+  assert.deepEqual(result.body.scoreColumns, catalogs.scoreColumns);
 });
 
 test('unknown/mismatched identities are neutral; malformed verify still consumes global quota', async () => {

@@ -91,6 +91,42 @@ test('CP04-T01 ordered active catalogs remain the single code/label source; malf
     }),
   );
 });
+test('B4-FIX-CATALOG teacher validator accepts actual B2 seed codes without deriving them from labels', () => {
+  const subjects = [
+    'math',
+    'literature',
+    'english',
+    'natural_science',
+    'history_geography',
+    'technology',
+    'informatics',
+    'civics',
+  ];
+  const columns = [
+    'continuous_1',
+    'continuous_2',
+    'continuous_3',
+    'continuous_4',
+    'period_test',
+    'midterm',
+    'final',
+  ];
+  const result = teacherCatalog({
+    subjects: catalog.subjects.map((row, i) => ({ ...row, code: subjects[i] })),
+    scoreColumns: catalog.scoreColumns.map((row, i) => ({ ...row, code: columns[i] })),
+  });
+  assert.equal(result.subjects[0].code, 'math');
+  assert.equal(result.scoreColumns[0].code, 'continuous_1');
+  assert.deepEqual(
+    result.subjects.map((row) => row.displayName),
+    names,
+  );
+  assert.deepEqual(
+    result.scoreColumns.map((row) => row.displayName),
+    SCORE_HEADERS.slice(3),
+  );
+});
+
 test('CP04-T02 exact INSERT/UPDATE/DELETE preconditions; absence is null, IDs/revisions stay strings', () => {
   assert.deepEqual(scoreMutation({ ...base, score: '8.12345' }), {
     op: 'score.put',

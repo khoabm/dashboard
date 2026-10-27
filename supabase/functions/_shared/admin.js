@@ -17,6 +17,7 @@ import { normalizeImport, protectedRows } from './imports.js';
 import { Failure } from './http.js';
 
 const specs = {
+  'catalog.read': [['classId'], ['classId']],
   'class.read': [['classId'], []],
   'class.create': [
     ['name', 'schoolYear'],
@@ -222,6 +223,14 @@ export async function executeAdmin(body, identity, context) {
   };
 
   switch (body.op) {
+    case 'catalog.read': {
+      // Service-role lookup alone is not authorization: retain B3's class lock/session recheck first.
+      const current = classDto(await call('gb_class_read', base));
+      if (current.id !== body.classId) throw new Failure(403, 'forbidden');
+      const active = await activeContext();
+      checkpoint();
+      return ok(catalogDtos(active, { v1: true }));
+    }
     case 'class.create':
       return ok({
         class: classDto(
