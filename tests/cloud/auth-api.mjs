@@ -114,7 +114,8 @@ try {
   let bootstrap = await readFile('tests/gradebook/b2-bootstrap.sql', 'utf8');
   bootstrap = bootstrap.replace(
     /CREATE SCHEMA auth;[\s\S]*?CREATE SCHEMA storage;/,
-    `CREATE FUNCTION auth.uid() RETURNS UUID LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$; CREATE SCHEMA storage;`,
+    () =>
+      `CREATE FUNCTION auth.uid() RETURNS UUID LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$; CREATE SCHEMA storage;`,
   );
   bootstrap = bootstrap.replace(
     /CREATE ROLE (anon|authenticated|service_role) ([^;]+);/g,
@@ -188,7 +189,7 @@ try {
     assert.ok(value.pathname.startsWith('/rest/v1/'));
     return localFetch('http://127.0.0.1:13000' + value.pathname.slice(8) + value.search, init);
   };
-  const crypto = createCrypto(
+  const crypto = await createCrypto(
     config.project,
     Object.fromEntries(
       ['identity', 'lookup', 'capability', 'preview'].map((purpose) => [

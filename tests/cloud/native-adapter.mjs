@@ -10,6 +10,7 @@ assert.equal(process.env.PGPORT, '15432');
 assert.match(process.env.GB_QA_DATABASE || '', /^gbqa_[a-z0-9_]+$/);
 const require = createRequire(path.join(process.env.GB_QA_DEPENDENCIES, 'package.json'));
 const { Client } = require('pg');
+let instances = 0;
 
 /** Restricts every client to the disposable loopback container and bounded SQL execution. */
 export async function connect(database = process.env.GB_QA_DATABASE) {
@@ -32,17 +33,18 @@ export async function connect(database = process.env.GB_QA_DATABASE) {
 /** Preserves the narrow existing PGlite interface, without changing reviewed migration bytes. */
 export class PGlite {
   constructor() {
+    this.database = process.env.GB_QA_DATABASE + (instances++ ? `_${instances}` : '');
     this.ready = this.initialize();
   }
   async initialize() {
     const admin = await connect('postgres');
     try {
       assert.match((await admin.query('SHOW server_version')).rows[0].server_version, /^17\./);
-      await admin.query(`CREATE DATABASE ${process.env.GB_QA_DATABASE}`);
+      await admin.query(`CREATE DATABASE ${this.database}`);
     } finally {
       await admin.end();
     }
-    this.client = await connect();
+    this.client = await connect(this.database);
   }
   async query(sql, args = []) {
     await this.ready;
@@ -60,6 +62,8 @@ export class PGlite {
   }
   async close() {
     await this.ready;
+    // The B2 negative fixture deliberately adds cluster-wide membership; remove only that fixture grant.
+    await this.client.query('RESET ROLE; REVOKE service_role FROM anon, authenticated');
     await this.client.end();
   }
 }

@@ -69,10 +69,12 @@ jobs:
             node "tests/gradebook-$suite-sql.mjs"
           done
       - name: Independent-connection security and synthetic key recovery
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
         env:
           GB_QA_DATABASE: gbqa_connections
         run: node tests/cloud/connections.mjs
       - name: Existing finite Edge fault and signed-preview contracts
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
         run: node --test --test-name-pattern 'limiter denial/failure|preview HMAC canonicalization|stale preflight|timeout/cancellation' tests/gradebook-edge.test.js
       - name: Real disposable Supabase Auth and API acceptance
         if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
