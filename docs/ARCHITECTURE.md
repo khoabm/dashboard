@@ -53,13 +53,13 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 | supabase/functions/_shared/{handler,http,backend,auth}.js | Bounded HTTP/CORS/cancellation, separate Auth/server clients, verified JWT/profile context, no retries |
 | supabase/functions/_shared/{crypto,contracts,imports,dto}.js | Web Crypto keyrings/envelopes/tokens; reuse pure B1 via relative imports; complete score-input framing; explicit response projections |
 | supabase/functions/_shared/{admin,student,runtime}.js | Allowlisted teacher/student operations, actual B3 RPC arguments, completed limiter before sensitive reads, server-only configuration |
-| supabase/config.toml | Unapplied/undeployed per-function entrypoint and gateway flags; no exposed-schema or hosted setting change |
+| supabase/config.toml | Entry points/gateway flags matching deployed v2 functions; synthetic-only CP01-C, frontend default disabled; config alone grants no deployment authority |
 | tests/gradebook-edge.test.js | Specialist Web Crypto/real-SDK/HTTP handler regression, explicitly excluded from curated CI; prior offline evidence retained; hosted acceptance separate |
 | tests/gradebook-runtime.test.js | Specialist Node24 adapter loads actual Edge entrypoints/pinned SDK/shared+B1 graph without service/network; excluded from curated CI; native Deno/bundle NOT RUN |
 
 Các thư mục code trong bảng đã có implementation. Không buộc một file/component nếu ghép module nhỏ rõ nghĩa tiết kiệm hơn; vẫn đáp ứng đủ hành vi các component trong SPEC.
 
-B4 Functions are isolated from the Vite entry graph; they import only the accepted pure B1 modules from src/utils/gradebook, never frontend config/session/UI. No server secret is exported into VITE variables or browser assets. [B4 concern confirmations and actual transport contracts](features/personal-gradebook/B4_INTEGRATION_REVIEW.md#cp01-b4-implementation--mandatory-concern-confirmations-2026-10-26). Deno graph/bundle and exact-HEAD format/CI remain B5 checks; no deployment is implied by this code map.
+B4 Functions are isolated from the Vite entry graph; they import only the accepted pure B1 modules from src/utils/gradebook, never frontend config/session/UI. No server secret is exported into VITE variables or browser assets. [B4 concern confirmations and actual transport contracts](features/personal-gradebook/B4_INTEGRATION_REVIEW.md#cp01-b4-implementation--mandatory-concern-confirmations-2026-10-26). Hosted import graph bundled successfully in CP01-C; native local Deno remains unavailable. Actual deployment/security evidence is recorded in STATUS/readiness; this code map alone does not establish acceptance.
 
 ## Cách viết
 
@@ -144,12 +144,18 @@ Tổ chức kiểm thử: mọi file frontend test/fixture nằm trong `tests/` 
 
 ## Personal Gradebook B1 utilities
 
+> Historical implementation snapshot at the referenced baseline. Current applied versions/deployed functions are recorded in DATABASE/STATUS; old unimplemented/unapplied labels below are not current state.
+
 `src/utils/gradebook/{contracts,decimal,dates,imports,canonical}.js` contains pure B1 contracts, with no client/network/DOM or persistent-storage dependency. `tests/gradebook-contracts.test.js` covers exact values, calendar/Excel conversion, normalization and protocol vectors offline. The roster helper maps physical width/positions to stable DTO keys, accepts increasing source-row gaps and validates trimmed names by Unicode code points; editable header text is not a mapping key. They are not imported by the application entry point yet. See [B1 boundary](features/personal-gradebook/CP01_TECHNICAL_DESIGN.md#15-b1-implemented-contract-boundary); routes, full DB fingerprint, RPC and Functions are not implemented.
 
 ## Personal Gradebook B2 SQL draft
 
+> Historical implementation snapshot at the referenced baseline. Current applied versions/deployed functions are recorded in DATABASE/STATUS; old unimplemented/unapplied labels below are not current state.
+
 `supabase/migrations/20261026014933_gradebook_foundation.sql` is an unapplied six-table foundation; the narrow private boolean session helper is the only new function. `tests/gradebook-b2-sql.mjs` creates fresh in-memory PGlite databases using `tests/gradebook/b2-bootstrap.sql` and four actual board migrations; no DB URL is accepted, no dependency added to the app. [B2 review](features/personal-gradebook/B2_MIGRATION_REVIEW.md) separates local SQL evidence from PostgreSQL17/Supabase/JWT/concurrency gates. RPCs, runtime epochs/stamping, limiter, crypto and UI remain unimplemented.
 
 ## CP01-B3 — transaction draft (2026-10-26)
+
+> Historical implementation snapshot at the referenced baseline. Current applied versions/deployed functions are recorded in DATABASE/STATUS; old unimplemented/unapplied labels below are not current state.
 
 B2 accepted baseline `d86627f`. New `20261026030000_gradebook_transactions.sql` adds 22 service-only invoker RPCs, private validation/planner/framing helpers, shared import preview/apply/state hash, class-scoped audit and atomic limiter. Five prior migrations unchanged, no tables added. [B3 inventory, DTO signatures, evidence and limits](features/personal-gradebook/B3_TRANSACTION_REVIEW.md). B3 READY FOR REVIEW; B4/B5 NOT STARTED, CP01-C and real-data gate NOT RUN. 14 B3/18 B2 disposable SQL groups and81 app tests PASS; native17, multi-connection locks, hosted API/security and browser NOT RUN. Draft not applied. Earlier B3 NOT STARTED entries are historical.

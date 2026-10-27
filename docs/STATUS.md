@@ -1,3 +1,11 @@
+# CP01-C — Final remaining-gate execution / 2026-10-28
+
+**PARTIAL; real-data NOT APPROVED.** Baseline2435fcc, feature/personal-gradebook. Corrected test-SQL42702 assertion now PASS on native17 in rollback; application unchanged.13/13 bounded live capability/JWT-forgery cases PASS, including own-student isolation, signed expiry/tamper, semester continuity/republish, student and class epoch revocation. Real Chrome stale class.patch409 refused mutation and disabled replay; DB confirmed unchanged year/audit. Existing specialist fault/preview/timeout cases6/6 PASS offline. [G01–G08 dispositions, exact scope/accounting and missing prerequisites](features/personal-gradebook/CP06_OFFLINE_READINESS.md#cp01-c--final-security-gates--2026-10-28).
+
+No new migration, Edge deployment, key rotation or production activation. REV-C01 corrected deployment/historical wording only. Native disposable17/concurrency/recovery, isolated real Auth contexts, live signed-preview cases and independent-connection authorization races remain BLOCKED/unverified; independent key+DB custody and real-data approvals remain open. Same2 synthetic students/5 scores, both semesters hidden; class epoch2/B epoch3/revision12, no Board/Auth data changed.9 SQL calls,13 direct Edge calls,1 log query;19 observed function HTTP events including browser preflights, not total upstream traffic. Source/test/CI policy unchanged; original default-disabled owner preview restored. PR5 Draft; CP07 NOT STARTED. Prior accepted evidence below is historical for its recorded baseline.
+
+---
+
 # CP01-C — bounded hosted integration / 2026-10-28
 
 **PARTIAL — integration works with synthetic data; full security/real-data acceptance remains open.** Baselinea8f055e, feature/personal-gradebook. Free projectvgciiqtwmxcdqppntgnt / PostgreSQL17.11: four exact LF Gradebook migrations applied once under owner-approved MCP versions20261027173228/173300/173313/173327; five Board ledger entries preserved.9/9 effective correction hashes,22 service-only invoker RPCs and unchanged Board metadata fingerprint verified. Both Edge Functions ACTIVE v2 after narrow wildcard-config rejection; four synthetic test keyrings and environment origin localhost:4173 only, local DPAPI backup. No public frontend activation or real-data authorization.

@@ -1,4 +1,5 @@
-# Draft only. Do not deploy or apply pending migrations without separate authorization.
+# Existing functions deployed v2 for synthetic CP01-C; future deploys need explicit authorization.
+# Production frontend transport remains disabled; this file does not activate it.
 [functions.grades-admin]
 verify_jwt = true
 entrypoint = "./functions/grades-admin/index.js"
