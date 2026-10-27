@@ -328,6 +328,8 @@ test('V2 ECharts options retain all101 buckets, exact highlights and integer axe
     assert.ok(middle.start <= 83 && middle.end >= 83);
   }
   // Larger plots can show more levels without forcing narrow bars at mobile widths.
-  assert.ok(chartWindow(40, 390).end - chartWindow(40, 390).start <
-    chartWindow(40, 1024).end - chartWindow(40, 1024).start);
+  assert.ok(
+    chartWindow(40, 390).end - chartWindow(40, 390).start <
+      chartWindow(40, 1024).end - chartWindow(40, 1024).start,
+  );
 });

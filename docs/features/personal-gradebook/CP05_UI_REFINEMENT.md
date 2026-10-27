@@ -66,7 +66,7 @@ Source feedback: three user screenshots showed nested input/outer focus rings, m
 - **Laptop/desktop:** wider chart dialog (up to 1120 CSS px) and height-sensitive spacing/plot sizing to avoid typical vertical overflow. Short viewport browser checks remain required; content must never be hidden merely to suppress scroll.
 
 The synthetic QA fixture and its developer-only labels are deliberately **unchanged**, per user approval. The feature-local chart/date controls and documents are the only scope. Unit/CI/browser evidence of this correction must be recorded separately rather than inheriting Work's earlier V2 PASS. No hosted calls, migrations or deployment authorized.
- 
+
 ## Focus and bar-hover correction — 2026-10-27
 
 User screenshots of the student lookup and chart selectors showed a doubled blue focus outline, while hovering the highlighted personal bar changed its orange fill to generic dark green. The histogram bars also looked too thin in the default laptop/desktop window.
