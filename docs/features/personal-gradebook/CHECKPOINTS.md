@@ -1,6 +1,6 @@
-# V1 integration execution — 2026-10-28
+# V1 hosted reachability — 2026-10-28
 
-G07 eight-commit fast-forward integrated; current adapters already wired behind opt-in, public default remains false. [Current flow matrix, bounded evidence and owner UAT](V1_INTEGRATION_UAT.md). Source check/47 pure+8 transport tests/format/default build PASS. Current public zero-row read200; anonymous teacher Edge timed out, hosted HTTP stopped without retry/student probe or writes. Fresh hosted E2E BLOCKED; not functionally complete/production ready. G07 Technical/local/Drive PASS retained, Operational/Overall PARTIAL; owner conditional project authorization recorded, G08 institutional evidence BLOCKED. No migration/deploy/merge into develop/main. Older entries below are historical.
+One authorized14-second anonymous probe returned HTTP401 in8.379s (TLS milestone7.752s); the old8-second timeout is not proof of an Edge defect. Both Functions ACTIVE v2; no request-ID correlation confirms old handler arrival. [Exact timing, bounded logs, matrix and minimal owner localhost UAT](V1_INTEGRATION_UAT.md). Managed terminal.local differs from the accepted localhost origin: authenticated browser E2E remains BLOCKED; no runtime correction justified. Five connector reads/one HTTP request/zero retries, data writes, DB SQL, Auth attempts, deploys or new CI requests. Source unchanged; default transport disabled. PR5 Draft. G07 Technical/local/Drive PASS retained, Operational/Overall PARTIAL; conditional owner project authorization retained, G08 institutional evidence BLOCKED. Earlier snapshots below are historical.
 
 ---
 

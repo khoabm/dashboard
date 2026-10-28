@@ -1,3 +1,69 @@
+# Hosted reachability follow-up — 2026-10-28
+
+**ENDPOINT REACHABILITY VERIFIED; AUTHENTICATED BROWSER E2E BLOCKED.** Application implementation remains at `eae719a60d2a8ea761cb2a890eb98b16987dee61`; this follow-up changes documentation only. PR5 remains open/Draft → develop. No backend defect was established and no runtime fix was made. The prior integration snapshot below remains historical evidence, not a claim that the new probe timed out.
+
+## Diagnosis and bounded evidence
+
+One additional non-mutating anonymous `POST /functions/v1/grades-admin`, public publishable key only, `Origin: http://localhost:4173`, synthetic zero class UUID, no Authorization header, no redirects/retries, maximum14 seconds. This is a command-line HTTP check, **not browser CORS or administrator authentication evidence**. Response content was discarded, and no request/response credential or sensitive diagnostic was recorded.
+
+| Measurement | Actual result |
+| --- | --- |
+| UTC start/end |2026-10-28T06:31:11.447Z / 06:31:19.846Z (13:31:11–13:31:19 Vietnam) |
+| curl exit / HTTP status |0 / **401**,139 response bytes; body not retained |
+| DNS / TCP connect |0.000047s / 0.000466s, cumulative curl milestones |
+| TLS completed / first response byte / total |7.751933s / 8.379330s / 8.379439s, cumulative milestones |
+| Proxy CONNECT |200; no proxy address, credentials or network configuration inspected/changed |
+| Function status |grades-admin ACTIVE v2 / verify_jwt=true; student-lookup ACTIVE v2 / verify_jwt=false |
+| Runtime logs |grades-admin Boot26ms at06:31:19.788Z; timing correlates with this probe, but no request-ID join was available |
+
+The endpoint returned an actual HTTP authorization rejection within the frontend14-second budget. This proves HTTP reachability from the Work executor now. It does not prove browser reachability, authenticated administration, response CORS, or successful business operations. Because the body was deliberately not decoded, the exact gateway-versus-handler rejection layer is unclassified.
+
+**Previous8-second timeout:** exact original failing stage remains unproven. The new request required8.379s, with TLS completion at the cumulative7.752s milestone; an8-second deadline can therefore expire before the response on this path. This supports a transport/deadline explanation and gives no justification for modifying Edge logic or increasing the frontend timeout. It does not establish that the old request had the same timing. Current evidence excludes a complete current endpoint connectivity outage, not intermittent networking or unrelated backend faults.
+
+Four finite read-only log queries were used adaptively: source counts; attribute-name discovery; a projection of status/path/runtime lifecycle fields; a post-probe function-specific projection. No raw headers, IP addresses, JWT fields, body/rows or free-form error messages were requested. The first window showed grades-admin Boot32ms at06:10:53.249Z and Shutdown/EarlyDrop at06:12:08.267Z. Neither is joined to the original request, so **arrival of the old probe at the handler is NOT CONFIRMED**. No function invocation status was present in the returned function-specific projection. Boot/EarlyDrop alone does not establish startup failure or server misconfiguration; no observed configuration503 or CORS403 supports either diagnosis. No log polling or further HTTP retry was performed.
+
+## Origin and secure-session boundary
+
+The Sites managed-preview contract requires the exact daemon URL `http://terminal.local:4173/`; it does not support substituting localhost or running a second server. The accepted last-recorded server origin is `http://localhost:4173`. Source validates exact configured origins, without wildcards. Consequently **no working Gradebook browser UAT origin in Work has been demonstrated**. Do not treat a command-line Origin header as browser-origin verification or use a proxy/header rewrite to circumvent this restriction.
+
+No new Site/HTTPS host was created: a new origin would require reviewed hosting cost/audience and an exact server allowlist change, outside this diagnostic scope. No browser sign-in was attempted before origin feasibility was established. The cloud browser inventory contained only a blank tab; no existing application session was reused or extracted. Secure handoff is not the first blocker and asking the owner to sign into terminal.local would not resolve the origin mismatch. No alternate credential acquisition, new account or manufactured session is permitted.
+
+Temporary opt-in was **not activated in this follow-up**, because browser-to-Edge reachability at an accepted origin could not be established. `.env.local` remains absent in this checkout and public/default transport remains disabled. Use the already authorized owner-operated localhost path below; this Work execution did not access the owner's device.
+
+## Current minimum acceptance matrix
+
+| Essential journey | Status / evidence |
+| --- | --- |
+| Anonymous teacher endpoint |**PASS for this one HTTP401 only**; application versus gateway layer unclassified, not a non-admin JWT test |
+| Existing admin login; class/student create/read/update; roster preview/apply |**BLOCKED fresh E2E**: no accepted browser origin/session; synthetic fixture not inspected or established, zero writes |
+| Score edit/import/exact decimals/atomic invalid batch; publish/unpublish |**BLOCKED fresh E2E**; accepted unchanged offline/native/earlier hosted evidence retained, not rerun |
+| Student verification, own grades, semester switching, aggregate-only histogram |**BLOCKED fresh E2E**; no student endpoint requests sent in this follow-up |
+| Neutral invalid pair; unpublished data; expired/revoked capability; non-admin teacher denial |**BLOCKED fresh E2E**; no production fault injection or limiter exhaustion; unchanged accepted security evidence retained |
+| Existing Board |Prior zero-row HTTP200 and source compatibility evidence retained; new browser/session/CRUD/attachment smoke **NOT RUN** |
+
+No new business defect is demonstrated; no critical unexecuted flow is labeled PASS or merely DEFERRED. Source compilation/offline tests alone are not functional completion. Extended browser/device/cosmetic testing and unaffected suites remain DEFERRED.
+
+## Single smallest external action and owner reproduction
+
+**Owner runs the existing app on the already authorized `http://localhost:4173` and signs into the existing admin using its normal UI.** This one owner-operated UAT session supplies the origin and secure-session prerequisites together, without new hosting or server settings. Never send credentials, JWTs, identifiers, private scores or browser network exports to chat.
+
+1. Use `feature/personal-gradebook` at the latest documented HEAD. If the checkout has local changes, preserve them before switching/pulling; do not reset. Use the existing locked dependencies, or `npm ci` only when needed.
+2. Edit the ignored `.env.local` to set only `VITE_GRADEBOOK_ENABLED=true`, preserving any existing public project configuration. Do not copy the placeholder values from `.env.example` or add private/server credentials. Start `npm run dev`; open exactly `http://localhost:4173` in the owner's browser. Do not use terminal.local or a public tunnel. This is an owner procedure, not an action performed by Work.
+3. Sign in through the normal existing administrator login, open Gradebook, and perform only the initial read. Record safe HTTP status/stage and whether the catalog/class loads. If timeout/429/503 occurs, stop without retry. That read proves actual browser-to-Edge reachability only when its response arrives; a visible login screen alone does not.
+4. Before any mutation, inspect the class/data state privately. Do not assume the active class is disposable. Continue the existing essential UAT steps below only if the owner explicitly identifies that scope as synthetic/disposable; otherwise report `SYNTHETIC_SCOPE_BLOCKED` and stop writes. No new real class or overwritten metadata is required merely for testing.
+5. In that safe scope, run each essential teacher/student journey once, sequentially, as detailed in the retained UAT checklist. Use one valid import and one invalid atomic batch; stop on the first unexpected result rather than repeating until success. Reuse the accepted unchanged limiter/fault/security evidence where appropriate. Board mutations/attachments require their own disposable scope; otherwise report the smoke boundary honestly.
+6. Report only categories: origin, source SHA, admin/class read PASS/FAIL/status, synthetic scope confirmed/blocked, import counts, publication/semester/histogram/privacy results, request/write totals if available, and NOT RUN items. Do not share passwords, token values, raw student rows, network exports or sensitive screenshots. Restore the previous ignored config/default-disabled state after the session.
+
+If step3 fails, the next action is diagnosis of that precise status/stage, not an origin wildcard, Auth/RLS change or deployment. A new reviewed operational scope is required before any server setting/secret/function/migration change.
+
+## Accounting and preserved gates
+
+This follow-up: **5 Supabase connector reads** (one function-status call + four log queries), **1 direct hosted HTTP request**, **0 retries**, **0 database SQL queries**, **0 application data/key reads or writes**, **0 Auth login attempts**, **0 deployments/migrations/secret changes**, **0 new CI runs requested**, **0 owner-device operations**. Read-only log SQL executes in the logging service, not the application PostgreSQL database. Provider-internal events visible in logs are not actions by this execution. No services/resources/plans were created or upgraded; existing Free boundary retained. These counts exclude GitHub source/PR operations and GitHub's own automatic checks, if any.
+
+Docs-only validation: relative links, evidence-state/credential-pattern review, changed-file scope and `git diff --check`. No unchanged source/unit/build/G07 suites were rerun. G07 Technical PASS, owner synthetic local/Drive PASS, Operational/Overall PARTIAL remain intact. Owner conditional project authorization is retained; no institutional/legal evidence was invented. G08 remains BLOCKED. PR5 stays Draft; no merge into develop or public deployment. **Current outcome remains INTEGRATED / HTTP REACHABLE / AUTHENTICATED BROWSER E2E BLOCKED**, not FUNCTIONALLY VERIFIED or PRODUCTION READY.
+
+---
+
 # Personal Gradebook V1 — integrated source and UAT handoff
 
 2026-10-28. **IMPLEMENTATION INTEGRATED; FRESH HOSTED E2E BLOCKED — not a functional-completion or production-ready claim.** PR5 remains Draft → develop. This is the current evidence summary; older implementation/NOT IMPLEMENTED snapshots in BRIEF/readiness are historical, not missing-feature assertions.
