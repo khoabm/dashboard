@@ -3,6 +3,7 @@ import { el, button } from '../utils/dom.js';
 import { PulseIndicator } from './pending.js';
 import { openDialog } from './primitives.js';
 import { displayScore } from '../utils/gradebook/decimal.js';
+import { StudentLearningInsights } from './student-learning-insights.js';
 import {
   studentContext,
   ownGrades,
@@ -89,7 +90,11 @@ export function StudentGradeboard({ context, read, onReset }) {
     ),
     panel,
   );
+  // Insights are strictly derived from already authorized semester scores; no additional reads.
+  const insightsRegion = el('div', { class: 'student-learning-region' });
+  element.append(insightsRegion);
   const grades = createStudentRead(read, (snapshot) => {
+    insightsRegion.replaceChildren();
     if (disposed) return;
     scores = [];
     panel.replaceChildren();
@@ -106,6 +111,7 @@ export function StudentGradeboard({ context, read, onReset }) {
       return;
     }
     scores = snapshot.value;
+    insightsRegion.replaceChildren(StudentLearningInsights(scores, catalog));
     const table = el(
       'table',
       { class: 'student-score-table' },
@@ -170,6 +176,7 @@ export function StudentGradeboard({ context, read, onReset }) {
     modal?.dispose();
     semester = value;
     scores = [];
+    insightsRegion.replaceChildren();
     controls.forEach((control, index) => {
       control.setAttribute('aria-selected', String(index + 1 === semester));
       control.tabIndex = index + 1 === semester ? 0 : -1;
@@ -351,6 +358,7 @@ export function StudentGradeboard({ context, read, onReset }) {
       grades.dispose();
       modal?.dispose();
       scores = [];
+      insightsRegion.replaceChildren();
       element.replaceChildren();
     },
   };
