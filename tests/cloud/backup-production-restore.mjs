@@ -159,9 +159,9 @@ async function restore(input) {
   }
   const db = await connect(target);
   try {
-    stage('fresh_target_extraction');
+    stage('metadata');
     const restoredState = await extractRestored(db);
-    stage('target_inventory_crypto');
+    stage('metadata_objects');
     const checked = await verifyRestored(manifest, input.expected, restoredState);
     assert.equal(checked.dataVerification, 'RESTORED_DATA_CRYPTO_VERIFIED');
     assert.equal(checked.permissionVerification, 'NOT_RUN');
@@ -330,7 +330,7 @@ try {
       cid,
       JSON.stringify({ ...currentEnvelope, birthDate: '2012-04-13' }),
     ]);
-    stage('exported_snapshot');
+    stage('dump');
     const { snapshot,state,dump } = await captureSource(db);
     const migrationList = Object.entries(migrationHashes).map(([file, hash]) => ({
       ledgerVersion: file.slice(0,14), file, sha256: hash,
@@ -355,10 +355,10 @@ try {
       required:Object.fromEntries(purposes.map(p => [p,Object.keys(settings[p].keys).sort()])),
       inventory:inventory(state),
     };
-    stage('source_crypto_check');
+    stage('seal');
     await verifyRestored(manifest,expected,state);
     const tools = {age:process.env.GB_TEST_AGE,pgRestore:process.env.GB_TEST_PG_RESTORE};
-    stage('new_format_export');
+    stage('invalid_archive');
     const sealed = await exportBackup(dump,manifest,expected,recipients,tools);
     dump.fill(0);
     assert.deepEqual(Object.keys(sealed.files).sort(), [...backupFiles].sort());
@@ -386,10 +386,10 @@ try {
     stage('child');
     const output = command(
       process.execPath,
-      ['tests/cloud/backup.mjs', '--restore'],
+      ['tests/cloud/backup-production-restore.mjs', '--restore'],
       JSON.stringify(input),
     );
-    assert.match(output.toString(), /^PASS independent age decrypt/m);
+    assert.match(output.toString(), /^PASS G07-4 gb-recovery-v1 age auth, PG17 target restore, crypto, ACL\/RLS, roles/m);
     for (const ring of Object.values(settings))
       for (const key of Object.values(ring.keys)) assert(!output.includes(Buffer.from(key)));
     console.log('PASS G07-4 new-format age encryption/authentication, actual target PG17 restore; hosted requests 0');
