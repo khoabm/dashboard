@@ -78,8 +78,6 @@ export function formatBirthdayInput(value, caret = value.length) {
   const position =
     before +
     Number(firstSlash && (before > 2 || (before === 2 && /^\d{2}\//.test(prefix)))) +
-    Number(
-      secondSlash && (before > 4 || (before === 4 && /^\d{2}\/\d{2}\//.test(prefix))),
-    );
+    Number(secondSlash && (before > 4 || (before === 4 && /^\d{2}\/\d{2}\//.test(prefix))));
   return { text, caret: Math.min(text.length, position) };
 }
