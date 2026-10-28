@@ -302,3 +302,7 @@ At `13292a3` baseline, GB-B3-REV-003 P1 confirmed eight application40001 paths. 
 ## 2026-10-28 G07-4 isolated synthetic restore evidence
 
 **PASS (synthetic engine-only G07-4):** production-format `gb-recovery-v1`, age authentication, native PostgreSQL17.11 transactional restore into new target after synthetic source removal, independently captured target inventory/crypto/permissions and role checks. Commit `3dab007907d23f989a187f5a351c1375fcd041b5`; [Actions 40710041772](https://github.com/khoabm/dashboard/actions/runs/40710041772) SUCCESS. Earlier [run 40709067825](https://github.com/khoabm/dashboard/actions/runs/40709067825) failed and remains recorded; fixed child harness script path. No hosted/real data, paid resources, production cutover or merge. **G07 Operational PARTIAL; G08 BLOCKED** pending independent owner custody, Google/receipt confirmation and separately scoped managed recovery.
+
+## G08 owner decision update — 2026-10-28
+
+**OWNER APPROVED** real-data use for G08/Gradebook V1. Owner authorization is recorded in [G08 decision record](G08_OWNER_AUTHORIZATION.md), without sharing data or credentials. The distinct institutional/legal/child-data, retention/rights, provider/transfer, G07 managed recovery and production/security release requirements remain **PENDING/BLOCKED**; no real record import, backend provisioning, activation, production secret retrieval, or hosted data mutation occurred. Preserve all already-accepted G07-4 synthetic PASS evidence. No repeat owner authorization is required.

@@ -1,9 +1,8 @@
 # CP01-C G08 — Owner authorization and institutional review
 
-**BLOCKED — NOT APPROVED.** Prepared2026-10-28 (Asia/Bangkok) for `khoabm/dashboard`,
+**OWNER REAL-DATA AUTHORIZATION RECORDED — G08 INSTITUTIONAL/RELEASE GATES STILL BLOCKED.** Owner decision reconfirmed 2026-10-28 for `khoabm/dashboard`,
 source baseline `beede03884c0e44995d25746bf5390e7bb4a6952`.
-This is a review/decision template. No owner, institutional, legal or child/representative approval has been given by this document.
-Synthetic verification and repository access do not establish authority to process real student information.
+This is a review/decision record. The project owner expressly approved using real data for G08 on 2026-10-28. The owner's authorization is documented, but there is **no recorded institutional/legal, child/representative or production-release approval** in this public record. Repository ownership and synthetic verification do not establish those independent permissions.
 
 Keep completed identities, contact details, consent evidence, credentials and sensitive records in an institution-approved private record.
 The public repository should contain only this blank template, redacted decision status and safe evidence references.
@@ -11,19 +10,19 @@ Do not fill it with student PII, signatures, passwords, private keys or secret l
 
 G07 manual policy A–F đã được owner chốt riêng: Drive Free cá nhân/private, không secondary/USB, sole owner/no emergency custodian, hai age identities độc lập, manual-only/no guaranteed RPO/RTO, latest+previous verified. [Current G07 policy](G07_OWNER_DECISIONS.md) thay thế các câu hỏi lựa chọn tương ứng ở §7; actual custody/provider verification, production exporter và mọi legal/institutional authorization bên dưới vẫn BLOCKED. Không yêu cầu owner chốt lại A–F.
 
-Owner update2026-10-28: conditional project authorization for accepted-design real-information use and continued V1 integration is RECORDED. Institutional/legal evidence and technical/operational prerequisites are not thereby verified; G08 remains BLOCKED. Apply missing conditions only to affected real-data/release operations, not unrelated implementation or synthetic QA.
+Owner update 2026-10-28: **EXPLICIT OWNER APPROVAL — real data may be considered for G08/Gradebook V1 within the previously approved feature contract.** This supersedes the earlier conditional owner decision, but **does not assert institutional authority, lawful basis, child/representative permissions, production configuration or completed G07 managed recovery**. Accordingly G08's **owner-decision subgate is APPROVED**; the **real-data import/activation gate remains BLOCKED pending independently evidenced applicable requirements**. Do not repeat the owner authorization question. Unrelated implementation and synthetic QA may proceed.
 
 ## Decision record
 
 | Required decision metadata | Owner/institution to complete privately | Current status |
 | --- | --- | --- |
 | Responsible institution and data-controller/processor roles | Legal name, responsibility allocation, authorized signatory and delegation reference | PENDING |
-| Authorized system owner | Named person/role, scope, replacement/handover authority | Owner is intended primary recovery custodian; identity/delegation not verified |
+| Authorized system owner | Named person/role, scope, replacement/handover authority | Project owner expressly authorized G08 real-data use 2026-10-28; identity/institutional delegation not independently verified |
 | Reviewers | Institutional decision-maker, privacy/legal reviewer, technical reviewer, child-safeguard lead as applicable | PENDING |
 | Approved scope | Classes/age groups/fields/purpose/users/environments and exclusions | PENDING |
 | Evidence record | Private document reference/version/date; public redacted reference only | PENDING |
-| Decision and conditions | Approve / approve with conditions / reject; effective date, expiry/review trigger | **NO DECISION** |
-| Release authorization | Named signatories, technical prerequisites, approved activation scope | **BLOCKED** |
+| Decision and conditions | Approve / approve with conditions / reject; effective date, expiry/review trigger | **OWNER APPROVED 2026-10-28** for real-data G08/Gradebook V1; independent institutional/legal/security conditions PENDING |
+| Release authorization | Named signatories, technical prerequisites, approved activation scope | **BLOCKED** — not granted by owner data-use approval alone |
 
 Do not mark a box from a technical assumption. Each approval needs an accountable role, date,
 decision text, evidence reference and unresolved-condition disposition. A necessary condition left open keeps G08 BLOCKED.
@@ -130,10 +129,10 @@ A–F are already approved in [owner policy](G07_OWNER_DECISIONS.md): private pe
 | G07 technical/operational recovery | New synthetic evidence review, permissions, independently held custody and approved operational plan | PASS synthetic technical retained / PARTIAL operational |
 | Costs and production activation | Verified safe/free environment, owner and applicable institution release authorization | BLOCKED |
 
-**G08 remains BLOCKED until every applicable required item is approved and evidenced.**
-Owner confirmation to publish source or run synthetic Actions is not real-data permission.
+**G08 real-data release/import remains BLOCKED until every applicable independent required item is approved and evidenced.**
+The project owner has **explicitly granted real-data use approval**; this does not replace the separately required institution/legal/child protection and technical evidence.
 No assistant may sign on behalf of the institution, select a lawful basis, approve retention or claim compliance.
-No merge, deployment, frontend activation, production-key rollout or real entry/import is authorized here.
+This owner decision does not by itself authorize deployment, frontend activation with real data, production-key rollout or real entry/import. Documentation, unrelated implementation, reviewed merges and synthetic QA remain permitted under their separate scopes.
 
 ## Current-law review starting points
 
