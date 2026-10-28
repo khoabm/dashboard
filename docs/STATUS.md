@@ -1,3 +1,11 @@
+# CP07 code finalization and G08 data handoff — 2026-10-28
+
+**CODE REVIEW PASS / MERGE DECISION PENDING / PRODUCTION NOT APPROVED.** PR #10 UI E2E/loader merged intact as `6754e00f654721e8f1bbba2b405029ea1e7ce293`; PR #5 is Ready for review → `develop`, not merged. Exact-source GitHub Actions [run 40683942523](https://github.com/khoabm/dashboard/actions/runs/40683942523) PASS: 131/131 curated tests, check/build/Prettier and production exclusions. [Independent CP07 review](https://github.com/khoabm/dashboard/pull/5#pullrequestreview-5682738845) found no new confirmed P1/P2 within source scope. Final Chrome UI/hosted Auth E2E remains PARTIAL/BLOCKED; CP01-C overall PARTIAL; G07 Operational PARTIAL and G08 institutional/release evidence BLOCKED. This code outcome does not approve real-data use.
+
+**Next sequence:** complete CP07 docs/review → explicit PR #5 merge into develop with feature disabled by default → satisfy G07 operational prerequisites → at G08 obtain owner-supplied reference dataset via approved private workflow and test authorized data scope → deployment and production smoke after separate release checks. **No dataset is requested now.** Older records below are retained as historical snapshots and do not override this status.
+
+---
+
 # Unified loading UX — 2026-10-28
 
 **PR10 integration review:** user authorized merge into `feature/personal-gradebook` only. Exact base1378455/headc01f9a9: all23 files reviewed, base ancestor, no conflicts/base-code loss; UI-QA-001 corrects two existing synthetic fixture review findings. [Review, minimal verification and retained limits](features/personal-gradebook/UI_E2E_REVIEW.md#pr10-merge-review-correction--2026-10-28). No source business/Auth/API/migration change. GitHub Actions/status absent at reviewed head (feature-base workflow filters); previous offline evidence retained. Merge result must be verified through GitHub after integration; the no-merge/Draft statements below describe earlier execution. No deploy; PR5 unchanged; UI/hosted acceptance remains partial.
