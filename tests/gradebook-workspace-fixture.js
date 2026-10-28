@@ -59,9 +59,8 @@ if (!params.has('embedded')) {
   const catalog = fixtureContext();
   const request = async (body) => {
     if (body.op === 'class.read') return { class: classroom };
-    if (body.op === 'class.patch') return { class: (classroom = { ...classroom, ...body.patch }) };
     if (body.op === 'students.list')
-      return { students: body.cursor ? [] : pupils, nextCursor: body.cursor ? null : '20' };
+      return { students: body.cursor ? [] : pupils, nextCursor: null };
     if (body.op === 'scores.read')
       return {
         students: (body.cursor ? [] : pupils).map((p) => ({
@@ -70,7 +69,7 @@ if (!params.has('embedded')) {
             { subjectCode: 'item_0', columnCode: 'item_0', rawScore: '8.12345', revision: '1' },
           ],
         })),
-        nextCursor: body.cursor ? null : '20',
+        nextCursor: null,
       };
     if (body.op === 'student.reveal') return { documentNumber: '000000009' };
     if (body.op === 'student.read') return { student: pupils.find((p) => p.id === body.studentId) };

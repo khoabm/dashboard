@@ -25,6 +25,12 @@ Score editor opens with exact 8.12345 input; Escape closes and returns focus to 
 
 ## Limits and owner review
 
+### PR10 merge review correction — 2026-10-28
+
+Reviewed exact base `1378455b0096f688cbf91a1f7ab5a9f0e8fd57be` and head `c01f9a966506ea9048c3340574205db3ab50e0f5`, all23 changed files and the earlier GitHub review. Base is an ancestor of head (0 base-only /7 head-only commits); no conflict or discarded base commit. Application changes are presentation/loading/date-input only; service/API/Auth logic, migrations, dependencies and CI unchanged.
+
+Concern/test matrix and correction inventory: only `tests/gradebook-workspace-fixture.js`, this report, `docs/BUG_FIX_LOG.md`, `docs/STATUS.md`. Remove the incorrect `class.patch` fake-success handler (unsupported writes now fail explicitly); return null cursors for the complete20-student dataset. Verify syntax, scoped format and diff once; inspect both collection branches and unsupported-write fallthrough statically. No browser/HTTP/SQL execution needed for this fixture correction. Existing offline evidence above and L01–L19 evidence retained without repeating suites. GitHub HEAD has no Actions run/status because this feature-base PR is outside the workflow branch filters. Loading browser QA remains BLOCKED; full UI/hosted acceptance remains PARTIAL, not a release approval. User explicitly authorized this integration into the feature base; PR5/develop and deployment remain outside scope.
+
 Full create/edit/deactivate success, identity reveal, pagination interactions, CSV/XLSX preview/apply, publication mutations, histogram selector/keyboard matrix, calendar matrix, reduced-motion emulation, Board browser regression and hosted/Auth E2E: NOT RUN in this execution. Synthetic fixture deliberately rejects unsupported mutations with503 rather than inventing successful saves. It uses real roster/score parsers, but file upload/preview was not exercised. No hosted requests, writes, migrations, deployment or real credentials. No login necessary for these isolated fixtures. G07 and G08 evidence unchanged.
 
 Focused existing gradebook-admin, gradebook-scores, gradebook-ui and student-gradeboard suites PASS. `check`, full `format:check`, default `build`/production exclusions and diff whitespace PASS. Existing large chart chunk warning retained. Source business modules and Board styles unchanged. No CI manually triggered.

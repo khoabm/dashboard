@@ -2,6 +2,10 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-28 — UI-QA-001 / P2: workspace fixture reports unsupported save success and a nonexistent next page
+
+Baseline `c01f9a966506ea9048c3340574205db3ab50e0f5`, branch `feature/personal-gradebook-ui-e2e`, PR10 review. Synthetic class.patch consumed nonexistent body.patch and returned success without the intended update;20-row lists advertised another page although no rows remained. Removed that fake-success handler so unsupported writes fail explicitly; both roster/score cursors now null. Only tests/gradebook-workspace-fixture.js changed in executable source. Syntax/scoped-format/diff checks and static branch/fallthrough review cover this correction; no hosted calls or browser acceptance inferred. [Review matrix and limitations](features/personal-gradebook/UI_E2E_REVIEW.md#pr10-merge-review-correction--2026-10-28). FIXED offline; real pagination/mutations NOT RUN.
+
 ## 2026-10-28 — UI-LOAD-001 / P2: inconsistent pending feedback across Board and Gradebook
 
 Baseline `cfcdaa1dd10465d982e3be0ffc90aa1ca3b8f907`, branch `feature/personal-gradebook-ui-e2e`. Lazy route transitions lacked visible feedback; logout feedback belonged to the hidden Board when launched from Gradebook; teacher operations shared generic page-only labels and local file/student reads used text-only loading. Modal inert content could conceal status from assistive technology.
