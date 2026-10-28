@@ -408,6 +408,51 @@ try {
     } finally {
       await empty.end();
     }
+    // A valid archive must also roll back earlier DDL when a later schema collision fails.
+    const partial = await connect('gbqa_backup_invalid');
+    try {
+      await partial.query('CREATE SCHEMA gradebook');
+      const before = await securityState(partial);
+      const authenticated = await openBackup(sealed.files, identities, sealed.expected);
+      let collisionRefused = false;
+      try {
+        command(
+          'docker',
+          [
+            'exec',
+            '-i',
+            'gb-backup-postgres',
+            'pg_restore',
+            '-U',
+            'postgres',
+            '--exit-on-error',
+            '--single-transaction',
+            '--dbname',
+            'gbqa_backup_invalid',
+          ],
+          authenticated.dump,
+        );
+      } catch {
+        collisionRefused = true;
+      } finally {
+        authenticated.dump.fill(0);
+      }
+      assert(collisionRefused);
+      assert.equal(await securityState(partial), before);
+      assert.equal(
+        (
+          await partial.query(
+            "SELECT count(*)::int n FROM information_schema.tables WHERE table_schema IN ('auth','storage','gradebook')",
+          )
+        ).rows[0].n,
+        0,
+      );
+      console.log(
+        'PASS G07 invalid archive and valid-archive transactional rollback; no partial restore',
+      );
+    } finally {
+      await partial.end();
+    }
     stage('remove_source');
     await db.close();
     db = undefined;
@@ -423,7 +468,7 @@ try {
       ['tests/cloud/backup.mjs', '--restore'],
       JSON.stringify(input),
     );
-    assert.match(output.toString(), /^PASS independent age decrypt/);
+    assert.match(output.toString(), /^PASS independent age decrypt/m);
     for (const ring of Object.values(settings))
       for (const key of Object.values(ring.keys)) assert(!output.includes(Buffer.from(key)));
     console.log('PASS G07 age encrypted creation + checksum + upload dry-run; actual uploads 0');
