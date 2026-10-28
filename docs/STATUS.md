@@ -1,3 +1,9 @@
+# AI Learning Assistant V1 — Design-only extension / 2026-10-28
+
+Branch `feature/ai-learning-assistant` created from `develop` baseline `78f3c3208b21583545ff9ec0c58d875db2a688f4`. Owner agreed Option A: bounded conversational **pretrained semantic retrieval + deterministic Board actions**, zero paid inference and no Gradebook access. [Design entry](features/ai-learning-assistant/README.md), [PoC acceptance](features/ai-learning-assistant/POC_EVALUATION.md), [checkpoints](features/ai-learning-assistant/CHECKPOINTS.md). **Docs only**: AI-P01 NOT RUN, AI-P02 NOT STARTED, no model/dependencies, source/UI edits, hosted API, QA, PR/merge or deploy. Existing G07/G08 evidence/status is unaffected. Older entries below are historical.
+
+---
+
 # G07-3 — Synthetic offline tooling accepted / 2026-10-28
 
 `develop` starting HEAD `8cbe298` (PR #5 merged at `6a0daf3`). Staged production exporter/authenticator/verifier implemented: actual age1.3.2 + local PG17.11 source snapshot/archive decode, 36 core cases +4 final focused cases PASS; actual restore NOT RUN. [Contract, exact commands, failed attempts, limits and finite G07-4 handoff](features/personal-gradebook/G07_PRODUCTION_TOOLING.md). Build/exclusion PASS; no runtime/frontend/migration/dependency/CI-policy changes. **G07 Technical PASS retained; G07 Operational/Overall PARTIAL; G07-4 NOT STARTED; G08 BLOCKED; deployment NOT RUN.** A–F and accepted owner Drive PASS retained, no repeated Drive/UI/recovery suite. Production secure key acquisition, paper/replacement-device custody, independently authorized isolated restore and managed-service evidence remain open. Hosted Supabase/Drive requests0; no production keys/PII/rotation/main merge/deploy. The dated records below are historical.

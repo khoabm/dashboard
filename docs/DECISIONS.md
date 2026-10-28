@@ -43,3 +43,13 @@ Còn thiếu: ảnh wireframe quản trị để visual acceptance; tạo tài k
 
 - **GB-OPS-D01 / owner-approved:** only four unapplied Gradebook filenames follow actual MCP-assigned versions; exact SQL/guards and five applied Board ledger entries stay unchanged. Current mapping/evidence: [DATABASE](DATABASE.md#gradebook-migration-rollout-gate--gb-ops-rev-002). No general timestamp-renumbering or ledger-repair authority.
 - **GB-OPS-D02 / owner-approved synthetic scope:** four separate256-bit keyrings and local Windows DPAPI backup; origin allowlist is environment configuration, CP01-C localhost:4173 only. Origin changes do not rotate keys or mutate DB. DPAPI is not sufficient for real-data backup; independent recovery/production custody remains gated in [DATA §H](features/personal-gradebook/DATA_AND_SECURITY.md#h-real-personal-data-gate).
+
+## AI Learning Assistant — Owner decisions 2026-10-28
+
+| ID | Status | Decision and boundary |
+| --- | --- | --- |
+| AI-D01 | Approved DESIGN only | Add a bounded conversational assistant to public **KHTN8 Board**: semantic retrieval + multi-turn topic/type refinement, optional opening of existing published cards; not a replacement for existing SearchBar. |
+| AI-D02 | Technical choice subject to PoC | True pretrained Vietnamese/multilingual embeddings **inside browser if feasible**; deterministic intent/action state machine. No free-form generative LLM, teacher write controls, Gradebook data, new backend or paid AI API. No library/model/CSP added without AI-P01 evidence and owner go/no-go. |
+| AI-D03 | Branch/document authorization | Develop docs on separate `feature/ai-learning-assistant` derived from `develop`; **no implementation, PoC execution, PR, merge or deployment in this task**. Zero cost throughout. |
+
+See [feature design and acceptance](features/ai-learning-assistant/README.md); this new extension does not rewrite the original Board R01–R28 scope or resolve Personal Gradebook G07/G08 gates.
