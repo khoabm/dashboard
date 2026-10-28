@@ -1,3 +1,9 @@
+# G07 technical acceptance — 2026-10-28
+
+G07 TECHNICAL PASS; operational BLOCKED—owner decisions; overall PARTIAL. G08 BLOCKED. Native run40623615581 at910ac0ae SUCCESS; all3 additional runs used. Same-cluster synthetic proof only; real-data/institution/custody gates remain closed. [Evidence and owner package](G07_BACKUP_RECOVERY.md). Older entries below retain their baseline context.
+
+---
+
 # Execution plan and acceptance gates — Personal Gradebook
 
 **G07/G08 preparation (2026-10-28, baseline `beede038...`):** [age backup/custody/runbook and per-requirement evidence](G07_BACKUP_RECOVERY.md); [owner/institution decision package](G08_OWNER_AUTHORIZATION.md). New actual-age offline19-case verification PASS; native17 permission-restore workflow prepared but NOT RUN pending approved publication/execution. G07 remains PARTIAL/operational custody BLOCKED; G08 BLOCKED. No real data, hosted Supabase calls, Drive upload, owner-computer work, merge or deploy.

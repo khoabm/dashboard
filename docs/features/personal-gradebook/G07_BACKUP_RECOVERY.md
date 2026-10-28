@@ -1,3 +1,46 @@
+# G07 final synthetic recovery evidence — 2026-10-28
+
+**TECHNICAL PASS. OPERATIONAL BLOCKED — OWNER DECISIONS. OVERALL PARTIAL. G08 BLOCKED.**
+Operational specification/runbook **READY FOR OWNER APPROVAL**: [precise remaining decisions and recommended defaults](G07_OWNER_DECISIONS.md). Owner approval of the design/review package is recorded; actual account/folder, institution provider permission, media/location, credential custody/emergency decision, schedule/retention/RPO/RTO and real restore authority remain unapproved.
+
+## Corrective execution and confirmed defects
+
+Baseline cc893edf5baf3fb3876c2c4e73ecfe04a5576ae7. All changes are test harness/diagnostic/docs only; production crypto, migrations/RLS, application logic, dependency lock and workflow/free-runner configuration unchanged. The original failure was a metadata assertion after successful pg_restore. Comparing raw ACL strings treated representation/order and implicit defaults as significant. Canonical sorted ACL sets with PostgreSQL acldefault for implicit grants resolve this false negative without changing privileges. The diagnostic change introduced a second harness defect: parent expected PASS at stdout offset0, but fixed stage lines precede PASS. Multiline anchored matching fixes it. The successful child exit in run2 and complete run3 logs confirm these dispositions; no hidden production defect is inferred.
+
+Diagnostics expose only fixed stages, allowlisted SQLSTATE/assertion/subprocess categories; no error messages, values, stacks or raw stderr. Poison message/stack/stderr regression was added. Do not call GB_STAGE a completed PASS by itself: the final successful assertions establish completion.
+
+| Additional run / attempt | Tested SHA | Result and evidence |
+| --- | --- | --- |
+| 1 / 1 | 0cfa404393b6116f12172be638b8bb9494c1d6b6 | [40623308305](https://github.com/khoabm/dashboard/actions/runs/40623308305) FAILED; decrypt/fresh target/restore reached, GB_FAIL metadata assertion. Offline21 PASS; cleanup PASS; artifacts0 |
+| 2 / 1 | af141824c56cc09896a6bc59fe498bf312b46492 | [40623466222](https://github.com/khoabm/dashboard/actions/runs/40623466222) FAILED; child exited successfully, parent output-position assertion failed. Offline21 PASS; cleanup PASS; artifacts0 |
+| 3 / 1 | 910ac0ae5733363f789aed689d38c4f8f4755b45 | [40623615581](https://github.com/khoabm/dashboard/actions/runs/40623615581) SUCCESS; all native/negative/permission assertions, offline21 PASS, cleanup PASS; artifacts0 |
+
+Budget: all3 additional runs used; no rerun of an unchanged SHA, unrelated suite, merge or deployment. Documentation publication afterward changes no tested implementation and matches no G07 workflow trigger path; do not run a fourth workflow.
+
+## Technical acceptance matrix — tested implementation 910ac0ae
+
+| Requirement | Result / actual evidence | Limit |
+| --- | --- | --- |
+| Native17 backup + integrity + paired age files | PASS: source bootstrap/all nine exact migration files; custom pg_dump; separate DB/key-export age recipients; inner dump binding/trusted outer hashes | Synthetic files only, 32MiB input bound |
+| Snapshot/source/migration correspondence | PASS: inner manifest source SHA and all migration hashes compared to exact checkout; mixed snapshots rejected offline | Does not inspect hosted ledger |
+| Independent restore after source removal | PASS: source connection closed and DB dropped before new Linux process; fully authenticated decrypt before fresh fixed target/pg_restore | Two DBs in one disposable cluster; credentials independently supplied synthetic paths, not owner custody |
+| Restored functional data | PASS: exactly2 students/1 score, raw8.12345, both document decrypt/HMAC matches and8 subjects/7 score columns | No real student data or full infrastructure restoration |
+| Four keyrings/version recovery | PASS: complete retained1/active2 ring export and required-version checks; identities encrypted with1/2, lookup1/2, retained capability/preview and missing retained-key rejection | Active identity/lookup explicitly exercised; no production rotation or token/session restoration accepted |
+| Capability/preview expiry | PASS: valid retained tokens accepted at test clock, expired tokens rejected | Frozen synthetic clock; no deployed gateway claim |
+| Owners/ACL/schema/table/sequence/routines/defaults/RLS | PASS: canonical metadata groups objects/schemas/routines/policies/defaults match; includes invoker/definer properties and RLS enabled/forced flags | Same-cluster existing global roles; cross-cluster role provisioning remains separate |
+| Effective role access | PASS: anon/authenticated SELECT, DELETE and RPC deny42501; service_role direct read and authorized session RPC succeed | SET ROLE on native connection; not real Auth login or hosted Data API |
+| Wrong identity/missing versions/corrupt or truncated files/mismatch/quota/plaintext candidate | PASS:19 existing age cases plus2 diagnostic regression cases =21 offline PASS,0 FAIL | No actual Drive API transfer |
+| Invalid archive and partial-restore refusal | PASS: malformed archive rejected on empty target; valid archive colliding with pre-existing gradebook schema fails; metadata unchanged and zero application tables after transaction rollback | Simulated SQL failure, not every disk/crash condition |
+| Secret containment/cleanup/free boundary | PASS observed: fixed logs, password masked, no full key/JWT/private-key patterns; artifacts0; cleanup success; public standard ubuntu24.04 guard PASS,15min cap | Pattern/source review is not proof against every encoding; unrelated account billing not audited |
+
+Final native suite is one aggregate successful execution with many assertions, not individually numbered tests. Do not invent a total native case count. Offline21/21 PASS; native recovery suite PASS; two negative archive scenarios PASS. Failed attempts remain failed evidence.
+
+Hosted Supabase SQL/API/Auth/Storage/metadata calls0; production key/data operations0; real student data0; Drive upload/download0; owner-local operations0. No paid services activated, cache/artifact uploads, production contract changes, merge/deploy or G08 approval.
+
+## Earlier preparation snapshot
+
+The remainder preserves the pre-execution assessment and runbook. Its NOT RUN/approval-pending wording is historical and superseded by the evidence above, not a current execution claim.
+
 # CP01-C G07 — Backup recovery preparation
 
 Date: 2026-10-28 (Asia/Bangkok). **G07 PARTIAL; production custody BLOCKED. G08 BLOCKED.**

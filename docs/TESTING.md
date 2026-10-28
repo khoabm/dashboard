@@ -1,3 +1,9 @@
+# G07 final evidence — 2026-10-28
+
+Offline21/21 PASS, native PostgreSQL17.11 recovery suite PASS at910ac0ae, including valid-archive transactional rollback and effective role checks. All3 additional runs used; no further CI authorized by this budget. Exact matrix/run history and limits are linked below. [Evidence and owner package](features/personal-gradebook/G07_BACKUP_RECOVERY.md). Older entries below retain their baseline context.
+
+---
+
 # Kiểm thử và browser QA
 
 Nguồn tiêu chí đầy đủ: SPEC R05–08, R10–14, R19–22, R25. Không thay danh sách test của SPEC bằng bản rút gọn này. **Đã có ứng dụng và bằng chứng tại [QA_REPORT](QA_REPORT.md); các gate chưa chạy vẫn NOT RUN/BLOCKED, không được coi là Done.**

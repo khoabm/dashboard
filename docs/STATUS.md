@@ -1,3 +1,9 @@
+# G07 recovery completion — 2026-10-28
+
+G07 TECHNICAL PASS at910ac0ae, native17/age/ACL/RLS/negative recovery run40623615581 SUCCESS; operational BLOCKED—owner decisions, overall PARTIAL; G08 BLOCKED. Three authorized additional runs used; first two harness failures retained. Hosted Supabase/production-data/Drive operations0; artifacts0; cleanup PASS; no merge/deploy. [Evidence and owner package](features/personal-gradebook/G07_BACKUP_RECOVERY.md). Older entries below retain their baseline context.
+
+---
+
 # CP01-C G07/G08 — Recovery preparation / 2026-10-28
 
 **G07 PARTIAL; operational custody BLOCKED. G08 BLOCKED / NOT APPROVED.** Baseline `beede03884c0e44995d25746bf5390e7bb4a6952`; cloud-only working branch `feature/cp01-c-g07-g08-recovery`. [Assessment, policy differences, custody, runbook, acceptance matrix and exact prior runs](features/personal-gradebook/G07_BACKUP_RECOVERY.md). New bounded synthetic-only age helper, offline failure/dry-run checks and a dedicated public standard Ubuntu/ephemeral PostgreSQL17 workflow are prepared. Actual checksum-pinned age1.3.2 offline execution PASS19 finite cases; no real dump/keyring or owner computer accessed. New age/native restore/ACL workflow **NOT RUN: GitHub push/execution approval pending**; prior Linux technical recovery evidence retained, never relabeled as new age evidence. [Owner/institution authorization package](features/personal-gradebook/G08_OWNER_AUTHORIZATION.md) covers all ten requested governance areas; no legal basis, retention, Drive destination or emergency custodian is self-approved.

@@ -49,6 +49,7 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 | src/styles/ | Tokens CSS, base, layout, component, responsive; không style inline lặp vô ích |
 | supabase/migrations/, seed.sql | Schema/policy có version và seed chạy lại không trùng |
 | tests/ | Regression, integration và bằng chứng QA tương ứng |
+| scripts/gradebook-recovery-diagnostics.mjs | Fixed-stage/allowlisted-category projection and exact child-output filtering; poison regression; no messages/stacks/parameters |
 | scripts/gradebook-backup.mjs | Bounded synthetic-only age encryption, authenticated paired restore input and quota-checked upload dry-run; no DB/service/upload client and no production export CLI |
 | tests/gradebook-backup.mjs | Manual/specialist actual-age finite failure and transfer-plan checks; outside curated test:ci |
 | tests/cloud/backup.mjs, .github/workflows/gradebook-backup-recovery.yml | Dedicated G07 public standard-runner synthetic PG17/age candidate; fresh-process recovery with owner/ACL/RLS/role checks, no production credentials/artifacts/caches; publication/run awaits approval |
