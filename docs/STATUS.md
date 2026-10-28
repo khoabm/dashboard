@@ -1,3 +1,9 @@
+# Current handoff — develop after PR #5 / 2026-10-28
+
+PR #5 is merged; local `develop` baseline `6a0daf3906e147a3882d6c7f27a712967480e8de` has an identical tree to merged source `1a76aee`. CP07 source review PASS retained; prior conversation reports merge-SHA CI SUCCESS (not independently re-queried here). **G07 Technical PASS retained; Operational/Overall PARTIAL; G08 BLOCKED; deployment NOT RUN.** [Current audit, blockers, minimal owner actions and verification](features/personal-gradebook/G07_OPERATIONAL_AUDIT_20261028.md). A–F remain approved; owner synthetic Drive PASS accepted without repetition. Production exporter/validator, paper/replacement-device and owner isolated restore evidence remain open. No hosted/keys/PII/deploy/main operations. The dated entries below are historical snapshots, including pre-merge status.
+
+---
+
 # CP07 code finalization and G08 data handoff — 2026-10-28
 
 **CODE REVIEW PASS / MERGE DECISION PENDING / PRODUCTION NOT APPROVED.** PR #10 UI E2E/loader merged intact as `6754e00f654721e8f1bbba2b405029ea1e7ce293`; PR #5 is Ready for review → `develop`, not merged. Exact-source GitHub Actions [run 40683942523](https://github.com/khoabm/dashboard/actions/runs/40683942523) PASS: 131/131 curated tests, check/build/Prettier and production exclusions. [Independent CP07 review](https://github.com/khoabm/dashboard/pull/5#pullrequestreview-5682738845) found no new confirmed P1/P2 within source scope. Final Chrome UI/hosted Auth E2E remains PARTIAL/BLOCKED; CP01-C overall PARTIAL; G07 Operational PARTIAL and G08 institutional/release evidence BLOCKED. This code outcome does not approve real-data use.

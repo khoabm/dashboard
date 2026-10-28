@@ -1,3 +1,9 @@
+# Current handoff — develop after PR #5 / 2026-10-28
+
+PR #5 is merged; local `develop` baseline `6a0daf3906e147a3882d6c7f27a712967480e8de` has an identical tree to merged source `1a76aee`. CP07 source review PASS retained; prior conversation reports merge-SHA CI SUCCESS (not independently re-queried here). **G07 Technical PASS retained; Operational/Overall PARTIAL; G08 BLOCKED; deployment NOT RUN.** [Current audit, blockers, minimal owner actions and verification](G07_OPERATIONAL_AUDIT_20261028.md). A–F remain approved; owner synthetic Drive PASS accepted without repetition. Production exporter/validator, paper/replacement-device and owner isolated restore evidence remain open. No hosted/keys/PII/deploy/main operations. The dated entries below are historical snapshots, including pre-merge status.
+
+---
+
 # CP07 finalization / G08 handoff — 2026-10-28
 
 **CP07 SOURCE REVIEW PASS / READY FOR OWNER MERGE DECISION; G07/G08 AND DEPLOYMENT NOT ACCEPTED.** Baseline `6754e00f654721e8f1bbba2b405029ea1e7ce293`: PR #10 merged into `feature/personal-gradebook` with identical reviewed UI source tree; PR #5 is Ready for review → `develop`, not yet merged. Exact-baseline GitHub Actions [run 40683942523](https://github.com/khoabm/dashboard/actions/runs/40683942523) PASS: curated unit/component 131/131, static/syntax checks, production build/exclusion, Prettier. [Independent PR #5 CP07 code review](https://github.com/khoabm/dashboard/pull/5#pullrequestreview-5682738845) found no new confirmed P1/P2 in reviewed source. This **does not** establish fresh hosted browser E2E, full CP01-C security acceptance or permission to deploy real student data.

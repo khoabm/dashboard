@@ -1,3 +1,9 @@
+# Current handoff — develop after PR #5 / 2026-10-28
+
+PR #5 is merged; local `develop` baseline `6a0daf3906e147a3882d6c7f27a712967480e8de` has an identical tree to merged source `1a76aee`. CP07 source review PASS retained; prior conversation reports merge-SHA CI SUCCESS (not independently re-queried here). **G07 Technical PASS retained; Operational/Overall PARTIAL; G08 BLOCKED; deployment NOT RUN.** [Current audit, blockers, minimal owner actions and verification](G07_OPERATIONAL_AUDIT_20261028.md). A–F remain approved; owner synthetic Drive PASS accepted without repetition. Production exporter/validator, paper/replacement-device and owner isolated restore evidence remain open. No hosted/keys/PII/deploy/main operations. The dated entries below are historical snapshots, including pre-merge status.
+
+---
+
 # Personal Gradebook — Codex entry point
 
 **CP07 current handoff (2026-10-28, baseline `6754e00`):** PR #10 is MERGED into `feature/personal-gradebook`; PR #5 is Ready for review → `develop`, pending explicit merge authorization. Exact-source CI PASS (131/131 curated tests, static/build/Prettier); independent code review PASS, fresh browser/hosted E2E PARTIAL. Continue using [CHECKPOINTS](CHECKPOINTS.md) and [V1_INTEGRATION_UAT](V1_INTEGRATION_UAT.md). Owner supplies reference data at **G08 after CP07 source merge and G07 operational preparation**, not during current source review. G08 processing-scope evidence, G07 production custody/restore, and deployment/activation remain open; no real-data import or deployment has happened.

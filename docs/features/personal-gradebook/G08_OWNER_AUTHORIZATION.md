@@ -92,11 +92,14 @@ decision text, evidence reference and unresolved-condition disposition. A necess
 
 ## 7. Backup and key custody responsibilities
 
-- [ ] Review [G07 architecture/custody plan and runbook](G07_BACKUP_RECOVERY.md). Approve or reject `age`, the primary Drive folder/account, separate encrypted key export and existing offline media.
-- [ ] Confirm the owner as primary recovery custodian and record independent locations/access for the DB and key-export age identities privately. Prove recovery after losing the original device/account; DPAPI alone is insufficient.
-- [ ] Decide emergency custody explicitly: authorized person/role or a documented absence/risk decision, access conditions, handover, revocation and review. No emergency recipient is currently provisioned.
-- [ ] Approve RPO/RTO, backup frequency/trigger, retention, free capacity/egress budget, version inventory and who checks both copies. No automatic scheduler is authorized here.
-- [ ] Review synthetic DB/data/keys/permissions evidence, then separately authorize any operational rehearsal. No real key export/credential is requested through chat or Actions.
+A–F are already approved in [owner policy](G07_OWNER_DECISIONS.md): private personal Drive Free, no USB/secondary DB, sole owner/no emergency custodian, two independently recoverable age identities, manual triggers/no guaranteed RPO/RTO, latest+previous verified. Do not reopen these choices. Institutional acceptance of the actual processing/storage scope remains separate.
+
+- [ ] Record private evidence of two physical-paper identities, trusted receipt custody and recovery without the original Windows dependency. Phone-note re-entry alone is insufficient. Do not repeat accepted synthetic Drive tests.
+- [ ] Confirm actual restricted account/folder access, independent Google recovery and free capacity; no private identities beside ciphertext. No account IDs/codes or secret locations in this public template.
+- [ ] Review production exporter/validator and complete DB/key-version consistency, managed roles/Auth/Storage/Edge recovery inventory, retention/deletion and isolated destination scope. Cloud technical PASS does not prove owner production recovery.
+- [ ] Authorize each actual export/isolated restore separately with exact target/data/budget/stop conditions. Review resulting data/permission evidence before Operational PASS; cutover/overwrite requires separate approval. No real credentials through chat or Actions.
+
+[Current G07 audit and minimal owner actions](G07_OPERATIONAL_AUDIT_20261028.md) distinguish accepted evidence from missing operations.
 
 ## 8. Third-party storage and potential cross-border processing
 
@@ -123,8 +126,8 @@ decision text, evidence reference and unresolved-condition disposition. A necess
 | Necessary fields/children's safeguards/notices | Documented necessity and applicable child/representative arrangements | BLOCKED |
 | Access/residual-risk approval | Actual server deny evidence + approved scope, pair-knowledge/inference risks and accountable roles | Technical prior evidence retained; approval BLOCKED |
 | Retention/deletion/rights/incident response | Approved periods, executable responsibilities and reviewed legal obligations | BLOCKED |
-| Provider/storage/transfer review | Approved account/folder/offline location, terms/geography and required assessments/filings | BLOCKED |
-| G07 technical/operational recovery | New synthetic evidence review, permissions, independently held custody and approved operational plan | PARTIAL technical / BLOCKED operational |
+| Provider/storage/transfer review | Approved account/folder and independent credential custody, terms/geography and required assessments/filings | BLOCKED |
+| G07 technical/operational recovery | New synthetic evidence review, permissions, independently held custody and approved operational plan | PASS synthetic technical retained / PARTIAL operational |
 | Costs and production activation | Verified safe/free environment, owner and applicable institution release authorization | BLOCKED |
 
 **G08 remains BLOCKED until every applicable required item is approved and evidenced.**
