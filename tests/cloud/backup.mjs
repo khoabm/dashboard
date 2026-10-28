@@ -57,21 +57,21 @@ function command(executable, args, input) {
 async function securityState(db) {
   const queries = [
     `SELECT n.nspname,c.relname,c.relkind,c.relrowsecurity,c.relforcerowsecurity,
-      pg_get_userbyid(c.relowner) owner,c.relacl::text acl
+      pg_get_userbyid(c.relowner) owner,ARRAY(SELECT a::text FROM unnest(coalesce(c.relacl,acldefault(CASE WHEN c.relkind='S' THEN 's' ELSE 'r' END::"char",c.relowner))) a ORDER BY 1) acl
       FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
       WHERE n.nspname IN ('public','private','gradebook','auth','storage')
       ORDER BY n.nspname,c.relname`,
-    `SELECT n.nspname,pg_get_userbyid(n.nspowner) owner,n.nspacl::text acl
+    `SELECT n.nspname,pg_get_userbyid(n.nspowner) owner,ARRAY(SELECT a::text FROM unnest(coalesce(n.nspacl,acldefault('n',n.nspowner))) a ORDER BY 1) acl
       FROM pg_namespace n WHERE n.nspname IN ('public','private','gradebook','auth','storage')
       ORDER BY n.nspname`,
     `SELECT n.nspname,p.proname,pg_get_function_identity_arguments(p.oid) args,
-      pg_get_userbyid(p.proowner) owner,p.proacl::text acl,p.prosecdef,p.proconfig
+      pg_get_userbyid(p.proowner) owner,ARRAY(SELECT a::text FROM unnest(coalesce(p.proacl,acldefault('f',p.proowner))) a ORDER BY 1) acl,p.prosecdef,p.proconfig
       FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
       WHERE n.nspname IN ('public','private','gradebook','auth','storage')
       ORDER BY n.nspname,p.proname,args`,
     `SELECT schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check
       FROM pg_policies ORDER BY schemaname,tablename,policyname`,
-    `SELECT pg_get_userbyid(d.defaclrole) owner,n.nspname,d.defaclobjtype,d.defaclacl::text acl
+    `SELECT pg_get_userbyid(d.defaclrole) owner,n.nspname,d.defaclobjtype,ARRAY(SELECT a::text FROM unnest(d.defaclacl) a ORDER BY 1) acl
       FROM pg_default_acl d LEFT JOIN pg_namespace n ON n.oid=d.defaclnamespace
       ORDER BY owner,n.nspname,d.defaclobjtype`,
   ];
@@ -148,7 +148,18 @@ async function restore(input) {
   const db = await connect(target);
   try {
     stage('metadata');
-    assert.equal(await securityState(db), manifest.security);
+    const restoredMetadata = JSON.parse(await securityState(db));
+    const sourceMetadata = JSON.parse(manifest.security);
+    for (const [index, group] of [
+      'objects',
+      'schemas',
+      'routines',
+      'policies',
+      'defaults',
+    ].entries()) {
+      stage('metadata_' + group);
+      assert.equal(JSON.stringify(restoredMetadata[index]), JSON.stringify(sourceMetadata[index]));
+    }
     stage('data');
     const { cid, actor, session, time, binding, capability, preview } = manifest.probe;
     const cryptography = await createCrypto(syntheticProject, manifest.settings);
