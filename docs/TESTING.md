@@ -1,3 +1,21 @@
+# G07 owner synthetic rehearsal — 2026-10-28
+
+Owner-reported Windows local and manual Drive round-trip PASS (baseline0679367); [evidence and limitations](features/personal-gradebook/G07_OWNER_REHEARSAL_20261028.md). Receipts local/remote PASS, database recovery NOT_RUN. Phone notes are not physical paper custody; paper/replacement-device/owner native PostgreSQL restore NOT RUN; production exporter/validator and G08 BLOCKED. Technical PASS retained; Operational/Overall PARTIAL. New stderr/ACL correction is documentation only, Windows NOT RUN for corrected snippet. Work owner-device/Drive/Supabase/key/data access0, new CI0, no merge/deploy. Earlier entries below are historical.
+
+---
+
+# G07 manual operational readiness — 2026-10-28
+
+Approved A–F replaces USB/emergency/daily/RPO proposals: personal private Drive only, sole owner, independent age identities/paper custody, manual triggers, latest+previous verified. [Policy/manual guide](features/personal-gradebook/G07_MANUAL_BACKUP_GUIDE.md). Technical PASS retained from910ac0ae/run40623615581, no rerun. Operational PARTIAL/BLOCKED: owner physical custody/Drive round-trip/production exporter and G08 not verified. No transfer/hosted/real data/owner-local execution or new CI. Older entries below are historical.
+
+---
+
+# G07 final evidence — 2026-10-28
+
+Offline21/21 PASS, native PostgreSQL17.11 recovery suite PASS at910ac0ae, including valid-archive transactional rollback and effective role checks. All3 additional runs used; no further CI authorized by this budget. Exact matrix/run history and limits are linked below. [Evidence and owner package](features/personal-gradebook/G07_BACKUP_RECOVERY.md). Older entries below retain their baseline context.
+
+---
+
 # Kiểm thử và browser QA
 
 Nguồn tiêu chí đầy đủ: SPEC R05–08, R10–14, R19–22, R25. Không thay danh sách test của SPEC bằng bản rút gọn này. **Đã có ứng dụng và bằng chứng tại [QA_REPORT](QA_REPORT.md); các gate chưa chạy vẫn NOT RUN/BLOCKED, không được coi là Done.**
@@ -6,8 +24,85 @@ Nguồn tiêu chí đầy đủ: SPEC R05–08, R10–14, R19–22, R25. Không 
 
 Mỗi case ghi: ID hoặc Rxx/tiểu mục, commit/config, môi trường/browser/viewport/danh tính, bước thực hiện, mong đợi/thực tế, trạng thái và bằng chứng. PASS chỉ khi thực sự chạy và quan sát; FAIL có tái hiện; BLOCKED có nguyên nhân; NOT RUN chưa chạy. Không in secret/PII hoặc token trong log/screenshot.
 
+## G07/G08 recovery preparation — 2026-10-28
+
+[Concern matrix, inventory, actual checks, prior run URLs and pending gates](features/personal-gradebook/G07_BACKUP_RECOVERY.md#3-concerntest-matrix-and-change-inventory). Task authorizes bounded synthetic age/ephemeral PostgreSQL17 preparation as a specialist exception; its explicit confirmation requirement still blocks hosted GitHub mutation/execution until approval. The dedicated branch workflow is separate from unchanged curated test:ci and existing security suites. Actual offline `node tests/gradebook-backup.mjs` PASS19 finite cases with checksum-verified age1.3.2; fixed custom-archive boundary fixture is not a native DB restore. Native17 fresh-process/data/permission/failure candidate remains NOT RUN. No hosted project/API, real data/keyrings, uploads, owner-machine operations, stress/load, artifacts or caches. No general CI-policy expansion or duplicate accepted-suite run.
+
+## CP01-C bounded hosted evidence — 2026-10-28
+
+Owner-authorized synthetic-only acceptance is PARTIAL; [current cloud scope, exact runs and gate dispositions](features/personal-gradebook/CP06_OFFLINE_READINESS.md#cp01-c--cloud-only-security-verification--2026-10-28) supersedes earlier missing-runtime/Auth-context notes. The owner explicitly permits the separate zero-cost public standard-runner specialist workflow for finite disposable PostgreSQL/Auth/API tests, with no hosted project/secrets, artifacts or caches. This narrow exception does not expand curated test:ci or authorize hosted testing. Earlier [hosted case/request accounting](features/personal-gradebook/CP06_OFFLINE_READINESS.md#cp01-c--bounded-hosted-acceptance--2026-10-28) remains historical evidence; do not replay its failed transaction. Browser/native Deno/deployed gateway coverage is not inferred from cloud Node/native SQL tests. The CP06-A matrix below is its historical offline baseline, not current deployment status.
+
+## CP06-A current offline concern matrix
+
+Baseline4fc986e, feature/personal-gradebook. CP05 refinement is merged; [A1–A3 matrix and actual evidence](features/personal-gradebook/CP06_OFFLINE_READINESS.md). Eleven explicit pure/component test files remain the current curated allowlist. New decoded B4 payload projections are tested as plain data/functions/state; no HTTP/SDK/Edge/SQL/browser cases enter CI. Production services remain fail-closed. Historical counts and branch-specific QA snapshots below do not supersede this boundary.
+
+| Concern | Focused evidence / gate |
+| --- | --- |
+| Verification envelope/requestId/expiry/context/catalog and strict private-field rejection | student-gradeboard.test.js; finite pure cases, generic errors, detached presentation metadata |
+| Decimal strings,101 aggregates/occupied rendering, terminal401/403/409/422/429/503 and ownership | New projection/state tests plus retained CP03/CP04/CP05 pure cases; no network |
+| Resize/ARIA/calendar/cancellation/private cleanup | Actual Work Chrome synthetic student fixture at360/390/768/1024/1440; iframe is not physical mobile/Safari |
+| Board/nav/draft | Existing audit fixture column-navigation/refresh and text draft restoration with zero live requests; pure route/history/draft regression, no Board redesign |
+| Server/runtime/deployment/security | Native17/Deno/hosted JWT/RLS/API/transactions/limiter/key recovery/CP01-C and real-data gate NOT RUN; no hosted request authorized |
+
+## CP04 offline concern matrix
+
+Baseline60fd760, feature/personal-gradebook. Current test:ci explicitly lists ten pure/component files, adding gradebook-scores.test.js; earlier nine/six-file snapshots are historical. No HTTP/API/SDK/Edge/SQL/browser integration enters CI. Production adapter remains unavailable; local Chrome intercepts Board/Auth and injects an isolated teacher adapter/catalog.
+
+| Groups | Focused evidence |
+| --- | --- |
+| CP04-T01–T05 | Ordered catalogs, null/string revision writes, lexical precision/zero/absence, exact display/sort and publication acknowledgement; pure/component tests plus actual teacher UI |
+| CP04-T06–T09 | Physical A–J/custom headers/trailing blanks/source coordinates, XML numeric precision/date/text identity, duplicates versus different subjects, invalid/unknown/mismatched records; pure extraction contracts plus actual CSV/XLSX Chrome files |
+| CP04-T10–T13 | Per-coordinate/skipped counts, semester/input/token/expiry binding, structured422 versus409, no retry, publication independence/missing warning, cancellation/late-result disposal; pure ownership contracts plus synthetic Chrome operations |
+| CP04-T14 | Existing curated tests; representative actual Board content, CP02 lookup disposal/unavailability and CP03 controls/two-column XLSX parser regression, without repeating their complete historical QA |
+
+Merge inventory: gradebook-scores component/helper, no-transport catalog boundary, small admin/app integration, shared preview422/semester binding and roster parser extensions, score CSS, header-only public CSV/XLSX templates/exact build allowlist, one curated test file/package script, essential overview/status/code map/checkpoint/index/bug log/testing updates. B1–B4, migrations, dependencies/lock and specialist assets remain unchanged. Fixture adapters, raw synthetic test files, screenshots/downloads/logs/runners stay ignored under tests/local/cp04 and never enter application/CI bundles. Screenshots redact score-table rows; no raw identifiers/scores in logs.
+
+Browser QA uses installed headed Chrome, isolated temporary profile, loopback CDP and finite synthetic fault injection. Real DB/Auth/RLS/transaction/precision round-trip, teacher catalog integration, publication missing-count preflight, CP01-C and real-data security gates remain NOT RUN; viewport checks do not establish native-device/Safari acceptance. Cancellation of a sent write is an unknown outcome until explicit reload, not proof of rollback.
+
+## CP03 offline concern matrix
+
+Baseline `1fcbf29`, feature/personal-gradebook. Curated CI now explicitly lists **nine** component/pure-unit files in package.json (seven existing plus gradebook-admin.test.js and roster.test.js). Earlier six-file B5 inventories below are historical. No HTTP, SDK, Edge, SQL or browser integration enters CI.
+
+| Group | Pure coverage / installed-Chrome evidence |
+| --- | --- |
+| CP03-T01 | Auth-state gate and UUID fallback; direct admin/anonymous/failed/delayed routes and shared login |
+| CP03-T02 | Independent metadata patch/string revision/no-op; class create/edit and conflict rejection |
+| CP03-T03 | Student fields/confirmation/string IDs; real UI create/edit/status/delete guards |
+| CP03-T04 | Ordinary DTO excludes identity/crypto; explicit reveal and retained-DOM/private-storage cleanup |
+| CP03-T05 | Two-column positional records; actual BOM CSV and blank-header XLSX selection/preview/apply |
+| CP03-T06 | Three-column names/trailing blanks; actual CSV/XLSX preview and preserving existing names |
+| CP03-T07 | Quotes/commas/UTF-8/leading zeros/calendar/typed Excel dates, finite ZIP boundaries; actual numeric-ID/formula rejection and 1900/1904 files |
+| CP03-T08 | Duplicate identity/original row+column; row4 error and mismatched-DOB server preview |
+| CP03-T09 | Class/batch/token/expiry ownership; changed-file, stale/conflicting/failing apply, no automatic write retry |
+| CP03-T10 | Cancellation/changed owner/late results; logout, route exit during pending work and real Back draft guard |
+
+Merge inventory: CP03 component, production no-transport adapter, pure helpers, lazy file/worker parser, routing/Auth/menu/CSS integration; optional confirmation AbortSignal in existing primitives; two pinned parser dependencies/lock and MIT browser notices; two pure test files and exact notice allowlist in production guard; essential OVERVIEW/STATUS/CHECKPOINTS/README/code map/bug log/testing updates. Accepted B1–B4 and migrations/specialist assets are retained unchanged. Fixtures, raw files, screenshots, logs and Chrome tooling stay ignored under tests/local/cp03, never imported by application/CI. Browser adapter is injected only by local interception, never a production fallback. Supplemental Chrome component checks cover failed-page cursor recovery and pending confirmation disposal on Back/logout; their Board session is synthetic, distinct from the main shared-Auth QA.
+
+read-excel-file9.3.12 (MIT) owns XLSX value/shared-string decoding; direct fflate0.8.3 (MIT) bounds actual ZIP output before reading. No custom general XLSX parser or paid service. Library is loaded on file selection in an abortable worker; build verifies separate chunks and static notices. Offline build/curated tests do not prove hosted transaction, authorization, encryption/recovery or real-data gates; these remain NOT RUN. Viewport QA is not native-device/Safari acceptance.
+
 Docs-only kiểm tra tính đầy đủ, link, trạng thái, diff; không cần browser test tài liệu Markdown. Logic mới/được sửa về lưu dữ liệu, phân quyền, upload, sắp xếp, nháp phải có regression có ý nghĩa. Có thể dùng unit/integration miễn phí phù hợp; không test chỉ phản chiếu code. Chỉ cài dependency test khi thực sự cần.
 
+## Chính sách kiểm thử tiết kiệm quota — bắt buộc
+
+**Hiệu lực từ 2026-10-26, áp dụng cho toàn repository và mọi Work/Codex/agent, không chỉ Gradebook.** Đây là giới hạn thực thi bắt buộc của người dùng. Bảng ma trận nghiệm thu ở dưới mô tả *bằng chứng cần có khi được phép chạy*, không tự cấp phép phát sinh request hay chạy thêm bài test.
+
+### Chọn bài test theo mức chi phí và mức độ cần thiết
+
+1. **Trước khi chạy:** kiểm tra ref/HEAD và diff; xác định rủi ro thực, test nào đã có bằng chứng đủ và tập ca nhỏ nhất có khả năng bắt lỗi. Không “test toàn bộ cho chắc”, không chạy lặp chỉ để tăng số PASS. Với docs-only: kiểm tra nội dung, link và diff; **không** chạy unit/build/browser/backend.
+2. **Mặc định offline:** code/static review → unit hoặc focused regression không có network → disposable in-memory/local SQL với fixture synthetic **chỉ nếu có lỗi database cần kiểm tra và chi phí tài nguyên nhỏ**. Full-suite offline chỉ chạy khi có phạm vi ảnh hưởng rộng, chính sách CI hiện hữu yêu cầu, hoặc đã sửa code sau lần chạy trước; tối đa một lượt cho cùng ref/trạng thái không đổi. Không cần cài bộ công cụ nặng hoặc dựng dịch vụ mới chỉ để có PASS.
+3. **Từ chối stress/load/soak/stretch, benchmark request, test ngưỡng quota bằng khối lượng lớn, polling liên tục và test đồng thời quy mô lớn.** Không đưa các mục này vào kịch bản Work, CI hay checklist yêu cầu người dùng cấp phép. Nếu cần đánh giá contention/race, ưu tiên phân tích logic hoặc 2–3 giao dịch synthetic offline có kiểm soát; không lấy lưu lượng làm bằng chứng bắt buộc.
+4. **Hosted/production/API/DB:** mặc định **không được gọi để kiểm thử**, kể cả metadata/SELECT, smoke, Auth, Storage, RLS, SQL Editor, RPC hoặc mở trang web có request thật. Chỉ thực hiện sau khi người dùng cho phép riêng hoạt động đó, ghi rõ môi trường và endpoint, mục đích, loại thao tác (read/write), giới hạn tổng requests/queries, fixture/rollback, retry policy và điểm dừng. Phê duyệt một lần không có hiệu lực cho các lần sau. Chạy test live **không được suy ra** từ quyền tạo/push code, tạo migration hoặc đọc tài liệu.
+5. **Fail-safe:** không tự động retry sau lỗi/timeout/429/503 hoặc khi SQLSTATE 40001/transaction retry gây lặp; phải dừng và tra cứu tĩnh. Trước một test live đã duyệt, kiểm tra cấu hình SDK/proxy/DB có retry nội bộ và ngăn retry không giới hạn. Nếu cần chẩn đoán sự cố, ưu tiên log/bằng chứng có sẵn; không tạo sự cố hay mô phỏng tải trên hosted.
+6. **Ngân sách kiểm thử:** trước mọi ngoại lệ live đã được duyệt, trình bày và tuân thủ giới hạn cố định do người dùng chấp thuận; hết giới hạn hoặc có bất thường phải dừng ngay. Không tự tăng budget, tự quay vòng nhiều ID/phiên hay chia batch để lách giới hạn. Chưa có mức được duyệt nghĩa là **0 request live**.
+7. **Báo cáo:** phân biệt static review, mock, disposable DB, native DB và hosted; ghi lệnh/ca đã chạy, PASS/FAIL/NOT RUN/BLOCKED, số lượt, mức tiêu thụ request/query hosted (0 nếu không gọi) và các kiểm thử hoãn vì chính sách quota. Không ghi dữ liệu nhạy cảm. Khi test thật cần cho nghiệm thu nhưng chưa được cho phép, ghi **NOT RUN — quota policy / pending approval**, không tự hạ tiêu chí chức năng hoặc tuyên bố nghiệm thu tích hợp.
+
+Quy tắc này **không xóa** các yêu cầu kiểm thử an toàn/bảo mật của SPEC hay CP01-C. Chúng là các gate phải được lên kế hoạch xin phép riêng, không phải lệnh chạy ngay. Xem thêm [AGENTS](../AGENTS.md#chính-sách-kiểm-thử-tiết-kiệm-quota--bắt-buộc).
+
+### Chặn lặp sự cố PostgREST retry storm (GB-OPS-001)
+
+**Một POST cũng có thể phát sinh rất nhiều truy vấn PostgreSQL** nếu function tự phát sinh SQLSTATE retryable như 40001 cho business conflict và PostgREST server retry. Trước khi viết/test Edge hoặc RPC mới: phân biệt conflict dự kiến với serialization error thực; dùng mã non-retryable (chẳng hạn PT409), rà soát effective function definitions sau toàn bộ migration, kiểm tra SDK/Edge/PostgREST retry và đặt điều kiện dừng. [Cảnh báo và bằng chứng](DATABASE.md#cảnh-báo-tái-diễn-gb-ops-001--sqlstate-retryable-cho-xung-đột-nghiệp-vụ).
+
+Ba lượt Work thử Board HTTP smoke test trước đó đều BLOCKED trước Auth/RPC do thiếu secure admin-session transport; không được báo PASS, tự nới budget hoặc lặp prompt y hệt. Chỉ kiểm thử live khi có cách xác thực an toàn, budget và phê duyệt riêng. Lỗi lặp/timeout/429/503: dừng ngay, không retry. Đây là quy tắc chung cho mọi milestone.
 ## Ma trận nghiệm thu
 
 | Nhóm | Phạm vi bắt buộc | Bằng chứng |
@@ -44,10 +139,12 @@ Workflow `.github/workflows/ci.yml`: `workflow_dispatch`, PR hướng tới `dev
 | Check CI | Phạm vi | Trạng thái chứng minh |
 | --- | --- | --- |
 | `npm ci` | Cài dependency từ lockfile | Chỉ đánh giá khi workflow chạy |
-| `npm run check` | Syntax JS, scan secret/JWT hardcode, git diff whitespace | Offline |
-| `npm test` | Toàn bộ unit regression dưới `tests/*.test.js` | Offline; chạy tất cả test hiện tại |
+| `npm run check` | Syntax frontend +13 Edge JS; frontend secret rules unchanged, server env references allowed but literal key/JWT patterns denied; git diff whitespace | Offline |
+| `npm run test:ci` | Explicit ten-file component/pure-unit allowlist; npm test delegates to it | No wildcard discovery, SDK/API/Edge/service/SQL/browser integration |
 | `npm run build` | Static bundling Vite | Offline, không deploy |
-| `npm run format:check` | Prettier 3.6.2; kiểm tra toàn bộ code JS/CSS/HTML thực thi và tests | Không còn baseline miễn trừ; đầy đủ file trong phạm vi script |
+| `npm run format:check` | Prettier exact3.6.2 local devDependency/lock; frontend/test/scripts và supabase/functions JS | Không còn baseline miễn trừ; đầy đủ file trong phạm vi script |
+
+**Superseding B5 policy:** CI chỉ syntax/static/format/build và curated component/pure units, cấm API/HTTP endpoint hoặc Supabase Auth/RPC/Storage/Edge integration kể cả mocked transport, SQL/PGlite/PostgreSQL/migrations, runtime integration, browser E2E và stress/load. Không thêm PGlite dependency/runner; approval cũ đã bị thay thế. [B5 matrix và inventory](features/personal-gradebook/B5_OFFLINE_REVIEW.md#current-policy-correction--baselinec9e18c1-supersedes-sql-ci-approval) liệt kê six-file allowlist và toàn bộ specialist assets không dự kiến merge develop nếu chưa có quyết định riêng. test:specialist là lệnh thủ công tách riêng, không tự cấp quyền chạy. Các hướng dẫn full-suite cũ bên dưới không ghi đè policy này; lịch sử120 Node/20 SQL nhóm không phải gate hiện hành.
 
 Theo yêu cầu tránh quota: **không đưa** `npm run test:api`, `supabase/tests/access.sql`, test Auth/RLS/Storage live hay browser E2E vào CI. Chúng vẫn thuộc ma trận nghiệm thu thủ công khi được giao riêng; một CI PASS không tương đương backend/browser PASS. `npm run format:check:all` là alias của gate format hiện tại; source code thực thi đã được format trong commit `4058de8`, không có baseline miễn trừ.
 
@@ -122,3 +219,9 @@ Unit `board-navigation.test.js` kiểm anchor bị cắt một phần, refresh, 
 - `/tests/viewport.html?fixture=audit&scenario=navigation` kiểm iframe360/390/768/1024/1440; mobile giữ một cột và chọn đúng chủ đề mới sau save. Kiểm DOM root clientWidth=scrollWidth, nav chỉ hiện desktop overflow. Không suy iframe thành Safari/iPhone/Android thật. Reduced-motion đã có nhánh source; OS preference thật chưa nghiệm thu.
 
 Logs/ảnh local tại `tests/local/`, không đưa vào Git/ZIP nguồn. CI không đổi cấu hình, không tự chạy backend và cần kiểm ở đúng commit khi push. Backend save/RLS/JWT thật vẫn thuộc lượt nghiệm thu riêng; không dùng kết quả mock để báo đã lưu vào project thật.
+
+## CP05 offline concern matrix
+
+Baseline741ee3d; `tests/student-gradeboard.test.js` is an explicit curated pure-unit addition, with no HTTP/SDK/SQL/browser integration. DTO projection/catalog ordering, exact B1 half-up bucketing, zero/absence, scope mismatch/peer-field rejection, terminal errors, latest-generation ownership, capability revocation/disposal and pre-cancelled reads are finite offline cases. Existing CP02 tests remain in CI. Actual Chrome UI QA uses ignored tests/local/cp05 adapters; never a production synthetic fallback.
+
+Browser evidence: same-origin iframe CSS widths360/390/768/1024/1440; table horizontal containment,101-bucket chart, selected raw score/highlight, dropdowns, Escape/focus, unavailable semester/other-semester continuity, empty/429/503, held-response selection/close/route cancellation, server401 and sign-out cleanup. Browser fixtures block external fetch and mock Board client; no real credentials or student information. Physical devices/Safari, real Auth/RLS/DB/Edge/limiter/publication and CP01-C NOT RUN. No specialist assets removed or additional dependencies.

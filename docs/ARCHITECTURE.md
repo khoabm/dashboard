@@ -18,7 +18,29 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 
 | Vị trí dự kiến | Trách nhiệm |
 | --- | --- |
-| src/main.js | Bootstrap, ghép dịch vụ và component; không nhồi toàn bộ ứng dụng |
+| src/app.js | Generation-owned route pulse; path-only History routing; lazy Board/SDK graph; shared navigation; disposes student state on exit/sign-out/page lifecycle |
+| src/utils/app-navigation.js | Pure indexed history/compensation and pending administrator-entry coordinator; no SDK/DOM/network; rejected traversals never push an entry |
+| src/main.js | Board bootstrap/render/Auth; shared restoration promise + direct openBoardAdmin for both headers; suspend route refresh; flush editor-owned drafts before route exit |
+| src/components/app-header.js, site-navigation.js | Shared branding/admin controls; accessible Board/lookup menu plus verified-admin entry; header-owned pulse awaits existing logout Promise |
+| src/components/gradebook-admin.js | CP03 class/student dialogs, paged list, reveal/import ownership and route/session disposal |
+| src/components/gradebook-scores.js | CP04 teacher-only semester/subject/student workspace, bounded score-page joins, cell CRUD, publication and score import; owned dialogs/previews/late-response disposal |
+| src/utils/gradebook-scores.js | Pure ordered catalog projection, B1 decimal comparison/input, score-page DTOs, mutation/publication preconditions and A–J batch validation |
+| src/services/gradebook-catalog.js | Scoped catalog.read through the same verified teacher request; current classId required, strict teacher catalog projection |
+| src/utils/gradebook-admin.js, roster.js | Pure input/DTO projection, cancellable operation/preview ownership and bounded positional CSV/roster validation; reuse B1 |
+| src/services/gradebook-admin.js | CP06-B teacher service with injected cached Board session; operation DTO validation, safe structured422 and terminal errors |
+| src/services/gradebook-transport.js | Explicit opt-in Edge HTTP boundary, publishable config/headers, abort+deadline and bounded JSON; disabled by default, no retries/fallback |
+| src/utils/gradebook-admin-responses.js | Pure teacher request allowlist and strict response projection; no HTTP/SDK/credentials/storage |
+| src/services/roster-file.js, roster-worker.js, src/utils/roster-archive.js | Shared roster/score memory-only parsing; bounded ZIP/layout inspection, lazy read-excel-file9.3.12 worker/fflate0.8.3; original rows/calendar dates and lexical XML numeric scores retained |
+| public/templates/score-template.csv, score-template.xlsx; tests/gradebook-scores.test.js | Header-only default score templates and CP04 curated pure/component contracts; no student data, HTTP/SDK/SQL/browser integration in CI |
+| tests/gradebook-admin.test.js, roster.test.js | CP03 curated pure T01–T10 contracts; actual installed-Chrome fixtures/evidence stay ignored under tests/local/cp03, outside CI/production |
+| src/components/student-gradeboard.js, src/utils/student-gradeboard.js | CP05 own-grade table, semester tabs and on-demand aggregate-only histogram; localized private-view visual shell/analytics dialog (UI review branch), DTO projection, exact B1 bucket grouping and cancellable read channels |
+| src/components/student-chart.js, src/utils/student-chart.js | CP05 V2 lazy modular ECharts6 SVG/aggregate axes/zoom; one-stop occupied-level keyboard plot, resize/disposal; pure presentation options separate from chart runtime |
+| src/components/birth-date-picker.js, src/utils/birth-calendar.js | CP05 V2 feature-local nonmodal DOB calendar, month/year/day keyboard navigation; manual field remains source of truth, strict B1 Gregorian/Vietnam-day validation, memory-only cleanup |
+| src/components/student-lookup.js, src/utils/gradebook-ui.js | Date-only lookup form; pure validation/generation/cancellation/expiry; capability/input memory only |
+| src/utils/gradebook-responses.js | CP06-A pure decoded B4 verification/read envelope validation, detached context, terminal error categories; strips requestId, preserves decimal strings and aggregate-only DTOs; no transport/storage/SDK and no production enablement |
+| src/services/student-lookup.js | CP06-B verify/grades/histogram adapter using CP06-A projections; memory owner supplies capability/context; transport default disabled |
+| src/styles/gradebook.css | Responsive student page/menu; existing Board design tokens |
+| tests/gradebook-ui.test.js | Curated pure unit validation/route/disposal/late-response plus pending admin entry and blocked-history regression; no API or SDK |
 | src/components/ | Render/interaction của 20 component tại SPEC R06; cleanup listeners khi unmount |
 | src/services/ | Một Supabase client; truy vấn/Auth/Storage/sync, trả lỗi rõ ràng; không thao tác DOM |
 | src/utils/ | Hàm thuần kiểm tra URL/file, format, debounce, thứ tự; test logic có rủi ro |
@@ -27,8 +49,21 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 | src/styles/ | Tokens CSS, base, layout, component, responsive; không style inline lặp vô ích |
 | supabase/migrations/, seed.sql | Schema/policy có version và seed chạy lại không trùng |
 | tests/ | Regression, integration và bằng chứng QA tương ứng |
+| scripts/gradebook-recovery-diagnostics.mjs | Fixed-stage/allowlisted-category projection and exact child-output filtering; poison regression; no messages/stacks/parameters |
+| scripts/gradebook-backup.mjs | Bounded synthetic-only age encryption, authenticated paired restore input and quota-checked upload dry-run; no DB/service/upload client and no production export CLI |
+| tests/gradebook-backup.mjs | Manual/specialist actual-age finite failure and transfer-plan checks; outside curated test:ci |
+| tests/cloud/backup.mjs, .github/workflows/gradebook-backup-recovery.yml | Dedicated G07 public standard-runner synthetic PG17/age candidate; fresh-process recovery with owner/ACL/RLS/role checks, no production credentials/artifacts/caches; publication/run awaits approval |
+| supabase/functions/grades-admin/index.js, student-lookup/index.js | B4 Edge entrypoints, SDK2.118.0 pin; CP01-C deployed v2 for synthetic/local-only acceptance, public frontend transport remains disabled |
+| supabase/functions/_shared/{handler,http,backend,auth}.js | Bounded HTTP/CORS/cancellation, separate Auth/server clients, verified JWT/profile context, no retries |
+| supabase/functions/_shared/{crypto,contracts,imports,dto}.js | Web Crypto keyrings/envelopes/tokens; reuse pure B1 via relative imports; complete score-input framing; explicit response projections |
+| supabase/functions/_shared/{admin,student,runtime}.js | Allowlisted teacher/student operations, actual B3 RPC arguments, completed limiter before sensitive reads, server-only configuration |
+| supabase/config.toml | Entry points/gateway flags matching deployed v2 functions; synthetic-only CP01-C, frontend default disabled; config alone grants no deployment authority |
+| tests/gradebook-edge.test.js | Specialist Web Crypto/real-SDK/HTTP handler regression, explicitly excluded from curated CI; prior offline evidence retained; hosted acceptance separate |
+| tests/gradebook-runtime.test.js | Specialist Node24 adapter loads actual Edge entrypoints/pinned SDK/shared+B1 graph without service/network; excluded from curated CI; native Deno/bundle NOT RUN |
 
 Các thư mục code trong bảng đã có implementation. Không buộc một file/component nếu ghép module nhỏ rõ nghĩa tiết kiệm hơn; vẫn đáp ứng đủ hành vi các component trong SPEC.
+
+B4 Functions are isolated from the Vite entry graph; they import only the accepted pure B1 modules from src/utils/gradebook, never frontend config/session/UI. No server secret is exported into VITE variables or browser assets. [B4 concern confirmations and actual transport contracts](features/personal-gradebook/B4_INTEGRATION_REVIEW.md#cp01-b4-implementation--mandatory-concern-confirmations-2026-10-26). Hosted import graph bundled successfully in CP01-C; native local Deno remains unavailable. Actual deployment/security evidence is recorded in STATUS/readiness; this code map alone does not establish acceptance.
 
 ## Cách viết
 
@@ -110,3 +145,21 @@ Dialog đặt pulse trong `.dialog-heading` sticky, bên ngoài form inert; post
 Điều hướng theo SPEC R05.2 không thay AppHeader/card/bố cục lọc. Sticky chỉ áp dụng row điều hướng mới, top=0 vì AppHeader hiện không sticky. Create ưu tiên snapshot mới hơn background read; lookup ID chỉ chạy sau khi ticket Auth còn hiệu lực. `renderBoard()` chụp anchor trước replaceChildren rồi attach DOM mới; lọc chủ đề chủ động reset vị trí. Focus reveal đặt sau pending unlock để tránh gọi focus vào board inert. Không có “Đi đến”, kéo thả nội dung hay scroll wheel hijack.
 
 Tổ chức kiểm thử: mọi file frontend test/fixture nằm trong `tests/` (xem tests/README.md); chỉ `tests/local/` là vùng artifact/scratch được .gitignore và .prettierignore bỏ qua. Unit và fixture regression cần chạy lại vẫn giữ trong Git, không gộp vào vùng ignore. Vite build chặn test module; `tests/check-production-build.mjs` kiểm allowlist output sau build. Hosting chỉ phục vụ `dist/`, xem DEPLOYMENT.
+
+## Personal Gradebook B1 utilities
+
+> Historical implementation snapshot at the referenced baseline. Current applied versions/deployed functions are recorded in DATABASE/STATUS; old unimplemented/unapplied labels below are not current state.
+
+`src/utils/gradebook/{contracts,decimal,dates,imports,canonical}.js` contains pure B1 contracts, with no client/network/DOM or persistent-storage dependency. `tests/gradebook-contracts.test.js` covers exact values, calendar/Excel conversion, normalization and protocol vectors offline. The roster helper maps physical width/positions to stable DTO keys, accepts increasing source-row gaps and validates trimmed names by Unicode code points; editable header text is not a mapping key. They are not imported by the application entry point yet. See [B1 boundary](features/personal-gradebook/CP01_TECHNICAL_DESIGN.md#15-b1-implemented-contract-boundary); routes, full DB fingerprint, RPC and Functions are not implemented.
+
+## Personal Gradebook B2 SQL draft
+
+> Historical implementation snapshot at the referenced baseline. Current applied versions/deployed functions are recorded in DATABASE/STATUS; old unimplemented/unapplied labels below are not current state.
+
+`supabase/migrations/20261026014933_gradebook_foundation.sql` is an unapplied six-table foundation; the narrow private boolean session helper is the only new function. `tests/gradebook-b2-sql.mjs` creates fresh in-memory PGlite databases using `tests/gradebook/b2-bootstrap.sql` and four actual board migrations; no DB URL is accepted, no dependency added to the app. [B2 review](features/personal-gradebook/B2_MIGRATION_REVIEW.md) separates local SQL evidence from PostgreSQL17/Supabase/JWT/concurrency gates. RPCs, runtime epochs/stamping, limiter, crypto and UI remain unimplemented.
+
+## CP01-B3 — transaction draft (2026-10-26)
+
+> Historical implementation snapshot at the referenced baseline. Current applied versions/deployed functions are recorded in DATABASE/STATUS; old unimplemented/unapplied labels below are not current state.
+
+B2 accepted baseline `d86627f`. New `20261026030000_gradebook_transactions.sql` adds 22 service-only invoker RPCs, private validation/planner/framing helpers, shared import preview/apply/state hash, class-scoped audit and atomic limiter. Five prior migrations unchanged, no tables added. [B3 inventory, DTO signatures, evidence and limits](features/personal-gradebook/B3_TRANSACTION_REVIEW.md). B3 READY FOR REVIEW; B4/B5 NOT STARTED, CP01-C and real-data gate NOT RUN. 14 B3/18 B2 disposable SQL groups and81 app tests PASS; native17, multi-connection locks, hosted API/security and browser NOT RUN. Draft not applied. Earlier B3 NOT STARTED entries are historical.

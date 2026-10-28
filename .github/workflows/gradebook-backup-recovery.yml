@@ -1,0 +1,81 @@
+name: Gradebook G07 synthetic backup recovery
+
+on:
+  push:
+    branches: [feature/cp01-c-g07-g08-recovery]
+    paths:
+      - .github/workflows/gradebook-backup-recovery.yml
+      - scripts/gradebook-backup.mjs
+      - tests/gradebook-backup.mjs
+      - tests/cloud/backup.mjs
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gradebook-g07-synthetic-recovery
+  cancel-in-progress: false
+
+jobs:
+  recovery:
+    if: github.repository == 'khoabm/dashboard' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Verify free public standard runner before preparing any test resources
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          test "$RUNNER_OS" = Linux
+          test "$(gh api repos/khoabm/dashboard --jq .visibility)" = public
+          echo 'Public standard ubuntu-24.04 only; no caches, artifacts, hosted credentials or paid fallback.'
+      - name: Install checksum-pinned age into runner temporary storage
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/gb-age"
+          curl --fail --silent --show-error --location --connect-timeout 10 --max-time 90 \
+            --output "$RUNNER_TEMP/gb-age/age.tar.gz" \
+            https://github.com/FiloSottile/age/releases/download/v1.3.2/age-v1.3.2-linux-amd64.tar.gz
+          echo "cbe24006683f8eb669266162894b9a522a1af52f2665fbc63a4bb032ed26ac10  $RUNNER_TEMP/gb-age/age.tar.gz" | sha256sum --check --status
+          tar --no-same-owner -xzf "$RUNNER_TEMP/gb-age/age.tar.gz" -C "$RUNNER_TEMP/gb-age"
+          echo "$RUNNER_TEMP/gb-age/age" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/gb-age/age/age" --version
+      - name: Finite offline encryption, corruption and upload dry-run cases
+        run: node tests/gradebook-backup.mjs
+      - name: Prepare synthetic PostgreSQL 17 only on runner loopback
+        run: |
+          set -euo pipefail
+          export POSTGRES_PASSWORD="$(openssl rand -hex 24)"
+          echo "::add-mask::$POSTGRES_PASSWORD"
+          echo "PGPASSWORD=$POSTGRES_PASSWORD" >> "$GITHUB_ENV"
+          echo 'PGHOST=127.0.0.1' >> "$GITHUB_ENV"
+          echo 'PGPORT=15432' >> "$GITHUB_ENV"
+          echo 'PGUSER=postgres' >> "$GITHUB_ENV"
+          echo 'GB_QA_DATABASE=gbqa_backup_source' >> "$GITHUB_ENV"
+          echo "GB_QA_DEPENDENCIES=$RUNNER_TEMP/gb-backup-dependencies" >> "$GITHUB_ENV"
+          docker run -d --name gb-backup-postgres --memory=2g --cpus=2 \
+            -p 127.0.0.1:15432:5432 -e POSTGRES_PASSWORD postgres:17.11-bookworm > /dev/null
+          for attempt in {1..20}; do
+            test "$(docker inspect gb-backup-postgres --format '{{.State.Running}}')" = true || exit 1
+            if docker exec gb-backup-postgres pg_isready -h 127.0.0.1 -U postgres > /dev/null; then break; fi
+            sleep 1
+          done
+          docker exec gb-backup-postgres pg_isready -h 127.0.0.1 -U postgres > /dev/null
+          timeout 5 bash -c 'until echo > /dev/tcp/127.0.0.1/15432; do sleep 0.2; done'
+          npm install --prefix "$RUNNER_TEMP/gb-backup-dependencies" --no-audit --no-fund --ignore-scripts pg@8.16.3
+      - name: Verify encrypted backup, independent restore, versions, data and restored permissions
+        run: node tests/cloud/backup.mjs
+      - name: Dispose synthetic database, ciphertext and recovery credentials
+        if: always()
+        run: |
+          docker rm -fv gb-backup-postgres > /dev/null 2>&1 || true
+          rm -rf "$RUNNER_TEMP"/gb-backup-* "$RUNNER_TEMP/gb-age"

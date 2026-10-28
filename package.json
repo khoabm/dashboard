@@ -6,17 +6,23 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 4173",
     "build": "vite build && node tests/check-production-build.mjs",
-    "test": "node --test tests/*.test.js",
+    "test": "npm run test:ci",
     "check": "node scripts/check.mjs",
     "test:api": "node tests/api-smoke.mjs",
-    "format": "npx --yes prettier@3.6.2 --write \"src/**/*.{js,mjs,css,html,json}\" \"tests/**/*.{js,mjs,html,json}\" \"scripts/**/*.{js,mjs,json}\" \"index.html\" \"vite.config.js\"",
-    "format:check": "npx --yes prettier@3.6.2 --check \"src/**/*.{js,mjs,css,html,json}\" \"tests/**/*.{js,mjs,html,json}\" \"scripts/**/*.{js,mjs,json}\" \"index.html\" \"vite.config.js\"",
-    "format:check:all": "npm run format:check"
+    "format": "prettier --write \"src/**/*.{js,mjs,css,html,json}\" \"supabase/functions/**/*.js\" \"tests/**/*.{js,mjs,html,json}\" \"scripts/**/*.{js,mjs,json}\" \"index.html\" \"vite.config.js\"",
+    "format:check": "prettier --check \"src/**/*.{js,mjs,css,html,json}\" \"supabase/functions/**/*.js\" \"tests/**/*.{js,mjs,html,json}\" \"scripts/**/*.{js,mjs,json}\" \"index.html\" \"vite.config.js\"",
+    "format:check:all": "npm run format:check",
+    "test:ci": "node --test tests/board-navigation.test.js tests/dom.test.js tests/drafts.test.js tests/pending-task.test.js tests/validation.test.js tests/gradebook-contracts.test.js tests/gradebook-ui.test.js tests/gradebook-admin.test.js tests/roster.test.js tests/gradebook-scores.test.js tests/student-gradeboard.test.js",
+    "test:specialist": "node --test tests/auth-session.test.js tests/reliability.test.js tests/gradebook-edge.test.js tests/gradebook-runtime.test.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.118.0"
+    "@supabase/supabase-js": "2.118.0",
+    "echarts": "6.0.0",
+    "fflate": "0.8.3",
+    "read-excel-file": "9.3.12"
   },
   "devDependencies": {
+    "prettier": "3.6.2",
     "vite": "8.3.5"
   }
 }

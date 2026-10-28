@@ -24,17 +24,22 @@ import {
 } from './components/primitives.js';
 import { QuotaStatus } from './components/quota.js';
 import { LoginScreen } from './components/auth.js';
+import { updateHeaderAdmin } from './components/app-header.js';
 import { SectionEditor } from './components/section-editor.js';
 import { PostEditorDrawer } from './components/post-editor.js';
 import { createRequestGate } from './utils/request-gate.js';
 import { createPendingTask } from './utils/pending-task.js';
 import { PulseIndicator, setPendingMessage } from './components/pending.js';
 import { BoardNavigation } from './components/board-navigation.js';
-const root = document.querySelector('#app');
+import { createAdminEntry } from './utils/app-navigation.js';
+const managedRoot = document.querySelector('#board-app');
+const root = managedRoot || document.querySelector('#app');
+let boardActive = !managedRoot || location.pathname === '/';
 const requests = createRequestGate();
 let authRefreshTimer,
   authChecking = false,
   authFailed = false,
+  authRefreshPromise = null,
   logoutPending = false;
 
 // Shared board snapshot, admin session, filters, and synchronization flags.
@@ -85,10 +90,8 @@ const operations = createPendingTask((message) => {
 // Page composition: global header, introductory hero with a live post count, then the board shell.
 root.append(
   AppHeader({
-    onLogin: () => {
-      if (admin) ToastNotification('Bạn đang ở chế độ quản trị.');
-      else LoginScreen(refreshAuth);
-    },
+    onLogin: () => void openBoardAdmin(),
+    onLogout: () => logout(),
     onRefresh: refresh,
     search,
     admin: false,
@@ -135,14 +138,14 @@ shell.append(
 
 /** Updates visible feedback and locks conflicting controls while a board action is pending. */
 function updatePendingUI() {
-  setPendingMessage(activity, operationMessage || syncMessage);
+  setPendingMessage(activity, logoutPending ? '' : operationMessage || syncMessage);
   const pending = operations.pending() || !!syncMessage;
   adminRegion.inert = pending;
   controls.inert = pending;
   navigation.element.inert = pending;
   boardRegion.inert = pending;
   boardRegion.setAttribute('aria-busy', String(pending || !!syncMessage));
-  root.querySelector('.app-header nav').inert = pending || !!syncMessage;
+  root.querySelector('.header-actions').inert = pending || !!syncMessage;
 }
 
 /**
@@ -271,7 +274,6 @@ function render(options = {}) {
       AdminToolbar({
         onNew: () => editPost(),
         onSection: () => SectionEditor(null, data, refresh),
-        onLogout: logout,
         onExport: downloadMetadata,
         onTrash: () => {
           filter = filter === 'deleted' ? 'all' : 'deleted';
@@ -295,8 +297,7 @@ function render(options = {}) {
     adminRegion.append(quota);
     QuotaStatus(quota);
   }
-  const loginLabel = root.querySelector('.header-admin');
-  loginLabel.textContent = admin ? 'Quản trị viên' : 'Đăng nhập quản trị';
+  updateHeaderAdmin(root.querySelector('.app-header'), admin);
   renderControls();
   renderBoard(options);
 }
@@ -311,6 +312,7 @@ function render(options = {}) {
  * @returns {Promise<boolean|undefined>} True for a committed snapshot, false on read failure, undefined if superseded.
  */
 async function refresh({ afterWrite = false, revealSectionId = null } = {}) {
+  if (!boardActive) return;
   if (authChecking) return;
   if (authFailed) return refreshAuth();
   if (operations.pending() && !afterWrite) return;
@@ -364,10 +366,24 @@ async function refresh({ afterWrite = false, revealSectionId = null } = {}) {
 }
 
 /** Rechecks the admin profile and signed-in user before refreshing board data. */
-export async function refreshAuth() {
+export function refreshAuth({ authOnly = false } = {}) {
+  if (!boardActive && !authOnly) return Promise.resolve();
+  if (authRefreshPromise) return authRefreshPromise;
+  const pending = restoreAuth();
+  authRefreshPromise = pending;
+  const finished = () => {
+    if (authRefreshPromise === pending) authRefreshPromise = null;
+  };
+  void pending.then(finished, finished);
+  return pending;
+}
+
+/** Restores the existing Board session; callers share its promise instead of issuing extra checks. */
+async function restoreAuth() {
   clearSession();
   const generation = requests.generation();
   authChecking = true;
+  window.dispatchEvent(new Event('app:auth-state'));
   syncMessage = 'Đang kiểm tra quyền quản trị…';
   updatePendingUI();
   try {
@@ -376,7 +392,8 @@ export async function refreshAuth() {
     admin = !!identity;
     userId = identity?.userId ?? null;
     authChecking = false;
-    await refresh();
+    window.dispatchEvent(new Event('app:auth-state'));
+    if (boardActive) await refresh();
   } catch {
     if (generation !== requests.generation()) return;
     // Do not read with an unverified stored JWT or unlock private UI after an Auth failure.
@@ -392,6 +409,7 @@ export async function refreshAuth() {
       authChecking = false;
       syncMessage = '';
       updatePendingUI();
+      window.dispatchEvent(new Event('app:auth-state'));
     }
   }
 }
@@ -522,6 +540,7 @@ export async function logout() {
 
 /** Clears private UI synchronously, even if the subsequent anonymous read fails. */
 function clearSession() {
+  authRefreshPromise = null;
   requests.invalidate();
   navigation.reset();
   authChecking = false;
@@ -535,6 +554,7 @@ function clearSession() {
   filter = 'all';
   data = { sections: [], posts: [] };
   lastSync = null;
+  window.dispatchEvent(new Event('app:sign-out'));
   render();
 }
 
@@ -573,6 +593,7 @@ window.addEventListener('beforeunload', (event) => {
 });
 window.addEventListener('keydown', (event) => {
   if (
+    boardActive &&
     event.key === '/' &&
     !document.querySelector('dialog') &&
     !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)
@@ -582,6 +603,7 @@ window.addEventListener('keydown', (event) => {
   }
 });
 window.addEventListener('online', () => {
+  if (!boardActive) return;
   ToastNotification('Đã có mạng. Đang tải lại dữ liệu…');
   refresh();
 });
@@ -590,6 +612,7 @@ window.addEventListener('offline', () =>
 );
 document.addEventListener('visibilitychange', () => {
   if (
+    boardActive &&
     document.visibilityState === 'visible' &&
     !document.querySelector('dialog') &&
     (!lastSync || Date.now() - lastSync.getTime() > 30_000)
@@ -597,7 +620,9 @@ document.addEventListener('visibilitychange', () => {
     refresh();
 });
 matchMedia('(max-width:700px)').addEventListener('change', renderBoard);
-client?.auth.onAuthStateChange((event) => {
+let gradebookAuthSession = null;
+client?.auth.onAuthStateChange((event, session) => {
+  gradebookAuthSession = session;
   if (event === 'SIGNED_OUT') {
     clearSession();
     schedulePublicRefresh();
@@ -605,4 +630,76 @@ client?.auth.onAuthStateChange((event) => {
 });
 // Explicit bootstrap also handles persisted sessions without relying on Auth callback timing.
 // SDK reads stay outside the synchronous Auth event callback to avoid its internal lock.
-refreshAuth();
+export const openBoardAdmin = createAdminEntry({
+  ready: () => authRefreshPromise,
+  state: () => ({
+    active: boardActive,
+    generation: requests.generation(),
+    checking: authChecking,
+    failed: authFailed,
+    admin,
+  }),
+  login: () => {
+    if (!document.querySelector('dialog')) LoginScreen(refreshAuth);
+  },
+  notify: ToastNotification,
+});
+if (boardActive) refreshAuth();
+
+/** Suspends Board refreshes without discarding its snapshot, filters, Auth state or saved drafts. */
+export function setBoardActive(active) {
+  if (boardActive === active) return;
+  boardActive = active;
+  if (!active) {
+    authRefreshPromise = null;
+    clearTimeout(authRefreshTimer);
+    requests.invalidate();
+    authChecking = false;
+    syncMessage = '';
+    client?.auth.stopAutoRefresh();
+  } else {
+    client?.auth.startAutoRefresh();
+    if (!lastSync) void refreshAuth();
+    else void refresh();
+  }
+}
+
+/** Flushes editor-owned drafts before a route change; failed persistence leaves the editor open. */
+export async function prepareRouteExit() {
+  if (operations.pending() || logoutPending) return false;
+  for (const dialog of document.querySelectorAll('dialog')) {
+    if (dialog.preserveDraft && !(await dialog.preserveDraft())) return false;
+  }
+  document.querySelectorAll('dialog').forEach((dialog) => dialog.close());
+  return true;
+}
+
+/** Reports only the already-verified in-memory Board state; performs no Auth request. */
+export function boardSessionActive() {
+  return admin;
+}
+
+/** Shares the existing verified identity; direct admin routes restore Auth without loading Board data. */
+export function ensureBoardAuth() {
+  if (authRefreshPromise) return authRefreshPromise;
+  return admin && !authFailed ? Promise.resolve() : refreshAuth({ authOnly: true });
+}
+
+/** Publishes UI status only; this is never server authorization or a student credential. */
+export function boardAuthState() {
+  return {
+    status: authChecking ? 'loading' : authFailed ? 'error' : admin ? 'admin' : 'anonymous',
+    generation: requests.generation(),
+  };
+}
+
+/** Reads only the cached SDK event session after Board verification; never refreshes Auth. */
+export function boardGradebookSession() {
+  if (!admin || authChecking || authFailed || gradebookAuthSession?.user?.id !== userId)
+    return null;
+  return {
+    token: gradebookAuthSession.access_token,
+    expiresAt: gradebookAuthSession.expires_at,
+    generation: requests.generation(),
+  };
+}

@@ -45,9 +45,9 @@ npm run format:check:all   # Alias cho kiểm tra toàn bộ
 npm run format             # Chỉ chạy khi chủ động thực hiện format-only
 ```
 
-- Check scope: `src/**/*.{js,mjs,css,html,json}`, `tests/**/*.{js,mjs,html,json}`, `scripts/**/*.{js,mjs,json}`, `index.html` và `vite.config.js`. Không dùng baseline `e075f0c` nữa; file mới và file cũ đều phải đạt Prettier. Các file docs, workflow YAML, lockfile và SQL migration nằm ngoài **gate code format** này.
-- CI chính chạy `npm ci`, `npm run check`, `npm test`, `npm run build`, `npm run format:check`. **Không** gọi `npm run test:api`, `supabase/tests/`, browser QA hoặc Supabase. CI code không phụ thuộc quota backend.
-- Prettier CLI được pin ở `3.6.2` và gọi qua `npx --yes`; chưa thêm devDependency/lockfile riêng cho formatter. Khi thay đổi công cụ trong task khác, cần giữ version cố định và lockfile đồng bộ. ESLint chưa được cài.
+- Check scope: `src/**/*.{js,mjs,css,html,json}`, `supabase/functions/**/*.js`, `tests/**/*.{js,mjs,html,json}`, `scripts/**/*.{js,mjs,json}`, `index.html` và `vite.config.js`. Không dùng baseline `e075f0c` nữa; file mới và file cũ đều phải đạt Prettier. Các file docs, workflow YAML, lockfile và SQL migration nằm ngoài **gate code format** này.
+- CI chính chạy `npm ci`, `npm run check`, `npm run test:ci`, `npm run build`, `npm run format:check`. test:ci là explicit component/pure-unit allowlist; cấm API/HTTP/Supabase/Edge integration kể cả mock, SQL/PGlite/PostgreSQL/migration và browser E2E. Specialist assets giữ riêng, không gọi tự động. CI code không phụ thuộc quota backend.
+- B5 pin Prettier CLI chính xác `3.6.2` trong devDependency/lockfile, scripts dùng binary local sau npm ci; không tải npx package khi check. Lỗi ENOTCACHED trước đó là thiếu package trong cache, không phải format PASS. Giữ version cố định và lockfile đồng bộ. ESLint chưa được cài.
 - Sau commit format-only, tránh trộn reformat với sửa logic. Có thể review diff bằng `git diff --ignore-all-space` nhưng không dùng so sánh whitespace như bằng chứng duy nhất cho JS; khi sửa nghiệp vụ phải chạy regression tương ứng.
 - `pull_request` vào `develop/main` kiểm tra trước merge; `push` vào `develop/main` kiểm tra sau merge; `workflow_dispatch` cho chạy thủ công khi workflow có trên default branch `main`. Không tự merge để kích hoạt.
 

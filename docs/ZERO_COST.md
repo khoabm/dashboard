@@ -23,3 +23,7 @@ Provider bucket enforce 1.999.999 byte và MIME allowlist; DB enforce tối đa 
 Không dùng Realtime/polling hoặc keepalive giả. Fetch khi mở/ghi/active/manual; thumbnail ký theo batch/lazy-load, file bytes chỉ tải khi mở. Một admin vẫn có nhiều người xem tải học liệu; phải theo dõi Dashboard khi vận hành thật.
 
 Lượt triển khai này không kích hoạt dịch vụ trả phí; không suy ra hoặc bảo đảm mọi dịch vụ khác của toàn tài khoản đều 0 USD. Chỉ xác minh lại dịch vụ khi bắt đầu dùng/chuyển gói hoặc thông tin có khả năng thay đổi.
+
+## CP01-C public standard-runner authorization — 2026-10-28
+
+Owner explicitly authorizes the separate cloud specialist workflow. GitHub repository API confirms visibility=public; current official [billing](https://docs.github.com/en/actions/concepts/billing-and-usage) and [standard runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners) confirm public standard ubuntu-24.04 execution is free. Job-level public/repository guards and a fresh visibility check precede containers. No larger/self-hosted/paid runner, hosted Supabase, production secrets, artifacts, cache uploads, external storage or resource creation. Timeout20 minutes, one concurrency group, Docker memory2GiB/CPU2. Missing resources => BLOCKED, never upgrade. Existing Offline CI npm cache upload is disabled as well; test:ci scope unchanged. This verifies the workflow's marginal cost boundary, not the owner's unrelated bill.

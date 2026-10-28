@@ -9,7 +9,12 @@ import { el } from '../utils/dom.js';
  * @returns {HTMLElement} The pulse indicator and its readable label.
  */
 export function PulseIndicator(message = '') {
-  const root = el('div', { class: 'pending-indicator', role: 'status', 'aria-live': 'polite' });
+  const root = el('div', {
+    class: 'pending-indicator',
+    role: 'status',
+    'aria-live': 'polite',
+    'aria-atomic': 'true',
+  });
   setPendingMessage(root, message);
   return root;
 }

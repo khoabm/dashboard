@@ -15,3 +15,5 @@
 **Nguồn chuẩn:** SPEC gồm 28 nhóm; REQUIREMENTS_MAP giúp tìm mục. STATUS phản ánh những gì thực sự có. ROADMAP gồm Phase 0–6. ARCHITECTURE quy định cách code và map file thực tế. WORKFLOW hướng dẫn Work/Sites và mẫu bàn giao.
 
 Không dùng overview này để thay tiêu chí chi tiết hoặc tuyên bố tính năng đã tồn tại.
+
+**Feature đang phát triển:** [Bảng điểm cá nhân](features/personal-gradebook/README.md) — CP02–CP05 và CP06-B OFFLINE ACCEPTED. CP01-C đã apply4 migration Gradebook/deploy2 Edge Functions và có bằng chứng tích hợp PARTIAL bằng dữ liệu giả trên localhost:4173; chưa đạt nghiệm thu bảo mật đầy đủ hoặc real-data gate. Frontend production mặc định tắt; không public deploy. [STATUS](STATUS.md) và [CP06 readiness](features/personal-gradebook/CP06_OFFLINE_READINESS.md) ghi bằng chứng/giới hạn hiện tại.

@@ -17,3 +17,7 @@ Giữ scope SPEC; không triển khai tính năng tương lai R23. Phase 0 chỉ
 Trước Phase 1 cần đối chiếu wireframe mô tả R05. Ảnh wireframe đã duyệt hiện thiếu: tiến hành phần độc lập nếu được giao và ghi giới hạn; không tự tuyên bố bám chính xác một ảnh chưa thấy.
 
 Sau mỗi phase cập nhật STATUS và bằng chứng; không chép roadmap thành log dài. Các gợi ý kỹ thuật chưa chốt ở STATUS không tự đổi tiêu chí SPEC.
+
+## Extension riêng — Personal Gradebook (offline implementation; backend gates pending)
+
+Module Bảng điểm cá nhân có [implementation checkpoints CP00–CP07](features/personal-gradebook/CHECKPOINTS.md) và [brief nghiệp vụ](features/personal-gradebook/BRIEF.md). CP02–CP05 đã OFFLINE ACCEPTED; CP06-A chuẩn bị tích hợp bằng projection/QA offline. CP01 backend vẫn là draft chưa triển khai; CP01-C và real-data gate NOT RUN. Trạng thái extension không có nghĩa Phase 0–6 hiện tại đã hoàn tất hoặc thay đổi thứ tự roadmap học liệu. Mọi migration và thao tác dữ liệu thật cần ủy quyền riêng.

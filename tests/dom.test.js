@@ -30,3 +30,19 @@ test('recognized service errors are localized instead of exposed', () => {
   assert.match(errorMessage({ status: 429, message: 'Too Many Requests' }), /quá nhiều yêu cầu/);
   assert.match(errorMessage({ message: 'Failed to fetch' }), /Không thể kết nối/);
 });
+
+test('PT409 conflicts use safe reload guidance without exposing diagnostics', () => {
+  assert.equal(
+    errorMessage({
+      code: 'PT409',
+      message: 'SQL internal diagnostics: private_table',
+      details: 'private payload',
+    }),
+    'Bài đăng đã thay đổi. Vui lòng tải lại dữ liệu trước khi thử lại.',
+  );
+  assert.match(errorMessage({ code: '40001' }), /Bản nháp của bạn vẫn được giữ/);
+  assert.equal(
+    errorMessage({ code: 'PT499', message: 'SQL internal diagnostics' }),
+    'Không thể hoàn tất thao tác. Vui lòng thử lại sau.',
+  );
+});

@@ -43,6 +43,17 @@ Yêu cầu mới của người dùng > SPEC + DECISIONS đã chốt > hướng 
 
 - Không công khai website hoặc dữ liệu khi chưa được người dùng yêu cầu. Tạo source/docs trên repo hiện có theo nhiệm vụ được giao không có nghĩa được deploy website.
 
+## Chính sách kiểm thử tiết kiệm quota — bắt buộc (2026-10-26)
+
+Áp dụng cho **mọi nhiệm vụ, branch, milestone, agent/Work/Codex và cả kiểm thử hồi quy**. Quy tắc này ưu tiên hơn mọi chỉ dẫn test chung trước đây nếu có xung đột; xem chi tiết tại [TESTING](docs/TESTING.md#chính-sách-kiểm-thử-tiết-kiệm-quota--bắt-buộc).
+
+1. **Chỉ test khi cần thiết:** đọc diff và bằng chứng sẵn có trước; chọn tập kiểm thử offline nhỏ nhất có thể kiểm chứng rủi ro thay đổi. Docs-only chỉ kiểm tài liệu/diff; không chạy browser, unit/build hay backend chỉ để có PASS. Không chạy lặp cùng suite trên cùng SHA khi không có thay đổi hoặc lý do kỹ thuật mới.
+2. **Cấm các bài stress/load/soak/stretch, benchmark lưu lượng, vòng lặp request số lượng lớn hoặc kiểm thử quota bằng cách gây tải**, kể cả trong môi trường live. Không tự diễn giải yêu cầu review, CI hay nghiệm thu là cho phép các bài test đó. Dùng lập luận tĩnh, test offline hữu hạn và fault injection giả lập thay thế.
+3. **Mặc định không gọi hosted:** mọi test chạm Supabase hosted, SQL/API/Auth/Storage thực, trang production hoặc dịch vụ tính quota cần được người dùng phê duyệt **riêng cho từng hoạt động**, nêu rõ mục tiêu, đích, mức request/query tối đa, dữ liệu, rủi ro và điều kiện dừng. Không suy quyền test live từ việc đã cho phép đọc source, tạo migration, hay triển khai checkpoint. Không tự chạy migration/deploy.
+4. **Không auto-retry/poll/refresh liên tục.** Gặp 429, 503, timeout, serialization retry bất thường, request/error tăng đột biến hoặc dấu hiệu quota cạn: dừng ngay hoạt động kiểm thử, không chạy lại để “xác nhận”; phân tích bằng source/log đã có, báo người dùng. Nếu SDK có retry ngầm, phải xác minh và giới hạn trước mọi test được duyệt.
+5. **CI chỉ kiểm chất lượng code nhẹ, xác định:** syntax/static, format, production build và component/pure unit được liệt kê rõ trong `test:ci`. Cấm API/HTTP endpoint, Supabase Auth/RPC/Storage/Edge integration (kể cả mock), SQL/PGlite/PostgreSQL/migration, browser E2E và stress/load trong CI. Specialist assets nằm ngoài CI và cần phạm vi xác minh riêng; không tạo API probe/curl/ad-hoc runner chỉ để tăng bằng chứng. Trước sửa phải chốt một ma trận concern/test và inventory file dự kiến merge; không chạy lặp full suite để lấy PASS. Gate thực chưa được duyệt ghi **NOT RUN/BLOCKED**, không tự nới scope.
+6. Báo cáo rõ test đã chạy, môi trường, số lần và request/query hosted phát sinh (mặc định phải là **0**); nêu test bỏ qua và phạm vi chưa được chứng minh. Tuân thủ ma trận nghiệm thu mà không tiêu quota để “đủ checklist”.
+
 ## Cách code và kiểm chứng
 
 Theo ARCHITECTURE, [CODE_STYLE](docs/CODE_STYLE.md) và [COMMENTING_GUIDELINES](docs/COMMENTING_GUIDELINES.md) khi viết/sửa code. Prettier đã có config và CI kiểm tra toàn bộ code thực thi (không còn baseline miễn trừ); ESLint chưa cài. Chỉ chạy format toàn repo khi nhiệm vụ cho phép; không trộn format-only với sửa logic. Thay đổi tập trung; không tạo abstraction, dependency, mock backend thành công hoặc test chỉ lặp implementation. Kiểm thử có ý nghĩa cho luồng bị thay đổi; regression bắt buộc khi sửa logic lưu/xuất bản, phân quyền, upload, thứ tự, chống mất nháp. Docs-only: kiểm tra liên kết, đủ yêu cầu, đúng trạng thái; không chạy browser QA vô nghĩa.
@@ -54,3 +65,7 @@ Trước khi công bố hoàn tất UI phải có browser QA theo TESTING. Chưa
 Các lần khắc phục bug từ 2026-10-24 phải có entry trong [BUG_FIX_LOG](docs/BUG_FIX_LOG.md): ID ổn định, điều kiện lỗi/nguyên nhân, file và cách sửa, regression/bằng chứng, baseline/branch và trạng thái. Không ghi secret/PII; không dùng STATUS thay nhật ký này. Ghi rõ mock, backend thật, BLOCKED hoặc NOT RUN.
 
 Cập nhật STATUS (ngắn, thay trạng thái cũ), CODE MAP trong ARCHITECTURE khi thêm/đổi module, DECISIONS chỉ khi có quyết định thực sự, ROADMAP khi phase đổi. Khi yêu cầu đổi, cập nhật SPEC một chỗ và REQUIREMENTS_MAP nếu cần; tránh sao chép spec ra nhiều bản. Ghi kết quả theo mẫu WORKFLOW, kèm branch/SHA, checks và hạn chế. Không lặp toàn bộ roadmap/spec trong câu trả lời.
+
+## Tính năng mới đang chuẩn bị: Bảng điểm cá nhân
+
+Nếu task đề cập bảng điểm, lớp học, CMND/CCCD, import Excel/CSV, biểu đồ điểm hoặc quyền học sinh: bắt đầu tại [Personal Gradebook Codex entry](docs/features/personal-gradebook/README.md), sau đó [BRIEF](docs/features/personal-gradebook/BRIEF.md), [DATA_AND_SECURITY](docs/features/personal-gradebook/DATA_AND_SECURITY.md) và [CHECKPOINTS](docs/features/personal-gradebook/CHECKPOINTS.md) theo đúng phạm vi. Đây là feature chưa code: đừng coi brief/checklist là đã thực thi migration hoặc nghiệm thu. GB-01..09 là mã yêu cầu của module, không thay R01–R28 của website học liệu.
