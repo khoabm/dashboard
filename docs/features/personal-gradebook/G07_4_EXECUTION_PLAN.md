@@ -24,3 +24,11 @@ Status: **PREPARED / NOT RUN** (2026-10-28). Baseline `4f254961e9fa3604e8e843e3c
 ## Acceptance boundary
 
 An independent synthetic **PG17 database recovery** PASS proves one bounded isolated engine/roles/data/crypto round-trip for the new format; it does **not** prove owner paper custody, Google recovery/capacity, production exporter source acquisition, Auth/Storage/Edge managed restoration or G08 release authorization. Keep G07 Operational **PARTIAL** if any required evidence remains missing. On errors, report stage/code only, do not retry an unknown restore, and do not alter the manifest/keys just to force PASS.
+
+## Execution outcome — 2026-10-28
+
+**G07-4 ISOLATED SYNTHETIC RESTORE PASS, scope limited.** Test branch commit `3dab007907d23f989a187f5a351c1375fcd041b5`, [successful GitHub Actions run 40710041772](https://github.com/khoabm/dashboard/actions/runs/40710041772), job 122892515294. Fresh public standard ubuntu-24.04 runner and PG17.11 Docker container; age1.3.2 pinned, no hosted DB/Drive access. Actual `gb-recovery-v1` export, age authentication, independent child process, source synthetic DB removed, fresh target creation, native transactional pg_restore, fresh target extraction/inventory/crypto checks, retained and active key generations, effective `anon`/`authenticated` deny and `service_role` allow, catalogs all PASSED. Cleanup step PASS; no external artifacts/cache.
+
+**Failure retained:** initial [run 40709067825](https://github.com/khoabm/dashboard/actions/runs/40709067825) at `afdeca818e677f04f4cc2adfd7fa7e9d32fac41a` failed at `GB_STAGE child` because child invoked legacy fixture; NOT a restored-data PASS. Corrective commit `3dab007` uses new-format child script and checks matching PASS marker. New run PASS; no fabricated retest.
+
+The successful run verifies the synthetic PostgreSQL engine and application schema/crypto within a disposable runner. It **does not** prove paper/independent-device owner custody, independent receipt/Google account recovery/capacity, or complete managed Supabase Auth/Storage/Edge recovery. G07 Operational remains PARTIAL; G08 real-data and production cutover remain BLOCKED. No merge to develop/main is implied.
