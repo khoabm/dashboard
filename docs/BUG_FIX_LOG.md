@@ -2,6 +2,10 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-28 — UI-E2E-001 / P2: teacher grid forces page-wide horizontal overflow
+
+Baseline1378455, feature/personal-gradebook-ui-e2e. Cloud Chrome360px fixture reproduced393px grid children /407px body overflow; explicit minmax(0,1fr) tracks in gradebook.css restore343px content containment while retaining eight score columns. New tests/gradebook-workspace.html and fixture use production components, memory-only synthetic reads and real local parsers; unsupported writes fail. Focused component tests/static/format/build PASS. [Browser matrix, measurements and untested interactions](features/personal-gradebook/UI_E2E_REVIEW.md). Hosted calls0; broad UI acceptance remains pending.
+
 ## 2026-10-28 — GB-VERIFY-CLOCK-001 / P1: HTTP 200 rejected by client expiry ceiling (FIXED; owner retest pending)
 
 Baseline `25d785b`, branch `feature/personal-gradebook`. Owner supplied only safe scalar diagnostics: valid capability syntax/integer expiry and 660721 ms remaining at response arrival. The client rejected anything above 600000 ms; debugger delay before capturing `now` masked that condition. This establishes the failing ceiling, consistent with client/server clock offset, without identifying which clock is inaccurate. Admin session and unpublished semesters are independent.

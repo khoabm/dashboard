@@ -16,6 +16,7 @@
 }
 .score-panel {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
 }
 .score-panel > p {
@@ -53,6 +54,7 @@
 }
 .gradebook-admin-body {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 22px;
 }
 .admin-class,
