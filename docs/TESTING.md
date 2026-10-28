@@ -1,3 +1,8 @@
+# G07-3 specialist offline acceptance — 2026-10-28
+
+[Concern matrix, inventory, exact commands/history,36 core +4 final focused cases and G07-4 limits](features/personal-gradebook/G07_PRODUCTION_TOOLING.md). Real age1.3.2 and disposable local PG17.11 source snapshot/pg_dump/full archive decoding; no SQL restore, production keys or hosted access. Existing createCrypto contract exercised with active/retained versions1/2. Source-state inventory/data verifier PASS is not restored-target or effective-role evidence. Build/exclusion PASS; old UI/Drive/recovery suites not repeated. This specialist is manual-only, not added to test:ci or any workflow. Failed setup/harness attempts are retained separately; Operational/Overall PARTIAL, G07-4 NOT STARTED, G08 BLOCKED. Older records below retain their original boundaries.
+
+---
 # G07 owner synthetic rehearsal — 2026-10-28
 
 Owner-reported Windows local and manual Drive round-trip PASS (baseline0679367); [evidence and limitations](features/personal-gradebook/G07_OWNER_REHEARSAL_20261028.md). Receipts local/remote PASS, database recovery NOT_RUN. Phone notes are not physical paper custody; paper/replacement-device/owner native PostgreSQL restore NOT RUN; production exporter/validator and G08 BLOCKED. Technical PASS retained; Operational/Overall PARTIAL. New stderr/ACL correction is documentation only, Windows NOT RUN for corrected snippet. Work owner-device/Drive/Supabase/key/data access0, new CI0, no merge/deploy. Earlier entries below are historical.

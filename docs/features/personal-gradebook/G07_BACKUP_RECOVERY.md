@@ -3,6 +3,10 @@
 **TECHNICAL PASS retained. OPERATIONAL PARTIAL/BLOCKED — OWNER ACTIONS/VERIFICATION. OVERALL PARTIAL. G08 BLOCKED.**
 Chính sách A–F đã chốt: [owner policy](G07_OWNER_DECISIONS.md), [backup thủ công](G07_MANUAL_BACKUP_GUIDE.md), [restore khi mất máy](G07_MANUAL_RESTORE_GUIDE.md). Dùng Drive Free cá nhân/private làm đích DB duy nhất, không USB/secondary; owner sole custodian/no emergency; hai age identities độc lập, paper custody; manual-only, không guaranteed RPO/RTO; latest+previous verified set. Các rủi ro này đã được owner chấp nhận, không yêu cầu chốt lại. Owner đã báo cáo synthetic Drive round-trip PASS; Work chưa kiểm trực tiếp folder/quota. Paper re-entry/replacement-device recovery, institutional G08 và production exporter/validator/restore authorization vẫn chưa được xác minh/cấp phép.
 
+## G07-3 implementation update — 2026-10-28
+
+[Staged production tooling,36-case core +4-case focused offline/native source evidence and precise G07-4 handoff](G07_PRODUCTION_TOOLING.md). New format/tooling exists; synthetic-only helper and accepted historical recovery remain unchanged. No new actual restore, production secure acquisition, paper/replacement-device or managed-service PASS. G07-4 NOT STARTED; Operational/Overall PARTIAL. This update supersedes missing-tool implementation wording below, not operational blockers.
+
 ## Owner rehearsal update — 2026-10-28
 
 [Owner-reported report](G07_OWNER_REHEARSAL_20261028.md), docs baseline0679367: Windows synthetic local + manual Drive round-trip PASS; ciphertext266/496 bytes; receipt local/remote PASS và databaseRecoveryVerification=NOT_RUN. Work không truy cập thiết bị/account/file hoặc chạy CI. Native17 technical PASS giữ nguyên, không thay bằng demo owner. Giấy vật lý (phone notes chưa phải giấy), replacement-device recovery, actual PG restore trên owner device NOT RUN; production tooling/G08 BLOCKED. Operational và Overall PARTIAL. Native stderr/ACL và corrected transcription được ghi riêng; snippet correction Windows mới chỉ đề xuất/review tĩnh.

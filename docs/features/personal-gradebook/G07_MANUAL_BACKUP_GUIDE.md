@@ -192,9 +192,9 @@ $Receipt['localVerifiedUtc'] = [DateTime]::UtcNow.ToString('o')
 
 Thử sai identity: dùng keys-retyped cho database.dump.age với output **mới** `wrong.tmp`; phải exit khác0 và xóa file partial đó. Thử thiếu một ciphertext: đánh dấu bộ không đầy đủ, không decrypt/restore file còn lại. Không sửa manifest để ép khớp; không copy file từ snapshot khác. Sau bài tập, xóa toàn bộ payload/identities test trong đúng thư mục synthetic này, hủy giấy test; giấy production không thuộc bài xóa này. Không tuyên bố xóa file thông thường là secure erase.
 
-## 6. Backup dữ liệu thật — hiện BLOCKED tại exporter/authorization
+## 6. Backup dữ liệu thật — tooling OFFLINE PASS, actual operations BLOCKED
 
-**Không có lệnh production export được cung cấp hoặc thực thi trong task.** `scripts/gradebook-backup.mjs` cố định project/format synthetic; không đổi cờ hay giả manifest synthetic để chạy trên dữ liệu thật. `tests/cloud/backup.mjs` là fixture disposable, không phải công cụ backup owner.
+[G07-3 staged exporter/validator và quy trình chính xác](G07_PRODUCTION_TOOLING.md) đã OFFLINE PASS chỉ với synthetic: archive thật + metadata cùng exported snapshot + bốn rings hiện hữu do operator chuẩn bị; không tự đọc DB/server secrets. Production handling/actual restore vẫn BLOCKED trước scope và G08 phù hợp. Dùng hợp đồng mới này thay các ghi chú “tooling tương lai” bên dưới; chúng không phải bằng chứng production đã chạy. **Không thực thi production export trong lượt G07-3.** `scripts/gradebook-backup.mjs` cố định project/format synthetic; không đổi cờ hay giả manifest synthetic để chạy trên dữ liệu thật. `tests/cloud/backup.mjs` là fixture disposable, không phải công cụ backup owner.
 
 Sau khi G08 và scope production riêng được duyệt, operator được cấp quyền phải cung cấp đủ các đầu ra dưới đây. Nếu chưa có, owner STOP ở đây; không tự tìm/copy secret qua SQL, browser devtools hay chat.
 

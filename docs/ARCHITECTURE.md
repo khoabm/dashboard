@@ -51,6 +51,9 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 | tests/ | Regression, integration và bằng chứng QA tương ứng |
 | scripts/gradebook-recovery-diagnostics.mjs | Fixed-stage/allowlisted-category projection and exact child-output filtering; poison regression; no messages/stacks/parameters |
 | scripts/gradebook-backup.mjs | Bounded synthetic-only age encryption, authenticated paired restore input and quota-checked upload dry-run; no DB/service/upload client and no production export CLI |
+| scripts/gradebook-backup-production.mjs, scripts/gradebook-backup-cli.mjs | Staged gb-recovery-v1 exporter/authenticator and data/crypto verifier: independent source/key inventory, full native age/PG17 archive decoding, bounded private local IO; no DB connection/upload/SQL restore or automatic recovery PASS |
+| scripts/gradebook-backup-snapshot.sql | Operator-run read-only six-table/string-value + normalized security extraction inside an authorized exported snapshot; private staging only, no connection/provisioning |
+| tests/gradebook-backup-production.mjs | Finite manual specialist: generated synthetic keys, disposable local PG17 source snapshot/archive, actual age/PG parser/CLI failures; outside curated CI, no actual restore or hosted/Drive calls |
 | tests/gradebook-backup.mjs | Manual/specialist actual-age finite failure and transfer-plan checks; outside curated test:ci |
 | tests/cloud/backup.mjs, .github/workflows/gradebook-backup-recovery.yml | Dedicated G07 public standard-runner synthetic PG17/age candidate; fresh-process recovery with owner/ACL/RLS/role checks, no production credentials/artifacts/caches; publication/run awaits approval |
 | supabase/functions/grades-admin/index.js, student-lookup/index.js | B4 Edge entrypoints, SDK2.118.0 pin; CP01-C deployed v2 for synthetic/local-only acceptance, public frontend transport remains disabled |

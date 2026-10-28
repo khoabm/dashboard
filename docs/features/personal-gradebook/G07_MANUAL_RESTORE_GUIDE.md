@@ -25,6 +25,8 @@ Nếu mất quyền Google account và không có bản ciphertext local còn d�
 
 Bản ghi cho lần xác minh mới phải bắt đầu `CANDIDATE_UNVERIFIED`; giữ nguyên receipt gốc tin cậy để đối chiếu, không ghi đè nó trước khi verify. Chỉ cập nhật local PASS sau full authentication + snapshot/hash checks; remote round-trip và actual isolated database recovery có trường/trạng thái riêng. Nếu thiếu/bỏ qua một check, không tự promote PASS. Demo text không có database recovery PASS. Các ví dụ PowerShell bên dưới **chưa được chạy trên Windows**.
 
+[G07-3 production format và G07-4 handoff](G07_PRODUCTION_TOOLING.md) cung cấp CLI `authenticate`/`open` cùng data/crypto verifier, OFFLINE PASS bằng synthetic. Dùng quy trình đó cho `gb-recovery-v1`; các snippet bên dưới vẫn là hướng dẫn manual/demo lịch sử. Tool không tự restore SQL hoặc nâng Operational PASS. G07-4 chưa bắt đầu; actual role/managed-service checks vẫn cần scope và bằng chứng riêng.
+
 ## 3. Full authentication trước khi chạy bất cứ restored SQL nào
 
 Trong staging mới, giả sử hai identity files là `db-retyped.txt`/`keys-retyped.txt`. Với máy gốc cũng dùng cùng quy trình. Hai output phải chưa tồn tại:

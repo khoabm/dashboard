@@ -1,3 +1,13 @@
+# G07-3 audit update — 2026-10-28 / baseline8cbe298
+
+**Staged production tooling OFFLINE PASS; Operational/Overall PARTIAL.** [Current contract, review, exact checks/limits and G07-4 handoff](G07_PRODUCTION_TOOLING.md). Production-format exporter/validator and data/crypto verifier now exist, verified only with generated synthetic keys and local source data. Independent source expectations bind all four active/retained rings; actual age and complete native PG17 archive decoding PASS. 36 core cases +4 final focused cases and build/exclusion PASS; earlier setup/harness failures retained. Actual restore/effective roles/managed services and owner custody are NOT RUN here. No secure production-secret acquisition is implemented or authorized; no production data access or Drive test repeated.
+
+The missing-tooling item in the original audit below is superseded for implementation/offline acceptance only. Paper/replacement-device/Google/receipt evidence, approved source capture/key acquisition, actual isolated restore, G08 and release authority remain open. G07-4 is NOT STARTED and its environment/operator/budget need separate approval. A–F unchanged. No new architectural decision, production key generation/rotation, hosted requests/queries or deployment.
+
+---
+
+## Historical audit before G07-3 implementation
+
 # G07 Operational audit after PR #5 — 2026-10-28
 
 Baseline: `develop` / `6a0daf3906e147a3882d6c7f27a712967480e8de`, repository `khoabm/dashboard`; clean checkout before this audit. Merge parents: `307b6c611ca36d8d8e05a6cccf8dadd86d754a30` and `1a76aee5958a3d7f5a147ef92e5e067a68aec693`. Local tree comparison with the second parent has zero differences. The referenced prior conversation reports merge-SHA CI [40693395683](https://github.com/khoabm/dashboard/actions/runs/40693395683/job/122833705128) SUCCESS; this task did not independently query GitHub or rerun CI.
