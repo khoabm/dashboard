@@ -33,7 +33,8 @@ export function GradebookScores({
     owner = { ...session },
     catalog = null,
     students = [],
-    nextCursor = null;
+    nextCursor = null,
+    loadingPage = 1;
   let semester = 1,
     subject = null,
     selected = '',
@@ -50,6 +51,18 @@ export function GradebookScores({
     gate = createAdminGate(
       (body, options) => {
         lastOperation = body.op;
+        const labels = {
+          'class.read': 'Đang tải thông tin học kỳ…',
+          'students.list': 'Đang tải danh sách học sinh của trang điểm…',
+          'scores.read': `Đang tải trang điểm ${loadingPage} của học kỳ đã chọn…`,
+          'score.put': 'Đang lưu ô điểm…',
+          'score.delete': 'Đang xóa ô điểm…',
+          'scores.preview': 'Đang kiểm tra bản xem trước điểm…',
+          'scores.apply': 'Đang áp dụng bảng điểm…',
+          'semester.publish': 'Đang công bố học kỳ…',
+          'semester.unpublish': 'Đang tạm ẩn học kỳ…',
+        };
+        pending(labels[body.op] || 'Đang tải bảng điểm…');
         return request(body, options);
       },
       () => owner,
@@ -107,7 +120,7 @@ export function GradebookScores({
     catalogGate.cancel();
     busy = false;
     panel.inert = false;
-    setPendingMessage(progress, '');
+    pending();
     for (const d of dialogs) d.content.inert = false;
     if (uncertain) {
       loaded = false;
@@ -120,6 +133,7 @@ export function GradebookScores({
   }
   /** Clears an owned modal before releasing its detached controls. */
   function closeDialog(entry) {
+    setPendingMessage(entry.progress, '');
     entry.stop?.();
     wipe(entry.content);
     dialogs.delete(entry);
@@ -141,6 +155,9 @@ export function GradebookScores({
   /** Retains edits on dismissal until explicitly discarded; closes sensitive work on route/session disposal. */
   function dialog(title) {
     const entry = openDialog(title);
+    entry.progress = PulseIndicator();
+    entry.progress.classList.add('dialog-progress');
+    entry.dialog.querySelector('.dialog-heading').append(entry.progress);
     dialogs.add(entry);
     entry.dialog.addEventListener('input', () => {
       dirty = true;
@@ -175,6 +192,16 @@ export function GradebookScores({
     entry.dialog.addEventListener('cancel', dismiss);
     return entry;
   }
+  /** Mirrors operation feedback into the active modal outside inert content. */
+  function pending(message = '') {
+    panel.setAttribute('aria-busy', String(!!message));
+    setPendingMessage(progress, dialogs.size ? '' : message);
+    for (const entry of dialogs) {
+      entry.content.setAttribute('aria-busy', String(!!message));
+      setPendingMessage(entry.progress, message);
+    }
+  }
+
   /** Uses the shared cancellable gate; failed/ambiguous writes are never automatically replayed. */
   async function run(work, failed = () => {}) {
     if (busy || disposed || owner.status !== 'admin') return;
@@ -183,7 +210,7 @@ export function GradebookScores({
     panel.inert = true;
     for (const d of dialogs) d.content.inert = true;
     status.textContent = '';
-    setPendingMessage(progress, 'Đang xử lý điểm…');
+    pending('Đang tải bảng điểm…');
     const current = () => !disposed && generation === ticket && owner.status === 'admin';
     try {
       await work(current);
@@ -203,18 +230,21 @@ export function GradebookScores({
         busy = false;
         panel.inert = false;
         for (const d of dialogs) d.content.inert = false;
-        setPendingMessage(progress, '');
+        pending();
       }
     }
   }
   /** Reads only the requested page; mismatched roster/score snapshots fail without guessing identity joins. */
   async function readPage(current, cursor = cursors.at(-1), history = cursors) {
+    loadingPage = history.length;
     preview.clear();
     loaded = false;
     students = [];
     wipe(panel);
     render();
+    pending(`Đang tải trang điểm ${history.length}…`);
     if (!catalog) {
+      pending('Đang tải danh mục môn và cột điểm…');
       const value = await catalogGate.call({});
       if (!current()) return;
       catalog = teacherCatalog(value);
@@ -466,6 +496,7 @@ export function GradebookScores({
     if (!loaded || currentClass[`semester${semester}Published`]) return;
     const entry = dialog('Nhập bảng điểm'),
       file = el('input', { type: 'file', accept: '.csv,.xlsx', 'aria-label': 'Chọn tệp điểm' });
+    const fileProgress = PulseIndicator();
     const detail = el('div', { class: 'import-detail', 'aria-live': 'polite' }),
       errors = el('div', { role: 'alert', class: 'form-error' }),
       counts = el('div', { class: 'import-counts', role: 'status' });
@@ -565,13 +596,16 @@ export function GradebookScores({
       invalidate();
       batch = null;
       inspect.disabled = true;
+      setPendingMessage(fileProgress, '');
+      detail.setAttribute('aria-busy', 'false');
       detail.replaceChildren();
       counts.replaceChildren();
       errors.replaceChildren();
       dirty = true;
       const selectedFile = file.files[0];
       if (!selectedFile) return;
-      detail.textContent = 'Đang đọc tệp trên thiết bị…';
+      setPendingMessage(fileProgress, 'Đang đọc và kiểm tra tệp trên thiết bị…');
+      detail.setAttribute('aria-busy', 'true');
       try {
         const result = await readFile(selectedFile, { signal: reading.signal, catalogs: catalog });
         if (ticket !== serial || disposed || !entry.dialog.open) return;
@@ -609,9 +643,16 @@ export function GradebookScores({
         if (ticket !== serial || disposed || !entry.dialog.open) return;
         detail.replaceChildren();
         errors.textContent = `${error.row ? `Dòng ${error.row}, cột ${error.column}: ` : ''}Không đọc được tệp. Dùng CSV UTF-8/XLSX tối đa 1 MiB, 2.000 dòng và đúng 10 cột A–J; định danh text, ngày hợp lệ, điểm tối đa 5 số thập phân; không công thức/ô gộp/liên kết ngoài.`;
+      } finally {
+        if (ticket === serial && !disposed && entry.dialog.open) {
+          setPendingMessage(fileProgress, '');
+          detail.setAttribute('aria-busy', 'false');
+        }
       }
     });
     entry.stop = () => {
+      setPendingMessage(fileProgress, '');
+      detail.setAttribute('aria-busy', 'false');
       serial++;
       reading?.abort();
       batch = null;
@@ -629,6 +670,7 @@ export function GradebookScores({
         'Chỉ đọc trang tính đầu tiên. Ô điểm trống bỏ qua; 0 là một giá trị. Server kiểm tra lại toàn bộ batch trước khi áp dụng.',
       ),
       file,
+      fileProgress,
       detail,
       errors,
       counts,
@@ -659,7 +701,7 @@ export function GradebookScores({
     if (!loaded) {
       panel.append(
         button('Tải lại điểm', reload),
-        el('p', {}, 'Chưa tải được bảng điểm. Chỉ dữ liệu đã được xác minh mới xuất hiện.'),
+        el('p', {}, 'Chỉ dữ liệu đã tải và xác minh mới xuất hiện trong bảng điểm.'),
         templates,
       );
       return;

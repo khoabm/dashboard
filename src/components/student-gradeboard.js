@@ -1,5 +1,6 @@
 /** Renders one student's semester and one on-demand aggregate chart; owns every private read/dialog. */
 import { el, button } from '../utils/dom.js';
+import { PulseIndicator } from './pending.js';
 import { openDialog } from './primitives.js';
 import { displayScore } from '../utils/gradebook/decimal.js';
 import {
@@ -94,7 +95,11 @@ export function StudentGradeboard({ context, read, onReset }) {
     panel.replaceChildren();
     panel.setAttribute('aria-busy', String(snapshot.status === 'loading'));
     if (snapshot.status !== 'ready') {
-      panel.append(el('p', { role: 'status' }, messages[snapshot.status]));
+      panel.append(
+        snapshot.status === 'loading'
+          ? PulseIndicator(messages.loading)
+          : el('p', { role: 'status' }, messages[snapshot.status]),
+      );
       if (['limited', 'unavailable'].includes(snapshot.status))
         panel.append(button('Thử lại', () => select(semester), 'button'));
       if (snapshot.status === 'expired') onReset();
@@ -246,7 +251,11 @@ export function StudentGradeboard({ context, read, onReset }) {
       scrollHint.hidden = true;
       chart.setAttribute('aria-busy', String(snapshot.status === 'loading'));
       if (snapshot.status !== 'ready') {
-        chart.append(el('p', { role: 'status' }, messages[snapshot.status]));
+        chart.append(
+          snapshot.status === 'loading'
+            ? PulseIndicator('Đang tải dữ liệu biểu đồ…')
+            : el('p', { role: 'status' }, messages[snapshot.status]),
+        );
         if (snapshot.status === 'denied') {
           scores = [];
           panel.replaceChildren(el('p', { role: 'status' }, messages.denied));
@@ -288,22 +297,24 @@ export function StudentGradeboard({ context, read, onReset }) {
         chart.append(el('p', { role: 'status' }, 'Lớp chưa có điểm ở mục này.'));
         return;
       }
-      chart.append(
-        el('p', { class: 'student-chart-loading', role: 'status' }, 'Đang chuẩn bị biểu đồ…'),
-      );
+      chart.setAttribute('aria-busy', 'true');
+      chart.append(PulseIndicator('Đang chuẩn bị biểu đồ…'));
       void import('./student-chart.js')
         .then(({ StudentChart }) => {
           if (closed || disposed || plotTicket !== plotGeneration) return;
+          chart.setAttribute('aria-busy', 'false');
           plotView = StudentChart(chart, buckets, highlight, (needsScroller) => {
             if (!closed && !disposed && plotTicket === plotGeneration)
               scrollHint.hidden = !needsScroller;
           });
         })
         .catch(() => {
-          if (!closed && !disposed && plotTicket === plotGeneration)
+          if (!closed && !disposed && plotTicket === plotGeneration) {
+            chart.setAttribute('aria-busy', 'false');
             chart.replaceChildren(
               el('p', { role: 'status' }, 'Chưa mở được biểu đồ. Bạn có thể đóng và thử lại.'),
             );
+          }
         });
     });
     const load = () => {

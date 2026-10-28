@@ -359,7 +359,12 @@ test('V2 DOB typing adds both slashes incrementally, preserves cursor and does n
   assert.deepEqual(formatBirthdayInput('2912000', 4), { text: '29/12/000', caret: 5 });
   assert.equal(formatBirthdayInput('31022000').text, '31/02/2000');
   assert.equal(formatBirthdayInput('29/02/1900').text, '29/02/1900');
-  assert.equal(formatBirthdayInput('29/a2/2000').text, '29/a2/2000');
+  assert.equal(formatBirthdayInput('29/a2/2000').text, '29/22/000');
+  assert.deepEqual(formatBirthdayInput('29/'), { text: '29/', caret: 3 });
+  assert.deepEqual(formatBirthdayInput('29/02/'), { text: '29/02/', caret: 6 });
+  assert.equal(formatBirthdayInput('12SSSASDÁD').text, '12');
+  assert.equal(formatBirthdayInput('29/02/2000abc').text, '29/02/2000');
+  assert.equal(formatBirthdayInput('29//02//2000').text, '29/02/2000');
   assert.equal(typedBirthdayForTest('31/02/2000'), null);
 });
 

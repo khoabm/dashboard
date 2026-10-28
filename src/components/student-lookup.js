@@ -1,5 +1,6 @@
 /** Renders a date-only student lookup form; private inputs and capability never leave this view's memory. */
 import { el, button } from '../utils/dom.js';
+import { PulseIndicator } from './pending.js';
 import { BirthDatePicker } from './birth-date-picker.js';
 import { formatBirthdayInput } from '../utils/birth-calendar.js';
 import { StudentGradeboard } from './student-gradeboard.js';
@@ -43,6 +44,9 @@ export function StudentLookup({ verify, request, navigate, clock = Date.now }) {
     'aria-describedby': 'lookup-date-help lookup-date-error',
   });
   // Keep separators and cursor position in sync before the calendar reads the shared text field.
+  dateInput.addEventListener('beforeinput', (event) => {
+    if (event.data && /[^0-9/]/.test(event.data)) event.preventDefault();
+  });
   dateInput.addEventListener('input', () => {
     const { text, caret } = formatBirthdayInput(dateInput.value, dateInput.selectionStart);
     if (text !== dateInput.value) {
@@ -210,7 +214,13 @@ export function StudentLookup({ verify, request, navigate, clock = Date.now }) {
     documentInput.setAttribute('aria-invalid', String(!!snapshot.errors.documentNumber));
     dateInput.setAttribute('aria-invalid', String(!!snapshot.errors.birthDate));
     status.dataset.state = snapshot.status;
-    status.textContent = messages[snapshot.status] || 'Vui lòng kiểm tra thông tin đã nhập.';
+    status.replaceChildren(
+      loading
+        ? PulseIndicator(messages.loading)
+        : document.createTextNode(
+            messages[snapshot.status] || 'Vui lòng kiểm tra thông tin đã nhập.',
+          ),
+    );
     reset.hidden = snapshot.status === 'idle' || snapshot.status === 'invalid';
     reset.textContent = loading
       ? 'Hủy và nhập lại'

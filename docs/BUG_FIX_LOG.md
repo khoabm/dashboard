@@ -2,6 +2,22 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-28 — UI-QA-001 / P2: workspace fixture reports unsupported save success and a nonexistent next page
+
+Baseline `c01f9a966506ea9048c3340574205db3ab50e0f5`, branch `feature/personal-gradebook-ui-e2e`, PR10 review. Synthetic class.patch consumed nonexistent body.patch and returned success without the intended update;20-row lists advertised another page although no rows remained. Removed that fake-success handler so unsupported writes fail explicitly; both roster/score cursors now null. Only tests/gradebook-workspace-fixture.js changed in executable source. Syntax/scoped-format/diff checks and static branch/fallthrough review cover this correction; no hosted calls or browser acceptance inferred. [Review matrix and limitations](features/personal-gradebook/UI_E2E_REVIEW.md#pr10-merge-review-correction--2026-10-28). FIXED offline; real pagination/mutations NOT RUN.
+
+## 2026-10-28 — UI-LOAD-001 / P2: inconsistent pending feedback across Board and Gradebook
+
+Baseline `cfcdaa1dd10465d982e3be0ffc90aa1ca3b8f907`, branch `feature/personal-gradebook-ui-e2e`. Lazy route transitions lacked visible feedback; logout feedback belonged to the hidden Board when launched from Gradebook; teacher operations shared generic page-only labels and local file/student reads used text-only loading. Modal inert content could conceal status from assistive technology.
+
+Reused `components/pending.js` in app/header/admin/scores/student views, with atomic live status and shared wrapping styles. Header awaits the original logout Promise; modal status lives outside inert content. Operation/file/plot/route cleanup retains existing ownership/generation/abort fences and mutation payloads. Existing Board/editor/media/quota/Auth/section pulses retained. No services/Auth/RLS/API/database/capability change.
+
+Offline evidence and exact limits: [L01–L19 report](features/personal-gradebook/LOADING_UX_REVIEW.md). Curated129/131 initially (two new DOM-stub failures), fixed affected6/6; static/build/scoped format PASS, direct full checkout format FAIL (CRLF); separate AST-equivalent birthday-expression format45f8ec4 and final LF-normalized116/116 PASS. Browser QA BLOCKED by native URL-policy detection before interactions; no complete visual/integration acceptance claim. Agent-issued hosted tests0; existing user tab background/HMR traffic unmeasured. PR10 stays Draft; no merge/deploy.
+
+## 2026-10-28 — UI-E2E-001 / P2: teacher grid forces page-wide horizontal overflow
+
+Baseline1378455, feature/personal-gradebook-ui-e2e. Cloud Chrome360px fixture reproduced393px grid children /407px body overflow; explicit minmax(0,1fr) tracks in gradebook.css restore343px content containment while retaining eight score columns. New tests/gradebook-workspace.html and fixture use production components, memory-only synthetic reads and real local parsers; unsupported writes fail. Focused component tests/static/format/build PASS. [Browser matrix, measurements and untested interactions](features/personal-gradebook/UI_E2E_REVIEW.md). Hosted calls0; broad UI acceptance remains pending.
+
 ## 2026-10-28 — GB-VERIFY-CLOCK-001 / P1: HTTP 200 rejected by client expiry ceiling (FIXED; owner retest pending)
 
 Baseline `25d785b`, branch `feature/personal-gradebook`. Owner supplied only safe scalar diagnostics: valid capability syntax/integer expiry and 660721 ms remaining at response arrival. The client rejected anything above 600000 ms; debugger delay before capturing `now` masked that condition. This establishes the failing ceiling, consistent with client/server clock offset, without identifying which clock is inaccurate. Admin session and unpublished semesters are independent.

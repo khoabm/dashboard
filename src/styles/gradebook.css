@@ -16,6 +16,7 @@
 }
 .score-panel {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
 }
 .score-panel > p {
@@ -44,15 +45,16 @@
   border-radius: 10px;
 }
 .gradebook-admin {
-  max-width: 1320px;
+  max-width: 1160px;
   margin: 36px auto 80px;
-  padding: 0 24px;
+  padding: 0 28px;
 }
 .gradebook-admin h1 {
   font-size: clamp(26px, 4vw, 38px);
 }
 .gradebook-admin-body {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 22px;
 }
 .admin-class,
@@ -81,6 +83,14 @@
   color: var(--ink);
   font: inherit;
 }
+.gradebook-admin .admin-actions input:focus,
+.gradebook-admin .admin-actions input:focus-visible,
+.gradebook-admin .admin-actions select:focus,
+.gradebook-admin .admin-actions select:focus-visible {
+  outline: none;
+  border-color: #367c58;
+  box-shadow: 0 0 0 3px #367c582b;
+}
 .admin-table-scroll {
   overflow-x: auto;
 }
@@ -96,10 +106,13 @@
 }
 .admin-table th,
 .admin-table td {
-  text-align: left;
+  text-align: center;
   border-bottom: 1px solid var(--line);
   padding: 14px 12px;
-  vertical-align: top;
+  vertical-align: middle;
+}
+.admin-table td .admin-actions {
+  justify-content: center;
 }
 .admin-table th {
   color: var(--green);

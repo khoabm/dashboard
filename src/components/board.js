@@ -21,11 +21,30 @@ export function SearchBar(onSearch, value = '') {
     value,
   });
   input.addEventListener('input', () => onSearch(input.value));
-  // The search wrapper places the input between a search glyph and its '/' shortcut hint.
+  // Use a vector icon so its visual center is independent of the text font's baseline.
+  const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  for (const [key, value] of Object.entries({
+    viewBox: '0 0 24 24',
+    width: '19',
+    height: '19',
+    fill: 'none',
+    stroke: 'currentColor',
+    'stroke-width': '1.8',
+    'stroke-linecap': 'round',
+  }))
+    icon.setAttribute(key, value);
+  const lens = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  lens.setAttribute('cx', '10.5');
+  lens.setAttribute('cy', '10.5');
+  lens.setAttribute('r', '6.5');
+  const handle = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  handle.setAttribute('d', 'm16 16 4 4');
+  icon.append(lens, handle);
+  // The wrapper keeps the icon decorative; search remains an ordinary labelled input.
   return el(
     'div',
     { class: 'search-bar' },
-    el('span', { 'aria-hidden': 'true' }, '⌕'),
+    el('span', { class: 'search-icon', 'aria-hidden': 'true' }, icon),
     input,
     el('kbd', {}, '/'),
   );
@@ -39,7 +58,7 @@ export { AppHeader } from './app-header.js';
  * @param {object} options - The action callbacks and current trash filter.
  * @returns {HTMLElement} The toolbar element.
  */
-export function AdminToolbar({ onNew, onSection, onLogout, onExport, onTrash, filter }) {
+export function AdminToolbar({ onNew, onSection, onExport, onTrash, filter }) {
   return el(
     'div',
     { class: 'admin-toolbar' },
@@ -52,7 +71,6 @@ export function AdminToolbar({ onNew, onSection, onLogout, onExport, onTrash, fi
       button('Xuất thông tin học liệu', onExport, 'button subtle'),
       button('+ Chủ đề', onSection, 'button'),
       button('+ Tạo bài đăng', onNew, 'button primary'),
-      button('Đăng xuất', onLogout, 'button subtle'),
     ),
   );
 }
