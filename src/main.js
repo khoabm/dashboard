@@ -24,6 +24,7 @@ import {
 } from './components/primitives.js';
 import { QuotaStatus } from './components/quota.js';
 import { LoginScreen } from './components/auth.js';
+import { updateHeaderAdmin } from './components/app-header.js';
 import { SectionEditor } from './components/section-editor.js';
 import { PostEditorDrawer } from './components/post-editor.js';
 import { createRequestGate } from './utils/request-gate.js';
@@ -90,6 +91,7 @@ const operations = createPendingTask((message) => {
 root.append(
   AppHeader({
     onLogin: () => void openBoardAdmin(),
+    onLogout: () => void logout(),
     onRefresh: refresh,
     search,
     admin: false,
@@ -272,7 +274,6 @@ function render(options = {}) {
       AdminToolbar({
         onNew: () => editPost(),
         onSection: () => SectionEditor(null, data, refresh),
-        onLogout: logout,
         onExport: downloadMetadata,
         onTrash: () => {
           filter = filter === 'deleted' ? 'all' : 'deleted';
@@ -296,8 +297,7 @@ function render(options = {}) {
     adminRegion.append(quota);
     QuotaStatus(quota);
   }
-  const loginLabel = root.querySelector('.header-admin');
-  loginLabel.textContent = admin ? 'Quản trị viên' : 'Đăng nhập quản trị';
+  updateHeaderAdmin(root.querySelector('.app-header'), admin);
   renderControls();
   renderBoard(options);
 }

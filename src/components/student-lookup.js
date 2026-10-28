@@ -43,6 +43,9 @@ export function StudentLookup({ verify, request, navigate, clock = Date.now }) {
     'aria-describedby': 'lookup-date-help lookup-date-error',
   });
   // Keep separators and cursor position in sync before the calendar reads the shared text field.
+  dateInput.addEventListener('beforeinput', (event) => {
+    if (event.data && /[^0-9/]/.test(event.data)) event.preventDefault();
+  });
   dateInput.addEventListener('input', () => {
     const { text, caret } = formatBirthdayInput(dateInput.value, dateInput.selectionStart);
     if (text !== dateInput.value) {

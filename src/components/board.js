@@ -39,7 +39,7 @@ export { AppHeader } from './app-header.js';
  * @param {object} options - The action callbacks and current trash filter.
  * @returns {HTMLElement} The toolbar element.
  */
-export function AdminToolbar({ onNew, onSection, onLogout, onExport, onTrash, filter }) {
+export function AdminToolbar({ onNew, onSection, onExport, onTrash, filter }) {
   return el(
     'div',
     { class: 'admin-toolbar' },
@@ -52,7 +52,6 @@ export function AdminToolbar({ onNew, onSection, onLogout, onExport, onTrash, fi
       button('Xuất thông tin học liệu', onExport, 'button subtle'),
       button('+ Chủ đề', onSection, 'button'),
       button('+ Tạo bài đăng', onNew, 'button primary'),
-      button('Đăng xuất', onLogout, 'button subtle'),
     ),
   );
 }

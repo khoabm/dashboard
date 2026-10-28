@@ -61,14 +61,25 @@ export function shiftCalendarDay(value, delta) {
   return calendarDay(year, month, day);
 }
 
-/** Formats a partially typed birthday without changing its calendar validity or dropping leading zeroes. */
+/** Masks only presentation input; strict calendar validity still belongs to the date contract. */
 export function formatBirthdayInput(value, caret = value.length) {
-  if (typeof value !== 'string' || !/^[0-9/]*$/.test(value)) return { text: value, caret };
-
-  const digits = value.replace(/\D/g, '').slice(0, 8);
-  const before = value.slice(0, caret).replace(/\D/g, '').length;
-  const text = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4)].filter(Boolean).join('/');
+  if (typeof value !== 'string') return { text: value, caret };
+  const digits = value.replace(/[^0-9]/g, '').slice(0, 8);
+  const prefix = value.slice(0, Math.max(0, caret));
+  const before = Math.min(prefix.replace(/[^0-9]/g, '').length, 8);
+  const firstSlash = digits.length > 2 || /^\d{2}\//.test(value);
+  const secondSlash = digits.length > 4 || /^\d{2}\/\d{2}\//.test(value);
+  const text =
+    digits.slice(0, 2) +
+    (firstSlash ? '/' : '') +
+    digits.slice(2, 4) +
+    (secondSlash ? '/' : '') +
+    digits.slice(4);
   const position =
-    before + Number(before > 2 && digits.length > 2) + Number(before > 4 && digits.length > 4);
+    before +
+    Number(firstSlash && (before > 2 || (before === 2 && /^\d{2}\//.test(prefix)))) +
+    Number(
+      secondSlash && (before > 4 || (before === 4 && /^\d{2}\/\d{2}\//.test(prefix))),
+    );
   return { text, caret: Math.min(text.length, position) };
 }

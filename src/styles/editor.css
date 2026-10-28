@@ -61,6 +61,17 @@
   background: #fafcf9;
   font-size: 13px;
 }
+/* Text fields use the same single green focus ring as the Gradebook identity input. */
+.dialog .field input:not([type='checkbox']):not([type='color']):focus,
+.dialog .field input:not([type='checkbox']):not([type='color']):focus-visible,
+.dialog .field textarea:focus,
+.dialog .field textarea:focus-visible,
+.dialog .field select:focus,
+.dialog .field select:focus-visible {
+  outline: none;
+  border-color: #367c58;
+  box-shadow: 0 0 0 3px #367c582b;
+}
 .field textarea {
   resize: vertical;
   min-height: 80px;

@@ -28,6 +28,7 @@ export function LoginScreen(onSuccess) {
     type: 'password',
     required: true,
     autocomplete: 'current-password',
+    placeholder: 'Mật khẩu quản trị',
   });
   const error = el('p', { class: 'form-error', role: 'alert' });
   const submit = el('button', { type: 'submit', class: 'button primary' }, 'Đăng nhập');

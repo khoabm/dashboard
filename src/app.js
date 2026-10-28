@@ -1,7 +1,7 @@
 /** Owns route lifecycle; the Board/SDK graph is loaded only when the Board is requested. */
 import './styles/main.css';
 import { el } from './utils/dom.js';
-import { AppHeader } from './components/app-header.js';
+import { AppHeader, updateHeaderAdmin } from './components/app-header.js';
 import { SiteNavigation } from './components/site-navigation.js';
 import { StudentLookup } from './components/student-lookup.js';
 import { verifyStudent, readStudent } from './services/student-lookup.js';
@@ -75,6 +75,7 @@ async function showRoute(path, focus = true) {
         if (await navigate('/')) await boardModule?.openBoardAdmin();
       },
       onRefresh: () => void navigate('/'),
+      onLogout: () => void boardModule?.logout(),
       search: null,
       admin: boardModule?.boardSessionActive() || false,
     });
@@ -114,7 +115,6 @@ async function showRoute(path, focus = true) {
           onLogin: async () => {
             if (await navigate('/')) await boardModule.openBoardAdmin();
           },
-          onLogout: () => void boardModule.logout(),
         });
         studentRoot.append(view.element);
         const pending = boardModule.ensureBoardAuth();
@@ -174,12 +174,11 @@ window.addEventListener('app:sign-out', () => {
   if (current === 'admin')
     view?.setSession(boardModule?.boardAuthState() || { status: 'anonymous', generation: -1 });
   navigation.setAdmin(false);
+  updateHeaderAdmin(studentRoot.querySelector('.app-header'), false);
 });
 window.addEventListener('app:auth-state', () => {
   navigation.setAdmin(boardModule?.boardSessionActive() || false);
-  const label = studentRoot.querySelector('.header-admin');
-  if (label)
-    label.textContent = boardModule?.boardSessionActive() ? 'Quản trị viên' : 'Đăng nhập quản trị';
+  updateHeaderAdmin(studentRoot.querySelector('.app-header'), boardModule?.boardSessionActive() || false);
   if (current === 'admin')
     view?.setSession(boardModule?.boardAuthState() || { status: 'loading', generation: -1 });
 });

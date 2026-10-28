@@ -4,6 +4,7 @@ import { openDialog, ConfirmDialog } from './primitives.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
 import { GradebookScores } from './gradebook-scores.js';
 import { displayDate, uiDate, vietnamToday } from '../utils/gradebook/dates.js';
+import { formatBirthdayInput } from '../utils/birth-calendar.js';
 import { bigintId, documentNumber } from '../utils/gradebook/contracts.js';
 import {
   AdminError,
@@ -23,7 +24,6 @@ export function GradebookAdmin({
   readScores,
   loadCatalog,
   onLogin,
-  onLogout,
   clock = Date.now,
 }) {
   let session = { status: 'loading', generation: -1 },
@@ -301,6 +301,8 @@ export function GradebookAdmin({
       placeholder: 'DD/MM/YYYY',
       required: true,
       autocomplete: 'off',
+      inputmode: 'numeric',
+      maxlength: 10,
     });
     const correct = el('input', { type: 'checkbox' });
     const picker = el('input', {
@@ -315,7 +317,15 @@ export function GradebookAdmin({
     picker.addEventListener('change', () => {
       if (picker.value) dob.value = displayDate(picker.value);
     });
+    dob.addEventListener('beforeinput', (event) => {
+      if (event.data && /[^0-9/]/.test(event.data)) event.preventDefault();
+    });
     dob.addEventListener('input', () => {
+      const formatted = formatBirthdayInput(dob.value, dob.selectionStart ?? dob.value.length);
+      if (formatted.text !== dob.value) {
+        dob.value = formatted.text;
+        dob.setSelectionRange(formatted.caret, formatted.caret);
+      }
       try {
         picker.value = uiDate(dob.value);
       } catch {
@@ -676,7 +686,6 @@ export function GradebookAdmin({
       'div',
       { class: 'admin-actions' },
       button('Tải lại', load),
-      button('Đăng xuất', onLogout),
     );
     body.append(toolbar);
     if (!currentClass) {
