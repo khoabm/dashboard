@@ -1,4 +1,5 @@
 name: AI-P01 isolated specialist experiment
+# Corrected 30-string frozen fixture; isolated repeat for fixture-shape defect.
 on:
   push:
     branches: [feature/ai-learning-assistant]
