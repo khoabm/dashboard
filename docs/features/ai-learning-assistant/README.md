@@ -36,3 +36,7 @@ An example: "Thí nghiệm có khí thoát ra" -> semantic retrieval of eligible
 Only progress to AI-P02 when the chosen actual pretrained model, Vietnamese evaluation set, cold/warm performance, licensing, download origin and full zero-cost budget are **measured and approved**. If no eligible model is acceptable, stop at AI-P01; preserve original SearchBar rather than shipping deterministic heuristics labeled "AI".
 
 Document owners/decisions: [CHECKPOINTS](CHECKPOINTS.md). This feature is intentionally isolated from Personal Gradebook G07/G08 technical and real-data gates.
+
+## AI-P01 actual result (2026-10-28)
+
+A bounded specialist PoC successfully ran `Xenova/multilingual-e5-small` pretrained q8 in a GitHub Ubuntu CPU runner with 30 synthetic Vietnamese queries; AI retrieval Precision@3 **67.78%**, vs existing substring search baseline **12.22%**. The >=80% acceptance threshold **was not met**. Browser/mobile/network costs and multi-turn actions remain untested. [Evidence and limitations](POC_EVALUATION.md#actual-ai-p01-bounded-run--2026-10-28-supersedes-not-run-above). **AI-P01 PARTIAL / CHANGES REQUIRED; AI-G01 not approved; AI-P02 not started.** The design-only statement above is historical and no application/UI/library integration has been made.

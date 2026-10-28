@@ -78,3 +78,16 @@ Measure exact files, weight bytes, runtime bytes, download/transformation overhe
 | Owner go/no-go for AI-P02 | **PENDING** |
 
 If metrics fail or selected delivery cannot stay zero cost, stop. A low-risk lexical assistant may be a **separately labeled non-AI fallback**, not a relabeled successful PoC.
+
+## Actual AI-P01 bounded run — 2026-10-28 (supersedes NOT RUN above)
+
+**Execution: PARTIAL / CHANGES REQUIRED, not AI-P01 PASS.** Branch `feature/ai-learning-assistant` at tested SHA `1a4e83a8090bf4c6ace92cea29043bffcee768f1`, [Actions 40727956898](https://github.com/khoabm/dashboard/actions/runs/40727956898) **SUCCESS for execution only**, one public standard Ubuntu runner, Node24, CPU ONNX, no production dependency or hosted Supabase request. Previous run 40727585269 failed before model inference due to synthetic fixture query shape; repaired and reran, both runs disclosed.
+
+- Frozen fixture: **30 synthetic published posts + one draft decoy excluded**, 30 author-labeled Vietnamese positive queries (10 themes ×3), SHA-256 `0d12b8082a95740cc361dc623a60d002c3b5cf4f39cf8eac008c1a7d362e3ca3`. All three posts from a topic were labeled relevant for each query; this optimistic relevance design limits generalization. No real Board/Gradebook data or PDFs/videos processed.
+- Baseline normalized substring search: Precision@3 **0.1222**, Recall@3 **0.1222**, MRR **0.3333**. For 20 paraphrases, Recall@3 **0**.
+- Actual pretrained `Xenova/multilingual-e5-small` q8, `@huggingface/transformers@4.3.1`: Precision@3 **0.6778**, Recall@3 **0.6778**, MRR **0.9000**; paraphrase Recall@3 **0.6500**, MRR **0.8500**. Embeddings 384 dims. The frozen target Precision@3 >=0.80 **FAILED** even though model is better than exact-substring baseline. No threshold tuning/retraining/second model has been done.
+- Runner-observed model artifact bytes (not audited complete network traffic): ONNX **118,308,185**, tokenizer.json **17,082,730**, config **658**, tokenizer config **443** (sum ~135.4 MB decimal), before any additional runtime/bundle/transfers. Model initialization ~**2999 ms**; inference warm p50/p95 ~**3 ms** on GitHub runner CPU. Not a browser/mobile guarantee.
+- Known error cases: `gas-q2`, `gas-q3`, `acid-q2` scored **0** relevant among top 3. False positives require further assessment. The fixture's 3 relevant per query and low baseline under substring matching are experimental assumptions, not accuracy on live KHTN8 content.
+- **NOT RUN / NOT VERIFIED:** browser/mobile first download, bandwidth and memory, offline boot, complete CDN/license/hosting cost and CSP, intents/actions, ground-truth on real published Board, negative-query no-result calibration, QA. Separate AI-G01 model/dependency approval remains PENDING.
+
+**Disposition:** Do not proceed to AI-P02 or ship/model-load in product. Next scope should be a narrowly reviewed AI-P01 correction/probe of quality/false positives and full distribution feasibility (if approved); consider reducing payload or rejecting the approach for mobile. No production/Gradebook/Board source changed.

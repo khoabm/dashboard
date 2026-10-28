@@ -44,3 +44,7 @@
 \`branch / starting SHA / resulting SHA / changed paths / tests actually executed + counts / hosted requests/bytes / model license & runtime evidence / PASS|CHANGES REQUIRED|BLOCKED|NOT RUN / next authorized scope\`.
 
 **Explicit exclusions:** no free-form LLM, generation of lessons/quizzes, PDF/YouTube extraction, teacher automation, Gradebook scores/identifiers, production DB change, cross-site analytics, cloud chat logs, secondary server or paid services. These require a new user decision and scope.
+
+## Evidence update — 2026-10-28
+
+**AI-P01 RETRIEVAL CHANGES REQUIRED / overall PARTIAL.** [One-shot successful execution 40727956898](https://github.com/khoabm/dashboard/actions/runs/40727956898) at `1a4e83a` ran actual pretrained multilingual E5 q8 on synthetic 30-query fixture; Precision@3 **67.78% < 80%** target; lexical baseline 12.22%; paraphrase Recall@3 65% vs 0%. Runner measured 118.3 MB ONNX + 17.1 MB tokenizer, ~3s initialization, ~3 ms p95 warm single-query inference. These are **runner-only**, with mobile/browser, full distribution cost, security/intent and live corpus **NOT RUN**. Original failed attempt 40727585269 is preserved. **AI-G01 NOT APPROVED; AI-P02 NOT STARTED**. See [POC_EVALUATION.md](POC_EVALUATION.md#actual-ai-p01-bounded-run--2026-10-28-supersedes-not-run-above). No deployment/merge.
