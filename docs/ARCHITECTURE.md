@@ -21,6 +21,10 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 | src/app.js | Generation-owned route pulse; path-only History routing; lazy Board/SDK graph; shared navigation; disposes student state on exit/sign-out/page lifecycle |
 | src/utils/app-navigation.js | Pure indexed history/compensation and pending administrator-entry coordinator; no SDK/DOM/network; rejected traversals never push an entry |
 | src/main.js | Board bootstrap/render/Auth; shared restoration promise + direct openBoardAdmin for both headers; suspend route refresh; flush editor-owned drafts before route exit |
+| src/components/board-assistant.js; src/styles/board-assistant.css | Native modal, memory-only bounded conversation, opt-in cloud disclosure, pending/cancel/error and explicit read-only action buttons; invalidated by Board refresh/route exit |
+| src/utils/board-assistant.js; src/services/board-assistant.js | Published-only public text projection, keyword fallback, exact-quote validation and action allowlist; disabled-by-default bounded no-retry transport, no Auth/Gradebook/history persistence |
+| workers/board-assistant/index.js; wrangler.jsonc | Separate BGE-M3/Qwen excerpt-selection preview Worker and SQLite Durable Object allowance/stop flag; loopback CORS, expiry and finite inference budget; no Supabase/D1/R2/content storage |
+| tests/board-assistant*.test.js | Pure projection/action tests and explicitly manual Worker/transport specialists, outside unchanged curated CI; actual app/Chrome fixtures and tooling remain ignored under tests/local/board-assistant |
 | src/components/app-header.js, site-navigation.js | Shared branding/admin controls; accessible Board/lookup menu plus verified-admin entry; header-owned pulse awaits existing logout Promise |
 | src/components/gradebook-admin.js | CP03 class/student dialogs, paged list, reveal/import ownership and route/session disposal |
 | src/components/gradebook-scores.js | CP04 teacher-only semester/subject/student workspace, bounded score-page joins, cell CRUD, publication and score import; owned dialogs/previews/late-response disposal |

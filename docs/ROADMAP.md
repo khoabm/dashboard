@@ -1,5 +1,9 @@
 # Roadmap
 
+Extension 2026-10-29: [Board Assistant MVP](features/board-assistant/README.md) có source và
+E2E synthetic localhost/Worker được kiểm chứng; không chuyển website sang Phase6 hoặc cho
+phép public release. AI public-production/index/real-content acceptance còn là gate riêng.
+
 Nguồn đầy đủ: SPEC R24–28. Đã triển khai nền tảng Phase 1–4 trên develop; đang ở **gate Auth admin / kiểm thử đầy đủ Phase 2–5**, chưa đạt nghiệm thu sản phẩm. Xem STATUS và IMPLEMENTATION_PLAN cho phần đã có bằng chứng và blocker; Phase 6 chưa bắt đầu.
 
 | Phase | Kết quả phải có | Gate chuyển tiếp |

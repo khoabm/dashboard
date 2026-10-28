@@ -2,7 +2,7 @@
 
 import './styles/main.css';
 import { el, button, errorMessage } from './utils/dom.js';
-import { debounce, canRestore, moveItem } from './utils/validation.js';
+import { debounce, canRestore, moveItem, matches } from './utils/validation.js';
 import { client } from './services/client.js';
 import { loadBoard, savePost, exportMetadata, reorderPosts } from './services/board.js';
 import { verifyAdminSession } from './services/auth-session.js';
@@ -32,6 +32,10 @@ import { createPendingTask } from './utils/pending-task.js';
 import { PulseIndicator, setPendingMessage } from './components/pending.js';
 import { BoardNavigation } from './components/board-navigation.js';
 import { createAdminEntry } from './utils/app-navigation.js';
+import { BoardAssistant } from './components/board-assistant.js';
+import { createBoardAssistantRequest } from './services/board-assistant.js';
+import { assistantCatalog, resolveAssistantAction } from './utils/board-assistant.js';
+import './styles/board-assistant.css';
 const managedRoot = document.querySelector('#board-app');
 const root = managedRoot || document.querySelector('#app');
 let boardActive = !managedRoot || location.pathname === '/';
@@ -77,6 +81,16 @@ const shell = el('div', { class: 'board-shell' }),
   boardRegion = el('div'),
   adminRegion = el('div');
 const navigation = BoardNavigation();
+// The assistant receives only an explicit public projection, never the Auth or Gradebook state.
+const assistant = BoardAssistant({
+  snapshot: () => data,
+  request: createBoardAssistantRequest({
+    enabled: import.meta.env?.VITE_BOARD_ASSISTANT_AI === 'true',
+    endpoint: import.meta.env?.VITE_BOARD_ASSISTANT_ENDPOINT || '',
+  }),
+  hosted: import.meta.env?.VITE_BOARD_ASSISTANT_AI === 'true',
+  perform: performAssistantAction,
+});
 const countText = el('span');
 // One persistent region survives board rerenders and describes pending admin work or refreshes.
 const activity = PulseIndicator();
@@ -126,6 +140,7 @@ root.append(
 workspace.append(controls, navigation.element, boardRegion);
 shell.append(
   activity,
+  assistant.element,
   adminRegion,
   workspace,
   el(
@@ -166,6 +181,55 @@ function runBoardAction(message, task) {
 }
 
 // Board rendering and interaction callbacks.
+
+/** Applies only user-confirmed read-only assistant actions to the current public Board snapshot. */
+function performAssistantAction(value) {
+  if (
+    !boardActive ||
+    operations.pending() ||
+    syncMessage ||
+    authChecking ||
+    authFailed ||
+    logoutPending
+  )
+    return false;
+  const action = resolveAssistantAction(value, assistantCatalog(data));
+  if (!action) return false;
+  if (action.type === 'open') {
+    const post = data.posts.find((p) => p.id === action.id && p.status === 'published');
+    if (!post) return false;
+    PostPreviewModal(
+      post,
+      data.sections.find((s) => s.id === post.section_id),
+    );
+    return true;
+  }
+  if (action.type === 'topic') {
+    selected = action.id;
+    query = '';
+  } else if (action.type === 'filter') {
+    selected = 'all';
+    query = action.query;
+    // Mobile displays one column: reveal the first actual match instead of an unrelated default.
+    if (matchMedia('(max-width:700px)').matches) {
+      const match = data.posts.find((post) => {
+        const section = data.sections.find((item) => item.id === post.section_id);
+        return post.status === 'published' && section && matches(post, section, query);
+      });
+      selected = match?.section_id || 'all';
+    }
+  } else {
+    selected = 'all';
+    query = '';
+  }
+  filter = 'all';
+  search.querySelector('input').value = query;
+  renderControls();
+  renderBoard({ resetPosition: true });
+  return true;
+}
+
+window.addEventListener('pagehide', () => assistant.invalidate());
 
 /**
  * Rebuilds desktop tabs and the mobile section picker from current board state.
@@ -265,6 +329,7 @@ function renderBoard({ resetPosition = false } = {}) {
 
 /** Updates counts, admin controls, quota, filters, and board after state changes. */
 function render(options = {}) {
+  assistant.invalidate();
   if (!data.sections.some((s) => s.id === selected)) selected = 'all';
   countText.textContent = `${data.sections.length} chủ đề · ${data.posts.filter((p) => p.status === 'published').length} học liệu`;
   // Clear the previous admin-only toolbar and quota before rebuilding this region.
@@ -651,6 +716,7 @@ export function setBoardActive(active) {
   if (boardActive === active) return;
   boardActive = active;
   if (!active) {
+    assistant.invalidate();
     authRefreshPromise = null;
     clearTimeout(authRefreshTimer);
     requests.invalidate();

@@ -1,5 +1,57 @@
 # Nhật ký khắc phục lỗi
 
+## 2026-10-29 — AI-MVP-001 / P2: canceled dialog close events could invalidate a new conversation
+
+Baseline `develop` / `4f254961e9fa3604e8e843e3c5f63a15f2e9edc7`, new Board Assistant
+implementation. Native close events are queued; the old dialog could abort a newly opened
+conversation or steal focus from an opened source. `src/components/board-assistant.js` now
+removes invalidated dialogs synchronously and checks dialog ownership before cleanup/focus.
+Actual Chrome synthetic delayed-response cancellation, new-conversation-during-pending and
+normal source modal focus PASS; transport cancellation specialist PASS. FIXED within local
+synthetic scope; no Auth/backend/Gradebook behavior changed.
+
+## 2026-10-29 — AI-MVP-002 / P2: Vietnamese accent folding produced unrelated keyword fallback
+
+Same baseline/branch. `đẩy` and `đây` fold to the same token; a single incidental body hit
+could add an irrelevant source for `lực đẩy`. `src/utils/board-assistant.js` now requires
+at least half the maximum weighted token score for local fallback. Pure regression asserts
+only the physics source; actual Chrome mobile result confirms one relevant source. FIXED;
+not a claim of semantic search quality or a general Vietnamese linguistic benchmark.
+
+## 2026-10-29 — AI-MVP-003 / P2: first hosted AI run returned 503; envelope handling hardened
+
+Same baseline/branch. First approved synthetic Worker request returned503 and testing stopped
+without retry; its exact failing stage was not retained, so root cause remains UNCONFIRMED.
+Worker decoding now accepts JSON-mode object and string/choices envelopes while enforcing
+source-only output/exact quotations. Added safe stage/call-count headers, AbortSignal and
+40-second model deadline (45-second client); no raw model/user diagnostics. Finite offline
+regressions PASS; separately approved hosted run2 first query HTTP200 with two model calls
+and correct excerpt. Do not attribute run1 failure conclusively to envelope or latency.
+Final finite-run accounting and remaining gates: [evidence](features/board-assistant/README.md).
+
+Run2: two HTTP200 responses then one HTTP503 at `validation` with two model calls; stopped
+immediately. Exact failing output was deliberately not logged. Final correction changes the
+model contract to existing IDs only, derives excerpts from original text, and discards the
+documented leading Qwen think wrapper without exposing it. Strict ID-only JSON, membership,
+duplicates and exact returned source text remain enforced. This avoids model transcription;
+it does not claim which validation subcase caused the old503. Offline8/8 Worker cases PASS;
+run3 is separately authorized and recorded in the evidence document.
+
+## 2026-10-29 — AI-MVP-004 / P2: chat composer fell below the desktop viewport
+
+Same baseline/branch. Actual Chrome710px-height capture showed the submit row below an outer
+dialog scrollbar. `src/styles/board-assistant.css` now uses a bounded flex modal with a
+shrinking message scroller and fixed composer; short viewports retain outer-scroll recovery.
+Final desktop/mobile measurements and browser recheck are recorded with assistant evidence.
+
+## 2026-10-29 — AI-MVP-005 / P2: mobile assistant filter could keep an unrelated default column
+
+Same baseline/branch. Mobile shows one section: selecting all for a physics keyword could
+leave the first chemistry column visible. `src/main.js` now reveals the first actual
+published match for the explicit assistant filter action, guarding orphaned sections. Board
+search semantics are reused; no private posts or other search behavior changed. Final actual
+Chrome mobile filter check is recorded with assistant evidence.
+
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
 ## 2026-10-28 — UI-QA-001 / P2: workspace fixture reports unsupported save success and a nonexistent next page

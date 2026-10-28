@@ -64,6 +64,8 @@ Không sao chép toàn bộ tính năng Padlet. Chỉ triển khai các chức n
 
 - Công cụ kiểm thử miễn phí.
 
+- Cloudflare Workers/Workers AI Free cho Board Assistant theo R07.1, chỉ sau xác minh không phát sinh phí; không dùng Workers Paid hoặc prepaid credits.
+
 - localStorage và IndexedDB của trình duyệt.
 
 ### 2.2. Những hành động bị cấm
@@ -472,13 +474,49 @@ Không có:
 
 - Thống kê cá nhân học sinh.
 
-- Chat.
+- Chat ngoài phạm vi Board Assistant MVP tại R07.1.
 
-- AI assistant.
+- AI assistant ngoài phạm vi Board Assistant MVP tại R07.1.
 
 - Thanh toán.
 
 Các tính năng trên chỉ là khả năng mở rộng trong tương lai.
+
+<a id="board-assistant-mvp"></a>
+
+### 7.1. Board Assistant MVP — extension được yêu cầu 2026-10-29
+
+Chatbot hỗ trợ tìm học liệu theo ý nghĩa kết hợp từ khóa, trả lời bằng trích đoạn có nguồn
+và các nút thao tác chỉ đọc: mở bài published, xem chủ đề, lọc trang, bỏ bộ lọc. Mỗi thao tác
+do người dùng bấm; model không được thực thi mã, điều khiển DOM tùy ý hoặc thay đổi dữ liệu.
+Không cho quyền quản trị hoặc truy cập Bảng điểm. Đây là ngoại lệ cụ thể cho mục loại trừ
+chat/AI ở R07, không tự mở rộng các tính năng tương lai khác.
+
+Chỉ dùng ID, tiêu đề, mô tả và tên chủ đề của snapshot published hiện có; không đọc tệp/ảnh/
+video, attachment URL, signed URL, nháp, trường riêng tư hoặc Auth token. Trích đoạn AI phải
+khớp nguyên văn nguồn được trích dẫn; không có nguồn phù hợp thì nói rõ. Nội dung cắt theo
+giới hạn phải được nêu là tìm trong tiêu đề/mô tả, không giả định đã đọc toàn bộ tài nguyên.
+Thay đổi snapshot/hủy/đóng/chuyển route phải chặn kết quả muộn và xóa lịch sử chỉ lưu memory.
+Recheck public snapshot tại thời điểm bấm mở nguồn; không coi snapshot là bằng chứng backend
+quyền truy cập tức thời giữa hai lần refresh. Quyền thật tiếp tục do RLS/Storage quyết định.
+
+Giao diện dùng skill ui-ux-pro-max với tokens hiện tại, modal có label/focus/keyboard, trạng thái
+chờ/lỗi/hủy và không tràn mobile. Người dùng chủ động bật AI với thông báo câu hỏi + public
+text được gửi Cloudflare. AI tắt/lỗi/hết quota không làm hỏng tìm từ khóa, không giả AI thành công.
+Không lưu hội thoại hoặc câu hỏi vào localStorage, URL, database hoặc application log.
+
+Frontend AI mặc định tắt. Worker riêng có thể deploy cho task hiện tại sau xác minh Free/0 USD;
+không deploy website hoặc merge main. Không thêm tài nguyên trả phí, thẻ, trial, add-on hoặc
+Codex credits; gặp yêu cầu trả phí phải dừng và report. Quyền tự động hóa và ngân sách hosted
+chỉ có hiệu lực cho task này; AGENTS và quyền của các task sau giữ nguyên.
+
+MVP hosted preview chỉ cho loopback origins, có hạn dùng, giới hạn request/body/catalog/model
+output, không retry và có bộ đếm inference dùng chung. CORS không phải authentication; preview
+không được coi là public production API. Trước mở rộng public cần thiết kế abuse/privacy/index
+riêng. Bộ dữ liệu giả/finite run được duyệt tối đa 20 Worker/model requests, điều kiện dừng theo
+TESTING; tính cả preflight và subrequest liên quan, không gọi Supabase hoặc dùng dữ liệu thật.
+Theo dõi quota Codex tuần tại checkpoint: dưới 55% còn lại thì safe close và ghi bàn giao; không
+hứa giám sát thời gian thực hoặc tự tiếp tục nền.
 
 <a id="r08"></a>
 

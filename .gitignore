@@ -26,3 +26,8 @@ local-uploads/
 
 # Supabase CLI checkout-local cache
 supabase/.temp/
+
+# Worker local state and server-only development variables.
+.wrangler/
+.dev.vars
+.dev.vars.*

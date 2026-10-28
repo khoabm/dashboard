@@ -10,7 +10,7 @@
 
 **MVP đầy đủ:** 1 bảng, 3 cột placeholder, 6 bài mẫu; desktop cột ngang, mobile một cột theo tabs/dropdown. Public tìm kiếm/mở tài nguyên; admin CRUD cột/bài, sắp xếp/chuyển cột, draft/published/hidden/deleted, khôi phục, nhiều ảnh/tệp, liên kết/YouTube, nháp cục bộ và đồng bộ thiết bị. Tệp/ảnh <2 MB; tối đa mặc định 10 file/bài; không upload video gốc. Đọc chi tiết R05–13 trước khi code.
 
-**Chưa làm:** bình luận, like, đăng bài ẩn danh, học sinh đăng nhập/upload, chat, AI, thanh toán, đa admin/đa bảng. Chỉ dự trù mở rộng, không xây trước.
+**Chưa làm:** bình luận, like, đăng bài ẩn danh, học sinh đăng nhập/upload, thanh toán, đa admin/đa bảng. Chat/AI chỉ trong extension [Board Assistant MVP](features/board-assistant/README.md) đang phát triển, chưa nghiệm thu; không xây các mở rộng khác trước.
 
 **Nguồn chuẩn:** SPEC gồm 28 nhóm; REQUIREMENTS_MAP giúp tìm mục. STATUS phản ánh những gì thực sự có. ROADMAP gồm Phase 0–6. ARCHITECTURE quy định cách code và map file thực tế. WORKFLOW hướng dẫn Work/Sites và mẫu bàn giao.
 

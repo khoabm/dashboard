@@ -10,7 +10,7 @@ SPEC.md là bản đầy đủ. Bảng này chỉ giúp chọn phần cần đ�
 | [R04](SPEC.md#r04) | Work và plugins | WORKFLOW.md |
 | [R05](SPEC.md#r05) | UI, wireframe, placeholder; điều hướng overflow / reveal cột mới | TESTING.md |
 | [R06](SPEC.md#r06) | 20 component JS | ARCHITECTURE.md |
-| [R07](SPEC.md#r07) | Public, phạm vi loại trừ | TESTING.md |
+| [R07](SPEC.md#r07) | Public, phạm vi loại trừ; [Board Assistant MVP](SPEC.md#board-assistant-mvp) | TESTING.md; features/board-assistant/README.md |
 | [R08](SPEC.md#r08) | Admin 8.1–8.9; phiên qua reload và xác minh quyền | SECURITY.md, ADMIN_SETUP.md |
 | [R09](SPEC.md#r09) | 6 bảng và trường dữ liệu | DATABASE.md |
 | [R10](SPEC.md#r10) | 20 yêu cầu bảo mật | SECURITY.md |

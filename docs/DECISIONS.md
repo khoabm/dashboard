@@ -2,6 +2,22 @@
 
 Chỉ ghi quyết định có ảnh hưởng scope/kiến trúc; ngày + căn cứ + hệ quả. Không dùng file này làm nhật ký từng thao tác.
 
+## Board Assistant MVP — 2026-10-29
+
+AI-D01: người dùng cho phép phát triển trên branch hiện tại và deploy Worker riêng, cấm
+merge/main/web deploy. Zero cost có ưu tiên cao nhất; bất kỳ yêu cầu trả phí/thẻ/trial/credit
+(kể cả Codex) đều phải dừng. Quyền tự động hóa chỉ thuộc task này; không sửa AGENTS.md.
+
+AI-D02: MVP dùng chat UI + hybrid retrieval; model chỉ chọn ID nguồn, Worker lấy nguyên văn
+public text để hạn chế lỗi chép lại/hallucination. Nút hành động qua allowlist read-only và
+fresh snapshot; không model tools/JS/DOM tùy ý/Gradebook. Đây là nền mở rộng trợ lý page,
+không phải chatbot sinh lời giải hoặc quyền sửa nội dung. Chuẩn sản phẩm tại SPEC R07.1.
+
+AI-D03: một SQLite Durable Object lưu counter/stop flag để enforce allowance trên nhiều
+isolate; không lưu nội dung/IP, không thêm D1/R2. Allowance mới chỉ có sau phê duyệt từng
+đợt; không tự reset quota sau lỗi. Frontend AI và Worker config mặc định tắt. Dữ liệu public
+thật và public production API cần gate riêng; finite synthetic E2E không thay gate đó.
+
 | ID / ngày | Trạng thái | Quyết định và căn cứ |
 | --- | --- | --- |
 | D01 / 2026-10-23 | Đã chốt | Theo yêu cầu người dùng: repo khoabm/dashboard, tạo develop để thiết lập tài liệu; chưa xây website trong lượt này |

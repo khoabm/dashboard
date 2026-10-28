@@ -1,3 +1,21 @@
+# Board Assistant MVP — synthetic E2E accepted / 2026-10-29
+
+Delivery branch `ai-learning-assistant`, baseline `develop` / `4f254961e9fa3604e8e843e3c5f63a15f2e9edc7`.
+Owner authorized commit/push to this branch only after E2E; publication SHA/remote receipt belongs
+to the delivery report. Commit prefix `[CF-Pages-Skip]` prevents Pages deployment; no merge/main change.
+Chat UI, hybrid BGE-M3 retrieval, Qwen source-ID selection with server-derived
+excerpts and explicit read-only Board actions implemented. Final approved hosted run3 **4/4
+HTTP200**; prior run1/run2 failures and per-activity budgets retained in [evidence](features/board-assistant/README.md).
+Offline pure/Worker/transport latest results18/18; actual local workerd/SQLite allowance PASS;
+curated131/131, syntax/scoped format/build/exclusions PASS. Chrome desktop/mobile synthetic QA
+PASS within recorded scope; physical devices/Safari, broad retrieval benchmark and real-content
+acceptance NOT RUN. Worker final disabled version `2fe4ac69-1355-452d-906b-9c1ebec9e0c8`;
+frontend AI default off. No website deployment, main/AGENTS change, paid plan/card/trial/credits,
+Supabase test calls or Gradebook changes. Existing owner tabs/background traffic not measured.
+Prior project/Gradebook release gates remain unchanged. Earlier records below are historical.
+
+---
+
 # G07-3 — Synthetic offline tooling accepted / 2026-10-28
 
 `develop` starting HEAD `8cbe298` (PR #5 merged at `6a0daf3`). Staged production exporter/authenticator/verifier implemented: actual age1.3.2 + local PG17.11 source snapshot/archive decode, 36 core cases +4 final focused cases PASS; actual restore NOT RUN. [Contract, exact commands, failed attempts, limits and finite G07-4 handoff](features/personal-gradebook/G07_PRODUCTION_TOOLING.md). Build/exclusion PASS; no runtime/frontend/migration/dependency/CI-policy changes. **G07 Technical PASS retained; G07 Operational/Overall PARTIAL; G07-4 NOT STARTED; G08 BLOCKED; deployment NOT RUN.** A–F and accepted owner Drive PASS retained, no repeated Drive/UI/recovery suite. Production secure key acquisition, paper/replacement-device custody, independently authorized isolated restore and managed-service evidence remain open. Hosted Supabase/Drive requests0; no production keys/PII/rotation/main merge/deploy. The dated records below are historical.
