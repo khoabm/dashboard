@@ -1700,3 +1700,168 @@
     min-height: 44px;
   }
 }
+
+
+/* Private, read-only learning patterns follow the existing Gradebook visual language. */
+.student-learning-region {
+  min-width: 0;
+  margin-top: 22px;
+}
+
+.student-learning-insights {
+  --learning-border: #dce8df;
+  background: #fff;
+  border: 1px solid var(--learning-border);
+  border-radius: 22px;
+  box-shadow: 0 12px 38px #173f2b0a;
+  padding: clamp(18px, 3vw, 30px);
+  color: #204f41;
+}
+
+.student-learning-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 19px;
+}
+
+.student-learning-heading h3 {
+  font-size: clamp(20px, 3vw, 27px);
+  line-height: 1.25;
+  letter-spacing: -0.6px;
+  margin: 9px 0 7px;
+}
+
+.student-learning-heading p {
+  max-width: 64ch;
+  margin: 0;
+  color: #526b5d;
+  line-height: 1.6;
+  font-size: 13px;
+}
+
+.student-learning-tag {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #ecf5ef;
+  color: #285c43;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.student-learning-overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.student-learning-stat {
+  display: grid;
+  gap: 8px;
+  background: #f5faf6;
+  padding: 16px 18px;
+  border: 1px solid var(--learning-border);
+  border-radius: 15px;
+}
+
+.student-learning-stat span {
+  font-size: 12px;
+  color: #506c5b;
+}
+
+.student-learning-stat strong {
+  font-size: clamp(22px, 3vw, 28px);
+  font-variant-numeric: tabular-nums;
+}
+
+.student-learning-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.student-learning-item {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 14px;
+  border: 1px solid #e1eae3;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.student-learning-symbol {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 12px;
+  color: #336c4a;
+  background: #e8f2ec;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.student-learning-item.is-falling .student-learning-symbol {
+  color: #8a622b;
+  background: #fbf1dc;
+}
+
+.student-learning-item.is-insufficient .student-learning-symbol {
+  color: #61746a;
+  background: #eef2ef;
+}
+
+.student-learning-item-body {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.student-learning-item-body strong {
+  font-size: 14px;
+}
+
+.student-learning-item-body span {
+  color: #416251;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.student-learning-item-body small {
+  color: #647d6d;
+  font-size: 11px;
+}
+
+.student-learning-disclaimer,
+.student-learning-empty {
+  margin: 18px 0 0;
+  color: #526c5d;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+@media (max-width: 700px) {
+  .student-learning-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .student-learning-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .student-learning-item {
+    padding: 13px;
+  }
+}
+
+@media (max-width: 390px) {
+  .student-learning-overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
