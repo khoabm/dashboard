@@ -350,7 +350,13 @@ export function GradebookAdmin({
       'form',
       {},
       field('Họ tên (không bắt buộc)', name),
-      current && field('Điều chỉnh thông tin xác minh (thao tác riêng)', correct),
+      current &&
+        el(
+          'label',
+          { class: 'field field-checkbox' },
+          correct,
+          el('span', {}, 'Điều chỉnh thông tin xác minh (thao tác riêng)'),
+        ),
       field('CMND/CCCD', identity),
       field('Ngày sinh — DD/MM/YYYY', el('div', { class: 'lookup-date-control' }, dob, picker)),
       el(
