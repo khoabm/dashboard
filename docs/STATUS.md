@@ -1,8 +1,10 @@
-# Cloudflare release preparation / synthetic cleanup — 2026-10-28
+# Cloudflare deployed / Gradebook acceptance partial — 2026-10-28
 
-User selected Cloudflare Pages Free, auto-deploy from GitHub main and Personal Gradebook enabled. [Release configuration, cleanup receipt, checks and pending gates](CLOUDFLARE_RELEASE_20261028.md). Source29c1402; mainae5000e has README only. Release PR/merge and Git project setup pending; abandoned Direct Upload project has no deployment. One corrected local enabled build + production exclusion PASS (first path-guard failure retained); exact-source CI40715121413 SUCCESS retained.
+**DEPLOYED:** [student-dashboard](https://student-dashboard-bcy.pages.dev), GitHub main `cda0ad8cdcbd6bfc3b9803ed25f082f9c270c8bc`, owner-authorized PR13 merge; [post-merge CI40719153983](https://github.com/khoabm/dashboard/actions/runs/40719153983) SUCCESS. Cloudflare production main auto-deploy ON, preview branches OFF; Node24, npm run build → dist, Gradebook build flag true. Exact Supabase production origin saved/verified; crypto keys unchanged. Both temporary khtn8 projects deleted with owner approval.
 
-Owner-authorized guarded transaction deleted only5 synthetic score cells/2 students/1 test class; Board/Auth/admin/catalog/audit/limiter/keyrings untargeted.2 successful hosted SQL calls, no retry; initial read rejected before approval/execution. No real import, Edge deploy, key rotation or merge. Gradebook live functionality/production origin/route acceptance NOT RUN; full managed recovery DEFERRED. Legal/organizational attestation accepted without repetition. Historical snapshots below retain original scopes.
+[Canonical deployment, cleanup receipt, bounded smoke and limitations](CLOUDFLARE_RELEASE_20261028.md). Only5 synthetic scores/2 students/1 test class removed; Board/Auth/admin/catalog/audit/limiter/keyrings not cleanup targets. Fresh CORS/unauthenticated smoke4/4 PASS in separately approved activity after initial transport stop; no retry. **Browser QA BLOCKED by automatic approval review usage limit; valid admin/student/import/publish/chart UAT NOT RUN.** Full managed recovery DEFERRED; no product-done or real-data acceptance claim.
+
+2 successful SQL calls,1 origin replacement, API1 stopped attempt +4 completed requests; UI control-plane/owner traffic totals UNKNOWN. No real import, new migration/Edge code deploy/key rotation or paid resources. This follow-up changes docs only; deployed main remains unchanged. Earlier snapshots below retain historical context.
 
 ---
 
