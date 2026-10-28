@@ -26,7 +26,7 @@ export function AppHeader({ onLogin, onLogout, onRefresh, search, admin }) {
       'summary',
       { class: 'button header-admin' },
       'Quản trị viên',
-      el('span', { class: 'header-account-chevron', 'aria-hidden': 'true' }, '⌄'),
+      el('span', { class: 'header-account-chevron', 'aria-hidden': 'true' }),
     ),
     el(
       'div',

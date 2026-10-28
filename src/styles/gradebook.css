@@ -106,10 +106,13 @@
 }
 .admin-table th,
 .admin-table td {
-  text-align: left;
+  text-align: center;
   border-bottom: 1px solid var(--line);
   padding: 14px 12px;
-  vertical-align: top;
+  vertical-align: middle;
+}
+.admin-table td .admin-actions {
+  justify-content: center;
 }
 .admin-table th {
   color: var(--green);
