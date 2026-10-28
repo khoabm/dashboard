@@ -1,7 +1,17 @@
 # G07 final synthetic recovery evidence — 2026-10-28
 
-**TECHNICAL PASS. OPERATIONAL BLOCKED — OWNER DECISIONS. OVERALL PARTIAL. G08 BLOCKED.**
-Operational specification/runbook **READY FOR OWNER APPROVAL**: [precise remaining decisions and recommended defaults](G07_OWNER_DECISIONS.md). Owner approval of the design/review package is recorded; actual account/folder, institution provider permission, media/location, credential custody/emergency decision, schedule/retention/RPO/RTO and real restore authority remain unapproved.
+**TECHNICAL PASS retained. OPERATIONAL PARTIAL/BLOCKED — OWNER ACTIONS/VERIFICATION. OVERALL PARTIAL. G08 BLOCKED.**
+Chính sách A–F đã chốt: [owner policy](G07_OWNER_DECISIONS.md), [backup thủ công](G07_MANUAL_BACKUP_GUIDE.md), [restore khi mất máy](G07_MANUAL_RESTORE_GUIDE.md). Dùng Drive Free cá nhân/private làm đích DB duy nhất, không USB/secondary; owner sole custodian/no emergency; hai age identities độc lập, paper custody; manual-only, không guaranteed RPO/RTO; latest+previous verified set. Các rủi ro này đã được owner chấp nhận, không yêu cầu chốt lại. Actual folder/quota/round-trip, paper re-entry/replacement-device recovery, institutional G08 và production exporter/validator/restore authorization chưa được xác minh/cấp phép.
+
+## Manual readiness — baseline83a0322
+
+Đọc lại run40623615581 SUCCESS và source tested910ac0ae, không rerun native CI. Hướng dẫn mới không đổi executable source, migration/RLS, crypto contract hoặc workflow. Accepted script hỗ trợ generated synthetic DB/keyring pair, receipt hashes, full age authentication, required-version validation và fresh-process restore. Chưa có owner production exporter/validator, Windows paper workflow hoặc Drive transfer integration đã được nghiệm thu. Demo PowerShell chỉ text payload; không dùng demo làm PostgreSQL archive.
+
+Manual operational verification thực chạy28/10/2026: một invocation Node/age1.3.2 trên Work Linux, dùng API sealBackup/openBackup không sửa và fixture chỉ có PGDMP marker (không phải native archive). Bốn checks PASS: (1) tạo encrypted DB/key-export pair, xóa original identity files, khôi phục bằng copied/re-entered credential files và đối chiếu dump + bốn rings; (2) thiếu một ciphertext bị từ chối; (3) credential file bị mất bị từ chối; (4) toàn bộ directory/file test đã dọn. Exit0, chỉ fixed summary output, network0, DPAPI0. Đây là mô phỏng bản chép trong process/file, không phải chứng nhận chủ sở hữu chép giấy hoặc dùng máy mới. Wrong-identity/corrupt/truncated/mixed snapshot và actual native PG restore/data/ACL được reuse từ21-case/native evidence accepted; không rerun full suite.
+
+Static docs PASS: relative links/fences/credential-literal scan, git diff whitespace; source/workflow/dependency/migrations byte-unchanged. Các PowerShell snippets được review file IO/exit-code và chỉ dẫn giới hạn, **chưa chạy PowerShell5.1/7 trên Windows**. Paper re-entry thật và Google Drive round-trip NOT RUN. No hosted Supabase/production data/Drive transfers/owner-local operations; no paid services/merge/deploy.
+
+Mọi đoạn đề xuất primary+offline/USB, emergency custody/daily targets trong **Earlier preparation snapshot** bên dưới là lịch sử, đã bị A–F thay thế; không còn là yêu cầu owner chưa quyết. Mandatory independent recovery/data+four-keyrings/security vẫn giữ nguyên, không waive.
 
 ## Corrective execution and confirmed defects
 

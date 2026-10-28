@@ -1,3 +1,9 @@
+# G07 manual operational readiness — 2026-10-28
+
+Approved A–F replaces USB/emergency/daily/RPO proposals: personal private Drive only, sole owner, independent age identities/paper custody, manual triggers, latest+previous verified. [Policy/manual guide](G07_OWNER_DECISIONS.md). Technical PASS retained from910ac0ae/run40623615581, no rerun. Operational PARTIAL/BLOCKED: owner physical custody/Drive round-trip/production exporter and G08 not verified. No transfer/hosted/real data/owner-local execution or new CI. Older entries below are historical.
+
+---
+
 # G07 technical acceptance — 2026-10-28
 
 G07 TECHNICAL PASS; operational BLOCKED—owner decisions; overall PARTIAL. G08 BLOCKED. Native run40623615581 at910ac0ae SUCCESS; all3 additional runs used. Same-cluster synthetic proof only; real-data/institution/custody gates remain closed. [Evidence and owner package](G07_BACKUP_RECOVERY.md). Older entries below retain their baseline context.

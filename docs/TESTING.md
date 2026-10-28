@@ -1,3 +1,9 @@
+# G07 manual operational readiness — 2026-10-28
+
+Approved A–F replaces USB/emergency/daily/RPO proposals: personal private Drive only, sole owner, independent age identities/paper custody, manual triggers, latest+previous verified. [Policy/manual guide](features/personal-gradebook/G07_MANUAL_BACKUP_GUIDE.md). Technical PASS retained from910ac0ae/run40623615581, no rerun. Operational PARTIAL/BLOCKED: owner physical custody/Drive round-trip/production exporter and G08 not verified. No transfer/hosted/real data/owner-local execution or new CI. Older entries below are historical.
+
+---
+
 # G07 final evidence — 2026-10-28
 
 Offline21/21 PASS, native PostgreSQL17.11 recovery suite PASS at910ac0ae, including valid-archive transactional rollback and effective role checks. All3 additional runs used; no further CI authorized by this budget. Exact matrix/run history and limits are linked below. [Evidence and owner package](features/personal-gradebook/G07_BACKUP_RECOVERY.md). Older entries below retain their baseline context.
