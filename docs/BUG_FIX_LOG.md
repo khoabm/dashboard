@@ -2,6 +2,10 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-28 — G07-MANUAL-REV-001/P2 và G07-MANUAL-REV-002/P3 (DOCS FIXED)
+
+Baseline9f923e4d, docs/g07-manual-backup-restore. Receipt snippet previously initialized LOCAL_AUTHENTICATION_PASS before its round-trip checks. Initialize CANDIDATE_UNVERIFIED before decrypt, promote only after complete local verification; distinguish remote/database fields, skipped steps never PASS. Replace ZIP hash placeholder with concrete path variable and add masked paper-entry UTF-8-no-BOM examples, linked from restore guide. Static documentation checks only; Windows/PowerShell NOT RUN, no CI/backend/Drive/keys/production changes. A–F unchanged; G07 Technical PASS, Operational/Overall PARTIAL, G08 BLOCKED.
+
 ## 2026-10-28 — GB-G07-RECOVERY / P2: false metadata/output assertions (FIXED)
 
 Startingcc893edf, feature/cp01-c-g07-g08-recovery. Fixed raw ACL string/default representation comparison using canonical ACL sets without changing database grants. Stage diagnostics revealed failure after actual restore (run40623308305); subsequently fixed parent stdout-offset assertion introduced by stage lines (run40623466222). Added poison-diagnostic regression and valid-archive collision rollback proof. Final tested910ac0ae/run40623615581 SUCCESS: offline21, native recovery/roles/negative cases; artifacts0, cleanup PASS, hosted requests0. Production crypto/migrations/business code unchanged; operational G07 and G08 remain blocked.

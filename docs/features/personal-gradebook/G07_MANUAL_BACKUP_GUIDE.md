@@ -27,7 +27,16 @@ Mất DB age identity thì không mở được dump; mất key-export identity 
 Dùng Windows PowerShell5.1 hoặc PowerShell7; không bật Start-Transcript, screen sharing/ghi màn hình khi thao tác bí mật. Máy phải đáng tin, không malware; không chọn thư mục OneDrive/Google Drive sync để staging plaintext.
 
 - age: chỉ lấy từ [dự án chính thức](https://github.com/FiloSottile/age), bản pin [v1.3.2](https://github.com/FiloSottile/age/releases/tag/v1.3.2). Windows x64: tải `age-v1.3.2-windows-amd64.zip`. SHA-256 đã đối chiếu release API ngày28/10/2026: `f48d8f8f9ebe903ab5027ed067652f2cc1db94bc206976430133b905dcd8e8c7`. Không áp hash này cho ARM64/Linux/macOS hay version khác.
-- Chạy `Get-FileHash -Algorithm SHA256 -LiteralPath <đường-dẫn-ZIP>`; so đúng toàn bộ digest trước khi giải nén. Sai hash → STOP. Đọc upstream release/provenance; digest từ cùng nguồn không thay thế mọi kiểm tra tin cậy.
+- Ví dụ cụ thể bên dưới dùng thư mục Downloads mặc định. Nếu tải nơi khác, sửa **giá trị biến `$AgeZip`** thành đường dẫn thật trước khi chạy; không thay nội dung bằng một placeholder. File thiếu/hash sai → STOP. Đọc upstream release/provenance; digest từ cùng nguồn không thay thế mọi kiểm tra tin cậy.
+
+```powershell
+$AgeZip = Join-Path ([Environment]::GetFolderPath('UserProfile')) 'Downloads\age-v1.3.2-windows-amd64.zip'
+if (-not (Test-Path -LiteralPath $AgeZip -PathType Leaf)) { throw 'Khong tim thay ZIP tai duong dan da chon' }
+$ExpectedAgeSha256 = 'f48d8f8f9ebe903ab5027ed067652f2cc1db94bc206976430133b905dcd8e8c7'
+$ActualAgeSha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $AgeZip -ErrorAction Stop).Hash.ToLowerInvariant()
+if ($ActualAgeSha256 -ne $ExpectedAgeSha256) { throw 'ZIP checksum mismatch' }
+```
+
 - Giải nén vào thư mục công cụ riêng. Kiểm tra `age.exe --version` và `age-keygen.exe --help`; không chọn “latest” không kiểm chứng. Ví dụ dưới giả sử hai exe đã được đặt vào PATH tin cậy.
 - PostgreSQL: chỉ cần khi được phép tạo/restore DB isolated. Lấy công cụ PG17 từ [trang chính thức](https://www.postgresql.org/download/windows/), chọn thành phần miễn phí, không add-on/trial. Kiểm chứng chữ ký/hash của nhà phát hành, chạy `pg_dump --version`, `pg_restore --version`, đọc `--help`; cặp công cụ phải phù hợp phiên bản server. Không cần mua/cài DB để đọc hướng dẫn này.
 - Trên Linux/macOS dùng bản age đúng nền tảng cùng nguồn; quyền staging0700/credential0600. Binary stdin/stdout phải được giữ nguyên. Không dùng pipeline PowerShell5.1 để truyền dump/age binary.
@@ -63,6 +72,43 @@ Không chạy lại vào thư mục đã có file. Nếu cmdlet/native tool báo
 4. Chỉ ghi PASS nếu đúng cả hai file nhập lại. Work không chứng nhận thao tác giấy của owner. Giữ nguyên backup/khóa gốc cho đến khi rehearsal thành công; không thử bằng cách phá hủy bản production duy nhất.
 5. Khi owner làm khóa production sau này: hai identities hoàn toàn mới, không dùng lại test keys. Không cần Work sinh hay nhận khóa. DPAPI cho bản local chỉ là lớp bổ sung; giấy phải đủ để tái tạo identities trên máy mới.
 
+### 4.1. Nhập lại hai identity files từ giấy — UTF-8 không BOM
+
+Dùng staging riêng đã hạn chế quyền ở mục4, không nằm trong thư mục sync. Hàm dưới **chỉ owner tự chạy**, nhập từng dòng trực tiếp từ giấy vào prompt che ký tự; không copy/paste, không gõ secret trực tiếp trong câu lệnh hay dùng clipboard đồng bộ. Không bật transcript, console debug, ghi màn hình hoặc gửi ảnh/file vào chat. Đầu vào không trở thành command-history literal. Hàm không echo private key và không ghi đè file có sẵn:
+
+```powershell
+function Write-PaperIdentity {
+  param([string]$Path, [string]$Label)
+  if (Test-Path -LiteralPath $Path) { throw 'Identity output da ton tai; dung staging moi' }
+  $Secret = Read-Host -Prompt ('Tu go dong identity tren giay: ' + $Label) -AsSecureString
+  $Pointer = [IntPtr]::Zero
+  $Clear = $null
+  try {
+    $Pointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($Secret)
+    $Clear = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($Pointer)
+    if ([string]::IsNullOrWhiteSpace($Clear) -or $Clear.Contains("`n") -or $Clear.Contains("`r")) { throw 'Can dung mot dong identity' }
+    $NoBom = New-Object System.Text.UTF8Encoding($false)
+    [IO.File]::WriteAllText($Path, ($Clear + [Environment]::NewLine), $NoBom)
+  } finally {
+    $Clear = $null
+    if ($Pointer -ne [IntPtr]::Zero) { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($Pointer) }
+    $Secret.Dispose()
+  }
+}
+$DbRetypedPath = Join-Path $Work 'db-retyped.txt'
+$KeysRetypedPath = Join-Path $Work 'keys-retyped.txt'
+Write-PaperIdentity -Path $DbRetypedPath -Label 'DB'
+Write-PaperIdentity -Path $KeysRetypedPath -Label 'KEY EXPORT'
+$RetypedDbRecipient = (age-keygen.exe -y $DbRetypedPath 2>$null).Trim()
+if ($LASTEXITCODE -ne 0 -or $RetypedDbRecipient -ne $DbRecipient) { throw 'Identity DB nhap lai khong khop' }
+$RetypedKeysRecipient = (age-keygen.exe -y $KeysRetypedPath 2>$null).Trim()
+if ($LASTEXITCODE -ne 0 -or $RetypedKeysRecipient -ne $KeysRecipient) { throw 'Identity KEY EXPORT nhap lai khong khop' }
+```
+
+Trong rehearsal mục5, thực hiện mục4.1 **sau** tạo ciphertext/receipt CANDIDATE để tập đường khôi phục độc lập; `$DbRecipient`/`$KeysRecipient` là public recipients đã ghi từ mục4. Trên máy thay thế, owner đối chiếu với public recipients trong sổ tin cậy; không dùng nhầm keygen tạo private identities mới. Sai key → dừng, dọn output nhập sai trong staging rồi nhập lại có chủ đích, không ép receipt thành PASS.
+
+BSTR được giải phóng/zero, nhưng .NET có thể giữ bản sao chuỗi; không bảo đảm xóa toàn bộ secret khỏi RAM. File UTF-8 plaintext tạm vẫn là bí mật, phải nằm trong staging riêng và dọn sau rehearsal. Snippet này **chưa thực thi trên Windows/PowerShell5.1 hoặc7**; đây là ví dụ tài liệu đã review tĩnh, không phải kết quả Windows PASS.
+
 ## 5. Bài tập synthetic trên Windows — chạy được ngay, không có DB thật
 
 Đây là **bài tập giữ khóa/mã hóa**, payload DB là file chữ giả, không phải archive PostgreSQL. Không đưa file chữ này vào pg_restore. Recovery DB thật đã có bằng chứng cloud tại run40623615581; không rerun CI để tập thao tác giấy.
@@ -72,7 +118,8 @@ Tạo hai payload test và manifest cùng snapshot. File UTF-8 không BOM; raw d
 ```powershell
 $Utf8 = New-Object System.Text.UTF8Encoding($false)
 [IO.File]::WriteAllText((Join-Path $Work 'database.dump'), ('SYNTHETIC TEXT ONLY ' + $Snapshot), $Utf8)
-$DumpHash = (Get-FileHash -Algorithm SHA256 -LiteralPath '.\database.dump').Hash.ToLowerInvariant()
+$DumpPath = Join-Path $Work 'database.dump'
+$DumpHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $DumpPath).Hash.ToLowerInvariant()
 $Demo = [ordered]@{format='manual-custody-demo-v1'; synthetic=$true; snapshotId=$Snapshot; dumpSha256=$DumpHash; note='Khong phai PostgreSQL dump hoac keyring production'}
 [IO.File]::WriteAllText((Join-Path $Work 'keyrings.json'), ($Demo | ConvertTo-Json), $Utf8)
 age.exe --encrypt -r $DbRecipient -o database.dump.age database.dump 2>$null
@@ -81,7 +128,21 @@ age.exe --encrypt -r $KeysRecipient -o keyrings.json.age keyrings.json 2>$null
 if ($LASTEXITCODE -ne 0) { throw 'Encrypt keys failed' }
 ```
 
-Hai file `.age` phải có kích thước >0. Giữ ciphertext, tạo receipt mục7, sau đó làm bài nhập lại identities từ giấy vào `db-retyped.txt` và `keys-retyped.txt`. Không in nội dung identities:
+Hai file `.age` phải có kích thước >0. **Bước5A — tạo receipt CANDIDATE trước khi nhập lại giấy/decrypt**. Tạo hash ciphertext chỉ chứng minh đầu vào đang có, chưa chứng minh decrypt/restore. Không bỏ qua bước này hoặc đặt sẵn PASS:
+
+```powershell
+$Files = @('database.dump.age','keyrings.json.age')
+$Items = @($Files | ForEach-Object {
+  $CipherPath = Join-Path $Work $_
+  $File = Get-Item -LiteralPath $CipherPath
+  if ($File.Length -le 0) { throw 'File rong' }
+  [ordered]@{name=$File.Name; bytes=$File.Length; sha256=(Get-FileHash -Algorithm SHA256 -LiteralPath $CipherPath).Hash.ToLowerInvariant()}
+})
+$Receipt = [ordered]@{format='ciphertext-receipt-v1'; snapshotId=$Snapshot; backupUtc=[DateTime]::UtcNow.ToString('o'); files=$Items; verification='CANDIDATE_UNVERIFIED'; remoteVerification='NOT_RUN'; databaseRecoveryVerification='NOT_RUN'}
+[IO.File]::WriteAllText((Join-Path $Work 'receipt.json'), ($Receipt | ConvertTo-Json -Depth 5), $Utf8)
+```
+
+**Bước5B — thực hiện mục4.1**, rồi giải mã cả hai file và đối chiếu. Không in nội dung identities. Nếu bỏ qua bất kỳ check nào, lỗi hoặc dừng giữa chừng, receipt vẫn `CANDIDATE_UNVERIFIED`; không chạy riêng dòng cập nhật PASS:
 
 ```powershell
 age.exe --decrypt -i keys-retyped.txt -o recovered-keys.json keyrings.json.age 2>$null
@@ -90,7 +151,20 @@ age.exe --decrypt -i db-retyped.txt -o recovered.dump database.dump.age 2>$null
 if ($LASTEXITCODE -ne 0) { Remove-Item -LiteralPath '.\recovered.dump' -ErrorAction SilentlyContinue; throw 'Decrypt DB failed' }
 $Recovered = Get-Content -Raw -LiteralPath '.\recovered-keys.json' | ConvertFrom-Json
 if ($Recovered.synthetic -ne $true -or $Recovered.snapshotId -ne $Snapshot) { throw 'Sai snapshot' }
-if ((Get-FileHash -Algorithm SHA256 -LiteralPath '.\recovered.dump').Hash.ToLowerInvariant() -ne $Recovered.dumpSha256) { throw 'Sai dump binding' }
+$RecoveredDumpPath = Join-Path $Work 'recovered.dump'
+if ((Get-FileHash -Algorithm SHA256 -LiteralPath $RecoveredDumpPath).Hash.ToLowerInvariant() -ne $Recovered.dumpSha256) { throw 'Sai dump binding' }
+if ($Recovered.format -ne 'manual-custody-demo-v1' -or $null -eq $Receipt -or $Receipt.verification -ne 'CANDIDATE_UNVERIFIED' -or $Receipt.snapshotId -ne $Recovered.snapshotId -or @($Receipt.files).Count -ne 2) { throw 'Receipt/format khong hop le' }
+foreach ($Name in @('database.dump.age','keyrings.json.age')) {
+  $CipherPath = Join-Path $Work $Name
+  $Entry = @($Receipt.files | Where-Object { $_.name -eq $Name })
+  if ($Entry.Count -ne 1) { throw 'Receipt thieu hoac trung file' }
+  $Current = Get-Item -LiteralPath $CipherPath -ErrorAction Stop
+  if ($Current.Length -ne $Entry[0].bytes -or (Get-FileHash -Algorithm SHA256 -LiteralPath $CipherPath).Hash.ToLowerInvariant() -ne $Entry[0].sha256) { throw 'Ciphertext da thay doi' }
+}
+# Promotion belongs to this complete successful sequence only.
+$Receipt.verification = 'LOCAL_AUTHENTICATION_PASS'
+$Receipt['localVerifiedUtc'] = [DateTime]::UtcNow.ToString('o')
+[IO.File]::WriteAllText((Join-Path $Work 'receipt.json'), ($Receipt | ConvertTo-Json -Depth 5), $Utf8)
 ```
 
 Thử sai identity: dùng keys-retyped cho database.dump.age với output **mới** `wrong.tmp`; phải exit khác0 và xóa file partial đó. Thử thiếu một ciphertext: đánh dấu bộ không đầy đủ, không decrypt/restore file còn lại. Không sửa manifest để ép khớp; không copy file từ snapshot khác. Sau bài tập, xóa toàn bộ payload/identities test trong đúng thư mục synthetic này, hủy giấy test; giấy production không thuộc bài xóa này. Không tuyên bố xóa file thông thường là secure erase.
@@ -110,18 +184,15 @@ Sau khi G08 và scope production riêng được duyệt, operator được cấ
 
 ## 7. Receipt tin cậy và upload ciphertext
 
-Receipt không chứa private identities, keyring values, học sinh, token hay plaintext dump hash. Ghi snapshot ID, UTC backup time, project/version reference không nhạy cảm, hai tên file, byte count và SHA-256 **ciphertext**, kết quả kiểm tra, ngày verify/copy version ID sau này. Trong synthetic rehearsal có thể tạo receipt như sau:
+Receipt không chứa private identities, keyring values, học sinh, token hay plaintext dump hash. Ghi snapshot ID, UTC backup time, project/version reference không nhạy cảm, hai tên file, byte count và SHA-256 **ciphertext**, kết quả kiểm tra, ngày verify/copy version ID sau này. Receipt được khởi tạo ở bước5A bằng `CANDIDATE_UNVERIFIED`; không có lệnh gán PASS trong phần khởi tạo. Bước5B chỉ cập nhật local PASS sau full decrypt, snapshot/format/binding và receipt ciphertext comparison thành công. Không chạy riêng dòng promotion.
 
-```powershell
-$Files = @('database.dump.age','keyrings.json.age')
-$Items = @($Files | ForEach-Object {
-  $File = Get-Item -LiteralPath $_
-  if ($File.Length -le 0) { throw 'File rong' }
-  [ordered]@{name=$File.Name; bytes=$File.Length; sha256=(Get-FileHash -Algorithm SHA256 -LiteralPath $_).Hash.ToLowerInvariant()}
-})
-$Receipt = [ordered]@{format='ciphertext-receipt-v1'; snapshotId=$Snapshot; backupUtc=[DateTime]::UtcNow.ToString('o'); files=$Items; verification='LOCAL_AUTHENTICATION_PASS'}
-[IO.File]::WriteAllText((Join-Path $Work 'receipt.json'), ($Receipt | ConvertTo-Json -Depth 5), $Utf8)
-```
+| Trạng thái riêng | Chỉ ghi PASS khi | Nếu chưa chạy/bỏ qua/lỗi |
+| --- | --- | --- |
+| `verification=LOCAL_AUTHENTICATION_PASS` | Cả hai age decrypt exit0, đúng snapshot/format, inner dump hash và receipt ciphertext khớp (bước5B) | Giữ `CANDIDATE_UNVERIFIED`; ghi lỗi riêng, không promote |
+| `remoteVerification=REMOTE_ROUNDTRIP_PASS` | Đã có scope transfer; tải lại đúng hai ciphertext, so receipt tin cậy và full authenticate/binding bản tải xuống | `NOT_RUN` hoặc `FAIL`; upload success không đủ |
+| `databaseRecoveryVerification=ISOLATED_RECOVERY_VERIFIED` | Actual PostgreSQL isolated restore thành công và data/key/ACL/RLS checks có evidence | `NOT_RUN` hoặc `FAIL`; demo text ở mục5 luôn `NOT_RUN` |
+
+Các trường độc lập: local PASS không tự nâng remote/database. Không có câu lệnh tự gán PASS cho hai trường còn lại; chỉ operator cập nhật trường tương ứng sau khi đủ evidence và scope. Bước bị bỏ qua không được coi PASS. Receipt demo vẫn phải giữ `databaseRecoveryVerification=NOT_RUN` dù decrypt thành công.
 
 Chỉ ghi `LOCAL_AUTHENTICATION_PASS` sau khi thực sự decrypt/binding đã PASS; receipt này không phải REMOTE_PASS. Giữ hash của receipt/two ciphertext trong sổ giấy riêng hoặc bản ghi owner tin cậy ngoài Drive. Receipt cùng thư mục với file không tự chống thay cả bộ; cần mốc tin cậy độc lập.
 
@@ -131,7 +202,7 @@ Owner tự thao tác: trong thư mục riêng đã kiểm quyền/quota, upload 
 
 ## 8. Chỉ giữ hai bộ đã xác minh
 
-Đánh dấu ba trạng thái rõ: CANDIDATE → LOCAL_VERIFIED → REMOTE_RECOVERY_VERIFIED (hoặc synthetic-equivalent với payload demo). Không đổi tên thành “verified” chỉ từ upload success.
+Bộ mới bắt đầu CANDIDATE_UNVERIFIED; local authentication, remote round-trip và actual isolated DB recovery được ghi bằng ba trường riêng ở mục7. Chỉ nhận bộ vào retention verified sau khi có đủ các kiểm chứng áp dụng; demo text chỉ chứng minh custody/authentication, không thay thế bộ DB recovery verified. Không đổi tên thành “verified” chỉ từ upload success.
 
 Khi bộ mới verify thành công, nó là CURRENT, CURRENT cũ thành PREVIOUS. Chỉ cân nhắc xóa bộ cũ hơn sau khi cả hai bộ còn lại đầy đủ/khôi phục được, xét G08/legal hold/trash/version retention. Không tự động xóa; không bao giờ xóa bộ cuối còn khôi phục được. Nếu bộ mới FAIL, CURRENT/PREVIOUS giữ nguyên. Giữ mọi application key và age identity còn cần bởi hai bộ. Không giữ một DB mới với keyrings của PREVIOUS.
 

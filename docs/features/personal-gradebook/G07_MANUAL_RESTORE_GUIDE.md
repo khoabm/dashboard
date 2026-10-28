@@ -20,8 +20,10 @@ Nếu mất quyền Google account và không có bản ciphertext local còn d�
 1. Owner chọn bộ CURRENT; nếu bị hỏng/không đầy đủ thì dùng PREVIOUS nguyên bộ, không đổi chéo file. Ghi snapshot/date/source SHA/original project ID và lý do chọn. Không xóa bộ lỗi để “dọn” trước điều tra.
 2. Tải chỉ `database.dump.age` và `keyrings.json.age` vào staging mới ngoài thư mục sync. Dùng quyền riêng như mục4 guide backup; kiểm receipt độc lập owner đã giữ. Không gửi file vào ChatGPT/GitHub.
 3. So số file (đủ2), tên, size>0, SHA-256 ciphertext và snapshot ID trong receipt. Nếu mismatch hoặc receipt không đáng tin → STOP; không chỉnh hash mới cho khớp file đang có.
-4. Nhập lại hai identities từ giấy, UTF-8 không BOM, mỗi file đúng private-key dòng và newline; không in nội dung ra terminal/log. Với `age-keygen -y`, đối chiếu public recipients với sổ owner; recipient khác hoặc hai recipient giống nhau → STOP.
+4. Thực hiện mục4.1 của [guide backup](G07_MANUAL_BACKUP_GUIDE.md) để tạo `db-retyped.txt` và `keys-retyped.txt` bằng masked input và UTF-8 không BOM; trên máy mới đặt `$Work` là staging riêng và lấy public recipients từ sổ owner. Nhập hai identities từ giấy, UTF-8 không BOM, mỗi file đúng private-key dòng và newline; không in nội dung ra terminal/log. Với `age-keygen -y`, đối chiếu public recipients với sổ owner; recipient khác hoặc hai recipient giống nhau → STOP.
 5. Nhớ source dump có thể chứa SQL thực thi. Chỉ restore từ snapshot tin cậy và reviewed source; hash hợp lệ với receipt giả không làm SQL an toàn.
+
+Bản ghi cho lần xác minh mới phải bắt đầu `CANDIDATE_UNVERIFIED`; giữ nguyên receipt gốc tin cậy để đối chiếu, không ghi đè nó trước khi verify. Chỉ cập nhật local PASS sau full authentication + snapshot/hash checks; remote round-trip và actual isolated database recovery có trường/trạng thái riêng. Nếu thiếu/bỏ qua một check, không tự promote PASS. Demo text không có database recovery PASS. Các ví dụ PowerShell bên dưới **chưa được chạy trên Windows**.
 
 ## 3. Full authentication trước khi chạy bất cứ restored SQL nào
 
