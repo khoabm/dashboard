@@ -2,6 +2,10 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-28 — G07-OWNER-REV-001/P2 và G07-OWNER-REV-002/P3 (DOCS PROPOSAL)
+
+Owner report baseline0679367: native stderr warning terminated first keygen despite file creation; later owner-only ACL inspection and controlled handling passed. Propose scoped Continue around keygen, keep warnings, capture exit immediately, restore preference and require owner/ACL verification; corrected snippet Windows NOT RUN. Transcription initially malformed, corrected recipients PASS; temporary phone notes do not establish paper custody. Record owner local/Drive synthetic PASS separately from native technical evidence and remaining gates. Docs/static only; no CI/owner-device/Drive/production access.
+
 ## 2026-10-28 — G07-MANUAL-REV-001/P2 và G07-MANUAL-REV-002/P3 (DOCS FIXED)
 
 Baseline9f923e4d, docs/g07-manual-backup-restore. Receipt snippet previously initialized LOCAL_AUTHENTICATION_PASS before its round-trip checks. Initialize CANDIDATE_UNVERIFIED before decrypt, promote only after complete local verification; distinguish remote/database fields, skipped steps never PASS. Replace ZIP hash placeholder with concrete path variable and add masked paper-entry UTF-8-no-BOM examples, linked from restore guide. Static documentation checks only; Windows/PowerShell NOT RUN, no CI/backend/Drive/keys/production changes. A–F unchanged; G07 Technical PASS, Operational/Overall PARTIAL, G08 BLOCKED.

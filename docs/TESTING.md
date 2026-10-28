@@ -1,3 +1,9 @@
+# G07 owner synthetic rehearsal — 2026-10-28
+
+Owner-reported Windows local and manual Drive round-trip PASS (baseline0679367); [evidence and limitations](features/personal-gradebook/G07_OWNER_REHEARSAL_20261028.md). Receipts local/remote PASS, database recovery NOT_RUN. Phone notes are not physical paper custody; paper/replacement-device/owner native PostgreSQL restore NOT RUN; production exporter/validator and G08 BLOCKED. Technical PASS retained; Operational/Overall PARTIAL. New stderr/ACL correction is documentation only, Windows NOT RUN for corrected snippet. Work owner-device/Drive/Supabase/key/data access0, new CI0, no merge/deploy. Earlier entries below are historical.
+
+---
+
 # G07 manual operational readiness — 2026-10-28
 
 Approved A–F replaces USB/emergency/daily/RPO proposals: personal private Drive only, sole owner, independent age identities/paper custody, manual triggers, latest+previous verified. [Policy/manual guide](features/personal-gradebook/G07_MANUAL_BACKUP_GUIDE.md). Technical PASS retained from910ac0ae/run40623615581, no rerun. Operational PARTIAL/BLOCKED: owner physical custody/Drive round-trip/production exporter and G08 not verified. No transfer/hosted/real data/owner-local execution or new CI. Older entries below are historical.

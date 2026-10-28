@@ -1,6 +1,6 @@
 # G07 — Chính sách thủ công đã chốt và việc owner cần làm
 
-28/10/2026. Thay thế đề xuất USB, daily/24h RPO, nhiều thế hệ lưu và emergency custodian ở snapshot83a0322. **G07 Technical PASS; Operational PARTIAL/BLOCKED — chưa xác minh custody/Drive và chưa có production exporter/authorization. Overall PARTIAL. G08 BLOCKED.**
+28/10/2026. Thay thế đề xuất USB, daily/24h RPO, nhiều thế hệ lưu và emergency custodian ở snapshot83a0322. **G07 Technical PASS; Operational PARTIAL/BLOCKED — chưa xác minh paper custody/replacement-device và chưa có production exporter/authorization; synthetic Drive round-trip đã owner-reported PASS. Overall PARTIAL. G08 BLOCKED.**
 
 ## A–F đã được owner quyết định — không hỏi lại
 
@@ -15,8 +15,8 @@
 
 ## Chỉ còn hành động cụ thể — không phải hỏi lại lựa chọn kiến trúc
 
-1. **Owner account/folder/quota:** tự tạo restricted folder, kiểm dung lượng thực và recovery Google account, ghi account/folder ID riêng. Nếu muốn Work làm synthetic round-trip: chỉ định đích và đúng2 file ciphertext synthetic cùng hashes/size; cấp scope transfer hữu hạn như guide. Hiện chưa cấp, NOT RUN. Không gửi passwords hoặc account recovery codes.
-2. **Owner paper custody:** tự tạo hai production identities sau khi chuẩn bị môi trường, chép giấy riêng ngoài máy; test trước bằng identities/payload synthetic và nhập lại từ giấy trên staging mới. Ghi kết quả không chứa khóa; hủy test keys, không dùng chúng cho production. Work không sinh/nhận/store/upload production identities. Thao tác vật lý và mất máy thực: NOT RUN.
+1. **Owner account/folder/quota:** tự tạo restricted folder, kiểm dung lượng thực và recovery Google account, ghi account/folder ID riêng. Nếu muốn Work làm synthetic round-trip: chỉ định đích và đúng2 file ciphertext synthetic cùng hashes/size; cấp scope transfer hữu hạn như guide. Work chưa có scope transfer. Owner đã tự báo cáo synthetic manual round-trip PASS theo [report28/10](G07_OWNER_REHEARSAL_20261028.md); không yêu cầu chạy lại để Work lấy bằng chứng. Không gửi passwords hoặc account recovery codes.
+2. **Owner paper custody:** tự tạo hai production identities sau khi chuẩn bị môi trường, chép giấy riêng ngoài máy; test trước bằng identities/payload synthetic và nhập lại từ giấy trên staging mới. Ghi kết quả không chứa khóa; hủy test keys, không dùng chúng cho production. Work không sinh/nhận/store/upload production identities. Owner re-entry từ phone notes và local decrypt PASS, không tính là paper custody. Giấy vật lý và mất máy thực: NOT RUN.
 3. **Institution và tooling thật:** hoàn tất G08 về quyền xử lý trẻ em/CCCD/DOB, provider/cross-border, retention/rights; phê duyệt scope exporter/validator production, kết nối/egress và provisioning secrets. Công cụ hiện tại synthetic-only, production workflow còn BLOCKED.
 4. **Authorized isolated rehearsal:** sau các điều kiện trên, owner chỉ định đích riêng, role/AAD mapping, verifier và ghi measured loss/recovery duration. Cutover production/overwrite phải có quyết định riêng, không suy từ hướng dẫn.
 

@@ -54,15 +54,38 @@ $Me = [Security.Principal.WindowsIdentity]::GetCurrent().Name
 icacls.exe $Work /inheritance:r /grant:r "${Me}:(OI)(CI)F" /q | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'Khong thiet lap duoc quyen staging' }
 Set-Location -LiteralPath $Work
-age-keygen.exe -o db-identity.txt 2>$null
-if ($LASTEXITCODE -ne 0) { throw 'Keygen DB failed' }
-age-keygen.exe -o keys-identity.txt 2>$null
-if ($LASTEXITCODE -ne 0) { throw 'Keygen key-export failed' }
+$OwnerSid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+foreach ($IdentityName in @('db-identity.txt','keys-identity.txt')) {
+  $IdentityPath = Join-Path $Work $IdentityName
+  if (Test-Path -LiteralPath $IdentityPath) { throw 'Identity da ton tai; khong ghi de hoac retry mu' }
+  $SavedErrorPreference = $ErrorActionPreference
+  $KeygenExit = $null
+  try {
+    # Display native warnings; do not redirect stderr or change the global profile.
+    $ErrorActionPreference = 'Continue'
+    age-keygen.exe -o $IdentityPath
+    $KeygenExit = $LASTEXITCODE
+  } finally { $ErrorActionPreference = $SavedErrorPreference }
+  if ($null -eq $KeygenExit -or $KeygenExit -ne 0 -or -not (Test-Path -LiteralPath $IdentityPath -PathType Leaf)) { throw 'Keygen failed; STOP' }
+  $IdentityAcl = Get-Acl -LiteralPath $IdentityPath -ErrorAction Stop
+  $Rules = @($IdentityAcl.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]))
+  if ($IdentityAcl.GetOwner([Security.Principal.SecurityIdentifier]).Value -ne $OwnerSid -or $Rules.Count -eq 0) { throw 'Owner/ACL can duoc review; STOP' }
+  foreach ($Rule in $Rules) {
+    if ($Rule.IdentityReference.Value -ne $OwnerSid -or $Rule.AccessControlType -ne 'Allow' -or (($Rule.FileSystemRights -band [Security.AccessControl.FileSystemRights]::FullControl) -ne [Security.AccessControl.FileSystemRights]::FullControl)) { throw 'Quyen identity khong khop owner-only Full Control; STOP' }
+  }
+  # Inspect permissions only; never display identity file contents.
+  icacls.exe $IdentityPath
+  if ($LASTEXITCODE -ne 0) { throw 'ACL inspection failed; STOP' }
+}
 $DbRecipient = (age-keygen.exe -y db-identity.txt 2>$null).Trim()
 if ($LASTEXITCODE -ne 0) { throw 'Recipient DB failed' }
 $KeysRecipient = (age-keygen.exe -y keys-identity.txt 2>$null).Trim()
 if ($LASTEXITCODE -ne 0 -or $DbRecipient -eq $KeysRecipient) { throw 'Recipient khong doc lap' }
 ```
+
+**Đề xuất sửa tương thích PowerShell/native stderr — chưa được Work/owner chạy lại snippet mới:** owner báo cáo keygen lần đầu dừng vì warning world-readable dưới PowerShell, dù file đã được tạo; ACL kiểm tra sau đó chỉ liệt kê owner Full Control. Không kết luận warning sai chỉ từ file tồn tại. Đoạn sửa chỉ đổi ErrorActionPreference sang Continue trong phạm vi keygen, giữ nguyên warning trên console, lấy exit code ngay rồi khôi phục preference; exit0/file tồn tại vẫn chưa đủ, phải qua ACL checks và owner review. Không dùng `2>$null` để bỏ qua cảnh báo tạo identity. Microsoft mô tả preference theo scope tại [about_Preference_Variables](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_preference_variables?view=powershell-5.1). Đây là correction tài liệu đề xuất, không phải Windows runtime PASS mới.
+
+Nếu warning tiếp tục xuất hiện, kiểm owner và toàn bộ ACL thực, dừng nếu quyền rộng/không đọc được/quyền không giải thích được; không hạ bảo mật để lấy PASS. Owner-only ACL là ranh giới quyền thông thường, không chứng minh chống administrator/malware hoặc mọi effective-access route. Không sửa permission hàng loạt trên thư mục hiện hữu. Không bật transcript/ghi raw stderr vào file logs hoặc chụp màn hình secret.
 
 Không chạy lại vào thư mục đã có file. Nếu cmdlet/native tool báo lỗi: dừng, không bỏ qua rồi tiếp tục. ACL này giới hạn quyền thông thường, không chống admin/malware hoặc bảo đảm xóa an toàn trên SSD.
 
@@ -212,7 +235,7 @@ Chỉ Google Drive cá nhân là đích DB; không USB/secondary. Một account,
 
 - Cloud native17/age/roles/rollback PASS tại [40623615581](https://github.com/khoabm/dashboard/actions/runs/40623615581), tested910ac0ae; đã đọc lại SUCCESS, không rerun.
 - Script hỗ trợ synthetic-only: bốn rings, paired files, independent process, full authentication và binding; không lưu bộ recovery để owner tải từ CI (artifacts0).
-- Windows PowerShell/giấy owner: **NOT RUN**; snippet được review về binary IO và exit-code, không tuyên bố đã chạy trên máy Windows.
-- Google Drive account/quota/sharing/round-trip: **NOT RUN**; cần scope cụ thể. Thực tế mất máy/khôi phục Google account/cross-cluster/production exporter: **BLOCKED/NOT VERIFIED**.
+- Owner báo cáo Windows synthetic local và manual Drive round-trip **PASS** theo baseline0679367; [evidence report](G07_OWNER_REHEARSAL_20261028.md). Work không quan sát thiết bị/file/account. Giấy vật lý và replacement-device recovery **NOT RUN**; owner dùng ghi chú tạm trên điện thoại. Snippet sửa native stderr/ACL mới chỉ review tĩnh, chưa chạy Windows.
+- Manual Drive synthetic round-trip: owner-reported **PASS**; Work transfer0, không kiểm trực tiếp account/quota/sharing; không có scope để Work truyền thêm file. Thực tế mất máy/khôi phục Google account/cross-cluster/production exporter: **BLOCKED/NOT VERIFIED**.
 
 Nguồn chính thức kiểm ngày28/10/2026: [age](https://github.com/FiloSottile/age), [Google storage](https://support.google.com/drive/answer/9312312?hl=en), [pg_dump17](https://www.postgresql.org/docs/17/app-pgdump.html), [pg_restore17](https://www.postgresql.org/docs/17/app-pgrestore.html). Chỉ diễn giải phạm vi kỹ thuật, không tự phê duyệt nghĩa vụ G08.
