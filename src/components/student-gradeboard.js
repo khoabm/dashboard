@@ -265,6 +265,7 @@ export function StudentGradeboard({ context, read, onReset }) {
         );
         if (snapshot.status === 'denied') {
           scores = [];
+          insightsRegion.replaceChildren();
           panel.replaceChildren(el('p', { role: 'status' }, messages.denied));
         }
         if (['limited', 'unavailable'].includes(snapshot.status))
