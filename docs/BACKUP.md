@@ -1,5 +1,7 @@
 # Sao lưu và khôi phục
 
+Gradebook G07/G08: [assessment, proposed age/Drive/offline custody, disaster recovery runbook and evidence](features/personal-gradebook/G07_BACKUP_RECOVERY.md); [owner/institution approval checklist](features/personal-gradebook/G08_OWNER_AUTHORIZATION.md). Synthetic age offline checks PASS; new native restore/permission workflow awaits publication/run approval. Drive uploads and operational key custody are not approved; G08 remains BLOCKED. The Board procedure below remains separate from Gradebook encrypted key recovery and Storage-byte recovery.
+
 Metadata và bytes Storage là hai phần riêng. Phiên bản hiện tại có nút **Xuất metadata** cho admin, trả JSON gồm boards/sections/posts/attachments/audit_logs và thời điểm snapshot. Không chứa password/token/admin credential; không bao gồm bytes file, cấu hình Auth hoặc tài khoản Auth. Không đưa bản sao nội dung thật vào repo public.
 
 ## Sao lưu miễn phí

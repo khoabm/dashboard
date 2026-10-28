@@ -49,6 +49,9 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 | src/styles/ | Tokens CSS, base, layout, component, responsive; không style inline lặp vô ích |
 | supabase/migrations/, seed.sql | Schema/policy có version và seed chạy lại không trùng |
 | tests/ | Regression, integration và bằng chứng QA tương ứng |
+| scripts/gradebook-backup.mjs | Bounded synthetic-only age encryption, authenticated paired restore input and quota-checked upload dry-run; no DB/service/upload client and no production export CLI |
+| tests/gradebook-backup.mjs | Manual/specialist actual-age finite failure and transfer-plan checks; outside curated test:ci |
+| tests/cloud/backup.mjs, .github/workflows/gradebook-backup-recovery.yml | Dedicated G07 public standard-runner synthetic PG17/age candidate; fresh-process recovery with owner/ACL/RLS/role checks, no production credentials/artifacts/caches; publication/run awaits approval |
 | supabase/functions/grades-admin/index.js, student-lookup/index.js | B4 Edge entrypoints, SDK2.118.0 pin; CP01-C deployed v2 for synthetic/local-only acceptance, public frontend transport remains disabled |
 | supabase/functions/_shared/{handler,http,backend,auth}.js | Bounded HTTP/CORS/cancellation, separate Auth/server clients, verified JWT/profile context, no retries |
 | supabase/functions/_shared/{crypto,contracts,imports,dto}.js | Web Crypto keyrings/envelopes/tokens; reuse pure B1 via relative imports; complete score-input framing; explicit response projections |
