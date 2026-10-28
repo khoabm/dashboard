@@ -178,7 +178,10 @@ window.addEventListener('app:sign-out', () => {
 });
 window.addEventListener('app:auth-state', () => {
   navigation.setAdmin(boardModule?.boardSessionActive() || false);
-  updateHeaderAdmin(studentRoot.querySelector('.app-header'), boardModule?.boardSessionActive() || false);
+  updateHeaderAdmin(
+    studentRoot.querySelector('.app-header'),
+    boardModule?.boardSessionActive() || false,
+  );
   if (current === 'admin')
     view?.setSession(boardModule?.boardAuthState() || { status: 'loading', generation: -1 });
 });
