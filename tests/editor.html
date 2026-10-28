@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <title>Editor QA fixture · development only</title>
+  </head>
+  <body>
+    <h1>Editor component QA</h1>
+    <p>
+      Authenticated writes are not mocked. This fixture is an anonymous client and saving must be
+      denied by Supabase.
+    </p>
+    <button id="open" disabled>Mở trình soạn thảo kiểm thử</button>
+    <div id="toast" role="status"></div>
+    <script type="module">
+      import '/src/styles/main.css';
+      import { PostEditorDrawer } from '/src/components/post-editor.js';
+      import { loadBoard } from '/src/services/board.js';
+      const data = await loadBoard();
+      document.querySelector('#open').disabled = false;
+      document.querySelector('#open').onclick = () =>
+        PostEditorDrawer({
+          data,
+          sectionId: data.sections[0].id,
+          userId: 'qa-fixture',
+          onSaved: () => {
+            throw Error('Unexpected write from anonymous fixture');
+          },
+          onDirty: () => {},
+        });
+    </script>
+  </body>
+</html>

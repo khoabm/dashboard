@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <title>QA viewport matrix · development only</title>
+    <style>
+      body {
+        font: 14px system-ui;
+        margin: 20px;
+        background: #ddd;
+      }
+      iframe {
+        display: block;
+        height: 850px;
+        border: 1px solid #777;
+        margin-bottom: 24px;
+      }
+      select {
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>QA viewport matrix (Chrome iframe viewports)</h1>
+    <p>
+      Chrome iframe only, not iPhone/Safari. Use ?fixture=audit for offline transport; default uses
+      the live app.
+    </p>
+    <label
+      >Chiều rộng
+      <select id="width">
+        <option>360</option>
+        <option>390</option>
+        <option>768</option>
+        <option>1024</option>
+        <option>1440</option>
+      </select></label
+    ><iframe id="app-frame" title="App viewport" width="360"></iframe>
+    <script type="module">
+      // Choose before assigning src so offline QA never briefly opens the live entry.
+      const params = new URLSearchParams(location.search);
+      document.querySelector('iframe').src =
+        params.get('fixture') === 'audit'
+          ? `/tests/audit.html${params.get('scenario') === 'navigation' ? '?scenario=navigation' : ''}`
+          : '/';
+      document.querySelector('#width').onchange = (e) =>
+        (document.querySelector('iframe').width = e.target.value);
+    </script>
+  </body>
+</html>
