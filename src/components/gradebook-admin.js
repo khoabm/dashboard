@@ -42,7 +42,28 @@ export function GradebookAdmin({
     mode = 'students';
   let confirmations = new AbortController();
   const preview = createRosterPreview(clock);
-  const gate = createAdminGate(request, () => session);
+  const gate = createAdminGate(
+    (payload, options) => {
+      const labels = {
+        'class.read': 'Đang tải thông tin lớp…',
+        'class.create': 'Đang tạo lớp…',
+        'class.patch': 'Đang lưu thông tin lớp…',
+        'students.list': `Đang tải trang học sinh ${cursors.length}…`,
+        'student.read': 'Đang tải hồ sơ học sinh…',
+        'student.create': 'Đang thêm học sinh…',
+        'student.patch': 'Đang lưu hồ sơ học sinh…',
+        'student.reveal': 'Đang mở định danh đã xác nhận…',
+        'student.deactivate': 'Đang ngừng sử dụng hồ sơ…',
+        'student.reactivate': 'Đang kích hoạt lại hồ sơ…',
+        'student.delete': 'Đang xóa hồ sơ học sinh…',
+        'roster.preview': 'Đang kiểm tra bản xem trước danh sách…',
+        'roster.apply': 'Đang áp dụng danh sách học sinh…',
+      };
+      pending(labels[payload.op] || 'Đang cập nhật hồ sơ học sinh…');
+      return request(payload, options);
+    },
+    () => session,
+  );
   const heading = el('h1', { tabindex: '-1' }, 'Quản lý bảng điểm');
   const progress = PulseIndicator();
   const status = el('p', { role: 'status', 'aria-live': 'polite', class: 'admin-feedback' });
@@ -63,11 +84,12 @@ export function GradebookAdmin({
     busy = false;
     body.inert = false;
     for (const entry of dialogs) entry.content.inert = false;
-    setPendingMessage(progress, '');
+    pending();
   }
 
   /** Removes sensitive fields even when a test/tool retains an old detached DOM reference. */
   function clearDialog(entry) {
+    setPendingMessage(entry.progress, '');
     entry.cancel?.();
     entry.dialog.querySelectorAll('input,textarea').forEach((input) => {
       input.value = '';
@@ -117,6 +139,9 @@ export function GradebookAdmin({
   /** Uses the existing dialog focus/escape behavior, adding memory-only private cleanup. */
   function dialog(title) {
     const entry = openDialog(title);
+    entry.progress = PulseIndicator();
+    entry.progress.classList.add('dialog-progress');
+    entry.dialog.querySelector('.dialog-heading').append(entry.progress);
     dialogs.add(entry);
     entry.dialog.addEventListener('input', () => {
       dirty = true;
@@ -150,6 +175,16 @@ export function GradebookAdmin({
     return entry;
   }
 
+  /** Mirrors operation feedback into the active modal outside inert content. */
+  function pending(message = '') {
+    body.setAttribute('aria-busy', String(!!message));
+    setPendingMessage(progress, dialogs.size ? '' : message);
+    for (const entry of dialogs) {
+      entry.content.setAttribute('aria-busy', String(!!message));
+      setPendingMessage(entry.progress, message);
+    }
+  }
+
   /** Serializes work and fences every render against cancellation, logout and route exit. */
   async function run(task, failed = () => {}) {
     if (disposed || busy || session.status !== 'admin') return;
@@ -158,7 +193,7 @@ export function GradebookAdmin({
     body.inert = true;
     for (const entry of dialogs) entry.content.inert = true;
     status.textContent = '';
-    setPendingMessage(progress, 'Đang xử lý…');
+    pending('Đang tải dữ liệu lớp…');
     try {
       await task(() => !disposed && ticket === operation && session.status === 'admin');
     } catch (error) {
@@ -175,7 +210,7 @@ export function GradebookAdmin({
         busy = false;
         body.inert = false;
         for (const entry of dialogs) entry.content.inert = false;
-        setPendingMessage(progress, '');
+        pending();
       }
     }
   }
@@ -502,6 +537,7 @@ export function GradebookAdmin({
       accept: '.csv,.xlsx',
       'aria-label': 'Chọn tệp danh sách',
     });
+    const fileProgress = PulseIndicator();
     const detail = el('div', { class: 'import-detail', 'aria-live': 'polite' });
     const errors = el('div', { role: 'alert', class: 'form-error' });
     const projected = el('div', { class: 'import-counts', role: 'status' });
@@ -605,13 +641,16 @@ export function GradebookAdmin({
       confirm.checked = false;
       confirm.disabled = true;
       inspect.disabled = apply.disabled = true;
+      setPendingMessage(fileProgress, '');
+      detail.setAttribute('aria-busy', 'false');
       detail.replaceChildren();
       errors.replaceChildren();
       projected.replaceChildren();
       dirty = true;
       const selected = file.files[0];
       if (!selected) return;
-      detail.textContent = 'Đang đọc tệp trên thiết bị…';
+      setPendingMessage(fileProgress, 'Đang đọc và kiểm tra tệp trên thiết bị…');
+      detail.setAttribute('aria-busy', 'true');
       try {
         const result = await readFile(selected, { signal: reading.signal });
         if (ticket !== serial || disposed || !entry.dialog.open) return;
@@ -649,9 +688,16 @@ export function GradebookAdmin({
         if (ticket !== serial || disposed || !entry.dialog.open) return;
         detail.replaceChildren();
         errors.textContent = `${error.row ? `Dòng ${error.row}, cột ${error.column}: ` : ''}Không đọc được tệp. Dùng CSV UTF-8 hoặc XLSX tối đa 1 MiB/2.000 dòng, đúng 2 hoặc 3 cột; định danh dạng text, ngày DD/MM/YYYY; không có công thức/ô gộp/liên kết ngoài.`;
+      } finally {
+        if (ticket === serial && !disposed && entry.dialog.open) {
+          setPendingMessage(fileProgress, '');
+          detail.setAttribute('aria-busy', 'false');
+        }
       }
     });
     entry.cancel = () => {
+      setPendingMessage(fileProgress, '');
+      detail.setAttribute('aria-busy', 'false');
       serial++;
       reading?.abort();
       batch = null;
@@ -664,6 +710,7 @@ export function GradebookAdmin({
         'Hàng đầu là tiêu đề tùy chỉnh. A–B: định danh/ngày sinh; hoặc A–C: họ tên/định danh/ngày sinh. XLSX đọc trang tính đầu tiên. Tệp chỉ được đọc trong bộ nhớ.',
       ),
       file,
+      fileProgress,
       detail,
       errors,
       projected,
@@ -674,25 +721,20 @@ export function GradebookAdmin({
   }
 
   function render() {
+    body.setAttribute('aria-busy', String(busy || session.status === 'loading'));
     body.replaceChildren();
+    if (session.status === 'loading') {
+      body.append(PulseIndicator('Đang xác minh phiên quản trị…'));
+      return;
+    }
     if (session.status !== 'admin') {
       body.append(
-        el(
-          'p',
-          {},
-          session.status === 'loading'
-            ? 'Đang xác minh phiên quản trị…'
-            : 'Cần phiên quản trị đã được xác minh để mở danh sách.',
-        ),
+        el('p', {}, 'Cần phiên quản trị đã được xác minh để mở danh sách.'),
         button('Đăng nhập quản trị', onLogin),
       );
       return;
     }
-    const toolbar = el(
-      'div',
-      { class: 'admin-actions' },
-      button('Tải lại', load),
-    );
+    const toolbar = el('div', { class: 'admin-actions' }, button('Tải lại', load));
     body.append(toolbar);
     if (!currentClass) {
       body.append(
@@ -701,7 +743,7 @@ export function GradebookAdmin({
           {},
           classKnown
             ? 'Chưa có lớp đang hoạt động.'
-            : 'Chưa tải được dữ liệu lớp. Hãy tải lại khi backend sẵn sàng.',
+            : 'Thông tin lớp sẽ hiển thị sau khi tải và xác minh.',
         ),
         ...(classKnown ? [button('Tạo lớp', editClass, 'button primary')] : []),
       );

@@ -18,10 +18,10 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 
 | Vị trí dự kiến | Trách nhiệm |
 | --- | --- |
-| src/app.js | Path-only History routing; lazy Board/SDK graph; shared navigation; disposes student state on exit/sign-out/page lifecycle |
+| src/app.js | Generation-owned route pulse; path-only History routing; lazy Board/SDK graph; shared navigation; disposes student state on exit/sign-out/page lifecycle |
 | src/utils/app-navigation.js | Pure indexed history/compensation and pending administrator-entry coordinator; no SDK/DOM/network; rejected traversals never push an entry |
 | src/main.js | Board bootstrap/render/Auth; shared restoration promise + direct openBoardAdmin for both headers; suspend route refresh; flush editor-owned drafts before route exit |
-| src/components/app-header.js, site-navigation.js | Shared branding/admin controls; accessible Board/lookup menu plus verified-admin entry |
+| src/components/app-header.js, site-navigation.js | Shared branding/admin controls; accessible Board/lookup menu plus verified-admin entry; header-owned pulse awaits existing logout Promise |
 | src/components/gradebook-admin.js | CP03 class/student dialogs, paged list, reveal/import ownership and route/session disposal |
 | src/components/gradebook-scores.js | CP04 teacher-only semester/subject/student workspace, bounded score-page joins, cell CRUD, publication and score import; owned dialogs/previews/late-response disposal |
 | src/utils/gradebook-scores.js | Pure ordered catalog projection, B1 decimal comparison/input, score-page DTOs, mutation/publication preconditions and A–J batch validation |

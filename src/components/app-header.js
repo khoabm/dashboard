@@ -1,5 +1,6 @@
 /** Renders shared branding and utilities without importing Board services or the SDK. */
 import { el, button } from '../utils/dom.js';
+import { PulseIndicator, setPendingMessage } from './pending.js';
 
 /** Updates the shared account disclosure without changing any authentication state. */
 export function updateHeaderAdmin(header, active) {
@@ -19,6 +20,9 @@ export function updateHeaderAdmin(header, active) {
  * @returns {HTMLElement} The header element.
  */
 export function AppHeader({ onLogin, onLogout, onRefresh, search, admin }) {
+  let signingOut = false;
+  const progress = PulseIndicator();
+  progress.classList.add('header-progress');
   const account = el(
     'details',
     { class: 'header-account', hidden: true },
@@ -33,9 +37,22 @@ export function AppHeader({ onLogin, onLogout, onRefresh, search, admin }) {
       { class: 'header-account-popover' },
       button(
         'Đăng xuất',
-        () => {
+        async () => {
+          if (signingOut) return;
+          signingOut = true;
           account.open = false;
-          onLogout?.();
+          const logout = account.querySelector('button');
+          logout.disabled = true;
+          header.setAttribute('aria-busy', 'true');
+          setPendingMessage(progress, 'Đang đăng xuất…');
+          try {
+            await onLogout?.();
+          } finally {
+            signingOut = false;
+            logout.disabled = false;
+            header.setAttribute('aria-busy', 'false');
+            setPendingMessage(progress, '');
+          }
         },
         'button header-account-logout',
       ),
@@ -79,6 +96,7 @@ export function AppHeader({ onLogin, onLogout, onRefresh, search, admin }) {
       account,
     ),
   );
+  header.append(progress);
   updateHeaderAdmin(header, admin);
   return header;
 }

@@ -137,6 +137,7 @@ button {
 /* Header, navigation, and search controls. */
 
 .app-header {
+  position: relative;
   height: 83px;
   padding: 0 44px;
   display: flex;
@@ -791,6 +792,23 @@ kbd {
   border: 0;
   background: transparent;
   font-size: inherit;
+}
+.header-progress {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 16px;
+  z-index: 30;
+  max-width: min(280px, calc(100% - 32px));
+  overflow-wrap: anywhere;
+}
+.route-progress {
+  width: fit-content;
+  max-width: calc(100% - 32px);
+  margin: 24px auto;
+}
+.pending-indicator > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .pulse-dot {
   position: relative;

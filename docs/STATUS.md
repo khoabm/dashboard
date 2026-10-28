@@ -1,3 +1,9 @@
+# Unified loading UX — 2026-10-28
+
+**IMPLEMENTED / UI ACCEPTANCE PARTIAL.** Branch `feature/personal-gradebook-ui-e2e`, baseline `cfcdaa1`. L01–L14 reuse PulseIndicator for route/header/logout/admin/teacher/import/student/chart stages; L15–L19 preserve existing Board/media/quota/editor/Auth/section feedback. [Concern matrix, exact checks and limits](features/personal-gradebook/LOADING_UX_REVIEW.md). Existing cancellation/session/mutation contracts retained; no services/backend/dependency change. Curated129/131 initially; two new DOM-stub failures corrected, affected6/6 PASS; static/build/scoped format PASS. Separate format-only prerequisite45f8ec4 fixes existing birthday-expression formatting with semantic AST equality; canonical LF source116/116 format PASS. Direct full CLI check remains FAIL due to untouched CRLF checkout files. User Chrome QA BLOCKED by native URL-policy detection; budgeted20-request read-only sequence NOT STARTED. Agent-issued hosted tests0; existing tab background/HMR total unmeasured. PR10 Draft, no merge/deploy. Prior backend/real-data gates unchanged.
+
+---
+
 # Gradebook verification clock correction — 2026-10-28
 
 Owner diagnostics identified the verification expiry ceiling rejecting HTTP 200 with 660721 ms remaining. Client-only bounded clock tolerance now caps local capability retention at 10 minutes; server authorization is unchanged. Offline full transport-to-state regression with unpublished semesters PASS; focused43/43, check and build/exclusions PASS. Owner browser/hosted retest pending; no functional E2E completion claim. Hosted calls/writes/deployments0. [Root cause and evidence](BUG_FIX_LOG.md#2026-10-28--gb-verify-clock-001--p1-http-200-rejected-by-client-expiry-ceiling-fixed-owner-retest-pending). G07 distinctions unchanged, G08 BLOCKED; PR5 remains Draft.

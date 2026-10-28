@@ -91,7 +91,7 @@ const operations = createPendingTask((message) => {
 root.append(
   AppHeader({
     onLogin: () => void openBoardAdmin(),
-    onLogout: () => void logout(),
+    onLogout: () => logout(),
     onRefresh: refresh,
     search,
     admin: false,
@@ -138,7 +138,7 @@ shell.append(
 
 /** Updates visible feedback and locks conflicting controls while a board action is pending. */
 function updatePendingUI() {
-  setPendingMessage(activity, operationMessage || syncMessage);
+  setPendingMessage(activity, logoutPending ? '' : operationMessage || syncMessage);
   const pending = operations.pending() || !!syncMessage;
   adminRegion.inert = pending;
   controls.inert = pending;
