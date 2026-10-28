@@ -1,8 +1,8 @@
-# G08 approval attestation / technical handoff — 2026-10-28
+# G08 technical desk review — 2026-10-28
 
-PR #12, branch `docs/g08-owner-real-data-approval-20261028`, reviewed baseline `3d3e87c` → `develop` `78f3c32`. Owner real-data approval and statement that all legal/organizational rights/conditions have competent-authority approval **RECORDED; do not request again**. Supporting private evidence **NOT INDEPENDENTLY VERIFIED**. [Canonical record and zero-cost technical next-step matrix](features/personal-gradebook/G08_OWNER_AUTHORIZATION.md).
+PR #12 branch `docs/g08-owner-real-data-approval-20261028`, reviewed source `bfb1775` → develop `78f3c32`. [Exact-source Offline CI 40714442948](https://github.com/khoabm/dashboard/actions/runs/40714442948) SUCCESS. [Technical matrix, official Free limits, recovery boundaries and next bounded activity](features/personal-gradebook/G08_OWNER_AUTHORIZATION.md#g08-technical-desk-review--2026-10-28).
 
-G07-4 synthetic PostgreSQL restore PASS retained; paper/Drive completion owner-reported; full managed Supabase recovery DEFERRED/unverified. **G08 technical release/import BLOCKED; import/deploy/production mutation NOT RUN.** Baseline [Offline CI 40713400354](https://github.com/khoabm/dashboard/actions/runs/40713400354) SUCCESS, not a new-commit or hosted acceptance result. Docs-only review; no runtime suite rerun, Supabase/Drive requests/queries 0; no secrets/PII accessed, new paid resource, merge or deployment. Earlier snapshots below retain historical context and do not override this update.
+Static transport/auth/error/import review complete; existing native/synthetic evidence retained. **G08 technical release/import BLOCKED**: fresh hosted correspondence, actual quota/headroom and fresh critical browser UAT not verified; full managed recovery DEFERRED/unverified. Owner legal/organizational approval attestation remains recorded, no repeat request. G07-4 synthetic PASS preserved. This docs-only follow-up runs no runtime suites or hosted calls, imports, deploys, production writes, secret/PII access or merges. Supabase/Drive requests0; no paid resources or manual CI runs. Historical snapshots below do not override current status.
 
 ---
 
