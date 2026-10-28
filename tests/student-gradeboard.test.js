@@ -433,7 +433,7 @@ test('CP06-A2 incomplete, incompatible or private verification metadata fails cl
     (v) => (v.capability = ''),
     (v) => (v.capability = 'with whitespace'),
     (v) => (v.expiresAt = responseClock() / 1000),
-    (v) => (v.expiresAt += 1),
+    (v) => (v.expiresAt += 121),
     (v) => (v.expiresAt = String(v.expiresAt)),
     (v) => delete v.class.semester2Published,
     (v) => (v.class.semester1Published = 'true'),

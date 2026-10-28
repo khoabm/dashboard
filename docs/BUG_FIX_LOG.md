@@ -2,6 +2,14 @@
 
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
+## 2026-10-28 — GB-VERIFY-CLOCK-001 / P1: HTTP 200 rejected by client expiry ceiling (FIXED; owner retest pending)
+
+Baseline `25d785b`, branch `feature/personal-gradebook`. Owner supplied only safe scalar diagnostics: valid capability syntax/integer expiry and 660721 ms remaining at response arrival. The client rejected anything above 600000 ms; debugger delay before capturing `now` masked that condition. This establishes the failing ceiling, consistent with client/server clock offset, without identifying which clock is inaccurate. Admin session and unpublished semesters are independent.
+
+`src/utils/gradebook-responses.js` accepts at most 120 seconds of positive clock skew and projects an internal expiry capped at 600 seconds from client time (rounded down). Already expired, malformed, unsafe and beyond-tolerance expiries still fail closed. Raw capability is unchanged; server expiry/revocation/publication authorization remains authoritative on every read. No backend, Auth, CORS, timeout or migration change. Existing strict expiry test now rejects beyond the explicit tolerance instead of one second above nominal TTL.
+
+Offline regression: controlled HTTP Response → real transport → service → DTO → lookup state verifies the observed 660721 ms case with both semesters unpublished and bounded local expiry; beyond-tolerance/expired cases reject, one synthetic fetch each. Focused 43/43 PASS, syntax/scoped scan/diff and default build/exclusions PASS. Browser DOM and owner hosted retest NOT RUN; no claim of hosted E2E completion. Hosted requests/writes/deployments 0. No real token or identity retained. G07 evidence unchanged; G08 BLOCKED.
+
 ## 2026-10-28 — G07-OWNER-REV-001/P2 và G07-OWNER-REV-002/P3 (DOCS PROPOSAL)
 
 Owner report baseline0679367: native stderr warning terminated first keygen despite file creation; later owner-only ACL inspection and controlled handling passed. Propose scoped Continue around keygen, keep warnings, capture exit immediately, restore preference and require owner/ACL verification; corrected snippet Windows NOT RUN. Transcription initially malformed, corrected recipients PASS; temporary phone notes do not establish paper custody. Record owner local/Drive synthetic PASS separately from native technical evidence and remaining gates. Docs/static only; no CI/owner-device/Drive/production access.

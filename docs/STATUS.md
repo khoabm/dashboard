@@ -1,3 +1,9 @@
+# Gradebook verification clock correction — 2026-10-28
+
+Owner diagnostics identified the verification expiry ceiling rejecting HTTP 200 with 660721 ms remaining. Client-only bounded clock tolerance now caps local capability retention at 10 minutes; server authorization is unchanged. Offline full transport-to-state regression with unpublished semesters PASS; focused43/43, check and build/exclusions PASS. Owner browser/hosted retest pending; no functional E2E completion claim. Hosted calls/writes/deployments0. [Root cause and evidence](BUG_FIX_LOG.md#2026-10-28--gb-verify-clock-001--p1-http-200-rejected-by-client-expiry-ceiling-fixed-owner-retest-pending). G07 distinctions unchanged, G08 BLOCKED; PR5 remains Draft.
+
+---
+
 # V1 hosted reachability — 2026-10-28
 
 One authorized14-second anonymous probe returned HTTP401 in8.379s (TLS milestone7.752s); the old8-second timeout is not proof of an Edge defect. Both Functions ACTIVE v2; no request-ID correlation confirms old handler arrival. [Exact timing, bounded logs, matrix and minimal owner localhost UAT](features/personal-gradebook/V1_INTEGRATION_UAT.md). Managed terminal.local differs from the accepted localhost origin: authenticated browser E2E remains BLOCKED; no runtime correction justified. Five connector reads/one HTTP request/zero retries, data writes, DB SQL, Auth attempts, deploys or new CI requests. Source unchanged; default transport disabled. PR5 Draft. G07 Technical/local/Drive PASS retained, Operational/Overall PARTIAL; conditional owner project authorization retained, G08 institutional evidence BLOCKED. Earlier snapshots below are historical.

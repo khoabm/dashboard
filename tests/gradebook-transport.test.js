@@ -332,3 +332,47 @@ test('all approved teacher operation families retain B4 response contracts and e
   assert.equal(calls.length, 20);
   assert.equal(calls.find((row) => row.op === 'score.put').score, '8.12345');
 });
+
+test('HTTP 200 with bounded clock skew verifies unpublished context and caps local capability lifetime', async (t) => {
+  const now = Date.UTC(2026, 9, 28, 10, 0, 0) + 279;
+  t.mock.method(Date, 'now', () => now);
+  const context = fixtureContext();
+  context.class.semester1Published = false;
+  context.class.semester2Published = false;
+  for (const remaining of [660721, 720721, -279]) {
+    let calls = 0;
+    const services = createStudentLookup(
+      transport(async (_url, init) => {
+        calls++;
+        assert.equal(init.headers.authorization, undefined);
+        assert.equal(init.credentials, 'omit');
+        return response({
+          ...context,
+          capability: 'synthetic-skew-placeholder',
+          expiresAt: (now + remaining) / 1000,
+        });
+      }),
+    );
+    let expiryDelay;
+    const state = createLookupState({
+      verify: services.verifyStudent,
+      request: services.readStudent,
+      clock: () => now,
+      setTimer: (_callback, delay) => {
+        expiryDelay = delay;
+        return 1;
+      },
+      clearTimer: () => {},
+    });
+    await state.submit({ documentNumber: '000000009', birthDate: '29/02/2000' });
+    assert.equal(state.snapshot().status, remaining === 660721 ? 'verified' : 'unavailable');
+    if (remaining === 660721) {
+      assert.deepEqual(state.context(), context);
+      assert.ok(expiryDelay > 0 && expiryDelay <= 600000);
+      assert.equal(state.snapshot().expiresAt, Math.floor(now / 1000) + 600);
+    }
+    assert.ok(!JSON.stringify(state.snapshot()).includes('synthetic-skew-placeholder'));
+    assert.equal(calls, 1);
+    state.dispose();
+  }
+});

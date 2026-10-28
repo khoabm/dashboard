@@ -56,14 +56,15 @@ export function verificationPayload(payload, clock = Date.now) {
       Number.isSafeInteger(payload.expiresAt) &&
       Number.isSafeInteger(payload.expiresAt * 1000) &&
       payload.expiresAt * 1000 > now &&
-      payload.expiresAt * 1000 <= now + 600000,
+      payload.expiresAt * 1000 <= now + 720000,
     'verification',
   );
   const context = contextPayload(payload);
   return {
     kind: 'verified',
     capability: payload.capability,
-    expiresAt: payload.expiresAt,
+    // Allow at most two minutes of clock skew, without extending local retention.
+    expiresAt: Math.min(payload.expiresAt, Math.floor(now / 1000) + 600),
     context,
   };
 }
