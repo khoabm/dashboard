@@ -471,11 +471,7 @@
   "queries": [
     {
       "id": "gas-q1",
-      "query": [
-        "khí carbon dioxide",
-        "Có hiện tượng sủi bọt khi trộn hai chất",
-        "chất lỏng tác dụng tạo khí thoát lên"
-      ],
+      "query": "khí carbon dioxide",
       "relevant": [
         "gas-1",
         "gas-2",
@@ -490,7 +486,8 @@
         "gas-2",
         "gas-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "Có hiện tượng sủi bọt khi trộn hai chất"
     },
     {
       "id": "gas-q3",
@@ -499,15 +496,12 @@
         "gas-2",
         "gas-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "chất lỏng tác dụng tạo khí thoát lên"
     },
     {
       "id": "precip-q1",
-      "query": [
-        "kết tủa trắng",
-        "hai dung dịch trộn vào nhau xuất hiện chất rắn",
-        "cặn màu xanh khi thêm dung dịch kiềm"
-      ],
+      "query": "kết tủa trắng",
       "relevant": [
         "precip-1",
         "precip-2",
@@ -522,7 +516,8 @@
         "precip-2",
         "precip-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "hai dung dịch trộn vào nhau xuất hiện chất rắn"
     },
     {
       "id": "precip-q3",
@@ -531,15 +526,12 @@
         "precip-2",
         "precip-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "cặn màu xanh khi thêm dung dịch kiềm"
     },
     {
       "id": "pressure-q1",
-      "query": [
-        "áp suất chất khí",
-        "bơm khí vào bình kín làm tăng lực ép lên thành bình",
-        "thể tích của không khí thay đổi khi nén xi lanh"
-      ],
+      "query": "áp suất chất khí",
       "relevant": [
         "pressure-1",
         "pressure-2",
@@ -554,7 +546,8 @@
         "pressure-2",
         "pressure-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "bơm khí vào bình kín làm tăng lực ép lên thành bình"
     },
     {
       "id": "pressure-q3",
@@ -563,15 +556,12 @@
         "pressure-2",
         "pressure-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "thể tích của không khí thay đổi khi nén xi lanh"
     },
     {
       "id": "boiling-q1",
-      "query": [
-        "sự sôi của nước",
-        "đun nồi nước tới khi bốc hơi",
-        "chất lỏng thành hơi khi nhận nhiệt"
-      ],
+      "query": "sự sôi của nước",
       "relevant": [
         "boiling-1",
         "boiling-2",
@@ -586,7 +576,8 @@
         "boiling-2",
         "boiling-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "đun nồi nước tới khi bốc hơi"
     },
     {
       "id": "boiling-q3",
@@ -595,15 +586,12 @@
         "boiling-2",
         "boiling-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "chất lỏng thành hơi khi nhận nhiệt"
     },
     {
       "id": "circuit-q1",
-      "query": [
-        "mạch điện nối tiếp",
-        "thắp sáng bóng đèn bằng một viên pin",
-        "đo sự chênh lệch điện thế bằng vôn kế"
-      ],
+      "query": "mạch điện nối tiếp",
       "relevant": [
         "circuit-1",
         "circuit-2",
@@ -618,7 +606,8 @@
         "circuit-2",
         "circuit-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "thắp sáng bóng đèn bằng một viên pin"
     },
     {
       "id": "circuit-q3",
@@ -627,15 +616,12 @@
         "circuit-2",
         "circuit-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "đo sự chênh lệch điện thế bằng vôn kế"
     },
     {
       "id": "magnet-q1",
-      "query": [
-        "từ trường",
-        "vì sao hai nam châm hút nhau hoặc đẩy nhau",
-        "rắc mạt sắt quanh thanh nam châm"
-      ],
+      "query": "từ trường",
       "relevant": [
         "magnet-1",
         "magnet-2",
@@ -650,7 +636,8 @@
         "magnet-2",
         "magnet-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "vì sao hai nam châm hút nhau hoặc đẩy nhau"
     },
     {
       "id": "magnet-q3",
@@ -659,15 +646,12 @@
         "magnet-2",
         "magnet-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "rắc mạt sắt quanh thanh nam châm"
     },
     {
       "id": "plant-q1",
-      "query": [
-        "quang hợp",
-        "cây tạo thức ăn nhờ ánh nắng mặt trời",
-        "vì sao lá xanh tạo được tinh bột"
-      ],
+      "query": "quang hợp",
       "relevant": [
         "plant-1",
         "plant-2",
@@ -682,7 +666,8 @@
         "plant-2",
         "plant-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "cây tạo thức ăn nhờ ánh nắng mặt trời"
     },
     {
       "id": "plant-q3",
@@ -691,15 +676,12 @@
         "plant-2",
         "plant-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "vì sao lá xanh tạo được tinh bột"
     },
     {
       "id": "breath-q1",
-      "query": [
-        "hô hấp tế bào",
-        "cơ thể lấy khí oxy từ không khí ra sao",
-        "hệ cơ quan mang dưỡng khí tới tế bào"
-      ],
+      "query": "hô hấp tế bào",
       "relevant": [
         "breath-1",
         "breath-2",
@@ -714,7 +696,8 @@
         "breath-2",
         "breath-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "cơ thể lấy khí oxy từ không khí ra sao"
     },
     {
       "id": "breath-q3",
@@ -723,15 +706,12 @@
         "breath-2",
         "breath-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "hệ cơ quan mang dưỡng khí tới tế bào"
     },
     {
       "id": "rust-q1",
-      "query": [
-        "gỉ sắt",
-        "đinh sắt bị đỏ nâu khi để ngoài trời mưa",
-        "làm sao bảo vệ cổng sắt khỏi ăn mòn"
-      ],
+      "query": "gỉ sắt",
       "relevant": [
         "rust-1",
         "rust-2",
@@ -746,7 +726,8 @@
         "rust-2",
         "rust-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "đinh sắt bị đỏ nâu khi để ngoài trời mưa"
     },
     {
       "id": "rust-q3",
@@ -755,15 +736,12 @@
         "rust-2",
         "rust-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "làm sao bảo vệ cổng sắt khỏi ăn mòn"
     },
     {
       "id": "acid-q1",
-      "query": [
-        "giấy quỳ tím",
-        "phân biệt nước chanh với nước xà phòng",
-        "axit gặp bazơ thì sản phẩm gồm những gì"
-      ],
+      "query": "giấy quỳ tím",
       "relevant": [
         "acid-1",
         "acid-2",
@@ -778,7 +756,8 @@
         "acid-2",
         "acid-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "phân biệt nước chanh với nước xà phòng"
     },
     {
       "id": "acid-q3",
@@ -787,7 +766,8 @@
         "acid-2",
         "acid-3"
       ],
-      "group": "paraphrase"
+      "group": "paraphrase",
+      "query": "axit gặp bazơ thì sản phẩm gồm những gì"
     }
   ],
   "negativeQueries": [
