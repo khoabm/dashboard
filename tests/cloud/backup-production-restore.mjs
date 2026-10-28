@@ -7,7 +7,13 @@ import path from 'node:path';
 import { PGlite, connect } from './native-adapter.mjs';
 import { createCrypto } from '../../supabase/functions/_shared/crypto.js';
 import { syntheticProject, backupFiles, sha256 } from '../../scripts/gradebook-backup.mjs';
-import { canonical, inventory, exportBackup, authenticateBackup, verifyRestored } from '../../scripts/gradebook-backup-production.mjs';
+import {
+  canonical,
+  inventory,
+  exportBackup,
+  authenticateBackup,
+  verifyRestored,
+} from '../../scripts/gradebook-backup-production.mjs';
 
 import { safeDiagnostic, childDiagnostics } from '../../scripts/gradebook-recovery-diagnostics.mjs';
 let currentStage = 'start';
@@ -50,7 +56,12 @@ async function readState(db) {
   const sql = await readFile('scripts/gradebook-backup-snapshot.sql', 'utf8');
   const query = sql.slice(sql.indexOf('SELECT jsonb_build_object(')).trim();
   assert(query.startsWith('SELECT jsonb_build_object('));
-  for (const setting of ["timezone='UTC'", "datestyle='ISO, YMD'", "statement_timeout='15s'", "lock_timeout='3s'"])
+  for (const setting of [
+    "timezone='UTC'",
+    "datestyle='ISO, YMD'",
+    "statement_timeout='15s'",
+    "lock_timeout='3s'",
+  ])
     await db.query('SET LOCAL ' + setting);
   const response = await db.query(query);
   assert.equal(response.rows.length, 1);
@@ -67,11 +78,18 @@ async function captureSource(db) {
     const snapshot = (await db.query('SELECT pg_export_snapshot() id')).rows[0].id;
     const state = await readState(db);
     dump = command('docker', [
-      'exec','gb-backup-postgres','pg_dump','-U','postgres',
-      '--format=custom','--snapshot=' + snapshot,'--dbname',source,
+      'exec',
+      'gb-backup-postgres',
+      'pg_dump',
+      '-U',
+      'postgres',
+      '--format=custom',
+      '--snapshot=' + snapshot,
+      '--dbname',
+      source,
     ]);
     await db.query('COMMIT');
-    return { snapshot,state,dump };
+    return { snapshot, state, dump };
   } catch {
     dump?.fill(0);
     await db.query('ROLLBACK').catch(() => {});
@@ -125,7 +143,13 @@ async function restore(input) {
     ),
   );
   stage('decrypt');
-  const { dump, manifest } = await authenticateBackup(files, input.receipt, input.identities, input.expected, input.tools);
+  const { dump, manifest } = await authenticateBackup(
+    files,
+    input.receipt,
+    input.identities,
+    input.expected,
+    input.tools,
+  );
   assert.equal(canonical(manifest.migrations), canonical(input.expected.migrations));
   assert.equal(manifest.sourceCommit, command('git', ['rev-parse', 'HEAD']).toString().trim());
   const admin = await connect('postgres');
@@ -241,9 +265,7 @@ let db;
 try {
   if (mode === '--restore') {
     await restore(await controlInput());
-    console.log(
-      'PASS G07-4 gb-recovery-v1 age auth, PG17 target restore, crypto, ACL/RLS, roles',
-    );
+    console.log('PASS G07-4 gb-recovery-v1 age auth, PG17 target restore, crypto, ACL/RLS, roles');
   } else {
     assert.equal(mode, 'create');
     stage('credentials');
@@ -270,10 +292,19 @@ try {
     await db.query('CREATE TABLE supabase_migrations.schema_migrations(version text PRIMARY KEY)');
     for (const name of Object.keys(migrationHashes)) {
       await db.exec(await readFile('supabase/migrations/' + name, 'utf8'));
-      await db.query('INSERT INTO supabase_migrations.schema_migrations VALUES ($1)', [name.slice(0,14)]);
+      await db.query('INSERT INTO supabase_migrations.schema_migrations VALUES ($1)', [
+        name.slice(0, 14),
+      ]);
     }
-    const applied = (await db.query('SELECT version FROM supabase_migrations.schema_migrations ORDER BY version')).rows.map(row => row.version);
-    assert.deepEqual(applied, Object.keys(migrationHashes).map(file => file.slice(0,14)).sort());
+    const applied = (
+      await db.query('SELECT version FROM supabase_migrations.schema_migrations ORDER BY version')
+    ).rows.map((row) => row.version);
+    assert.deepEqual(
+      applied,
+      Object.keys(migrationHashes)
+        .map((file) => file.slice(0, 14))
+        .sort(),
+    );
     stage('fixtures');
     const actor = '10000000-0000-4000-8000-000000000001';
     const session = '20000000-0000-4000-8000-000000000001';
@@ -331,38 +362,55 @@ try {
       JSON.stringify({ ...currentEnvelope, birthDate: '2012-04-13' }),
     ]);
     stage('dump');
-    const { snapshot,state,dump } = await captureSource(db);
+    const { snapshot, state, dump } = await captureSource(db);
     const migrationList = Object.entries(migrationHashes).map(([file, hash]) => ({
-      ledgerVersion: file.slice(0,14), file, sha256: hash,
+      ledgerVersion: file.slice(0, 14),
+      file,
+      sha256: hash,
     }));
-    assert.deepEqual(migrationList.map(m => m.ledgerVersion).sort(), applied);
+    assert.deepEqual(migrationList.map((m) => m.ledgerVersion).sort(), applied);
     const expected = {
       project: syntheticProject,
       sourceCommit: command('git', ['rev-parse', 'HEAD']).toString().trim(),
       migrations: migrationList,
-      keyInventory: Object.fromEntries(purposes.map(purpose => [purpose, {
-        active: settings[purpose].active,
-        kids: Object.keys(settings[purpose].keys).sort(),
-        sha256: sha256(Buffer.from(canonical(settings[purpose]))),
-      }])),
+      keyInventory: Object.fromEntries(
+        purposes.map((purpose) => [
+          purpose,
+          {
+            active: settings[purpose].active,
+            kids: Object.keys(settings[purpose].keys).sort(),
+            sha256: sha256(Buffer.from(canonical(settings[purpose]))),
+          },
+        ]),
+      ),
     };
     const manifest = {
-      format:'gb-recovery-v1', backupId:randomUUID(), createdAt:new Date().toISOString(),
-      project:syntheticProject, sourceCommit:expected.sourceCommit, postgresMajor:17,
-      migrations:migrationList,
-      snapshot:{id:snapshot,method:'pg_export_snapshot',keysFrozen:true,evidenceId:randomUUID()},
-      dumpSha256:sha256(dump),settings,
-      required:Object.fromEntries(purposes.map(p => [p,Object.keys(settings[p].keys).sort()])),
-      inventory:inventory(state),
+      format: 'gb-recovery-v1',
+      backupId: randomUUID(),
+      createdAt: new Date().toISOString(),
+      project: syntheticProject,
+      sourceCommit: expected.sourceCommit,
+      postgresMajor: 17,
+      migrations: migrationList,
+      snapshot: {
+        id: snapshot,
+        method: 'pg_export_snapshot',
+        keysFrozen: true,
+        evidenceId: randomUUID(),
+      },
+      dumpSha256: sha256(dump),
+      settings,
+      required: Object.fromEntries(purposes.map((p) => [p, Object.keys(settings[p].keys).sort()])),
+      inventory: inventory(state),
     };
     stage('seal');
-    await verifyRestored(manifest,expected,state);
-    const tools = {age:process.env.GB_TEST_AGE,pgRestore:process.env.GB_TEST_PG_RESTORE};
+    await verifyRestored(manifest, expected, state);
+    const tools = { age: process.env.GB_TEST_AGE, pgRestore: process.env.GB_TEST_PG_RESTORE };
     stage('invalid_archive');
-    const sealed = await exportBackup(dump,manifest,expected,recipients,tools);
+    const sealed = await exportBackup(dump, manifest, expected, recipients, tools);
     dump.fill(0);
     assert.deepEqual(Object.keys(sealed.files).sort(), [...backupFiles].sort());
-    assert.equal(sealed.receipt.verification,'CANDIDATE_UNVERIFIED');
+    assert.equal(sealed.receipt.verification, 'CANDIDATE_UNVERIFIED');
     const files = {};
     for (const [name, bytes] of Object.entries(sealed.files)) {
       files[name] = path.join(encrypted, name);
@@ -370,9 +418,23 @@ try {
       for (const ring of Object.values(settings))
         for (const key of Object.values(ring.keys)) assert(!bytes.includes(Buffer.from(key)));
     }
-    const input = {files,identities,receipt:sealed.receipt,expected,tools,
-      probe:{cid,actor,session,time,binding,capability:capability.token,preview:preview.token,
-      lookup2:await currentCrypto.lookup(cid,2,'000000000009')}};
+    const input = {
+      files,
+      identities,
+      receipt: sealed.receipt,
+      expected,
+      tools,
+      probe: {
+        cid,
+        actor,
+        session,
+        time,
+        binding,
+        capability: capability.token,
+        preview: preview.token,
+        lookup2: await currentCrypto.lookup(cid, 2, '000000000009'),
+      },
+    };
 
     stage('remove_source');
     await db.close();
@@ -389,10 +451,15 @@ try {
       ['tests/cloud/backup-production-restore.mjs', '--restore'],
       JSON.stringify(input),
     );
-    assert.match(output.toString(), /^PASS G07-4 gb-recovery-v1 age auth, PG17 target restore, crypto, ACL\/RLS, roles/m);
+    assert.match(
+      output.toString(),
+      /^PASS G07-4 gb-recovery-v1 age auth, PG17 target restore, crypto, ACL\/RLS, roles/m,
+    );
     for (const ring of Object.values(settings))
       for (const key of Object.values(ring.keys)) assert(!output.includes(Buffer.from(key)));
-    console.log('PASS G07-4 new-format age encryption/authentication, actual target PG17 restore; hosted requests 0');
+    console.log(
+      'PASS G07-4 new-format age encryption/authentication, actual target PG17 restore; hosted requests 0',
+    );
     console.log(
       'PASS G07-4 removed source DB; fresh child process restored only from ciphertexts + identities',
     );
