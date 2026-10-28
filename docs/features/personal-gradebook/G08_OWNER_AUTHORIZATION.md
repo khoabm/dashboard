@@ -11,6 +11,8 @@ Do not fill it with student PII, signatures, passwords, private keys or secret l
 
 G07 manual policy A–F đã được owner chốt riêng: Drive Free cá nhân/private, không secondary/USB, sole owner/no emergency custodian, hai age identities độc lập, manual-only/no guaranteed RPO/RTO, latest+previous verified. [Current G07 policy](G07_OWNER_DECISIONS.md) thay thế các câu hỏi lựa chọn tương ứng ở §7; actual custody/provider verification, production exporter và mọi legal/institutional authorization bên dưới vẫn BLOCKED. Không yêu cầu owner chốt lại A–F.
 
+Owner update2026-10-28: conditional project authorization for accepted-design real-information use and continued V1 integration is RECORDED. Institutional/legal evidence and technical/operational prerequisites are not thereby verified; G08 remains BLOCKED. Apply missing conditions only to affected real-data/release operations, not unrelated implementation or synthetic QA.
+
 ## Decision record
 
 | Required decision metadata | Owner/institution to complete privately | Current status |

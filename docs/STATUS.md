@@ -1,3 +1,9 @@
+# V1 integration execution — 2026-10-28
+
+G07 eight-commit fast-forward integrated; current adapters already wired behind opt-in, public default remains false. [Current flow matrix, bounded evidence and owner UAT](features/personal-gradebook/V1_INTEGRATION_UAT.md). Source check/47 pure+8 transport tests/format/default build PASS. Current public zero-row read200; anonymous teacher Edge timed out, hosted HTTP stopped without retry/student probe or writes. Fresh hosted E2E BLOCKED; not functionally complete/production ready. G07 Technical/local/Drive PASS retained, Operational/Overall PARTIAL; owner conditional project authorization recorded, G08 institutional evidence BLOCKED. No migration/deploy/merge into develop/main. Older entries below are historical.
+
+---
+
 # G07 owner synthetic rehearsal — 2026-10-28
 
 Owner-reported Windows local and manual Drive round-trip PASS (baseline0679367); [evidence and limitations](features/personal-gradebook/G07_OWNER_REHEARSAL_20261028.md). Receipts local/remote PASS, database recovery NOT_RUN. Phone notes are not physical paper custody; paper/replacement-device/owner native PostgreSQL restore NOT RUN; production exporter/validator and G08 BLOCKED. Technical PASS retained; Operational/Overall PARTIAL. New stderr/ACL correction is documentation only, Windows NOT RUN for corrected snippet. Work owner-device/Drive/Supabase/key/data access0, new CI0, no merge/deploy. Earlier entries below are historical.

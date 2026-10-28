@@ -113,6 +113,8 @@ Preview/result counts explicitly separate INSERT, UPDATE, unchanged and error, p
 
 ## H. Real personal data gate
 
+2026-10-28 owner update: owner states real-information use requirements are approved conditional on the accepted design and authorizes continued implementation/integration/synthetic QA. This is recorded project authorization, not proof of institutional/legal sign-off or completed custody/exporter/production evidence. Missing evidence blocks only the affected real-data operation/release; independent implementation and authorized synthetic QA continue. [Current integration/UAT](V1_INTEGRATION_UAT.md).
+
 **NOT RUN; required before any real student entry/import, not just before CP07/deploy.** Synthetic development/tests can proceed earlier. An accountable owner must record: authorized purpose/right to process; allowed fields and access; retention and explicit deletion procedure; encryption/HMAC key custody/versioning/rotation; authorized encrypted backup location and successful synthetic recovery of data + keys; actual server authorization and deny tests; log/trace/error redaction checks. Record environment, date, reviewer, evidence and unresolved blockers in checkpoint reports without PII/secrets. Missing approval/evidence blocks real data, not synthetic development. Key loss prevents decrypting IDs; HMAC key loss/rotation can break lookup/uniqueness, so both keys need controlled recovery. Do not use this document to claim legal compliance or authorization already exists.
 
 ### CP01-C environment and key custody clarification — 2026-10-28
