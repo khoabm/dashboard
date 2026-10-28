@@ -14,6 +14,14 @@ import {
   sha256,
 } from '../../scripts/gradebook-backup.mjs';
 
+import { safeDiagnostic, childDiagnostics } from '../../scripts/gradebook-recovery-diagnostics.mjs';
+let currentStage = 'start';
+/** Emits a fixed stage identifier, without fixture values. */
+function stage(value) {
+  currentStage = value;
+  console.log(`GB_STAGE ${value}`);
+}
+
 globalThis.fetch = () => Promise.reject(new Error('network_forbidden'));
 const mode = process.argv[2] || 'create';
 const source = 'gbqa_backup_source';
@@ -28,12 +36,18 @@ assert.equal(process.env.GB_QA_DATABASE, source);
  * @returns {Buffer} Complete bounded stdout after a successful exit.
  */
 function command(executable, args, input) {
-  return execFileSync(executable, args, {
-    input,
-    stdio: ['pipe', 'pipe', 'pipe'],
-    timeout: 30000,
-    maxBuffer: 32 * 1024 * 1024,
-  });
+  try {
+    return execFileSync(executable, args, {
+      input,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 30000,
+      maxBuffer: 32 * 1024 * 1024,
+    });
+  } catch (error) {
+    const safe = childDiagnostics(String(error.stdout || '') + '\n' + String(error.stderr || ''));
+    if (safe) console.error(safe);
+    throw error;
+  }
 }
 
 /** Fingerprints restored owners, ACLs, RLS flags/policies, routine security and default privileges.
@@ -98,16 +112,19 @@ async function restore(input) {
       Object.entries(input.files).map(async ([name, file]) => [name, await readFile(file)]),
     ),
   );
+  stage('decrypt');
   const { dump, manifest } = await openBackup(files, input.identities, input.expected);
   assert.equal(JSON.stringify(manifest.migrations), JSON.stringify(await migrations()));
   assert.equal(manifest.sourceCommit, command('git', ['rev-parse', 'HEAD']).toString().trim());
   const admin = await connect('postgres');
   try {
     // The target is a fixed, nonexistent QA database; no clean/drop/overwrite mode exists.
+    stage('fresh_target');
     await admin.query(`CREATE DATABASE ${target} TEMPLATE template0`);
   } finally {
     await admin.end();
   }
+  stage('restore');
   try {
     command(
       'docker',
@@ -130,7 +147,9 @@ async function restore(input) {
   }
   const db = await connect(target);
   try {
+    stage('metadata');
     assert.equal(await securityState(db), manifest.security);
+    stage('data');
     const { cid, actor, session, time, binding, capability, preview } = manifest.probe;
     const cryptography = await createCrypto(syntheticProject, manifest.settings);
     const rows = (
@@ -156,6 +175,7 @@ async function restore(input) {
     await assert.rejects(cryptography.preview(preview, binding, 'synthetic-input', time + 301));
     assert.equal((await cryptography.encryptIdentity(cid, 1, '000000000009')).encKid, '2');
     assert.equal(await cryptography.lookup(cid, 2, '000000000009'), manifest.probe.lookup2);
+    stage('versions');
     for (const purpose of purposes) {
       const missing = structuredClone(manifest.settings);
       delete missing[purpose].keys['1'];
@@ -168,6 +188,7 @@ async function restore(input) {
       }[purpose];
       await assert.rejects(operation());
     }
+    stage('permissions');
     for (const role of ['anon', 'authenticated']) {
       await db.query(`SET ROLE ${role}`);
       try {
@@ -190,6 +211,7 @@ async function restore(input) {
     } finally {
       await db.query('RESET ROLE');
     }
+    stage('catalogs');
     const context = (await db.query('SELECT public.gb_lookup_context() value')).rows[0].value;
     assert.equal(context.subjects.length, 8);
     assert.equal(context.scoreColumns.length, 7);
@@ -208,6 +230,7 @@ try {
     );
   } else {
     assert.equal(mode, 'create');
+    stage('credentials');
     directory = await mkdtemp(path.join(process.env.RUNNER_TEMP, 'gb-backup-'));
     const credentials = path.join(directory, 'credentials');
     const encrypted = path.join(directory, 'encrypted');
@@ -222,11 +245,14 @@ try {
       raw.fill(0);
       recipients[purpose] = command('age-keygen', ['-y', identities[purpose]]).toString().trim();
     }
+    stage('bootstrap');
     db = new PGlite();
     await db.exec(await readFile('tests/gradebook/b2-bootstrap.sql', 'utf8'));
+    stage('migrations');
     const migrationHashes = await migrations();
     for (const name of Object.keys(migrationHashes))
       await db.exec(await readFile(`supabase/migrations/${name}`, 'utf8'));
+    stage('fixtures');
     const actor = '10000000-0000-4000-8000-000000000001';
     const session = '20000000-0000-4000-8000-000000000001';
     await db.query('INSERT INTO auth.users VALUES($1)', [actor]);
@@ -273,6 +299,7 @@ try {
       ring.keys['2'] = randomBytes(32).toString('base64url');
       ring.active = '2';
     }
+    stage('rotation');
     const currentCrypto = await createCrypto(syntheticProject, settings);
     const currentEnvelope = await currentCrypto.encryptIdentity(cid, 1, '000000000010');
     await db.query('SELECT public.gb_student_create($1,$2,$3,$4)', [
@@ -281,6 +308,7 @@ try {
       cid,
       JSON.stringify({ ...currentEnvelope, birthDate: '2012-04-13' }),
     ]);
+    stage('dump');
     const dump = command('docker', [
       'exec',
       'gb-backup-postgres',
@@ -314,6 +342,7 @@ try {
         lookup2: await currentCrypto.lookup(cid, 2, '000000000009'),
       },
     };
+    stage('seal');
     const sealed = await sealBackup(dump, manifest, recipients);
     dump.fill(0);
     const plan = planTransfer(sealed.files, sealed.expected, 32 * 1024 * 1024);
@@ -326,6 +355,7 @@ try {
         for (const key of Object.values(ring.keys)) assert(!bytes.includes(Buffer.from(key)));
     }
     const input = { files, identities, expected: sealed.expected };
+    stage('invalid_archive');
     const negative = await connect('postgres');
     try {
       await negative.query('CREATE DATABASE gbqa_backup_invalid TEMPLATE template0');
@@ -367,6 +397,7 @@ try {
     } finally {
       await empty.end();
     }
+    stage('remove_source');
     await db.close();
     db = undefined;
     const admin = await connect('postgres');
@@ -375,6 +406,7 @@ try {
     } finally {
       await admin.end();
     }
+    stage('child');
     const output = command(
       process.execPath,
       ['tests/cloud/backup.mjs', '--restore'],
@@ -392,7 +424,8 @@ try {
       'PASS G07 no raw key/dump output; no artifacts/caches; operational custody NOT APPROVED',
     );
   }
-} catch {
+} catch (error) {
+  console.error(safeDiagnostic(currentStage, error));
   console.error('FAIL G07 synthetic recovery; sensitive diagnostics suppressed');
   process.exitCode = 1;
 } finally {

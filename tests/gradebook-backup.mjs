@@ -1,3 +1,4 @@
+import { safeDiagnostic, childDiagnostics } from '../scripts/gradebook-recovery-diagnostics.mjs';
 /** Exercises real age offline, bounded failure cases and the upload dry-run; prints safe summaries only. */
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
@@ -16,6 +17,16 @@ import {
 const directory = await mkdtemp(path.join(tmpdir(), 'gb-age-offline-'));
 let cases = 0;
 try {
+  const poison = 'PRIVATE_SECRET_SENTINEL';
+  assert.equal(
+    safeDiagnostic(poison, { code: poison, message: poison, stack: poison, stderr: poison }),
+    'GB_FAIL start unexpected',
+  );
+  assert.equal(
+    childDiagnostics(poison + '\nGB_FAIL restore assertion\nGB_FAIL restore ' + poison),
+    'GB_FAIL restore assertion',
+  );
+  cases += 2;
   const identities = {},
     recipients = {};
   for (const purpose of ['database', 'keyrings']) {
