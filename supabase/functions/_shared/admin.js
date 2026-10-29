@@ -14,6 +14,8 @@ import {
 } from './contracts.js';
 import { classDto, studentDto, scoreDtos, catalogDtos, importDto, checked } from './dto.js';
 import { normalizeImport, protectedRows } from './imports.js';
+import { normalizeGridBatch } from './grid-batch.js';
+import { frameTuple } from './contracts.js';
 import { Failure } from './http.js';
 
 const specs = {
@@ -125,6 +127,14 @@ const specs = {
   'scores.apply': [
     ['classId', 'semester', 'headers', 'rows', 'previewToken'],
     ['classId', 'semester', 'headers', 'rows', 'previewToken'],
+  ],
+  'scores.batch.preview': [
+    ['classId', 'semester', 'changes'],
+    ['classId', 'semester', 'changes'],
+  ],
+  'scores.batch.apply': [
+    ['classId', 'semester', 'changes', 'previewToken'],
+    ['classId', 'semester', 'changes', 'previewToken'],
   ],
 };
 
@@ -391,6 +401,61 @@ export async function executeAdmin(body, identity, context) {
           }),
         ),
       });
+    case 'scores.batch.preview':
+    case 'scores.batch.apply': {
+      const applying = body.op === 'scores.batch.apply';
+      const changes = normalizeGridBatch(body.changes);
+      const binding = {
+        ...auth,
+        classId: body.classId,
+        kind: 'grid_batch',
+        semester: body.semester,
+      };
+      const canonical = frameTuple('gb:grid-batch:v1', [
+        ...changes.map((item) =>
+          frameTuple('cell', [
+            item.studentId,
+            item.subjectCode,
+            item.columnCode,
+            item.expectedRevision,
+            item.score,
+          ]),
+        ),
+      ]);
+      const token = applying
+        ? await cryptography.preview(body.previewToken, binding, canonical, now())
+        : null;
+      const args = { ...base, semester: body.semester, changes };
+      const plan = await call('gb_score_batch_preview', args);
+      const projected = importDto(plan);
+      if (!applying) {
+        const signed = await cryptography.issuePreview(
+          binding,
+          canonical,
+          plan.internalStateHash,
+          now(),
+        );
+        return ok({ ...projected, previewToken: signed.token, expiresAt: signed.expiresAt });
+      }
+      if (
+        !(await cryptography.stateMatches(
+          token.kid,
+          binding,
+          plan.internalStateHash,
+          token.stateDigest,
+        ))
+      )
+        throw new Failure(409, 'preview_conflict');
+      checkpoint();
+      let result;
+      try {
+        result = await call('gb_score_batch_apply', { ...args, expected: plan.internalStateHash });
+      } catch (error) {
+        if (error.classification === '22023') throw new Failure(409, 'preview_conflict');
+        throw error;
+      }
+      return ok(importDto(result, true));
+    }
     default: {
       const kind = body.op.startsWith('roster.') ? 'roster' : 'scores';
       const applying = body.op.endsWith('.apply');

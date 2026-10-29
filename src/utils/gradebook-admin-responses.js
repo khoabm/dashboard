@@ -60,6 +60,8 @@ export const adminFields = {
   'roster.apply': ['classId', 'headers', 'rows', 'previewToken'],
   'scores.preview': ['classId', 'semester', 'headers', 'rows'],
   'scores.apply': ['classId', 'semester', 'headers', 'rows', 'previewToken'],
+  'scores.batch.preview': ['classId', 'semester', 'changes'],
+  'scores.batch.apply': ['classId', 'semester', 'changes', 'previewToken'],
 };
 
 /** Rejects credential selectors and unsafe numeric coercion; B4 owns business preconditions. */

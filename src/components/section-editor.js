@@ -1,6 +1,6 @@
 /** Opens the section editor and delegates persistence to board services. */
 
-import { el, button, field, errorMessage } from '../utils/dom.js';
+import { el, button, field, errorMessage, restrictNumericInput } from '../utils/dom.js';
 import { saveSection, deleteSection } from '../services/board.js';
 import { openDialog, ConfirmDialog, ToastNotification } from './primitives.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
@@ -22,12 +22,14 @@ export function SectionEditor(section, data, onSaved) {
   const title = el('input', { required: true, maxlength: 100, value: section?.title || '' });
   const description = el('textarea', { maxlength: 1000, rows: 3 }, section?.description || '');
   const color = el('input', { type: 'color', value: section?.color || '#dcece5' });
-  const order = el('input', {
-    type: 'number',
-    step: 1,
-    required: true,
-    value: section?.sort_order ?? data.sections.length,
-  });
+  const order = restrictNumericInput(
+    el('input', {
+      type: 'number',
+      step: 1,
+      required: true,
+      value: section?.sort_order ?? data.sections.length,
+    }),
+  );
   const error = el('p', { class: 'form-error', role: 'alert' });
   const submit = el('button', { type: 'submit', class: 'button primary' }, 'Lưu chủ đề');
   // Section form: editable metadata, validation feedback, and save/cancel actions.

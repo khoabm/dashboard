@@ -1,5 +1,5 @@
 /** Renders CP03 administration against an injected B4-shaped adapter; no synthetic or hosted data source. */
-import { el, button, field } from '../utils/dom.js';
+import { el, button, field, checkboxField, restrictNumericInput } from '../utils/dom.js';
 import { openDialog, ConfirmDialog } from './primitives.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
 import { GradebookScores } from './gradebook-scores.js';
@@ -339,6 +339,7 @@ export function GradebookAdmin({
       inputmode: 'numeric',
       maxlength: 10,
     });
+    restrictNumericInput(identity);
     const correct = el('input', { type: 'checkbox' });
     const picker = el('input', {
       type: 'date',
@@ -385,13 +386,7 @@ export function GradebookAdmin({
       'form',
       {},
       field('Họ tên (không bắt buộc)', name),
-      current &&
-        el(
-          'label',
-          { class: 'field field-checkbox' },
-          correct,
-          el('span', {}, 'Điều chỉnh thông tin xác minh (thao tác riêng)'),
-        ),
+      current && checkboxField('Điều chỉnh thông tin xác minh (thao tác riêng)', correct),
       field('CMND/CCCD', identity),
       field('Ngày sinh — DD/MM/YYYY', el('div', { class: 'lookup-date-control' }, dob, picker)),
       el(

@@ -147,7 +147,7 @@ export function createAdminGate(request, session, deadline = 15000) {
         const response = Promise.resolve(request(body, { signal })).catch((error) => {
           if (
             error?.status === 422 &&
-            ['roster.preview', 'scores.preview'].includes(body.op) &&
+            ['roster.preview', 'scores.preview', 'scores.batch.preview'].includes(body.op) &&
             error.payload?.counts
           )
             return previewErrors(error.payload);
