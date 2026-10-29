@@ -1,3 +1,21 @@
+# Gate A/B hiện hành — Universal Public Content Grounding
+
+**Gate A PASS; Gate B PASS offline trong contract/bounds đã kiểm chứng.** Baseline01198f0,
+working branch feature/ai-learning-assistant-v2-e2e. Final95 focused +131 curated tại checkpoint,
+check/build/exclusion/format/diff PASS; Chromium Gate B6 viewport, V2 guidance6 và V1 regression8
+PASS; actual-main Board persistence PASS. [Báo cáo/ma trận U01–U20,T01–T10](GATE_AB_ACCEPTANCE.md).
+
+Corpus published được index full body trong giới hạn, không cắt vì vị trí24 hoặc preview1200;
+V3 shortlist/chunk mapping native IDs, coverage rõ ràng, clock Việt Nam, typed temporal evidence và
+fact guards. Model payload<=8 candidates, Qwen<=5/24KB, output<=3 citations; không khẳng định full
+semantic website. Đã sửa race Escape abort trước close queue; consent ghi đúng public text/context.
+
+Gate C/D NOT RUN — ngoài nhiệm vụ; hosted Worker/BGE/Qwen/DO/Supabase/control-plane/deployment0.
+Allowance/run ID/default-disabled config và PRODUCT_PROFILE giữ nguyên. Không merge hoặc public release.
+Các phần sau giữ nguyên evidence lịch sử, không được tính thành runtime mới hoặc quyền hosted mới.
+
+---
+
 # Correction V2-F01–F05 — nghiệm thu / 2026-10-29
 
 ## CP01–CP02 follow-up — public website/app guidance correction (2026-10-29)

@@ -509,3 +509,36 @@ Không suy sản phẩm là web KHTN8 từ seed/brief cũ. websiteProfile giờ 
 Gradebook UI. Không sửa logic Gradebook/Auth; inventory chỉ đếm Board published, không private
 counts. PRODUCT_PROFILE/README/OVERVIEW/SPEC chuẩn hóa cùng hợp đồng; evidence lịch sử giữ nguyên.
 Regression purpose/audience/apps/privacy và browser identity kiểm chứng lại; current assistant41.
+
+## 2026-10-29 — AI-V2-007–012 / Gate A/B public content grounding
+
+Baseline01198f0b8e1b298101d1ee8405ec988b507db109, cùng nhánh V2. Tất cả evidence synthetic/offline.
+
+- AI-V2-007/P2: corpus dùng preview1200 và cloud availability dựa cap24 nên không truy xuất đúng
+  văn bản sâu/bài ngoài cap. Corpus full published + local chunks/coverage, wire V3 bounded và native
+  citation mapping thay luồng này; U08/U09 quote7 đơn vị sau1200 và bài sau30 filler PASS. Consent/copy
+  được cập nhật đúng selected public text + prior source context, không chỉ title/description.
+- AI-V2-008/P2: app/inventory deterministic có thể nuốt câu hỏi nội dung hoặc “bao nhiêu” trong bài.
+  Routing chỉ định guidance/count/listing rõ; câu hỏi arbitrary post/topic/quantities dùng retrieval.
+  Gate A43/43 và routing regression PASS, không thêm topic whitelist.
+- AI-V2-009/P2: lexical overlap ngẫu nhiên loại paraphrase trước semantic; keyword fallback lại đưa
+  nguồn chỉ trùng âm tiết vào filter. Corpus nhỏ giữ semantic candidates, keyword yêu cầu match đủ
+  tín hiệu; IDF/diversity hỗ trợ corpus lớn, no-anchor clarify. Browser assertion đúng filter deep ID
+  được giữ và PASS sau sửa; không tuyên bố full semantic coverage.
+- AI-V2-010/P2: marker “hủy” không có word boundary có thể khớp “chuyến”, làm lọt answer bỏ cảnh báo.
+  Bổ sung exact boundary và typed date/numeric guards: missing-year, creation-vs-event, deadline-vs-event,
+  cancellation/revision, unknown end/latest scope. T01–T10/integration PASS; không coi guard là entailment proof.
+- AI-V2-011/P2: chunk UTF-16 có thể cắt surrogate pair, metadata cap có thể cắt im lặng. Giữ exact
+  Unicode quotes/body codepoints và offsets, metadata oversized giữ local nguyên vẹn rồi báo partial;
+  không prefix-index corpus quá bound. Unicode/oversized regressions PASS. Prompt bỏ duplicated body,
+  có24KB byte cap và bounded temporal annotations, giữ raw passage; boundary regression PASS.
+- AI-V2-012/P2: native Escape đóng modal trước queued close callback; embedding release có thể bắt
+  đầu Qwen khi chưa abort. Abort đồng bộ trên native cancel và nút đóng; không preventDefault Escape.
+  Browser release ngay sau Escape xác nhận1 embedding/0 Qwen, không resurrect DOM; callback ownership
+  và preview return-focus giữ nguyên. Đây là regression cost/reliability đã được runtime tái hiện/sửa.
+
+Gate A43/43 trước B; final95/95 focused,131/131 curated checkpoint, check/build/format/exclusion/diff
+PASS; actual Chromium B6, V2 guidance6, V1 8 và actual-main Board persistence PASS. Các lần FAIL đều
+được sửa và rerun affected tests, không bỏ assertion. Format test baseline được commit riêng9ed2082.
+[Ma trận/evidence/limitations](features/board-assistant/GATE_AB_ACCEPTANCE.md). Hosted/DO/deploy/
+Supabase0, allowance/run ID/PRODUCT_PROFILE/Auth/Gradebook/schema không đổi. Gate C/D chưa thực hiện.

@@ -43,3 +43,19 @@ Deterministic website knowledge, bounded source-grounded generation and memory-o
 implemented on a dedicated branch; [acceptance and release blockers](features/board-assistant/V2_ACCEPTANCE.md).
 Offline/browser synthetic scope PASS; actual Qwen/provenance/public-release gates BLOCKED. No change
 to the main product phase, Gradebook gates or deployment authority.
+
+## V2 Gate A/B — cập nhật CP hiện có, 2026-10-29
+
+Không tạo milestone mới. Universal Public Content Grounding là mục tiêu chính; temporal là năng lực con.
+
+| CP hiện tại | Phạm vi Gate A/B và bằng chứng |
+| --- | --- |
+| CP01 | Gate A website identity/public app guidance runtime PASS; không private data/inference |
+| CP02 | Index full loaded published corpus, topic-agnostic shortlist, chunking/coverage; U01–U20 offline PASS |
+| CP03 | Grounded answer/multi-source contract, temporal T01–T10, conservative fact guards; scripted tests PASS |
+| CP04 | Bounded context, native citations/open/filter, pending cancellation/revocation; Chromium PASS |
+| CP05 | Bounds/no-retry/projection/provenance limits, zero hosted/deploy, allowance unchanged |
+| CP06 |95 focused/131 curated/check/build/format, browser/evidence, commit/push/review handoff |
+
+[Acceptance chi tiết](features/board-assistant/GATE_AB_ACCEPTANCE.md). Gate C hosted/model quality và
+Gate D final review/merge/release nằm ngoài nhiệm vụ; không suy offline PASS thành production-ready.

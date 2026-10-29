@@ -1,3 +1,18 @@
+# ExecPlan hiện hành — Gate A/B, Universal Public Content Grounding
+
+Áp dụng kế hoạch “Gate A/B — Universal Public Content Grounding” bên dưới, baseline01198f0.
+CP02/CP03 mở rộng public text theo mọi topic; temporal là subcapability. [Acceptance hiện hành](GATE_AB_ACCEPTANCE.md).
+Gate A runtime43/43 +6-viewport PASS trước B. Final95 focused tests,131 curated/check/build/format,
+actual Chromium Gate B6 + legacy6/8 PASS. Hai helper mới public-retrieval/public-temporal; V3 bounded
+passages map về post IDs; không sửa PRODUCT_PROFILE hoặc allowance/run ID; Gate C/D không thực hiện.
+
+Kết quả bổ sung sau kế hoạch: bỏ body duplicate trong prompt, cap Qwen JSON24KB, date evidence<=4/đoạn
+(raw text vẫn đủ); Unicode quotes và metadata-over-cap phải explicit partial; nội dung hỏi số lượng
+không bị nhầm inventory. Native Escape abort đồng bộ trước close event đã được browser tái hiện/sửa.
+Format test baseline được commit riêng9ed2082. Lịch sử kế hoạch sau đây giữ scope/timing nguyên vẹn.
+
+---
+
 # ExecPlan hiện hành — correction và chuẩn hóa sản phẩm web
 
 Chuẩn sản phẩm: [PRODUCT_PROFILE](../../PRODUCT_PROFILE.md). Phần “Đợt correction V2-F01–F05” và

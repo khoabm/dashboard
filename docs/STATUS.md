@@ -1,3 +1,22 @@
+# V2 Gate A/B — Universal Public Content Grounding / 2026-10-29
+
+Baseline01198f0, đúng nhánh feature/ai-learning-assistant-v2-e2e. **Gate A PASS, Gate B PASS offline**
+trong [contract/ma trận/evidence](features/board-assistant/GATE_AB_ACCEPTANCE.md). Corpus full body,
+all published loaded posts, topic-agnostic chunk retrieval, V3 native citation mapping, bounded
+multi-source synthesis và temporal evidence Asia/Ho_Chi_Minh đã implement. Snapshot/paging/partial
+coverage và file boundaries được nêu rõ; không claim full semantic search hoặc Qwen quality.
+
+Gate A43/43/runtime6 viewport trước B; final95 focused +131 curated tại checkpoint PASS,
+check/build/exclusions/format/diff PASS. Actual Chromium B6, legacyV2 6/V1 8, main Board filter/reset/
+refresh persistence PASS. Queued Escape abort race đã sửa và kiểm chứng không phát sinh Qwen sau đóng.
+
+Gate C/D NOT RUN — ngoài scope. Hosted Worker/OPTIONS/BGE/Qwen/DO/Supabase/control-plane/deployment0;
+lifetime V2 vẫn0/40, không đổi allowance/run ID/default-disabled config. PRODUCT_PROFILE và
+Gradebook/Auth/RLS/schema/CI/dependencies không đổi. Không merge hoặc release; GitHub API có thể chặn
+Draft PR, dùng remote SHA/compare link nếu cần. Hồ sơ bên dưới giữ lịch sử, không phải test mới.
+
+---
+
 # V2 CP01–CP02 — Website Knowledge & Navigation correction / 2026-10-29
 
 Trợ lý runtime tiếp tục dùng tên **Vui học cùng cô Quỳnh**; bổ sung mô tả và cách

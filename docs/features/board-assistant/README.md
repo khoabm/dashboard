@@ -1,3 +1,13 @@
+# Gate A/B hiện hành — public content theo mọi topic
+
+[Acceptance/ma trận U01–U20,T01–T10](GATE_AB_ACCEPTANCE.md), [ExecPlan](V2_EXECPLAN.md).
+Không dùng preview1200/first24 làm corpus; full local text index + bounded passages + native citations.
+Website guidance deterministic; temporal subcapability, partial coverage/file boundaries minh bạch.
+Gate C/D không thực hiện; hosted/deploy0, không đổi PRODUCT_PROFILE/allowance/run ID. Hồ sơ cũ bên dưới
+là lịch sử và không cấp quyền tự thực hiện hosted trong Gate A/B.
+
+---
+
 # Trợ lý học liệu trong website Vui học cùng cô Quỳnh
 
 **Vai trò:** Trợ lý là tính năng của **Bảng học liệu** trong website **Vui học cùng

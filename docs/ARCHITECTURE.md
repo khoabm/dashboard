@@ -37,6 +37,8 @@ SPEC R01–R28 gốc chủ yếu mô tả Board/hạ tầng; nghiệp vụ Grade
 | src/app.js | Generation-owned route pulse; path-only History routing; lazy Board/SDK graph; shared navigation; disposes student state on exit/sign-out/page lifecycle |
 | src/utils/app-navigation.js | Pure indexed history/compensation and pending administrator-entry coordinator; no SDK/DOM/network; rejected traversals never push an entry |
 | src/main.js | Board bootstrap/render/Auth; shared restoration promise + direct openBoardAdmin for both headers; suspend route refresh; flush editor-owned drafts before route exit |
+| src/utils/public-retrieval.js | Full public corpus projection/index,1000/160 chunks, IDF/diverse shortlist, V3 offsets/native source mapping, local bounds/coverage and24KB prompt; no storage/network |
+| src/utils/public-temporal.js | Injected Asia/Ho_Chi_Minh clock, civil ranges, typed date evidence, conservative date/number/uncertainty guards; no event schema or publication inference |
 | src/utils/assistant-learning.js | V2 deterministic intent/site profile and exact published inventory, one-question/three-source context validation and strict generated status/answer/IDs/coverage contract; no network/storage |
 | src/components/board-assistant.js; src/styles/board-assistant.css | Native modal, memory-only bounded conversation, opt-in cloud disclosure, pending/cancel/error and explicit read-only action buttons; invalidated by Board refresh/route exit |
 | src/utils/board-assistant.js; src/services/board-assistant.js | Published-only public text projection, keyword fallback, exact-quote validation and action allowlist; disabled-by-default bounded no-retry transport, no Auth/Gradebook/history persistence |
@@ -208,3 +210,22 @@ lifecycle giữa Board, tra cứu cá nhân và quản lý bảng điểm/lớp;
 hay chatbot. websiteProfile chỉ mô tả chức năng tồn tại trong source và đối tượng sản phẩm.
 Inventory trợ lý chỉ dùng published Board snapshot; không suy tổng lớp/học sinh hay gọi Gradebook.
 Không thay business logic/quyền của các ứng dụng; trạng thái nghiệm thu từng module vẫn riêng.
+
+## V2 CP02–CP03 — universal public text grounding
+
+loadBoard/readAllRows chứng minh paging bằng count/id rồi gắn publicCoverage (non-transactional).
+Assistant không dùng preview1200 làm corpus: publicAssistantCorpus giữ full published body và safe
+metadata; index mọi passage trong2M local bound. Unknown/invalid/oversized => explicit coverage/clarify,
+không âm thầm lấy prefix. Không giới hạn topic names hay loại bài đăng bằng enum nghiệp vụ.
+
+Local rank -><=8 wire chunks ->BGE/Qwen<=5 (JSON<=24KB),<=3 refs ->native IDs/quotes checked against
+current full corpus. Follow-up prior source IDs -><=3 windows/Qwen only. V1/V2 contract giữ tương thích.
+Citation cards có thể hiển thị nhiều đoạn cùng post; native open/filter vẫn main Board sở hữu.
+Fingerprint full text/metadata/coverage, cancel/reset/route/revocation invalidate ownership; native
+cancel abort ngay trước queued close. Không đổi CSS/layout; copy/disclosure đúng selected text/context.
+
+Temporal evidence giữ creation/edit riêng, publication unknown, event/deadline/preparation riêng;
+không tự thêm năm hoặc coi start là end. Numeric/date guards chỉ chặn obvious unsupported claims,
+không phải semantic entailment proof. Metadata/topic/body source untrusted, không model tools/writes.
+[Bounds, schema, tests và limitations](features/board-assistant/GATE_AB_ACCEPTANCE.md). Không thay
+DO allowance/run ID hoặc hosted config trong Gate A/B.

@@ -491,6 +491,15 @@ Các tính năng trên chỉ là khả năng mở rộng trong tương lai.
 
 ### 7.1. Board Assistant MVP — extension được yêu cầu 2026-10-29
 
+**Cập nhật Gate A/B:** trợ lý có thể tìm/đối chiếu/giải thích/tóm tắt nội dung văn bản mọi bài published
+đủ điều kiện trong snapshot Board đã tải, không giới hạn môn học, topic hoặc loại thông báo. Thông tin
+website/app xác định bằng code; nội dung cần diễn giải dùng retrieval + grounded generation với
+coverage minh bạch. Không lấy vị trí24 hay preview1200 làm search corpus; payload/model vẫn bounded.
+Temporal dùng Asia/Ho_Chi_Minh và evidence nguồn, không đổi ngày tạo/sửa thành event hoặc tự thêm năm.
+Không file extraction, Gradebook/Auth/write access; không hosted/deploy trong Gate A/B.
+[Contract và nghiệm thu](features/board-assistant/GATE_AB_ACCEPTANCE.md).
+
+
 V2 được chủ sở hữu yêu cầu: trả lời thông tin website và kiểm kê published bằng dữ liệu xác định,
 tách tổng quan metadata khỏi tóm tắt nội dung. Cho phép giải thích/tóm tắt tiếng Việt từ title/body
 công khai với nguồn hợp lệ; câu trả lời AI không phải trích dẫn nguyên văn và không được coi là
