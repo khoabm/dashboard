@@ -91,19 +91,27 @@ export async function executeStudent(body, request, context) {
       },
       true,
     );
-    checked(() =>
-      requireContract(
-        typeof decision?.allowed === 'boolean' &&
-          Number.isInteger(decision.retryAfter) &&
-          decision.retryAfter >= 0 &&
-          decision.retryAfter <= 900 &&
-          Object.hasOwn(decision, 'pair'),
-        'limiter',
-      ),
-    );
-    if (!decision.allowed)
-      throw new Failure(429, 'limited', null, Math.max(1, decision.retryAfter));
-    const pair = decision.pair;
+    // Transitional compatibility: the deployed SQL may still return the legacy
+    // direct pair until the coordinated failure-only migration is applied.
+    let pair;
+    if (decision !== null && typeof decision === 'object' && Object.hasOwn(decision, 'allowed')) {
+      checked(() =>
+        requireContract(
+          typeof decision.allowed === 'boolean' &&
+            Number.isInteger(decision.retryAfter) &&
+            decision.retryAfter >= 0 &&
+            decision.retryAfter <= 900 &&
+            Object.hasOwn(decision, 'pair'),
+          'limiter',
+        ),
+      );
+      if (!decision.allowed)
+        throw new Failure(429, 'limited', null, Math.max(1, decision.retryAfter));
+      pair = decision.pair;
+    } else {
+      // Legacy envelope is used only while the old database migration is active.
+      pair = decision;
+    }
     if (!pair) throw new Failure(401, 'verification');
     checked(() => {
       requireContract(
