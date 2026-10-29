@@ -45,11 +45,11 @@ export function weightedComparisonPlan(scores, catalog, subjectCode) {
   const seen = new Set();
   const byKey = new Map();
   for (const row of scores) {
-    allowFields(row, ['subjectCode', 'columnCode', 'rawScore'], [
-      'subjectCode',
-      'columnCode',
-      'rawScore',
-    ]);
+    allowFields(
+      row,
+      ['subjectCode', 'columnCode', 'rawScore'],
+      ['subjectCode', 'columnCode', 'rawScore'],
+    );
     check(
       catalog.subjects.some((subject) => subject.code === row.subjectCode) &&
         catalog.scoreColumns.some((column) => column.code === row.columnCode),
@@ -175,9 +175,12 @@ export function weightedClassFeedback(result) {
       ['above', 'below', 'similar'].includes(result.relation),
   );
   const text = {
-    above: 'Điểm trung bình tham khảo của bạn đang cao hơn mặt bằng ước tính của lớp trên các cột đã đối chiếu. Hãy tiếp tục phát huy những cách học hiệu quả.',
-    below: 'Điểm trung bình tham khảo của bạn đang thấp hơn mặt bằng ước tính của lớp trên các cột đã đối chiếu. Bạn có thể thử ôn lại từng dạng bài và trao đổi với giáo viên khi cần.',
-    similar: 'Điểm trung bình tham khảo của bạn đang khá gần mặt bằng ước tính của lớp trên các cột đã đối chiếu. Hãy tiếp tục học đều và chú ý những phần còn vướng.',
+    above:
+      'Điểm trung bình tham khảo của bạn đang cao hơn mặt bằng ước tính của lớp trên các cột đã đối chiếu. Hãy tiếp tục phát huy những cách học hiệu quả.',
+    below:
+      'Điểm trung bình tham khảo của bạn đang thấp hơn mặt bằng ước tính của lớp trên các cột đã đối chiếu. Bạn có thể thử ôn lại từng dạng bài và trao đổi với giáo viên khi cần.',
+    similar:
+      'Điểm trung bình tham khảo của bạn đang khá gần mặt bằng ước tính của lớp trên các cột đã đối chiếu. Hãy tiếp tục học đều và chú ý những phần còn vướng.',
   };
   return text[result.relation];
 }

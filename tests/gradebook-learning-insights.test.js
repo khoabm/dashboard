@@ -7,7 +7,11 @@ import {
 } from '../src/utils/gradebook-learning-insights.js';
 import { fixtureContext } from './student-gradeboard-data.js';
 import { subjectLearningFeedback } from '../src/utils/gradebook-learning-feedback.js';
-import { weightedComparisonPlan, compareWeightedClass, weightedClassFeedback } from '../src/utils/gradebook-learning-comparison.js';
+import {
+  weightedComparisonPlan,
+  compareWeightedClass,
+  weightedClassFeedback,
+} from '../src/utils/gradebook-learning-comparison.js';
 
 const catalog = fixtureContext();
 const sample = (subject, column, rawScore) => ({
@@ -188,7 +192,11 @@ test('weighted Gradebook reference: 4 TX x1, 1 tiết/GK x2, CK x3 divided by 11
   assert.equal(plan.weightSum, 11);
   assert.ok(Math.abs(plan.ownAverage - expected) < 1e-12);
   assert.equal(plan.columns.length, 7);
-  const result = compareWeightedClass(plan, plan.columns.map((col) => classHistogram(col, 7)), 1);
+  const result = compareWeightedClass(
+    plan,
+    plan.columns.map((col) => classHistogram(col, 7)),
+    1,
+  );
   assert.equal(result.status, 'ready');
   assert.equal(result.classLabel, '7.0');
   assert.equal(result.relation, 'above');
@@ -196,10 +204,18 @@ test('weighted Gradebook reference: 4 TX x1, 1 tiết/GK x2, CK x3 divided by 11
 });
 
 test('weighted reference excludes missing columns, includes exact zero, and compares matching subset', () => {
-  const plan = weightedComparisonPlan([sample(0, 0, '0'), sample(0, 6, '10')], catalog, catalog.subjects[0].code);
+  const plan = weightedComparisonPlan(
+    [sample(0, 0, '0'), sample(0, 6, '10')],
+    catalog,
+    catalog.subjects[0].code,
+  );
   assert.equal(plan.weightSum, 4);
   assert.equal(plan.ownAverage, 7.5);
-  const summary = compareWeightedClass(plan, [classHistogram(plan.columns[0], 5), classHistogram(plan.columns[1], 5)], 1);
+  const summary = compareWeightedClass(
+    plan,
+    [classHistogram(plan.columns[0], 5), classHistogram(plan.columns[1], 5)],
+    1,
+  );
   assert.equal(summary.classLabel, '5.0');
   assert.equal(summary.usedColumns, 2);
   assert.equal(summary.incomplete, true);
@@ -210,7 +226,9 @@ test('weighted reference excludes missing columns, includes exact zero, and comp
 
 test('class comparison requires ten aggregated students per selected column and never assigns top rank', () => {
   const plan = weightedComparisonPlan([sample(0, 0, '4')], catalog, catalog.subjects[0].code);
-  assert.deepEqual(compareWeightedClass(plan, [classHistogram(plan.columns[0], 5, 9)], 1), { status: 'insufficient-class' });
+  assert.deepEqual(compareWeightedClass(plan, [classHistogram(plan.columns[0], 5, 9)], 1), {
+    status: 'insufficient-class',
+  });
   assert.match(weightedClassFeedback({ status: 'insufficient-class' }), /Chưa có đủ/);
   const equal = compareWeightedClass(plan, [classHistogram(plan.columns[0], 4)], 1);
   assert.equal(equal.relation, 'similar');
@@ -225,7 +243,14 @@ test('class comparison fails closed on wrong scope, peer data and malformed buck
     { ...valid, subjectCode: 'wrong' },
     { ...valid, studentId: 'private' },
     { ...valid, buckets: valid.buckets.slice(1) },
-  ]) assert.throws(() => compareWeightedClass(plan, [payload], 1));
-  assert.throws(() => weightedComparisonPlan([{ ...sample(0, 0, '8'), fullName: 'Private' }], catalog, catalog.subjects[0].code));
+  ])
+    assert.throws(() => compareWeightedClass(plan, [payload], 1));
+  assert.throws(() =>
+    weightedComparisonPlan(
+      [{ ...sample(0, 0, '8'), fullName: 'Private' }],
+      catalog,
+      catalog.subjects[0].code,
+    ),
+  );
   assert.throws(() => compareWeightedClass(plan, [], 1));
 });

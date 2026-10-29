@@ -2,7 +2,11 @@
 import { el, button } from '../utils/dom.js';
 import { analyzeLearningInsights } from '../utils/gradebook-learning-insights.js';
 import { subjectLearningFeedback } from '../utils/gradebook-learning-feedback.js';
-import { weightedComparisonPlan, compareWeightedClass, weightedClassFeedback } from '../utils/gradebook-learning-comparison.js';
+import {
+  weightedComparisonPlan,
+  compareWeightedClass,
+  weightedClassFeedback,
+} from '../utils/gradebook-learning-comparison.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const trendLabels = {
@@ -264,10 +268,28 @@ export function LearningInsights(scores, catalog, { read, semester } = {}) {
   const feedbackAdvice = el('p', { class: 'learning-feedback-advice' });
 
   const classTitle = el('h5', {}, 'So với mặt bằng chung của lớp');
-  const classStatus = el('p', { class: 'learning-class-status', role: 'status' }, 'Chỉ tải thống kê khi bạn muốn so sánh.');
-  const classAction = button('So sánh với lớp', () => void loadComparison(), 'learning-class-action');
+  const classStatus = el(
+    'p',
+    { class: 'learning-class-status', role: 'status' },
+    'Chỉ tải thống kê khi bạn muốn so sánh.',
+  );
+  const classAction = button(
+    'So sánh với lớp',
+    () => void loadComparison(),
+    'learning-class-action',
+  );
   const classDetails = el('div', { class: 'learning-class-details' });
-  const classSection = el('section', { class: 'learning-class-comparison', 'aria-label': 'So sánh điểm trung bình tham khảo với lớp' }, classTitle, classStatus, classDetails, classAction);
+  const classSection = el(
+    'section',
+    {
+      class: 'learning-class-comparison',
+      'aria-label': 'So sánh điểm trung bình tham khảo với lớp',
+    },
+    classTitle,
+    classStatus,
+    classDetails,
+    classAction,
+  );
   let generation = 0;
   let controller = null;
   let disposed = false;
@@ -281,7 +303,13 @@ export function LearningInsights(scores, catalog, { read, semester } = {}) {
     classAction.disabled = false;
   };
   const loadComparison = async () => {
-    if (disposed || classAction.disabled || typeof read !== 'function' || ![1, 2].includes(semester)) return;
+    if (
+      disposed ||
+      classAction.disabled ||
+      typeof read !== 'function' ||
+      ![1, 2].includes(semester)
+    )
+      return;
     const selected = activeSubject;
     const ticket = ++generation;
     controller = new AbortController();
@@ -297,7 +325,12 @@ export function LearningInsights(scores, catalog, { read, semester } = {}) {
     try {
       const responses = [];
       for (const column of plan.columns) {
-        const body = { op: 'histogram', semester, subjectCode: selected, columnCode: column.columnCode };
+        const body = {
+          op: 'histogram',
+          semester,
+          subjectCode: selected,
+          columnCode: column.columnCode,
+        };
         responses.push(await read(body, { signal: controller.signal }));
         if (disposed || ticket !== generation) return;
       }
@@ -305,27 +338,51 @@ export function LearningInsights(scores, catalog, { read, semester } = {}) {
       if (disposed || ticket !== generation) return;
       classDetails.replaceChildren();
       if (result.status === 'ready') {
-        classDetails.append(el('div', { class: 'learning-class-metrics' },
-          el('div', {}, el('span', {}, 'Trung bình tham khảo của bạn'), el('strong', {}, result.ownLabel)),
-          el('div', {}, el('span', {}, 'Mặt bằng lớp ước tính'), el('strong', {}, result.classLabel)),
-        ));
-        classDetails.append(el('p', { class: 'learning-class-note' },
-          'Tính từ ' + result.usedColumns + '/7 cột điểm, hệ số Thường xuyên ×1, 1 tiết ×2, Giữa kì ×2, Cuối kì ×3. ' +
-          (result.incomplete ? 'Dữ liệu còn thiếu hoặc số bạn có điểm giữa các cột chưa đồng đều. ' : '') +
-          'Đây là ước lượng từ các biểu đồ phân bố, không phải thứ hạng trong lớp.'));
+        classDetails.append(
+          el(
+            'div',
+            { class: 'learning-class-metrics' },
+            el(
+              'div',
+              {},
+              el('span', {}, 'Trung bình tham khảo của bạn'),
+              el('strong', {}, result.ownLabel),
+            ),
+            el(
+              'div',
+              {},
+              el('span', {}, 'Mặt bằng lớp ước tính'),
+              el('strong', {}, result.classLabel),
+            ),
+          ),
+        );
+        classDetails.append(
+          el(
+            'p',
+            { class: 'learning-class-note' },
+            'Tính từ ' +
+              result.usedColumns +
+              '/7 cột điểm, hệ số Thường xuyên ×1, 1 tiết ×2, Giữa kì ×2, Cuối kì ×3. ' +
+              (result.incomplete
+                ? 'Dữ liệu còn thiếu hoặc số bạn có điểm giữa các cột chưa đồng đều. '
+                : '') +
+              'Đây là ước lượng từ các biểu đồ phân bố, không phải thứ hạng trong lớp.',
+          ),
+        );
       }
       classStatus.textContent = weightedClassFeedback(result);
       classAction.hidden = true;
     } catch (error) {
       if (disposed || ticket !== generation) return;
       classDetails.replaceChildren();
-      classStatus.textContent = error?.status === 401
-        ? 'Phiên xem điểm đã hết. Vui lòng xác minh lại.'
-        : error?.status === 403
-          ? 'Học kỳ này hiện không còn cho phép xem điểm.'
-          : error?.status === 429
-            ? 'Đã có nhiều yêu cầu. Vui lòng thử lại sau.'
-            : 'Chưa thể tải dữ liệu lớp. Bạn vẫn có thể xem nhận xét cá nhân.';
+      classStatus.textContent =
+        error?.status === 401
+          ? 'Phiên xem điểm đã hết. Vui lòng xác minh lại.'
+          : error?.status === 403
+            ? 'Học kỳ này hiện không còn cho phép xem điểm.'
+            : error?.status === 429
+              ? 'Đã có nhiều yêu cầu. Vui lòng thử lại sau.'
+              : 'Chưa thể tải dữ liệu lớp. Bạn vẫn có thể xem nhận xét cá nhân.';
       classAction.hidden = true;
     } finally {
       if (!disposed && ticket === generation) classAction.disabled = false;
@@ -418,6 +475,9 @@ export function LearningInsights(scores, catalog, { read, semester } = {}) {
     animation.inert = !expanded;
   };
   root.append(toggle, animation);
-  root.dispose = () => { disposed = true; clearComparison(); };
+  root.dispose = () => {
+    disposed = true;
+    clearComparison();
+  };
   return root;
 }
