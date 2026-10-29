@@ -73,13 +73,17 @@ function scoreChart(profile) {
         stroke: '#dbe8de',
         'stroke-dasharray': tick === 0 ? 'none' : '4 7',
       }),
-      svgNode('text', {
-        x: '24',
-        y: y + 4,
-        'text-anchor': 'middle',
-        fill: '#708476',
-        'font-size': '13',
-      }, [document.createTextNode(String(tick))]),
+      svgNode(
+        'text',
+        {
+          x: '24',
+          y: y + 4,
+          'text-anchor': 'middle',
+          fill: '#708476',
+          'font-size': '13',
+        },
+        [document.createTextNode(String(tick))],
+      ),
     );
   }
   for (let index = 0; index < profile.points.length - 1; index++) {
@@ -104,15 +108,26 @@ function scoreChart(profile) {
     if (point.value === null) continue;
     const pos = coordinate(point);
     svg.append(
-      svgNode('circle', { cx: pos.x, cy: pos.y, r: '7', fill: 'white', stroke: '#327d58', 'stroke-width': '3' }),
-      svgNode('text', {
-        x: pos.x,
-        y: Math.max(17, pos.y - 14),
-        'text-anchor': 'middle',
-        fill: '#205742',
-        'font-size': '14',
-        'font-weight': '700',
-      }, [document.createTextNode(point.display)]),
+      svgNode('circle', {
+        cx: pos.x,
+        cy: pos.y,
+        r: '7',
+        fill: 'white',
+        stroke: '#327d58',
+        'stroke-width': '3',
+      }),
+      svgNode(
+        'text',
+        {
+          x: pos.x,
+          y: Math.max(17, pos.y - 14),
+          'text-anchor': 'middle',
+          fill: '#205742',
+          'font-size': '14',
+          'font-weight': '700',
+        },
+        [document.createTextNode(point.display)],
+      ),
     );
   }
   const labels = el(
@@ -145,7 +160,12 @@ function subjectDetail(profile) {
     el(
       'div',
       { class: 'learning-detail-heading' },
-      el('div', {}, el('h4', {}, profile.name), el('p', {}, 'Trung vị điểm Thường xuyên: ', profile.medianLabel)),
+      el(
+        'div',
+        {},
+        el('h4', {}, profile.name),
+        el('p', {}, 'Trung vị điểm Thường xuyên: ', profile.medianLabel),
+      ),
       el(
         'span',
         { class: `learning-trend learning-trend--${profile.trend}` },
@@ -205,7 +225,11 @@ export function LearningInsights(scores, catalog) {
     { class: 'learning-insights-heading-copy' },
     el('span', { class: 'learning-insights-overline' }, icon('sparkle'), 'AI LEARNING INSIGHTS'),
     el('strong', { id: titleId }, 'Góc nhìn học tập'),
-    el('span', { class: 'learning-insights-subtitle' }, 'Thống kê từ điểm của bạn · Chưa dùng AI tạo sinh'),
+    el(
+      'span',
+      { class: 'learning-insights-subtitle' },
+      'Thống kê từ điểm của bạn · Chưa dùng AI tạo sinh',
+    ),
   );
   toggle.append(heading, el('span', { class: 'learning-chevron' }, icon('chevron')));
   const stats = [
@@ -225,7 +249,11 @@ export function LearningInsights(scores, catalog) {
       ),
     ),
   );
-  const profileGrid = el('div', { class: 'learning-subject-grid', role: 'group', 'aria-label': 'Chọn môn học để xem chi tiết' });
+  const profileGrid = el('div', {
+    class: 'learning-subject-grid',
+    role: 'group',
+    'aria-label': 'Chọn môn học để xem chi tiết',
+  });
   const detail = el('div', { class: 'learning-detail-slot', 'aria-live': 'off' });
   let activeSubject = summary.profiles[0].subjectCode;
   const selectSubject = (code) => {
@@ -240,13 +268,30 @@ export function LearningInsights(scores, catalog) {
       '',
       () => selectSubject(profile.subjectCode),
       `learning-subject learning-subject--${profile.trend}`,
-      { 'aria-pressed': 'false', 'aria-label': `${profile.name}: ${trendLabels[profile.trend]}, trung vị ${profile.medianLabel}. Xem chi tiết` },
+      {
+        'aria-pressed': 'false',
+        'aria-label': `${profile.name}: ${trendLabels[profile.trend]}, trung vị ${profile.medianLabel}. Xem chi tiết`,
+      },
     );
     subjectButton.dataset.subject = profile.subjectCode;
     subjectButton.append(
-      el('span', { class: 'learning-subject-name' }, profile.name, el('span', { class: 'learning-subject-icon' }, icon(profile.trend))),
-      el('span', { class: 'learning-subject-median' }, 'Trung vị TX', el('strong', {}, profile.medianLabel)),
-      el('span', { class: 'learning-subject-footnote' }, `${profile.samples}/4 điểm · ${trendLabels[profile.trend]}`),
+      el(
+        'span',
+        { class: 'learning-subject-name' },
+        profile.name,
+        el('span', { class: 'learning-subject-icon' }, icon(profile.trend)),
+      ),
+      el(
+        'span',
+        { class: 'learning-subject-median' },
+        'Trung vị TX',
+        el('strong', {}, profile.medianLabel),
+      ),
+      el(
+        'span',
+        { class: 'learning-subject-footnote' },
+        `${profile.samples}/4 điểm · ${trendLabels[profile.trend]}`,
+      ),
     );
     profileGrid.append(subjectButton);
   }
@@ -265,7 +310,11 @@ export function LearningInsights(scores, catalog) {
       'Nhận xét dựa trên tối thiểu 3/4 cột Thường xuyên, dùng ước lượng xu hướng trung vị cặp điểm (Theil–Sen) và ngưỡng ±0,25 điểm/mốc. Không dự đoán điểm, xếp loại hay đưa ra đánh giá năng lực.',
     ),
   );
-  const animation = el('div', { class: 'learning-insights-reveal', id: detailsId }, el('div', { class: 'learning-insights-reveal-inner' }, body));
+  const animation = el(
+    'div',
+    { class: 'learning-insights-reveal', id: detailsId },
+    el('div', { class: 'learning-insights-reveal-inner' }, body),
+  );
   let expanded = false;
   animation.inert = true;
   const setExpanded = (value) => {

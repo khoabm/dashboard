@@ -1,7 +1,10 @@
 /** Offline, synthetic-only learning insight validation: no SDK, HTTP, SQL or browser. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { analyzeLearningInsights, robustScoreSlope } from '../src/utils/gradebook-learning-insights.js';
+import {
+  analyzeLearningInsights,
+  robustScoreSlope,
+} from '../src/utils/gradebook-learning-insights.js';
 import { fixtureContext } from './student-gradeboard-data.js';
 
 const catalog = fixtureContext();
@@ -41,11 +44,10 @@ test('learning insights: robust slopes distinguish improving and declining score
     ],
     catalog,
   );
-  assert.deepEqual(result.profiles.slice(0, 3).map((profile) => profile.trend), [
-    'rising',
-    'falling',
-    'steady',
-  ]);
+  assert.deepEqual(
+    result.profiles.slice(0, 3).map((profile) => profile.trend),
+    ['rising', 'falling', 'steady'],
+  );
   assert.equal(result.analyzed, 3);
   assert.equal(result.rising, 1);
   assert.equal(result.profiles[2].median, 8.25);

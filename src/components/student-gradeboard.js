@@ -121,7 +121,13 @@ export function StudentGradeboard({ context, read, onReset }) {
       .catch(() => {
         if (disposed || insightTicket !== insightsGeneration) return;
         insightHost.setAttribute('aria-busy', 'false');
-        insightHost.replaceChildren(el('p', { role: 'status' }, 'Chưa mở được phần góc nhìn học tập. Bảng điểm vẫn có thể sử dụng.'));
+        insightHost.replaceChildren(
+          el(
+            'p',
+            { role: 'status' },
+            'Chưa mở được phần góc nhìn học tập. Bảng điểm vẫn có thể sử dụng.',
+          ),
+        );
       });
     const table = el(
       'table',
@@ -276,7 +282,7 @@ export function StudentGradeboard({ context, read, onReset }) {
         );
         if (snapshot.status === 'denied') {
           scores = [];
-                panel.replaceChildren(el('p', { role: 'status' }, messages.denied));
+          panel.replaceChildren(el('p', { role: 'status' }, messages.denied));
         }
         if (['limited', 'unavailable'].includes(snapshot.status))
           chart.append(button('Thử lại', () => load(), 'button'));
@@ -369,7 +375,7 @@ export function StudentGradeboard({ context, read, onReset }) {
       grades.dispose();
       modal?.dispose();
       scores = [];
-        element.replaceChildren();
+      element.replaceChildren();
     },
   };
 }

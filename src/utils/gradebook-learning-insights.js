@@ -81,11 +81,11 @@ export function analyzeLearningInsights(scores, catalog) {
   );
   const values = new Map();
   for (const entry of scores) {
-    allowFields(entry, ['subjectCode', 'columnCode', 'rawScore'], [
-      'subjectCode',
-      'columnCode',
-      'rawScore',
-    ]);
+    allowFields(
+      entry,
+      ['subjectCode', 'columnCode', 'rawScore'],
+      ['subjectCode', 'columnCode', 'rawScore'],
+    );
     check(subjectCodes.has(entry.subjectCode) && columnCodes.has(entry.columnCode));
     const key = coordinate(entry.subjectCode, entry.columnCode);
     check(!values.has(key));

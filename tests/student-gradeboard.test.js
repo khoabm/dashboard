@@ -602,10 +602,19 @@ test('Learning Insights: no network, empty semester and 0 distinguish missing ce
 test('Learning Insights: median uses all recorded TX scores while trend needs >=3 distinct slots', () => {
   const result = analyzeLearningInsights(
     insightsRows([
-      [0, 0, '5'], [0, 1, '6'], [0, 2, '7'], [0, 3, '8'],
-      [1, 0, '9'], [1, 1, '8'], [1, 2, '7'], [1, 3, '6'],
-      [2, 0, '3'], [2, 2, '3'], [2, 3, '3'],
-      [3, 0, '8.12500'], [3, 2, '8.87500'],
+      [0, 0, '5'],
+      [0, 1, '6'],
+      [0, 2, '7'],
+      [0, 3, '8'],
+      [1, 0, '9'],
+      [1, 1, '8'],
+      [1, 2, '7'],
+      [1, 3, '6'],
+      [2, 0, '3'],
+      [2, 2, '3'],
+      [2, 3, '3'],
+      [3, 0, '8.12500'],
+      [3, 2, '8.87500'],
     ]),
     catalog,
   );
@@ -622,16 +631,30 @@ test('Learning Insights: median uses all recorded TX scores while trend needs >=
 });
 
 test('Learning Insights: independent 1 tiết/Giữa kì/Cuối kì never change trend', () => {
-  const rows = insightsRows([[0, 0, '4'], [0, 1, '5'], [0, 2, '6']]);
+  const rows = insightsRows([
+    [0, 0, '4'],
+    [0, 1, '5'],
+    [0, 2, '6'],
+  ]);
   const first = analyzeLearningInsights(rows, catalog).profiles[0];
   const second = analyzeLearningInsights(
-    [...rows, ...insightsRows([[0, 4, '0'], [0, 5, '10'], [0, 6, '5']])],
+    [
+      ...rows,
+      ...insightsRows([
+        [0, 4, '0'],
+        [0, 5, '10'],
+        [0, 6, '5'],
+      ]),
+    ],
     catalog,
   ).profiles[0];
   assert.equal(first.trend, 'rising');
   assert.equal(second.trend, 'rising');
   assert.equal(first.medianLabel, second.medianLabel);
-  assert.deepEqual(second.assessments.map((a) => a.display), ['0.0', '10.0', '5.0']);
+  assert.deepEqual(
+    second.assessments.map((a) => a.display),
+    ['0.0', '10.0', '5.0'],
+  );
 });
 
 test('Learning Insights: bounded robust slope is not dominated by a single spike', () => {
@@ -645,7 +668,13 @@ test('Learning Insights: bounded robust slope is not dominated by a single spike
     1.5,
   );
   assert.throws(() => robustScoreSlope([{ index: 0, value: 4 }]));
-  assert.throws(() => robustScoreSlope([{ index: 1, value: 2 }, { index: 0, value: 3 }, { index: 2, value: 4 }]));
+  assert.throws(() =>
+    robustScoreSlope([
+      { index: 1, value: 2 },
+      { index: 0, value: 3 },
+      { index: 2, value: 4 },
+    ]),
+  );
 });
 
 test('Learning Insights: reject unknown fields, duplicate coordinates and invalid decimals', () => {
@@ -659,5 +688,6 @@ test('Learning Insights: reject unknown fields, duplicate coordinates and invali
     insightsRows([[0, 0, 'NaN']]),
     insightsRows([[9, 0, '8']]),
     insightsRows([[0, 7, '8']]),
-  ]) assert.throws(() => analyzeLearningInsights(rows, catalog));
+  ])
+    assert.throws(() => analyzeLearningInsights(rows, catalog));
 });
