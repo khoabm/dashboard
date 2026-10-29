@@ -128,8 +128,14 @@ const specs = {
     ['classId', 'semester', 'headers', 'rows', 'previewToken'],
     ['classId', 'semester', 'headers', 'rows', 'previewToken'],
   ],
-  'scores.batch.preview': [['classId', 'semester', 'changes'], ['classId', 'semester', 'changes']],
-  'scores.batch.apply': [['classId', 'semester', 'changes', 'previewToken'], ['classId', 'semester', 'changes', 'previewToken']],
+  'scores.batch.preview': [
+    ['classId', 'semester', 'changes'],
+    ['classId', 'semester', 'changes'],
+  ],
+  'scores.batch.apply': [
+    ['classId', 'semester', 'changes', 'previewToken'],
+    ['classId', 'semester', 'changes', 'previewToken'],
+  ],
 };
 
 /** Unknown fields, including client actor/session/crypto, fail before privileged access. */
@@ -399,11 +405,22 @@ export async function executeAdmin(body, identity, context) {
     case 'scores.batch.apply': {
       const applying = body.op === 'scores.batch.apply';
       const changes = normalizeGridBatch(body.changes);
-      const binding = { ...auth, classId: body.classId, kind: 'grid_batch', semester: body.semester };
+      const binding = {
+        ...auth,
+        classId: body.classId,
+        kind: 'grid_batch',
+        semester: body.semester,
+      };
       const canonical = frameTuple('gb:grid-batch:v1', [
-        ...changes.map((item) => frameTuple('cell', [
-          item.studentId, item.subjectCode, item.columnCode, item.expectedRevision, item.score,
-        ])),
+        ...changes.map((item) =>
+          frameTuple('cell', [
+            item.studentId,
+            item.subjectCode,
+            item.columnCode,
+            item.expectedRevision,
+            item.score,
+          ]),
+        ),
       ]);
       const token = applying
         ? await cryptography.preview(body.previewToken, binding, canonical, now())
@@ -412,10 +429,22 @@ export async function executeAdmin(body, identity, context) {
       const plan = await call('gb_score_batch_preview', args);
       const projected = importDto(plan);
       if (!applying) {
-        const signed = await cryptography.issuePreview(binding, canonical, plan.internalStateHash, now());
+        const signed = await cryptography.issuePreview(
+          binding,
+          canonical,
+          plan.internalStateHash,
+          now(),
+        );
         return ok({ ...projected, previewToken: signed.token, expiresAt: signed.expiresAt });
       }
-      if (!await cryptography.stateMatches(token.kid, binding, plan.internalStateHash, token.stateDigest))
+      if (
+        !(await cryptography.stateMatches(
+          token.kid,
+          binding,
+          plan.internalStateHash,
+          token.stateDigest,
+        ))
+      )
         throw new Failure(409, 'preview_conflict');
       checkpoint();
       let result;

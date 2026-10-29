@@ -446,10 +446,14 @@ export function GradebookScores({
     const existing = student.cells.get(`${subject}|${column.code}`);
     const baseline = existing?.rawScore ?? '';
     if (value === baseline) gridPending.delete(key);
-    else gridPending.set(key, {
-      studentId: student.id, subjectCode: subject, columnCode: column.code,
-      expectedRevision: existing?.revision ?? null, score: value,
-    });
+    else
+      gridPending.set(key, {
+        studentId: student.id,
+        subjectCode: subject,
+        columnCode: column.code,
+        expectedRevision: existing?.revision ?? null,
+        score: value,
+      });
     gridStale = false;
     dirty = gridPending.size > 0;
     updateGridActions();
@@ -460,7 +464,8 @@ export function GradebookScores({
     const count = gridPending.size;
     const info = panel.querySelector('[data-grid-count]');
     if (info) info.textContent = count ? `${count} ô chưa lưu` : 'Mọi thay đổi đã lưu';
-    for (const action of panel.querySelectorAll('[data-grid-exclusive]')) action.disabled = count > 0 || busy;
+    for (const action of panel.querySelectorAll('[data-grid-exclusive]'))
+      action.disabled = count > 0 || busy;
     const save = panel.querySelector('[data-grid-save]');
     const discard = panel.querySelector('[data-grid-discard]');
     if (save) save.disabled = count === 0 || gridStale || busy;
@@ -474,35 +479,41 @@ export function GradebookScores({
     try {
       payload = gridBatch(currentClass, semester, [...gridPending.values()]);
     } catch {
-      status.textContent = 'Có ô chưa hợp lệ. Điểm phải từ 0–10, tối đa 5 chữ số thập phân; ô trống không dùng để xóa.';
+      status.textContent =
+        'Có ô chưa hợp lệ. Điểm phải từ 0–10, tối đa 5 chữ số thập phân; ô trống không dùng để xóa.';
       return;
     }
-    void run(async (current) => {
-      const checked = await gate.call({ op: 'scores.batch.preview', ...payload });
-      if (!current()) return;
-      const counts = checked.counts;
-      if (counts.error || !checked.previewToken) throw new AdminError(422);
-      const approved = await confirm(
-        'Áp dụng các thay đổi điểm?',
-        `Thêm ${counts.insert}, cập nhật ${counts.update}, không đổi ${counts.unchanged}. ` +
-          'Toàn bộ sẽ được ghi trong một lần; không có cập nhật một phần.',
-      );
-      if (!current() || !approved) return;
-      const applied = await gate.call({
-        op: 'scores.batch.apply', ...payload, previewToken: checked.previewToken,
-      });
-      if (!current()) return;
-      if (applied.committed !== true) throw new AdminError();
-      gridPending.clear();
-      dirty = false;
-      gridStale = false;
-      await readPage(current);
-      if (current()) status.textContent = 'Đã lưu toàn bộ ô điểm đã sửa.';
-    }, (error) => {
-      gridStale = true;
-      status.textContent = `${adminMessage(error)} Bản nháp chưa gửi lại; hãy kiểm tra và tải lại điểm.`;
-      updateGridActions();
-    });
+    void run(
+      async (current) => {
+        const checked = await gate.call({ op: 'scores.batch.preview', ...payload });
+        if (!current()) return;
+        const counts = checked.counts;
+        if (counts.error || !checked.previewToken) throw new AdminError(422);
+        const approved = await confirm(
+          'Áp dụng các thay đổi điểm?',
+          `Thêm ${counts.insert}, cập nhật ${counts.update}, không đổi ${counts.unchanged}. ` +
+            'Toàn bộ sẽ được ghi trong một lần; không có cập nhật một phần.',
+        );
+        if (!current() || !approved) return;
+        const applied = await gate.call({
+          op: 'scores.batch.apply',
+          ...payload,
+          previewToken: checked.previewToken,
+        });
+        if (!current()) return;
+        if (applied.committed !== true) throw new AdminError();
+        gridPending.clear();
+        dirty = false;
+        gridStale = false;
+        await readPage(current);
+        if (current()) status.textContent = 'Đã lưu toàn bộ ô điểm đã sửa.';
+      },
+      (error) => {
+        gridStale = true;
+        status.textContent = `${adminMessage(error)} Bản nháp chưa gửi lại; hãy kiểm tra và tải lại điểm.`;
+        updateGridActions();
+      },
+    );
   }
 
   /** Warns conservatively about missing data because current B4 does not expose a publication preflight count. */
@@ -785,7 +796,9 @@ export function GradebookScores({
       return;
     }
     const published = currentClass[`semester${semester}Published`];
-    const upload = button('Nhập CSV/XLSX điểm', importScores, 'button', { 'data-grid-exclusive': '' });
+    const upload = button('Nhập CSV/XLSX điểm', importScores, 'button', {
+      'data-grid-exclusive': '',
+    });
     upload.disabled = published || gridPending.size > 0;
     const subjectSelect = el(
       'select',
@@ -797,7 +810,10 @@ export function GradebookScores({
     subjectSelect.addEventListener('change', async () => {
       const next = subjectSelect.value;
       if (next === subject) return;
-      if (!(await prepareExit())) { subjectSelect.value = subject; return; }
+      if (!(await prepareExit())) {
+        subjectSelect.value = subject;
+        return;
+      }
       gridPending.clear();
       gridStale = false;
       dirty = false;
@@ -840,24 +856,52 @@ export function GradebookScores({
         subjectSelect,
         pupil,
         upload,
-        button(published ? 'Tạm ẩn học kỳ' : 'Công bố học kỳ', publication, 'button', { 'data-grid-exclusive': '', disabled: gridPending.size > 0 }),
+        button(published ? 'Tạm ẩn học kỳ' : 'Công bố học kỳ', publication, 'button', {
+          'data-grid-exclusive': '',
+          disabled: gridPending.size > 0,
+        }),
         button('Tải lại điểm', reload),
       ),
       templates,
-      !published && el('div', { class: 'admin-actions grid-edit-toolbar' },
-        el('span', { 'data-grid-count': '', role: 'status', 'aria-live': 'polite' },
-          gridPending.size ? `${gridPending.size} ô chưa lưu` : 'Mọi thay đổi đã lưu'),
-        button('Lưu thay đổi', saveGrid, 'button primary', { 'data-grid-save': '', disabled: !gridPending.size || gridStale }),
-        button('Bỏ thay đổi', async () => {
-          if (!(await confirm('Bỏ các điểm chưa lưu?', 'Các điểm chưa lưu sẽ bị hủy; dữ liệu trên máy chủ không thay đổi.'))) return;
-          gridPending.clear(); gridStale = false; dirty = false; render();
-        }, 'button', { 'data-grid-discard': '', disabled: !gridPending.size }),
-      ),
-      el('p', { class: 'muted' },
+      !published &&
+        el(
+          'div',
+          { class: 'admin-actions grid-edit-toolbar' },
+          el(
+            'span',
+            { 'data-grid-count': '', role: 'status', 'aria-live': 'polite' },
+            gridPending.size ? `${gridPending.size} ô chưa lưu` : 'Mọi thay đổi đã lưu',
+          ),
+          button('Lưu thay đổi', saveGrid, 'button primary', {
+            'data-grid-save': '',
+            disabled: !gridPending.size || gridStale,
+          }),
+          button(
+            'Bỏ thay đổi',
+            async () => {
+              if (
+                !(await confirm(
+                  'Bỏ các điểm chưa lưu?',
+                  'Các điểm chưa lưu sẽ bị hủy; dữ liệu trên máy chủ không thay đổi.',
+                ))
+              )
+                return;
+              gridPending.clear();
+              gridStale = false;
+              dirty = false;
+              render();
+            },
+            'button',
+            { 'data-grid-discard': '', disabled: !gridPending.size },
+          ),
+        ),
+      el(
+        'p',
+        { class: 'muted' },
         published
           ? 'Học kỳ đã công bố: nhấn ô để sửa/xóa điểm với xác nhận.'
-          : 'Nhập trực tiếp vào nhiều ô, rồi chọn Lưu thay đổi. Ô trống không phải lệnh xóa. Nhấn tên cột để sắp xếp trang hiện tại.'),
-
+          : 'Nhập trực tiếp vào nhiều ô, rồi chọn Lưu thay đổi. Ô trống không phải lệnh xóa. Nhấn tên cột để sắp xếp trang hiện tại.',
+      ),
     );
     const list = students.filter((s) => !selected || s.id === selected);
     if (sorting)
@@ -913,11 +957,18 @@ export function GradebookScores({
               display = score ? displayScore(score.rawScore) : '—';
             const key = `${student.id}|${subject}|${column.code}`;
             if (published)
-              return el('td', {}, button(display, () => editScore(student, column), 'button score-cell', {
-                'aria-label': `${student.fullName || 'Chưa có tên'} · ${column.displayName}: ${display}`,
-              }));
+              return el(
+                'td',
+                {},
+                button(display, () => editScore(student, column), 'button score-cell', {
+                  'aria-label': `${student.fullName || 'Chưa có tên'} · ${column.displayName}: ${display}`,
+                }),
+              );
             const input = el('input', {
-              type: 'text', inputmode: 'decimal', autocomplete: 'off', maxlength: 32,
+              type: 'text',
+              inputmode: 'decimal',
+              autocomplete: 'off',
+              maxlength: 32,
               value: gridPending.get(key)?.score ?? score?.rawScore ?? '',
               class: 'grid-score-input',
               'aria-label': `${student.fullName || 'Chưa có tên'} · ${column.displayName} · điểm gốc`,
@@ -929,8 +980,11 @@ export function GradebookScores({
               input.classList.toggle('grid-score-dirty', changed);
               let valid = true;
               if (changed) {
-                try { gridBatch(currentClass, semester, [gridPending.get(key)]); }
-                catch { valid = false; }
+                try {
+                  gridBatch(currentClass, semester, [gridPending.get(key)]);
+                } catch {
+                  valid = false;
+                }
               }
               input.setAttribute('aria-invalid', String(!valid));
             };
@@ -943,23 +997,21 @@ export function GradebookScores({
     if (!list.length)
       rows.append(el('tr', {}, el('td', { colspan: 8 }, 'Không có học sinh trong trang này.')));
     table.append(el('thead', {}, head), rows);
-    const prev = button(
-      'Trang điểm trước',
-      async () => {
-        if (!(await prepareExit())) return;
-        gridPending.clear(); gridStale = false; dirty = false;
-        void run((current) => readPage(current, cursors.at(-2), cursors.slice(0, -1)));
-      },
-    );
+    const prev = button('Trang điểm trước', async () => {
+      if (!(await prepareExit())) return;
+      gridPending.clear();
+      gridStale = false;
+      dirty = false;
+      void run((current) => readPage(current, cursors.at(-2), cursors.slice(0, -1)));
+    });
     prev.disabled = cursors.length <= 1;
-    const next = button(
-      'Trang điểm sau',
-      async () => {
-        if (!(await prepareExit())) return;
-        gridPending.clear(); gridStale = false; dirty = false;
-        void run((current) => readPage(current, nextCursor, [...cursors, nextCursor]));
-      },
-    );
+    const next = button('Trang điểm sau', async () => {
+      if (!(await prepareExit())) return;
+      gridPending.clear();
+      gridStale = false;
+      dirty = false;
+      void run((current) => readPage(current, nextCursor, [...cursors, nextCursor]));
+    });
     next.disabled = !nextCursor;
     panel.append(
       el(

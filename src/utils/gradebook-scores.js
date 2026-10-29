@@ -240,7 +240,10 @@ export function scoreBatch(records, catalogs, today = vietnamToday()) {
 
 /** Builds a bounded, revision-aware grid batch from only changed, nonblank cells. */
 export function gridBatch(classroom, semester, changes) {
-  requireContract([1, 2].includes(semester) && classroom[`semester${semester}Published`] === false, 'published');
+  requireContract(
+    [1, 2].includes(semester) && classroom[`semester${semester}Published`] === false,
+    'published',
+  );
   requireContract(Array.isArray(changes) && changes.length > 0 && changes.length <= 140, 'batch');
   const keys = new Set();
   return {
@@ -248,13 +251,18 @@ export function gridBatch(classroom, semester, changes) {
     semester,
     changes: changes.map(({ studentId, subjectCode, columnCode, expectedRevision, score }) => {
       const id = bigintId(studentId);
-      const subject = code(subjectCode), column = code(columnCode);
+      const subject = code(subjectCode),
+        column = code(columnCode);
       const key = `${id}|${subject}|${column}`;
       requireContract(!keys.has(key), 'duplicate_coordinate');
       keys.add(key);
-      return { studentId: id, subjectCode: subject, columnCode: column,
+      return {
+        studentId: id,
+        subjectCode: subject,
+        columnCode: column,
         expectedRevision: expectedRevision === null ? null : bigintId(expectedRevision),
-        score: normalizeScore(score) };
+        score: normalizeScore(score),
+      };
     }),
   };
 }

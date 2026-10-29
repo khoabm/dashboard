@@ -355,8 +355,20 @@ test('CP04-T14 joins only matching paged identities and projects validated score
 
 test('GRID-B01 batch accepts exact changed cells with null/positive revisions and rejects unsafe scores', () => {
   const batch = gridBatch(classroom, 1, [
-    { studentId: '101', subjectCode: 'math', columnCode: 'midterm', expectedRevision: null, score: '8.12345' },
-    { studentId: '102', subjectCode: 'math', columnCode: 'final', expectedRevision: '9999999999999999', score: '0' },
+    {
+      studentId: '101',
+      subjectCode: 'math',
+      columnCode: 'midterm',
+      expectedRevision: null,
+      score: '8.12345',
+    },
+    {
+      studentId: '102',
+      subjectCode: 'math',
+      columnCode: 'final',
+      expectedRevision: '9999999999999999',
+      score: '0',
+    },
   ]);
   assert.equal(batch.changes.length, 2);
   assert.equal(batch.changes[0].score, '8.12345');
