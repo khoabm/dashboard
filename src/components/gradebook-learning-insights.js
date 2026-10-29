@@ -1,11 +1,13 @@
 /** A collapsible, session-only student learning insights view with an accessible SVG trend chart. */
 import { el, button } from '../utils/dom.js';
+import { PulseIndicator, setPendingMessage } from './pending.js';
 import { analyzeLearningInsights } from '../utils/gradebook-learning-insights.js';
 import { subjectLearningFeedback } from '../utils/gradebook-learning-feedback.js';
 import {
   weightedComparisonPlan,
   compareWeightedClass,
   weightedClassFeedback,
+  createWeightedComparisonRead,
 } from '../utils/gradebook-learning-comparison.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -273,12 +275,13 @@ export function LearningInsights(scores, catalog, { read, semester } = {}) {
     { class: 'learning-class-status', role: 'status' },
     'Chỉ tải thống kê khi bạn muốn so sánh.',
   );
+  const classPending = PulseIndicator();
   const classAction = button(
     'So sánh với lớp',
     () => void loadComparison(),
     'learning-class-action',
   );
-  const classDetails = el('div', { class: 'learning-class-details' });
+  const classDetails = el('div', { class: 'learning-class-details', 'aria-busy': 'false' });
   const classSection = el(
     'section',
     {
@@ -287,105 +290,102 @@ export function LearningInsights(scores, catalog, { read, semester } = {}) {
     },
     classTitle,
     classStatus,
+    classPending,
     classDetails,
     classAction,
   );
-  let generation = 0;
-  let controller = null;
   let disposed = false;
-  const clearComparison = () => {
-    generation++;
-    controller?.abort();
-    controller = null;
-    classStatus.textContent = 'Chỉ tải thống kê khi bạn muốn so sánh.';
+
+  // Use the same shared loader as the Gradebook's existing score and chart reads.
+  const comparison = createWeightedComparisonRead(read, (snapshot) => {
+    if (disposed) return;
+    const loading = snapshot.status === 'loading';
+    classDetails.setAttribute('aria-busy', String(loading));
+    setPendingMessage(
+      classPending,
+      loading
+        ? `Đang tải điểm của lớp: ${snapshot.completed}/${snapshot.total} cột đã hoàn tất…`
+        : '',
+    );
+    classStatus.hidden = loading;
+    classAction.disabled = loading;
+    if (loading) return;
+
     classDetails.replaceChildren();
-    classAction.hidden = false;
-    classAction.disabled = false;
-  };
-  const loadComparison = async () => {
-    if (
-      disposed ||
-      classAction.disabled ||
-      typeof read !== 'function' ||
-      ![1, 2].includes(semester)
-    )
-      return;
-    const selected = activeSubject;
-    const ticket = ++generation;
-    controller = new AbortController();
-    classAction.disabled = true;
-    classStatus.textContent = 'Đang tổng hợp điểm để so sánh…';
-    const plan = weightedComparisonPlan(scores, catalog, selected);
-    if (!plan.columns.length) {
-      classStatus.textContent = weightedClassFeedback({ status: 'no-scores' });
-      classAction.hidden = true;
-      classAction.disabled = false;
-      return;
-    }
-    try {
-      const responses = [];
-      for (const column of plan.columns) {
-        const body = {
-          op: 'histogram',
-          semester,
-          subjectCode: selected,
-          columnCode: column.columnCode,
-        };
-        responses.push(await read(body, { signal: controller.signal }));
-        if (disposed || ticket !== generation) return;
-      }
-      const result = compareWeightedClass(plan, responses, semester);
-      if (disposed || ticket !== generation) return;
-      classDetails.replaceChildren();
-      if (result.status === 'ready') {
-        classDetails.append(
+    if (snapshot.status === 'ready') {
+      const result = snapshot.result;
+      classDetails.append(
+        el(
+          'div',
+          { class: 'learning-class-metrics' },
           el(
             'div',
-            { class: 'learning-class-metrics' },
-            el(
-              'div',
-              {},
-              el('span', {}, 'Trung bình tham khảo của bạn'),
-              el('strong', {}, result.ownLabel),
-            ),
-            el(
-              'div',
-              {},
-              el('span', {}, 'Mặt bằng lớp ước tính'),
-              el('strong', {}, result.classLabel),
-            ),
+            {},
+            el('span', {}, 'Trung bình tham khảo của bạn'),
+            el('strong', {}, result.ownLabel),
           ),
-        );
-        classDetails.append(
           el(
-            'p',
-            { class: 'learning-class-note' },
-            'Tính từ ' +
-              result.usedColumns +
-              '/7 cột điểm, hệ số Thường xuyên ×1, 1 tiết ×2, Giữa kì ×2, Cuối kì ×3. ' +
-              (result.incomplete
-                ? 'Dữ liệu còn thiếu hoặc số bạn có điểm giữa các cột chưa đồng đều. '
-                : '') +
-              'Đây là ước lượng từ các biểu đồ phân bố, không phải thứ hạng trong lớp.',
+            'div',
+            {},
+            el('span', {}, 'Mặt bằng lớp ước tính'),
+            el('strong', {}, result.classLabel),
           ),
-        );
-      }
+        ),
+        el(
+          'p',
+          { class: 'learning-class-note' },
+          'Tính từ ' +
+            result.usedColumns +
+            '/7 cột điểm, hệ số Thường xuyên ×1, 1 tiết ×2, Giữa kì ×2, Cuối kì ×3. ' +
+            (result.incomplete
+              ? 'Dữ liệu còn thiếu hoặc số bạn có điểm giữa các cột chưa đồng đều. '
+              : '') +
+            'Đây là ước lượng từ các biểu đồ phân bố, không phải thứ hạng trong lớp.',
+        ),
+      );
       classStatus.textContent = weightedClassFeedback(result);
+    } else if (['no-scores', 'insufficient-class'].includes(snapshot.status)) {
+      classStatus.textContent = weightedClassFeedback({ status: snapshot.status });
+    } else {
+      const messages = {
+        expired: 'Phiên xem điểm đã hết. Vui lòng xác minh lại.',
+        denied: 'Học kỳ này hiện không còn cho phép xem điểm.',
+        limited: 'Đã có nhiều yêu cầu. Vui lòng thử lại sau.',
+        unavailable: 'Chưa thể tải dữ liệu lớp. Bạn vẫn có thể xem nhận xét cá nhân.',
+      };
+      classStatus.textContent = messages[snapshot.status] || messages.unavailable;
+    }
+
+    // Failed transport may be retried explicitly, never automatically.
+    classAction.hidden = snapshot.status !== 'unavailable';
+    classAction.textContent = snapshot.status === 'unavailable' ? 'Thử lại' : 'So sánh với lớp';
+  });
+
+  const clearComparison = () => {
+    comparison.cancel();
+    setPendingMessage(classPending);
+    classDetails.replaceChildren();
+    classDetails.setAttribute('aria-busy', 'false');
+    classStatus.hidden = false;
+    classStatus.textContent = 'Chỉ tải thống kê khi bạn muốn so sánh.';
+    classAction.hidden = false;
+    classAction.disabled = false;
+    classAction.textContent = 'So sánh với lớp';
+  };
+
+  const loadComparison = async () => {
+    if (disposed || classAction.disabled) return;
+    try {
+      const plan = weightedComparisonPlan(scores, catalog, activeSubject);
+      await comparison.run(plan, semester);
+    } catch {
+      if (disposed) return;
+      setPendingMessage(classPending);
+      classDetails.setAttribute('aria-busy', 'false');
+      classStatus.hidden = false;
+      classStatus.textContent = 'Chưa thể thực hiện so sánh. Bảng điểm của bạn vẫn xem được.';
+      classAction.disabled = false;
       classAction.hidden = true;
-    } catch (error) {
-      if (disposed || ticket !== generation) return;
-      classDetails.replaceChildren();
-      classStatus.textContent =
-        error?.status === 401
-          ? 'Phiên xem điểm đã hết. Vui lòng xác minh lại.'
-          : error?.status === 403
-            ? 'Học kỳ này hiện không còn cho phép xem điểm.'
-            : error?.status === 429
-              ? 'Đã có nhiều yêu cầu. Vui lòng thử lại sau.'
-              : 'Chưa thể tải dữ liệu lớp. Bạn vẫn có thể xem nhận xét cá nhân.';
-      classAction.hidden = true;
-    } finally {
-      if (!disposed && ticket === generation) classAction.disabled = false;
     }
   };
 
@@ -477,7 +477,9 @@ export function LearningInsights(scores, catalog, { read, semester } = {}) {
   root.append(toggle, animation);
   root.dispose = () => {
     disposed = true;
-    clearComparison();
+    comparison.dispose();
+    setPendingMessage(classPending);
+    classDetails.replaceChildren();
   };
   return root;
 }

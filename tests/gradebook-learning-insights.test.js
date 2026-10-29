@@ -11,6 +11,7 @@ import {
   weightedComparisonPlan,
   compareWeightedClass,
   weightedClassFeedback,
+  createWeightedComparisonRead,
 } from '../src/utils/gradebook-learning-comparison.js';
 
 const catalog = fixtureContext();
@@ -253,4 +254,125 @@ test('class comparison fails closed on wrong scope, peer data and malformed buck
     ),
   );
   assert.throws(() => compareWeightedClass(plan, [], 1));
+});
+
+test('class comparison progress is bounded and uses only the existing histogram read', async () => {
+  const plan = weightedComparisonPlan(
+    [sample(0, 0, '7'), sample(0, 1, '8'), sample(0, 6, '9')],
+    catalog,
+    catalog.subjects[0].code,
+  );
+  const calls = [];
+  const states = [];
+  const owner = createWeightedComparisonRead(
+    async (body, { signal }) => {
+      calls.push({ body, signal });
+      return classHistogram(plan.columns[calls.length - 1], 7);
+    },
+    (state) => states.push(state),
+  );
+  assert.equal(calls.length, 0);
+  await owner.run(plan, 1);
+  assert.equal(calls.length, 3);
+  assert.ok(calls.every((call) => call.signal instanceof AbortSignal));
+  assert.deepEqual(
+    states.filter((state) => state.status === 'loading').map((state) => state.completed),
+    [0, 1, 2, 3],
+  );
+  assert.equal(states.at(-1).status, 'ready');
+  assert.equal(states.at(-1).result.classLabel, '7.0');
+  owner.dispose();
+});
+
+test('class comparison never sends a request for no scores or after disposal', async () => {
+  const empty = weightedComparisonPlan([], catalog, catalog.subjects[0].code);
+  let calls = 0;
+  const states = [];
+  const owner = createWeightedComparisonRead(
+    async () => {
+      calls++;
+    },
+    (state) => states.push(state),
+  );
+  await owner.run(empty, 1);
+  assert.equal(calls, 0);
+  assert.deepEqual(states.at(-1), { status: 'no-scores' });
+  owner.dispose();
+  await owner.run(empty, 1);
+  assert.equal(calls, 0);
+});
+
+test('class comparison cancellation suppresses late results and prevents the next column read', async () => {
+  const plan = weightedComparisonPlan(
+    [sample(0, 0, '6'), sample(0, 1, '7')],
+    catalog,
+    catalog.subjects[0].code,
+  );
+  const held = Promise.withResolvers();
+  const states = [];
+  const calls = [];
+  const owner = createWeightedComparisonRead(
+    async (body, { signal }) => {
+      calls.push({ body, signal });
+      return held.promise;
+    },
+    (state) => states.push(state),
+  );
+  const pending = owner.run(plan, 1);
+  assert.equal(states.at(-1).status, 'loading');
+  assert.equal(calls.length, 1);
+  owner.cancel();
+  assert.equal(calls[0].signal.aborted, true);
+  const previousCount = states.length;
+  held.resolve(classHistogram(plan.columns[0], 6));
+  await pending;
+  assert.equal(calls.length, 1);
+  assert.equal(states.length, previousCount);
+  owner.dispose();
+});
+
+test('class comparison stops on a small group and never fetches remaining columns', async () => {
+  const plan = weightedComparisonPlan(
+    [sample(0, 0, '6'), sample(0, 1, '7')],
+    catalog,
+    catalog.subjects[0].code,
+  );
+  let calls = 0;
+  const states = [];
+  const owner = createWeightedComparisonRead(
+    async () => {
+      calls++;
+      return classHistogram(plan.columns[0], 6, 9);
+    },
+    (state) => states.push(state),
+  );
+  await owner.run(plan, 1);
+  assert.equal(calls, 1);
+  assert.deepEqual(states.at(-1), { status: 'insufficient-class' });
+  owner.dispose();
+});
+
+test('class comparison failures have safe distinct states and never retry automatically', async () => {
+  const plan = weightedComparisonPlan([sample(0, 0, '5')], catalog, catalog.subjects[0].code);
+  for (const [status, category] of [
+    [401, 'expired'],
+    [403, 'denied'],
+    [429, 'limited'],
+    [503, 'unavailable'],
+  ]) {
+    const states = [];
+    let calls = 0;
+    const owner = createWeightedComparisonRead(
+      async () => {
+        calls++;
+        throw { status, secret: 'must-not-appear' };
+      },
+      (state) => states.push(state),
+    );
+    await owner.run(plan, 1);
+    assert.equal(calls, 1);
+    assert.equal(states.at(-1).status, category);
+    assert.doesNotMatch(JSON.stringify(states), /must-not-appear/);
+    owner.dispose();
+  }
 });

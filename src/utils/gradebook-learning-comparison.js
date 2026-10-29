@@ -184,3 +184,91 @@ export function weightedClassFeedback(result) {
   };
   return text[result.relation];
 }
+
+/**
+ * Owns one opt-in, bounded class-comparison operation and reports observable progress.
+ * Its injected read uses the existing verified Gradebook capability; no retries/prefetch.
+ * Cancellation suppresses late results even when a transport ignores AbortSignal.
+ *
+ * @param {Function} read - Existing student read(body, { signal }) adapter.
+ * @param {Function} changed - Receives loading/progress, result, or safe terminal state.
+ * @returns {{run: Function, cancel: Function, dispose: Function}} Single-operation owner.
+ */
+export function createWeightedComparisonRead(read, changed) {
+  check(typeof read === 'function' && typeof changed === 'function');
+  let generation = 0;
+  let controller = null;
+  let disposed = false;
+  const cancel = () => {
+    generation++;
+    controller?.abort();
+    controller = null;
+  };
+  return {
+    cancel,
+    dispose() {
+      cancel();
+      disposed = true;
+    },
+    async run(plan, semester) {
+      if (disposed) return;
+      cancel();
+      const ticket = generation;
+      if (!plan?.columns?.length) {
+        check(plan && Array.isArray(plan.columns) && plan.columns.length === 0);
+        changed({ status: 'no-scores' });
+        return;
+      }
+      check(
+        [1, 2].includes(semester) &&
+          Array.isArray(plan.columns) &&
+          plan.columns.length <= 7 &&
+          typeof plan.subjectCode === 'string',
+      );
+      controller = new AbortController();
+      const signal = controller.signal;
+      const current = () => !disposed && ticket === generation && !signal.aborted;
+      const total = plan.columns.length;
+      changed({ status: 'loading', completed: 0, total });
+      const responses = [];
+      try {
+        for (const column of plan.columns) {
+          const selection = {
+            semester,
+            subjectCode: plan.subjectCode,
+            columnCode: column.columnCode,
+          };
+          const value = await read({ op: 'histogram', ...selection }, { signal });
+          if (!current()) return;
+          // Reject invalid scope or private peer rows before issuing another request.
+          const buckets = histogram(value, selection);
+          const count = buckets.reduce((sum, bucket) => sum + bucket.studentCount, 0);
+          if (!Number.isSafeInteger(count) || count > 10000)
+            throw Error('Invalid aggregate size');
+          if (count < 10) {
+            changed({ status: 'insufficient-class' });
+            return;
+          }
+          responses.push(value);
+          changed({ status: 'loading', completed: responses.length, total });
+        }
+        const result = compareWeightedClass(plan, responses, semester);
+        if (current()) changed({ status: result.status, result });
+      } catch (error) {
+        if (!current()) return;
+        changed({
+          status:
+            error?.status === 401
+              ? 'expired'
+              : error?.status === 403
+                ? 'denied'
+                : error?.status === 429
+                  ? 'limited'
+                  : 'unavailable',
+        });
+      } finally {
+        if (ticket === generation) controller = null;
+      }
+    },
+  };
+}

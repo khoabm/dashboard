@@ -46,3 +46,10 @@ The contextual-feedback change is limited to a pure suggestion helper, student p
 - Do not compare at all if any requested aggregate has fewer than ten students with scores. Unequal group sizes or incomplete personal coverage are disclosed. A small ±0.3 reference-point buffer is treated as similar. Never show rank/Top, percentile or claims about academic ability.
 - A descriptive observation and optional encouragement stay distinct from the class reference. A publication/auth/availability failure remains a neutral fail-closed UI result.
 - Offline regression includes full eleven-weight formula, zero, missing data, exact code/semester/column matching, cohort size, and malformed/privacy-rich responses. Live backend calls and actual browser QA are NOT RUN.
+
+## Existing pulse loader and read-state refinement (2026-10-29)
+
+- Reuses the shared `PulseIndicator` and `setPendingMessage` inside the existing subject comparison section. The progress label reports completed columns out of the current plan (maximum seven) via a polite live status.
+- Keeps the button disabled while a comparison is pending and marks its result region busy. A new subject/semester, route exit or publication denial cancels in-flight requests, clears loader/status and ignores any stale results.
+- Shows friendly terminal states for unavailable, rate-limited, denied, expired, empty and insufficient class data. A transient unavailable state offers **manual** `Thử lại` only; no automatic retries or extra APIs.
+- A per-subject operation uses the existing capability-authenticated histogram read sequentially and checks every aggregate's scope/cohort before fetching the next column. Synthetic offline tests cover progress, one-shot calls, cancellation, minimum cohort, no-scores, and fail-closed errors. No hosted API calls or browser QA were performed.

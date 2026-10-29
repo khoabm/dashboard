@@ -2383,3 +2383,13 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Keep the shared loading pulse readable inside the selected-subject feedback only. */
+.learning-class-comparison .pending-indicator {
+  margin: 10px 0;
+  color: #315f47;
+  font-size: 13px;
+}
+.learning-class-details[aria-busy='true'] {
+  min-height: 0;
+}
