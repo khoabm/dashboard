@@ -6,7 +6,7 @@ on:
     paths:
       - .github/workflows/gradebook-failed-limit-qa.yml
       - supabase/functions/_shared/student.js
-      - supabase/migrations/20261029093000_gradebook_failed_verification_only_limit.sql
+      - supabase/migrations/20261029093144_gradebook_failed_verification_only_limit.sql
       - tests/gradebook-edge.test.js
       - tests/gradebook-b3-sql.mjs
 permissions:
