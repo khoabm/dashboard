@@ -1,5 +1,5 @@
 /** Computes explainable session-only learning trends from validated, published own scores. */
-import { normalizeScore, displayScore } from './gradebook/decimal.js';
+import { normalizeScore } from './gradebook/decimal.js';
 import { allowFields, requireContract } from './gradebook/contracts.js';
 
 const check = (condition) => requireContract(condition, 'insights');
