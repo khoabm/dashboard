@@ -96,3 +96,20 @@ optional topic chips and bottom launcher clearance. This is a presentation-only 
 - Previous synthetic Board Assistant MVP acceptance belongs to the base and must not be misrepresented as runtime QA of this UI refinement.
 - On reviewed HEAD `96d7a3b8241ac1c3db2b99d2cea9630a585d466c`, GitHub reported zero check runs. `.github/workflows/ci.yml` runs on PRs to develop/main, not to ai-learning-assistant. Exact-HEAD npm test/build/Prettier and browser E2E **NOT RUN** in this review.
 - Gate: **NOT PASS — CI evidence missing**. Do not merge PR #15 until the requested CI gate is demonstrably successful on the final UI commit.
+
+## F01–F06 corrective acceptance — 2026-10-29
+
+Supersedes earlier UI NOT RUN statements only for the synthetic scope executed in
+[execution plan/results](UI_FIX_EXECPLAN.md). Current corrections: synchronous preview focus
+handoff/modal boundary wrapping; short-height collapsed utilities; readable secondary text;
+state-derived live cloud disclosure; session-only validated source-ID filtering; clearing old
+persisted filters on assistant navigation. Manual Board substring search remains unchanged.
+
+Actual Chromium eight-viewport geometry/keyboard, cancellation, mock cloud failure, revocation
+and production-main synthetic persistence checks PASS. Offline curated131/131 and explicit
+assistant pure/transport/Worker19/19 PASS. Build/exclusions/check/format PASS. Paired
+[before](evidence/ui-20261029/before-landscape.png) /
+[after](evidence/ui-20261029/after-landscape.png) landscape screenshots are synthetic.
+Cloudflare hosted pilot BLOCKED (unverifiable quota and insufficient lower hard cap), all
+hosted counters0. No Supabase activity. Native200% zoom, iOS/Safari and soft keyboard NOT RUN.
+This is partial acceptance, not FULLY E2E PASS; historical hosted evidence above is not replayed.

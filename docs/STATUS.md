@@ -1,3 +1,16 @@
+# Board Assistant F01–F06 corrective QA — 2026-10-29
+
+Source989ec35; task fix/board-assistant-ui-e2e-20261029. Focus, short-height layout,
+readability, cloud disclosure, source-ID filters and persistence corrected.
+Offline131 curated +19 assistant PASS; actual Chromium synthetic viewport/interaction and
+main.js filter persistence PASS. [Evidence and limitations](features/board-assistant/UI_FIX_EXECPLAN.md).
+Cloudflare pilot BLOCKED (quota/cap prerequisites); hosted Cloudflare/Supabase requests0.
+No Worker/Gradebook changes or deploy. Native zoom/mobile/Safari NOT RUN. GitHub API Forbidden;
+Draft PR creation depends on access. Overall PARTIAL, not full E2E acceptance. Older results below
+remain historical and do not establish current hosted acceptance.
+
+---
+
 # Board Assistant MVP — synthetic E2E accepted / 2026-10-29
 
 Delivery branch `ai-learning-assistant`, baseline `develop` / `4f254961e9fa3604e8e843e3c5f63a15f2e9edc7`.
