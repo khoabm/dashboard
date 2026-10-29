@@ -2,6 +2,7 @@
 import { el, button } from '../utils/dom.js';
 import { analyzeLearningInsights } from '../utils/gradebook-learning-insights.js';
 import { subjectLearningFeedback } from '../utils/gradebook-learning-feedback.js';
+import { weightedComparisonPlan, compareWeightedClass, weightedClassFeedback } from '../utils/gradebook-learning-comparison.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const trendLabels = {
@@ -209,7 +210,7 @@ function subjectDetail(profile) {
  * @param {object} catalog - The validated eight-subject/seven-column presentation catalog.
  * @returns {HTMLElement} An accessible expandable insights section.
  */
-export function LearningInsights(scores, catalog) {
+export function LearningInsights(scores, catalog, { read, semester } = {}) {
   const summary = analyzeLearningInsights(scores, catalog);
   const root = el('section', { class: 'learning-insights', 'aria-label': 'Góc nhìn học tập' });
   const titleId = 'student-learning-insights-heading';
@@ -261,9 +262,80 @@ export function LearningInsights(scores, catalog) {
   const feedbackHeading = el('h4', { class: 'learning-feedback-heading' });
   const feedbackObservation = el('p', { class: 'learning-feedback-observation' });
   const feedbackAdvice = el('p', { class: 'learning-feedback-advice' });
+
+  const classTitle = el('h5', {}, 'So với mặt bằng chung của lớp');
+  const classStatus = el('p', { class: 'learning-class-status', role: 'status' }, 'Chỉ tải thống kê khi bạn muốn so sánh.');
+  const classAction = button('So sánh với lớp', () => void loadComparison(), 'learning-class-action');
+  const classDetails = el('div', { class: 'learning-class-details' });
+  const classSection = el('section', { class: 'learning-class-comparison', 'aria-label': 'So sánh điểm trung bình tham khảo với lớp' }, classTitle, classStatus, classDetails, classAction);
+  let generation = 0;
+  let controller = null;
+  let disposed = false;
+  const clearComparison = () => {
+    generation++;
+    controller?.abort();
+    controller = null;
+    classStatus.textContent = 'Chỉ tải thống kê khi bạn muốn so sánh.';
+    classDetails.replaceChildren();
+    classAction.hidden = false;
+    classAction.disabled = false;
+  };
+  const loadComparison = async () => {
+    if (disposed || classAction.disabled || typeof read !== 'function' || ![1, 2].includes(semester)) return;
+    const selected = activeSubject;
+    const ticket = ++generation;
+    controller = new AbortController();
+    classAction.disabled = true;
+    classStatus.textContent = 'Đang tổng hợp điểm để so sánh…';
+    const plan = weightedComparisonPlan(scores, catalog, selected);
+    if (!plan.columns.length) {
+      classStatus.textContent = weightedClassFeedback({ status: 'no-scores' });
+      classAction.hidden = true;
+      classAction.disabled = false;
+      return;
+    }
+    try {
+      const responses = [];
+      for (const column of plan.columns) {
+        const body = { op: 'histogram', semester, subjectCode: selected, columnCode: column.columnCode };
+        responses.push(await read(body, { signal: controller.signal }));
+        if (disposed || ticket !== generation) return;
+      }
+      const result = compareWeightedClass(plan, responses, semester);
+      if (disposed || ticket !== generation) return;
+      classDetails.replaceChildren();
+      if (result.status === 'ready') {
+        classDetails.append(el('div', { class: 'learning-class-metrics' },
+          el('div', {}, el('span', {}, 'Trung bình tham khảo của bạn'), el('strong', {}, result.ownLabel)),
+          el('div', {}, el('span', {}, 'Mặt bằng lớp ước tính'), el('strong', {}, result.classLabel)),
+        ));
+        classDetails.append(el('p', { class: 'learning-class-note' },
+          'Tính từ ' + result.usedColumns + '/7 cột điểm, hệ số Thường xuyên ×1, 1 tiết ×2, Giữa kì ×2, Cuối kì ×3. ' +
+          (result.incomplete ? 'Dữ liệu còn thiếu hoặc số bạn có điểm giữa các cột chưa đồng đều. ' : '') +
+          'Đây là ước lượng từ các biểu đồ phân bố, không phải thứ hạng trong lớp.'));
+      }
+      classStatus.textContent = weightedClassFeedback(result);
+      classAction.hidden = true;
+    } catch (error) {
+      if (disposed || ticket !== generation) return;
+      classDetails.replaceChildren();
+      classStatus.textContent = error?.status === 401
+        ? 'Phiên xem điểm đã hết. Vui lòng xác minh lại.'
+        : error?.status === 403
+          ? 'Học kỳ này hiện không còn cho phép xem điểm.'
+          : error?.status === 429
+            ? 'Đã có nhiều yêu cầu. Vui lòng thử lại sau.'
+            : 'Chưa thể tải dữ liệu lớp. Bạn vẫn có thể xem nhận xét cá nhân.';
+      classAction.hidden = true;
+    } finally {
+      if (!disposed && ticket === generation) classAction.disabled = false;
+    }
+  };
+
   let activeSubject = summary.profiles[0].subjectCode;
   const selectSubject = (code) => {
     activeSubject = code;
+    clearComparison();
     const profile = summary.profiles.find((subject) => subject.subjectCode === code);
     for (const item of profileGrid.children)
       item.setAttribute('aria-pressed', String(item.dataset.subject === code));
@@ -318,6 +390,7 @@ export function LearningInsights(scores, catalog) {
       { class: 'learning-feedback-panel', 'aria-label': 'Nhận xét và gợi ý cho môn đã chọn' },
       el('div', { class: 'learning-feedback-title' }, icon('sparkle'), feedbackHeading),
       feedbackObservation,
+      classSection,
       el(
         'div',
         { class: 'learning-feedback-tip' },
@@ -345,5 +418,6 @@ export function LearningInsights(scores, catalog) {
     animation.inert = !expanded;
   };
   root.append(toggle, animation);
+  root.dispose = () => { disposed = true; clearComparison(); };
   return root;
 }
