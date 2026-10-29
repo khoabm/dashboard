@@ -5,10 +5,62 @@ import { assistantFetch } from '../workers/board-assistant/index.js';
 import { previewFixture } from '../workers/board-assistant/preview-fixture.js';
 import { publicAssistantCorpus, retrievePublicContent } from '../src/utils/public-retrieval.js';
 import { assistantResponseDiagnostics } from '../src/utils/assistant-diagnostics.js';
+import { validatePublicAnswerFacts } from '../src/utils/public-temporal.js';
+import { ownerFailureHeaders } from '../scripts/owner-ai-hosted.mjs';
 
 const question = 'Xưởng mô hình giấy diễn ra khi nào? Có thay đổi lịch không?';
 const plan = retrievePublicContent(question, publicAssistantCorpus(previewFixture), {
   now: '2026-10-29T14:00:00Z',
+});
+
+test('owner preparation/audience question does not require an unrelated schedule reminder', () => {
+  const result = {
+    status: 'answered',
+    answer: 'Em cần giấy tái chế và bút màu. Hoạt động dành cho nhóm thực hành A.',
+    sources: plan.grounding.passages
+      .filter((p) => ['notice', 'update'].includes(p.postId))
+      .map((p) => ({ id: p.id })),
+  };
+  assert.equal(
+    validatePublicAnswerFacts(
+      result,
+      plan.catalog,
+      plan.grounding,
+      'Vậy em cần chuẩn bị những gì và hoạt động dành cho ai?',
+    ),
+    result,
+  );
+});
+
+test('owner503 forwards actual model calls and bounded diagnostics, never credentials', () => {
+  const response = new Response(null, {
+    status: 503,
+    headers: {
+      'X-Assistant-Model-Calls': '2',
+      'X-Assistant-Stage': 'validation',
+      'X-Assistant-Reason': 'revision',
+      Authorization: 'private sentinel',
+    },
+  });
+  const headers = ownerFailureHeaders(response);
+  assert.equal(headers['X-Assistant-Model-Calls'], '2');
+  assert.equal(headers['X-Assistant-Reason'], 'revision');
+  assert.equal(headers.Authorization, undefined);
+  assert.equal(ownerFailureHeaders(new Response(null))['X-Assistant-Model-Calls'], undefined);
+});
+
+test('preparation question cannot bypass revision guard when the answer asserts a date', () => {
+  const result = {
+    status: 'answered',
+    answer: 'Xưởng diễn ra ngày 22/11/2026.',
+    sources: plan.grounding.passages
+      .filter((p) => ['notice', 'update'].includes(p.postId))
+      .map((p) => ({ id: p.id })),
+  };
+  assert.throws(
+    () => validatePublicAnswerFacts(result, plan.catalog, plan.grounding, 'Cần chuẩn bị những gì?'),
+    /^Error: revision$/,
+  );
 });
 
 /** Exercises the actual Worker pipeline with controlled completion and budget responses. */

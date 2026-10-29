@@ -76,7 +76,8 @@ const request = createBoardAssistantRequest({
         fetcher: async (url, options) => {
           const response = await fetch(url, options);
           disclosure.dataset.workerStatus = String(response.status);
-          disclosure.dataset.modelCalls = response.headers.get('X-Assistant-Model-Calls') || '0';
+          disclosure.dataset.modelCalls =
+            response.headers.get('X-Assistant-Model-Calls') || 'không xác định';
           disclosure.textContent = `DỮ LIỆU GIẢ · Cloudflare thật · HTTP ${response.status} · model calls ${disclosure.dataset.modelCalls}. Không gửi lại tự động; lượt dùng có giới hạn.`;
           return response;
         },

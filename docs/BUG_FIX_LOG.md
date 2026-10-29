@@ -1,5 +1,18 @@
 # Nhật ký khắc phục lỗi
 
+## 2026-10-29 — AI-V2-UAT-FOLLOWUP-01 / P2: non-temporal facts rejected and503 model counter hidden
+
+Baselinea893526, same feature branch. Owner preparation/audience question503 has
+confirmed validation/revision receipt, two model calls and failureStop confirmed.
+Raw completion unavailable. Offline supported answer reproduced rejection because
+revision guard applied to every revised source, regardless of question/claim.
+Scope revision acknowledgement to temporal questions/claims; keep date/number,
+citations and cancellation checks. Controller forwards bounded failure headers;
+preview displays unknown counters honestly instead of0 when absent.44 affected
+offline cases PASS, including original negative guards. No hosted test/deploy,
+reset or ledger mutation. Current55/60 blocked, owner2 consumed; READY withdrawn.
+[Evidence and limits](features/board-assistant/V2_PILOT_ACCEPTANCE.md#owner-follow-up-failure--2026-10-29).
+
 ## 2026-10-29 — AI-V2-UAT-FLOW-01 / P2: occupied localhost could activate hosted before failing UI startup
 
 Baseline30251bd, same V2 feature branch. Static review during owner-approved UAT

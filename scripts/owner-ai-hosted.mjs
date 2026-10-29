@@ -13,6 +13,22 @@ import { publicAssistantCorpus, retrievePublicContent } from '../src/utils/publi
 import { previewFixture } from '../workers/board-assistant/preview-fixture.js';
 import { assistantResponseDiagnostics } from '../src/utils/assistant-diagnostics.js';
 export const pilotDirectory = resolve('tests/local/owner-ai-pilot');
+
+/** Forwards bounded failure metadata so UI counters do not disguise completed model calls as zero. */
+export function ownerFailureHeaders(response) {
+  const headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
+  const calls = response.headers.get('X-Assistant-Model-Calls');
+  if (/^[012]$/.test(calls || '')) headers['X-Assistant-Model-Calls'] = calls;
+  const diagnostic = assistantResponseDiagnostics(response.headers);
+  for (const [key, name] of Object.entries({
+    stage: 'Stage',
+    reason: 'Reason',
+    reserved: 'Reserved',
+    failureStop: 'Failure-Stop',
+  }))
+    if (Object.hasOwn(diagnostic, key)) headers[`X-Assistant-${name}`] = String(diagnostic[key]);
+  return headers;
+}
 const account = '78913564ee11ed7d2648d8b09852f88f';
 const worker = 'khtn8-board-assistant-mvp';
 const origin = 'https://khtn8-board-assistant-mvp.joemckahn.workers.dev';
@@ -456,7 +472,7 @@ export async function startHostedPilot({ qa = false, uat = false } = {}) {
           if (!result.response.ok) {
             blockPilot(profile);
             res
-              .writeHead(result.response.status, { 'Content-Type': 'application/json' })
+              .writeHead(result.response.status, ownerFailureHeaders(result.response))
               .end(result.bytes);
             lastStatus = null;
             await stop();

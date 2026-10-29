@@ -1,6 +1,11 @@
 # OWNER AI PREVIEW — UAT có giới hạn
 
-**2026-10-29: READY FOR OWNER LIVE TEST trong cửa sổ Free receipt còn hiệu lực.**
+**2026-10-29: HOSTED BLOCKED sau owner follow-up503; KHÔNG READY.**
+Ledger55/60, QA1/owner2, blocked=true; không còn lượt trong phiên này để retry.
+Không chạy Setup/Start để reset hoặc tự cấp identity khác. Correction đã kiểm offline,
+chưa deploy hoặc retest thật. [Incident mới](V2_PILOT_ACCEPTANCE.md#owner-follow-up-failure--2026-10-29).
+Các con số43/60/còn2 và hướng dẫn Start bên dưới là bàn giao trước incident, không
+phải trạng thái hiện tại. Giữ lại để đối chiếu; chỉ offline fallback hiện dùng được.
 Codex đã replay đúng câu từng lỗi bằng Qwen3 thật: HTTP200, lịch mới22/11/2026,
 lịch cũ20/11/2026, hai citations đúng. Worker hiện **disabled**; Start mới bật tạm.
 Đây là dữ liệu synthetic, không phải dữ liệu thật/production. [Evidence](V2_PILOT_ACCEPTANCE.md#owner-authorized-uat-retest--2026-10-29).

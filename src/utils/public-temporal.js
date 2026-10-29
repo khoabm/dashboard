@@ -180,8 +180,16 @@ export function validatePublicAnswerFacts(result, catalog, grounding, query) {
     !/\bhuy\b|\bhoan\b|khong con hieu luc|chua the|chua du/.test(normalized)
   )
     throw Error('cancellation');
+  // Schedule changes constrain temporal questions/claims, not unrelated preparation or audience facts.
+  const revisionRelevant =
+    answer.dates.length > 0 ||
+    publicDateEvidence(query).dates.length > 0 ||
+    /\blich\b|khi nao|bao gio|thoi gian|thoi diem|sap toi|se dien ra|da ket thuc/.test(
+      `${normalizeAssistantText(query)} ${normalized}`,
+    );
   if (
     evidence.revised &&
+    revisionRelevant &&
     !/thay doi|doi lich|dinh chinh|dieu chinh|thay the|chuyen sang|mau thuan|chua the/.test(
       normalized,
     )

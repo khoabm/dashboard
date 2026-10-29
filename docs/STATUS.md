@@ -1,3 +1,22 @@
+# V2 owner follow-up — FAILED / hosted BLOCKED / 2026-10-29
+
+Owner follow-up “Vậy em cần chuẩn bị những gì và hoạt động dành cho ai?” trả503.
+Ledger xác nhận stage=validation, reason=revision, model calls2 (BGE1/Qwen1),
+reserved=true/failureStop=confirmed; banner0 do proxy bỏ failure headers, không
+phải bằng chứng chưa gọi model. Ledger55/60, QA1/owner2, blocked=true, không reset.
+READY trước đó được thu hồi; một exact-case PASS không đủ nghiệm thu owner flow.
+
+Offline tái hiện câu trả lời đúng về vật dụng/đối tượng vẫn bị revision guard chặn.
+Guard nay chỉ yêu cầu nhắc đổi lịch với câu hỏi/claim thời gian; numeric/date,
+citation/cancellation giữ nguyên. Proxy chuyển tiếp bounded diagnostics/call counts;
+thiếu counter hiển thị “không xác định”.44 affected offline cases PASS. Chưa deploy
+hoặc inference/retest thật trong correction này; không khẳng định completion cũ
+sai hay bịa response không được lưu. [Incident](features/board-assistant/V2_PILOT_ACCEPTANCE.md#owner-follow-up-failure--2026-10-29).
+
+---
+
+## Historical exact-question retest (before owner follow-up)
+
 # V2 UAT retest — PASS theo một mẫu thật / 2026-10-29
 
 Nhánh feature/ai-learning-assistant-v2-e2e, Draft PR21. Owner duyệt UAT identity

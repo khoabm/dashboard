@@ -1,5 +1,43 @@
 # V2 pilot — explicit allowance / 2026-10-29
 
+## Owner follow-up failure — 2026-10-29
+
+**Owner flow FAILED; hosted BLOCKED; prior READY withdrawn.** Owner's question:
+“Vậy em cần chuẩn bị những gì và hoạt động dành cho ai?”. Existing local receipt
+at16:19:45.637Z:503, stage=validation, reason=revision, reserved=true,
+failureStop=confirmed, BGE1/Qwen1 (two calls). Prior owner question16:19:32.975Z
+was200. The failed question took fresh retrieval, not context-only Qwen. No raw
+completion was retained, so do not invent its answer or claim hallucination.
+
+Confirmed defects: revision acknowledgement was demanded for every answer citing
+a revised notice, including supported preparation/audience facts unrelated to the
+changed schedule. A controlled answer “Em cần giấy tái chế và bút màu. Hoạt động
+dành cho nhóm thực hành A.” reproduces revision rejection before correction.
+Now the acknowledgement guard applies to temporal questions or temporal claims,
+while date/year/number/citation/cancellation guards are unchanged. New negative
+tests retain rejection of unsupported dates/numbers and omitted change notice on
+schedule questions. This reproduction isolates a false rejection; without raw
+completion it does not prove every fact in the actual failed completion was valid.
+
+Proxy also discarded model/diagnostic headers on non200, making the UI banner
+incorrectly show0. It now forwards allowlisted counters/stage/reason/reserved/stop
+metadata, never credentials; absent counts show “không xác định” rather than0.
+Concern/inventory: public-temporal rule relevance, controller failure headers,
+preview counter fallback, focused UAT regression and incident docs. No architecture,
+retrieval, budget identity or permission changes.23 UAT +21 affected cases PASS44;
+before correction21 cases had20PASS/1 reproduced revision failure. Scoped format,
+syntax and diff checks; no broad suite/build/browser or hosted rerun for this fix.
+
+Current ledger55/60, qaReservations1/ownerReservations2, blocked=true. Last receipt
+16:20:07.461Z revoked bearer403. Worker failure-stop and session disable have
+receipts; no new live read is claimed in this correction. Both old31/40 and current
+failed ledger remain unchanged by the fix. No Cloudflare requests, inference,
+deploy, reset or new allowance. Owner-ready was overstated based on a single
+successful case; exact-question PASS below remains historical, not follow-up PASS.
+Correction is source/offline only, awaiting a separately scoped recovery/retest.
+
+---
+
 ## Owner-authorized UAT retest — 2026-10-29
 
 **Hosted retest PASS on the exact owner question; READY FOR OWNER LIVE TEST only
