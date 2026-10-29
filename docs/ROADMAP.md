@@ -59,3 +59,10 @@ Không tạo milestone mới. Universal Public Content Grounding là mục tiêu
 
 [Acceptance chi tiết](features/board-assistant/GATE_AB_ACCEPTANCE.md). Gate C hosted/model quality và
 Gate D final review/merge/release nằm ngoài nhiệm vụ; không suy offline PASS thành production-ready.
+
+
+## Historical design record retained from target branch
+
+## Extension riêng — AI Learning Assistant (thiết kế, chưa thực thi)
+
+Theo quyết định người dùng 2026-10-28, mở [AI Learning Assistant V1](features/ai-learning-assistant/README.md) độc lập với Gradebook và các Phase Board: [AI-P01 feasibility/PoC](features/ai-learning-assistant/POC_EVALUATION.md) → chủ dự án chốt model/dependency theo bằng chứng → [AI-P02 giới hạn chat + lọc học liệu](features/ai-learning-assistant/CHECKPOINTS.md) → review/PR riêng. Tạm thời **DOCUMENTATION ONLY**, chưa chạy model/QA, chưa thêm thư viện/backend và chưa có quyền merge/deploy. Mọi hoạt động phải zero cost; nếu tiếng Việt/hiệu năng/giấy phép/hosting không đạt, dừng ở PoC thay vì gắn nhãn AI cho substring search.

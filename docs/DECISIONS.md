@@ -1,3 +1,7 @@
+## AI-LIVE-D01 — current owner authorization / 2026-10-30
+
+Owner explicitly replaces the old design/Pilot constraints with ongoing Free-only hybrid AI, general knowledge plus public Board, short3/10-second spam rate limit and ordered PR21 ->16 ->develop merge. No private backend/paid upgrade/main merge. Earlier design records are historical. See SPEC R07.1 and live acceptance.
+
 # Quyết định và thay đổi định hướng
 
 Chỉ ghi quyết định có ảnh hưởng scope/kiến trúc; ngày + căn cứ + hệ quả. Không dùng file này làm nhật ký từng thao tác.
@@ -75,3 +79,16 @@ Xem [PRODUCT_PROFILE](PRODUCT_PROFILE.md).
 PRODUCT-D03 / **ranh giới tài liệu và quyền**: SPEC gốc chủ yếu cho Bảng học liệu
 và hạ tầng; Gradebook/AI giữ brief, quyền, acceptance gates riêng. Không tự mở
 Auth/Supabase, truy cập dữ liệu riêng, merge hoặc deploy do đổi tên/overview.
+
+
+## Historical design record retained from target branch
+
+## AI Learning Assistant — Owner decisions 2026-10-28
+
+| ID | Status | Decision and boundary |
+| --- | --- | --- |
+| AI-D01 | Approved DESIGN only | Add a bounded conversational assistant to public **KHTN8 Board**: semantic retrieval + multi-turn topic/type refinement, optional opening of existing published cards; not a replacement for existing SearchBar. |
+| AI-D02 | Technical choice subject to PoC | True pretrained Vietnamese/multilingual embeddings **inside browser if feasible**; deterministic intent/action state machine. No free-form generative LLM, teacher write controls, Gradebook data, new backend or paid AI API. No library/model/CSP added without AI-P01 evidence and owner go/no-go. |
+| AI-D03 | Branch/document authorization | Develop docs on separate `feature/ai-learning-assistant` derived from `develop`; **no implementation, PoC execution, PR, merge or deployment in this task**. Zero cost throughout. |
+
+See [feature design and acceptance](features/ai-learning-assistant/README.md); this new extension does not rewrite the original Board R01–R28 scope or resolve Personal Gradebook G07/G08 gates.

@@ -31,3 +31,5 @@ cho quyết định đã xác nhận và mô tả source.
 Không dùng overview này để thay tiêu chí chi tiết hoặc tuyên bố tính năng đã tồn tại.
 
 **Feature đang phát triển:** [Bảng điểm cá nhân](features/personal-gradebook/README.md) — CP02–CP05 và CP06-B OFFLINE ACCEPTED. CP01-C đã apply4 migration Gradebook/deploy2 Edge Functions và có bằng chứng tích hợp PARTIAL bằng dữ liệu giả trên localhost:4173; chưa đạt nghiệm thu bảo mật đầy đủ hoặc real-data gate. Frontend production mặc định tắt; không public deploy. [STATUS](STATUS.md) và [CP06 readiness](features/personal-gradebook/CP06_OFFLINE_READINESS.md) ghi bằng chứng/giới hạn hiện tại.
+
+**Extension AI đang thiết kế:** [AI Learning Assistant V1](features/ai-learning-assistant/README.md) — chatbot tìm học liệu theo ngữ nghĩa và điều khiển bộ lọc bằng hội thoại có giới hạn; chỉ dùng học liệu published, không chạm Bảng điểm cá nhân. **DESIGN ONLY; AI-P01 chưa chạy; AI-P02 chưa bắt đầu**. Không có model, dependency, AI API hay UI chatbot được triển khai ở baseline này.

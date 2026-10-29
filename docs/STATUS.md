@@ -1,3 +1,9 @@
+# Live chatbot integration — in progress / 2026-10-30
+
+PR21 merged ecc7300. Live implementation/offline8 cases and Chrome error recovery PASS; PR16 conflicts were docs-only, both historical records retained. Final develop merge/real AI acceptance pending. [Live contract/evidence](features/board-assistant/LIVE_CHAT_ACCEPTANCE.md). Old Pilot incidents below are historical, not live admission.
+
+---
+
 # V2 owner follow-up — FAILED / hosted BLOCKED / 2026-10-29
 
 Owner follow-up “Vậy em cần chuẩn bị những gì và hoạt động dành cho ai?” trả503.
@@ -184,6 +190,19 @@ acceptance NOT RUN. Worker final disabled version `2fe4ac69-1355-452d-906b-9c1eb
 frontend AI default off. No website deployment, main/AGENTS change, paid plan/card/trial/credits,
 Supabase test calls or Gradebook changes. Existing owner tabs/background traffic not measured.
 Prior project/Gradebook release gates remain unchanged. Earlier records below are historical.
+
+
+## Historical design record retained from target branch
+
+# AI-P01 bounded model PoC — 2026-10-28
+
+[Actual synthetic test evidence](features/ai-learning-assistant/POC_EVALUATION.md#actual-ai-p01-bounded-run--2026-10-28-supersedes-not-run-above): `feature/ai-learning-assistant`, run [40727956898](https://github.com/khoabm/dashboard/actions/runs/40727956898) SUCCESS for running a real q8 multilingual E5 embedding on 30 synthetic Vietnamese questions. **Precision@3 67.78%** vs substring baseline 12.22%; target 80% missed, 135 MB model + tokenizer measured in runner; mobile/browser inference and actual zero-cost delivery NOT VERIFIED. **AI-P01 PARTIAL / CHANGES REQUIRED**, AI-G01 not approved, AI-P02 not started. No app/Gradebook source change, Supabase, deployment or merge.
+
+---
+
+# AI Learning Assistant V1 — Design-only extension / 2026-10-28
+
+Branch `feature/ai-learning-assistant` created from `develop` baseline `78f3c3208b21583545ff9ec0c58d875db2a688f4`. Owner agreed Option A: bounded conversational **pretrained semantic retrieval + deterministic Board actions**, zero paid inference and no Gradebook access. [Design entry](features/ai-learning-assistant/README.md), [PoC acceptance](features/ai-learning-assistant/POC_EVALUATION.md), [checkpoints](features/ai-learning-assistant/CHECKPOINTS.md). **Docs only**: AI-P01 NOT RUN, AI-P02 NOT STARTED, no model/dependencies, source/UI edits, hosted API, QA, PR/merge or deploy. Existing G07/G08 evidence/status is unaffected. Older entries below are historical.
 
 ---
 
