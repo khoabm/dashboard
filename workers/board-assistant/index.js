@@ -141,6 +141,8 @@ function reply(status, value, origin = '', stage = '', modelCalls = 0) {
       'X-Content-Type-Options': 'nosniff',
       Vary: 'Origin',
       'X-Assistant-Model-Calls': String(modelCalls),
+      'Access-Control-Expose-Headers':
+        'X-Assistant-Clock, X-Assistant-Model-Calls, X-Assistant-Stage',
       ...(origin ? { 'Access-Control-Allow-Origin': origin } : {}),
       ...(stage ? { 'X-Assistant-Stage': stage } : {}),
     },
@@ -201,6 +203,9 @@ export async function assistantFetch(request, env) {
   } catch {
     return reply(422, { error: 'input' }, origin);
   }
+  // Client time ranks a local shortlist only; hosted conclusions use Worker time.
+  if (payload.version === 3)
+    payload.grounding = { ...payload.grounding, clock: new Date().toISOString() };
   const deterministic =
     payload.version === 2 ? websiteLearningAnswer(payload.query, catalog) : null;
   if (deterministic) return reply(200, deterministic, origin);
@@ -306,13 +311,15 @@ export async function assistantFetch(request, env) {
       }, 40000);
     });
     const result = await Promise.race([task(), timeout]);
-    return reply(
+    const response = reply(
       200,
       payload.version >= 2 ? result : { mode: 'ai', sources: result },
       origin,
       '',
       modelCalls,
     );
+    if (payload.version === 3) response.headers.set('X-Assistant-Clock', payload.grounding.clock);
+    return response;
   } catch {
     // Any model or storage failure closes the shared allowance; no confirmatory retry is made.
     if (reserved) {
@@ -328,8 +335,6 @@ export async function assistantFetch(request, env) {
     request.signal.removeEventListener('abort', cancel);
   }
 }
-
-export default { fetch: assistantFetch };
 
 // Three accepted inference chains cost at most 15 operations including failure stops.
 export const assistantReservationLimit = 3;
@@ -360,6 +365,13 @@ export class AssistantBudget {
         await this.state.storage.put('allowance', { ...stored, stopped: true });
         return new Response(null, { status: 204 });
       }
+      if (path === '/status')
+        return Response.json({
+          count: stored.count,
+          stopped: stored.stopped,
+          limit: assistantReservationLimit,
+          remaining: stored.stopped ? 0 : Math.max(0, assistantReservationLimit - stored.count),
+        });
       // Keep the existing count/stopped schema; tightening the cap never replenishes old allowance.
       if (path !== '/reserve' || stored.stopped || stored.count >= assistantReservationLimit)
         return new Response(null, { status: 429 });

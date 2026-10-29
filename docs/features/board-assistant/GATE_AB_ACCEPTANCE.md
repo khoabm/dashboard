@@ -1,3 +1,13 @@
+# Bổ sung Desktop — 2026-10-29
+
+[Correction và Gate C mới](GATE_C_DESKTOP.md) supersede đúng phần validation/
+clock hiện hành; không sửa lại evidence Gate A/B cũ.103 focused/131 curated và
+Chrome synthetic mới PASS. Hosted allowance hiện có stopped/remaining0, model
+quality và owner live BLOCKED; ledger V2 tăng từ0 lên3/40 chỉ do status/revoke
+verification. Không reset ID/DO, không bật inference hoặc merge/web deploy.
+
+---
+
 # V2 Gate A/B — Universal Public Content Grounding / 2026-10-29
 
 **Gate A: PASS. Gate B: PASS trong contract offline được mô tả dưới đây.**

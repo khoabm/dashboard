@@ -1,3 +1,16 @@
+# Desktop correction/Gate C — PARTIAL / 2026-10-29
+
+[Acceptance mới, exact ledger và giới hạn](GATE_C_DESKTOP.md): V2-REV-01/02,
+server-clock trust và mobile clipping đã sửa;103 focused/131 curated/check/build
+và Chrome synthetic PASS. Strict whole-checkout format FAIL chỉ CRLF, normalized
+diagnostic/scoped changed-code PASS. Hosted V2 ledger3/40, BGE/Qwen0; existing
+DO count1/stopped/remaining0. Không thay ID/reset; live owner preview BLOCKED,
+không có model quality PASS. Final Worker disabled/access cleared; không merge
+hoặc website deploy. [Owner local demo Start/Stop](OWNER_AI_PREVIEW.md).
+Các acceptance bên dưới là lịch sử, không thay cho receipt Desktop mới này.
+
+---
+
 # Gate A/B hiện hành — Universal Public Content Grounding
 
 **Gate A PASS; Gate B PASS offline trong contract/bounds đã kiểm chứng.** Baseline01198f0,

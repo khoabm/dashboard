@@ -1,3 +1,17 @@
+# Desktop correction/Gate C — 2026-10-29
+
+Owner yêu cầu tiếp tục từb5dc070, tự thực hiện correction/Chrome/Cloudflare trong
+cap20+20 operations, cap3 existing reservations, không reset/đổi ID. Weekly55%
+threshold được waive riêng task; zero-cost/AGENTS/quyền task sau giữ nguyên.
+[Ma trận concern/inventory trước sửa và kết quả](GATE_C_DESKTOP.md).
+Correction103 focused/131 curated +Chrome synthetic PASS; hosted preflight phát
+hiện allowance cũ stopped/remaining0, không bật model. Final AI disabled/access
+cleared. [Owner demo và blocker live](OWNER_AI_PREVIEW.md). Không merge/web deploy.
+Các kế hoạch/bằng chứng dưới đây giữ nguyên lịch sử và ngân sách đã dùng, không
+cấp lại allowance khi mở phiên mới.
+
+---
+
 # ExecPlan hiện hành — Gate A/B, Universal Public Content Grounding
 
 Áp dụng kế hoạch “Gate A/B — Universal Public Content Grounding” bên dưới, baseline01198f0.

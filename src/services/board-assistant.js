@@ -19,6 +19,7 @@ import {
   publicCoverageNote,
   validatePublicGrounding,
 } from '../utils/public-retrieval.js';
+import { validatePublicAnswerFacts } from '../utils/public-temporal.js';
 
 /** Creates a disabled-by-default local-preview adapter; endpoint configuration contains no secrets. */
 export function createBoardAssistantRequest({
@@ -110,7 +111,7 @@ export function createBoardAssistantRequest({
         if (Object.keys(result).sort().join(',') !== 'answer,coverage,mode,sources,status')
           throw Error('response');
         const sources = validateAssistantSources(result.sources, catalog);
-        return validateLearningAnswer(
+        const answer = validateLearningAnswer(
           {
             status: result.status,
             answer: result.answer,
@@ -119,6 +120,12 @@ export function createBoardAssistantRequest({
           },
           catalog,
         );
+        if (version === 3) {
+          const clock = response.headers.get('X-Assistant-Clock');
+          if (!clock || !Number.isFinite(Date.parse(clock))) throw Error('clock');
+          validatePublicAnswerFacts(answer, catalog, { ...grounding, clock }, query);
+        }
+        return answer;
       }
       return { mode: 'ai', sources: validateAssistantSources(result.sources, catalog) };
     } finally {

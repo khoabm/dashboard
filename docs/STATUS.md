@@ -1,3 +1,25 @@
+# V2 Desktop correction — PARTIAL / hosted BLOCKED / 2026-10-29
+
+Baseline `b5dc070`, đúng branch `feature/ai-learning-assistant-v2-e2e`.
+V2-REV-01/02 và server-clock trust đã sửa;103 focused và131 curated PASS,
+check/build/production exclusions/scoped format/diff PASS. Full format chuẩn
+FAIL do130 file CRLF checkout (indexLF/core.autocrlf=true); full end-of-line-auto
+diagnostic PASS, không format lan repo. Chrome thật desktop/mobile/landscape
+scripted PASS; sửa thêm modal100vw cắt nút Gửi khi có scrollbar.
+
+**Hosted model/owner live BLOCKED:** status thật của DO cũ count1/stopped=true/
+remaining0; không reset/đổi ID/cấp allowance. V2 ledger3/40 (2 Worker GET +1 DO read),
+BGE/Qwen0, Supabase0. Final Worker version `2f91bc6a-f686-4398-aa2c-54a8dd898928`,
+AI=false, hai expiry/hash rỗng, namespace giữ nguyên; settings live verified,
+bearer tạm đã revoke403 trước DO/model. Không trả phí, website deploy hoặc merge.
+
+[Gate C report/ledger/evidence](features/board-assistant/GATE_C_DESKTOP.md),
+[Start/Stop demo owner local](features/board-assistant/OWNER_AI_PREVIEW.md).
+**NOT READY FOR OWNER LIVE TEST**; demo mặc định ghi rõ SCRIPTED OFFLINE.
+Commit/push/Draft PR receipt trong final delivery. Các bản ghi dưới đây là lịch sử.
+
+---
+
 # V2 Gate A/B — Universal Public Content Grounding / 2026-10-29
 
 **Bàn giao PARTIAL:** code/evidence đã push; tạo Draft PR bị GitHub GraphQL `Forbidden`.

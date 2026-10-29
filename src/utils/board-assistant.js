@@ -18,11 +18,13 @@ export function validAssistantQuery(value) {
     value.trim().length > 0 &&
     value.length <= assistantLimits.query &&
     !/\d{9,}|\S+@\S+/.test(value) &&
-    (!/\b\d{1,2}[/-]\d{1,2}[/-]\d{4}\b/.test(value) ||
-      /dien ra|hoat dong|thong bao|lich|ngay nao|dang ky|chuan bi/.test(
-        normalizeAssistantText(value),
-      )) &&
-    !/ngay sinh|sinh ngay|cccd|cmnd|\bdob\b/.test(normalizeAssistantText(value))
+    // Dates alone are public query data, not evidence of a private-record request.
+    !/\b(?:\d[ .-]?){9,}\b/.test(
+      value.replace(/\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[/-]\d{1,2}(?:[/-]\d{4})?)\b/g, ''),
+    ) &&
+    !/(?:ngay sinh|sinh ngay|\bdob\b)[\s\S]*\d|(?:cccd|cmnd)[\s\S]*\d/.test(
+      normalizeAssistantText(value),
+    )
   );
 }
 

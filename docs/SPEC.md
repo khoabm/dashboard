@@ -499,6 +499,18 @@ Temporal dùng Asia/Ho_Chi_Minh và evidence nguồn, không đổi ngày tạo/
 Không file extraction, Gradebook/Auth/write access; không hosted/deploy trong Gate A/B.
 [Contract và nghiệm thu](features/board-assistant/GATE_AB_ACCEPTANCE.md).
 
+**Correction/Gate C Desktop 2026-10-29:** ngày tháng học tập/sự kiện được phép độc lập
+từ khóa hoặc có/không có năm. Chỉ chặn email/chuỗi định danh rõ ràng và DOB cá nhân
+có dữ liệu cụ thể trước transport; regex không thay provenance/privacy boundaries.
+Không đưa trường riêng của backend/Gradebook/Auth vào corpus. Hosted temporal dùng
+clock Worker (Asia/Ho_Chi_Minh), giữ frozen clock cho tests và clock client cho local
+ranking; không suy created/updated thành event hoặc thêm năm/end date.
+Preview hosted bắt buộc admission owner có hạn + server-approved synthetic corpus,
+giữ allowance hiện có/cap3. Khi state stopped hoặc chưa xác minh thì BLOCKED, không
+cấp lại run ID. [Evidence và owner workflow](features/board-assistant/GATE_C_DESKTOP.md).
+Chỉ task Desktop này được owner miễn ngưỡng safe-close55%; zero-cost và quyền task
+sau/AGENTS giữ nguyên. Không mở website production hoặc tự merge.
+
 
 V2 được chủ sở hữu yêu cầu: trả lời thông tin website và kiểm kê published bằng dữ liệu xác định,
 tách tổng quan metadata khỏi tóm tắt nội dung. Cho phép giải thích/tóm tắt tiếng Việt từ title/body

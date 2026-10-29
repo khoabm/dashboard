@@ -1,3 +1,13 @@
+# Desktop correction và owner preview — 2026-10-29
+
+[Gate C Desktop](GATE_C_DESKTOP.md): date/privacy/server-clock corrections và
+Chrome scripted QA hoàn tất. Hosted model/owner live BLOCKED do existing allowance
+stopped/remaining0, không reset hoặc cấp mới. [Owner demo Start/Stop](OWNER_AI_PREVIEW.md)
+chạy local, ghi rõ scripted offline. Worker cuối disabled/access cleared; không
+merge/website deploy. Bằng chứng Gate A/B phía dưới giữ nguyên lịch sử.
+
+---
+
 # Gate A/B hiện hành — public content theo mọi topic
 
 [Acceptance/ma trận U01–U20,T01–T10](GATE_AB_ACCEPTANCE.md), [ExecPlan](V2_EXECPLAN.md).

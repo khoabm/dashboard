@@ -1,5 +1,34 @@
 # Nhật ký khắc phục lỗi
 
+## 2026-10-29 — AI-V2-REV-01/02 / P2: legitimate public dates rejected by PII keyword allowlist
+
+Baselineb5dc070, branch feature/ai-learning-assistant-v2-e2e. Validator rejected
+full dates unless a narrow event keyword occurred, including ordinary phong-trào/
+history/range questions. Removed topic-dependent allowlist; explicit personal DOB
+values, emails/obvious contiguous or separated identifiers still reject before
+fetch. Date spans do not become long numeric IDs. Utility/component copy + pure/
+manual privacy regressions; no backend private fields or Auth/Gradebook access.
+Correction PASS offline and Chrome date-query acceptance; regex is not a complete
+PII classifier. [Evidence and hosted limits](features/board-assistant/GATE_C_DESKTOP.md).
+
+## 2026-10-29 — AI-V2-REV-03 / P2: client clock could anchor hosted temporal conclusions
+
+Same baseline/branch. Worker previously used browser-supplied grounding.clock for
+prompt/fact validation. Core now overrides with server instant; transport rechecks
+using X-Assistant-Clock, rejects missing clock. Frozen pure tests/local ranking
+remain injectable; timezone Asia/Ho_Chi_Minh. Fake1999 clock cannot authorize an
+upcoming2000 event; boundary/unknown-year/end-date tests PASS. Deployed disabled
+behind short-lived owner admission and server fixture provenance; hosted inference
+NOT RUN because old allowance is stopped. No schema/service/Auth/RLS change.
+
+## 2026-10-29 — AI-V2-REV-04 / P2: fullscreen chat clips Send beside a classic scrollbar
+
+Same baseline/branch; discovered on actual Chrome390×844. Mobile100vw panel
+included scrollbar width (dialog390.4/client375), clipping the send control.
+board-assistant.css now uses width/max-width100%; mobile sendRight363.2<client375,
+landscape sendRight640<client652. Chrome desktop/mobile/landscape PASS with real
+components/synthetic data. Physical devices/Safari NOT RUN; no new UI dependency.
+
 ## 2026-10-29 — AI-V2-006 / P2: public app-help questions were rejected as private grade requests
 
 Baseline `1429789`, branch `feature/ai-learning-assistant-v2-e2e`. V2 profile exposed

@@ -1,11 +1,16 @@
 {
   "name": "khtn8-board-assistant-mvp",
-  "main": "index.js",
+  "main": "preview.js",
   "compatibility_date": "2026-10-28",
   "workers_dev": true,
   "preview_urls": false,
   "ai": { "binding": "AI" },
-  "vars": { "AI_ENABLED": "false", "PREVIEW_EXPIRES": "" },
+  "vars": {
+    "AI_ENABLED": "false",
+    "PREVIEW_EXPIRES": "",
+    "PREVIEW_ACCESS_EXPIRES": "",
+    "PREVIEW_TOKEN_SHA256": "",
+  },
   "durable_objects": { "bindings": [{ "name": "BUDGET", "class_name": "AssistantBudget" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["AssistantBudget"] }],
   "observability": { "enabled": false },

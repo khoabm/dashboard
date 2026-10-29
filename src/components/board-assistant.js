@@ -519,7 +519,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
       const question = input.value.trim();
       if (!validAssistantQuery(question)) {
         error.textContent =
-          'Nhập câu hỏi từ 1–400 ký tự, không kèm email, số định danh hoặc ngày sinh.';
+          'Nhập câu hỏi từ 1–400 ký tự. Hãy bỏ email, số định danh và ngày sinh cá nhân; ngày sự kiện được phép.';
         input.setAttribute('aria-invalid', 'true');
         input.focus();
         return;
