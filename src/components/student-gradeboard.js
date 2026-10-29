@@ -26,7 +26,8 @@ export function StudentGradeboard({ context, read, onReset }) {
     scores = [],
     disposed = false,
     modal = null,
-    insightsGeneration = 0;
+    insightsGeneration = 0,
+    learningView = null;
   const element = el('section', { class: 'student-gradeboard', 'aria-label': 'Bảng điểm của bạn' });
   const tabs = el('div', { class: 'student-semesters', role: 'tablist', 'aria-label': 'Học kỳ' });
   const panel = el('div', {
@@ -94,6 +95,8 @@ export function StudentGradeboard({ context, read, onReset }) {
     if (disposed) return;
     scores = [];
     insightsGeneration++;
+    learningView?.dispose();
+    learningView = null;
     panel.replaceChildren();
     panel.setAttribute('aria-busy', String(snapshot.status === 'loading'));
     if (snapshot.status !== 'ready') {
@@ -116,7 +119,8 @@ export function StudentGradeboard({ context, read, onReset }) {
       .then(({ LearningInsights }) => {
         if (disposed || insightTicket !== insightsGeneration) return;
         insightHost.setAttribute('aria-busy', 'false');
-        insightHost.replaceChildren(LearningInsights(scores, catalog));
+        learningView = LearningInsights(scores, catalog, { read, semester });
+        insightHost.replaceChildren(learningView);
       })
       .catch(() => {
         if (disposed || insightTicket !== insightsGeneration) return;
@@ -194,6 +198,8 @@ export function StudentGradeboard({ context, read, onReset }) {
     semester = value;
     scores = [];
     insightsGeneration++;
+    learningView?.dispose();
+    learningView = null;
     controls.forEach((control, index) => {
       control.setAttribute('aria-selected', String(index + 1 === semester));
       control.tabIndex = index + 1 === semester ? 0 : -1;
@@ -282,6 +288,9 @@ export function StudentGradeboard({ context, read, onReset }) {
         );
         if (snapshot.status === 'denied') {
           scores = [];
+          learningView?.dispose();
+          learningView = null;
+          insightsGeneration++;
           panel.replaceChildren(el('p', { role: 'status' }, messages.denied));
         }
         if (['limited', 'unavailable'].includes(snapshot.status))
@@ -375,6 +384,9 @@ export function StudentGradeboard({ context, read, onReset }) {
       grades.dispose();
       modal?.dispose();
       scores = [];
+      learningView?.dispose();
+      learningView = null;
+      insightsGeneration++;
       element.replaceChildren();
     },
   };
