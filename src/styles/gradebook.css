@@ -1700,3 +1700,17 @@
     min-height: 44px;
   }
 }
+
+/* Grid edits stay legible at dense desktop widths and inside the existing mobile scroller. */
+.grid-edit-toolbar { position: sticky; left: 0; z-index: 1; }
+.scores-grid .grid-score-input {
+  width: 100%; min-width: 76px; max-width: 110px; min-height: 42px;
+  box-sizing: border-box; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--paper); color: var(--ink); text-align: center;
+  font: inherit; font-variant-numeric: tabular-nums; padding: 8px;
+}
+.scores-grid .grid-score-input:focus-visible {
+  outline: 2px solid var(--green); outline-offset: 2px;
+}
+.scores-grid .grid-score-dirty { background: #fff2ce; border-color: #a86b12; }
+.scores-grid .grid-score-input[aria-invalid='true'] { border-color: #a72c2c; box-shadow: 0 0 0 1px #a72c2c; }
