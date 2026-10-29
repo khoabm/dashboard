@@ -456,7 +456,7 @@ export function GradebookScores({
         expectedRevision: existing?.revision ?? null,
         score: value,
       });
-    gridStale = false;
+    // An ambiguous server outcome is never unlocked by further typing; require reload.
     dirty = gridPending.size > 0;
     updateGridActions();
   }
@@ -775,6 +775,8 @@ export function GradebookScores({
 
   /** Shows catalog-ordered subjects/columns, exact page sorting and accessible individual score controls. */
   function render() {
+    // A rerender must not leave a delete action targeting a detached/invisible cell.
+    selectedGridCell = null;
     panel.replaceChildren();
     panel.inert = busy;
     const templates = el(
