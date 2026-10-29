@@ -1,5 +1,18 @@
 # Nhật ký khắc phục lỗi
 
+## 2026-10-30 — AI-LIVE-02: Worker runtime rejects redirect:error on anonymous Board read
+
+Final-develop real Board question initially returned a general abstention without
+citation. Node public helper read7 posts successfully; Worker public health showed
+TypeError. Actual local workerd Request constructor reproduced: redirect:error is
+unsupported at the edge, while manual is accepted. Changed only outbound public
+fetch to manual and kept non200 rejection. Added bounded, rate-limited public health
+counts/errors (no model/body/private data), separated runtime ExecutionContext from
+test dependency options, and regression for manual redirect/zero-model health.
+Worker health now200/publicPosts7. Initial inference is not counted PASS. Correction
+goes through scoped PR into develop; specific real case/follow-up/general acceptance
+pending. No Pilot gate, paid upgrade or automatic inference retry introduced.
+
 ## 2026-10-29 — AI-LIVE-01: replace Pilot admission and permanent error lock in normal chat
 
 Baselineedc5f31. Owner replaces Pilot requirements with continuous Free-only hybrid
