@@ -77,7 +77,7 @@ function fixture() {
     },
   };
   const fetcher = async (url, options) => {
-    reads.push({ url: String(url), headers: options.headers });
+    reads.push({ url: String(url), headers: options.headers, redirect: options.redirect });
     return Response.json([
       ...posts,
       { id: 'private', status: 'draft', body: 'private grade sentinel' },
@@ -125,6 +125,7 @@ test('Board sources are server-read published only, with no private fields or cl
   assert.equal(wire.includes('private grade sentinel'), false);
   assert.equal(wire.includes('Tên Riêng'), false);
   assert.match(h.reads[0].url, /status=eq.published/);
+  assert.equal(h.reads[0].redirect, 'manual');
   assert.deepEqual(Object.keys(h.reads[0].headers), ['apikey']);
 });
 test('general knowledge needs no Board citation, ordinary dates/numbers are not hard rejected', async () => {
@@ -135,6 +136,18 @@ test('general knowledge needs no Board citation, ordinary dates/numbers are not 
   const result = await r.json();
   assert.equal(result.knowledge, 'general');
   assert.deepEqual(result.sources, []);
+});
+
+test('public health reports Board availability without any model invocation or private content', async () => {
+  const h = fixture();
+  const response = await liveFetch(
+    new Request('https://worker.test/health', { headers: { Origin: origin } }),
+    h.env,
+    { fetcher: async () => Response.json(posts) },
+  );
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { enabled: true, publicPosts: 2 });
+  assert.equal(h.models.length, 0);
 });
 test('seven consecutive accepted messages have no lifetime cap, and bounded follow-up memory reaches model', async () => {
   const h = fixture();

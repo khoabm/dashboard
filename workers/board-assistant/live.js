@@ -55,10 +55,10 @@ export async function readPublishedBoard(env, { fetcher = fetch, signal } = {}) 
     });
     const response = await fetcher(url, {
       headers: { apikey: env.PUBLIC_SUPABASE_KEY },
-      redirect: 'error',
+      redirect: 'manual',
       signal,
     });
-    if (!response.ok) throw Error('board');
+    if (!response.ok) throw Error(`board_${response.status}`);
     const rows = await boundedJSON(response, 3000000);
     if (!Array.isArray(rows)) throw Error('board');
     for (const p of rows)
@@ -113,7 +113,7 @@ export async function liveFetch(request, env, { fetcher = fetch } = {}) {
     'X-Content-Type-Options': 'nosniff',
     Vary: 'Origin',
     'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Expose-Headers': 'Retry-After, X-Assistant-Model-Calls',
     ...(permitted ? { 'Access-Control-Allow-Origin': origin } : {}),
   };
@@ -124,8 +124,29 @@ export async function liveFetch(request, env, { fetcher = fetch } = {}) {
       headers: { ...headers, 'X-Assistant-Model-Calls': String(models), ...extra },
     });
   if (!permitted) return reply(403, { error: 'origin' });
-  if (new URL(request.url).pathname !== '/chat') return reply(404, { error: 'route' });
+  const path = new URL(request.url).pathname;
+  if (!['/chat', '/health'].includes(path)) return reply(404, { error: 'route' });
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
+  if (path === '/health' && request.method === 'GET') {
+    const rate = await env.CHAT_RATE_LIMIT.limit({
+      key: request.headers.get('CF-Connecting-IP') || 'unknown',
+    });
+    if (!rate.success) return reply(429, { error: 'rate_limit' }, { 'Retry-After': '10' });
+    try {
+      const board = await readPublishedBoard(env, { fetcher, signal: AbortSignal.timeout(15000) });
+      return reply(200, { enabled: env.AI_ENABLED === 'true', publicPosts: board.posts.length });
+    } catch (error) {
+      return reply(503, {
+        error: /^(board_\d{3}|configuration|input|size)$/.test(error.message)
+          ? error.message
+          : error instanceof TypeError
+            ? 'board_type'
+            : error instanceof SyntaxError
+              ? 'board_json'
+              : 'board_unavailable',
+      });
+    }
+  }
   if (request.method !== 'POST') return reply(405, { error: 'method' });
   if (env.AI_ENABLED !== 'true') return reply(503, { error: 'unavailable' });
   let payload;
@@ -220,4 +241,5 @@ export async function liveFetch(request, env, { fetcher = fetch } = {}) {
   }
 }
 
-export default { fetch: liveFetch };
+// Runtime's third argument is ExecutionContext, not the test-only dependency options.
+export default { fetch: (request, env) => liveFetch(request, env) };
