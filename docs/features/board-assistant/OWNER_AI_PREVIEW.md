@@ -1,5 +1,18 @@
 # OWNER AI PREVIEW — V2 pilot
 
+**Trạng thái mới sau owner UAT 2026-10-29: hosted BLOCKED, chưa READY.**
+Ledger31/40, qaReservations2/ownerReservations1, blocked=true. Giữ nguyên evidence;
+không xóa ledger, reset DO hoặc chạy Start hosted để thử lại. Hai mẫu PASS dưới đây
+là lịch sử, không bao gồm câu hỏi lịch Xưởng mô hình giấy đã trả503.
+[Điều tra và correction offline](V2_PILOT_ACCEPTANCE.md#owner-uat-incident--offline-correction--2026-10-29).
+Để tự kiểm tra correction không tốn quota: chạy `node scripts/owner-preview-start.mjs`
+**không có `--hosted`**, mở URL Chrome bên dưới, chọn “Điều chỉnh lịch (mô phỏng offline)”,
+mở trợ lý, bật checkbox và hỏi “Xưởng mô hình giấy diễn ra khi nào? Có thay đổi lịch không?”.
+Kỳ vọng lịch mới22/11/2026, lịch cũ20/11/2026 và hai nguồn notice/update.
+Stop offline bằng `node scripts/owner-preview-stop.mjs` trong cùng môi trường.
+Đây là scripted model; không phải nghiệm thu Qwen thật. Phần Start hosted sau đây
+chỉ dùng khi incident/failure-stop và Free/allowance đã được xử lý theo quyền riêng.
+
 **2026-10-29: Hosted Pilot PASS trên hai mẫu nhỏ; owner workflow đã kiểm chứng.**
 [Evidence/ledger/giới hạn](V2_PILOT_ACCEPTANCE.md). Worker sau bàn giao **disabled**.
 Pilot `approved-synthetic-v2-pilot-v1` đã dùng2/5, còn3, stopped=false; workflow

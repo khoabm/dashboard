@@ -76,7 +76,7 @@ function replay({ answer, ids = ['notice', 'update'], generated, failure, stopSt
 for (const wording of ['đổi lịch', 'dời lịch', 'chuyển sang', 'đã được điều chỉnh']) {
   test(`owner exact question accepts supported revision: ${wording}`, async () => {
     const h = replay({
-      answer: `Xưởng mô hình giấy ${wording} ngày 22/11/2026. Lịch cũ 20/11/2026 được thay thế.`,
+      answer: `Xưởng mô hình giấy ${wording} ngày 22/11/2026; lịch cũ là 20/11/2026.`,
     });
     assert.equal((await h.run()).status, 200);
     assert.equal(h.calls.length, 2);

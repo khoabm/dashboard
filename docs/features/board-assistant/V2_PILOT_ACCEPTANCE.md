@@ -1,5 +1,142 @@
 # V2 pilot — explicit allowance / 2026-10-29
 
+## Owner UAT incident — offline correction / 2026-10-29
+
+**Correction PASS offline; overall PARTIAL; failed owner hosted scenario FAILED;
+ROOT CAUSE UNCONFIRMED; NOT READY FOR OWNER LIVE TEST.** Historical two-sample
+hosted acceptance below does not include or override this incident.
+
+### Facts and limits of historical attribution
+
+Question supplied by owner: “Xưởng mô hình giấy diễn ra khi nào? Có thay đổi lịch không?”
+Reviewed baseline `8ed8c1965424ca86805ad98958930e6cd2df9ed0`. Owner subsequently
+committed in-progress source/tests as `ddd2a798b8f0d4010acd5880bd4d3939fc275f28`;
+reconciled without resetting or overwriting that commit. Subsequently fast-forwarded
+remote commits through `fb763e114003928a82a744096595b91f9d4ab2b3`, preserving the
+reviewer's exclusion of unrelated env/Vite changes. STATUS conflict and duplicate
+bug entry were reconciled into the current Desktop evidence, stable AI-V2-OWNER-UAT-01.
+
+Existing local ledger, timestamps UTC (not response-duration measurements):
+
+| Request started | Existing receipt | Combined operations |
+| --- | --- | --- |
+| 14:33:12.604 | status200; count2/5, stopped=false, remaining3, enabled=false | 2 |
+| 14:34:26.492 | chat503; model calls2, BGE1/Qwen1, Worker1/DO2 accounting | 5 |
+| 14:34:48.466 | revoked bearer status403, preview_access | 1 |
+
+Cumulative31/40, qaReservations2, ownerReservations1, blocked=true; nine operations
+are unspent, not authorization to bypass the stop. DO2 in the error receipt is the
+old controller's conservative reserve+stop estimate, not evidence that stop succeeded.
+Two model-call counters mean calls started, not that Qwen completed successfully.
+No exact model completion, error stage or validation reason was retained. Controller
+read X-Assistant-Stage for accounting and discarded it; CLI log has zero occurrences
+of that header or unsupported_date/unsupported_number markers. The Node chat fetch
+did not go through Wrangler logging. No historical Qwen response was reconstructed.
+
+| Possible failure | What existing evidence establishes |
+| --- | --- |
+| Qwen failure/timeout | Qwen call started; completion/timeout unknown |
+| JSON/envelope/contract failure | Consistent with503, no saved response to distinguish |
+| Unsupported citation | Not historically distinguishable |
+| Unsupported date/number | Not historically distinguishable |
+| Revision/cancellation guard | One revision false rejection reproduced offline only |
+| Client/Worker clock | Baseline overwrites client clock server-side; no demonstrated mismatch or historical proof of cause |
+| Other runtime exception | Cannot exclude from generic503 |
+
+Immutable ledger SHA256:
+`d416ba759f74953cde3f2dfc92c39d2a3a1cc35bebe86e8e44275f8a9f080d1b`.
+An ignored manifest fingerprints original local evidence; no incident artifacts or
+allowance data were overwritten. Remote DO count/stopped/remaining and current live
+Worker settings were NOT re-read. Historical revoked bearer403 does not prove a
+current Worker configuration. No deployment/re-enable/reset/identity change occurred.
+
+### Concern/test matrix and change inventory
+
+Inventory: public-temporal acknowledgement, assistant-learning citation error code,
+Worker safe diagnostics, shared assistant-diagnostics helper, controller receipt
+projection, finite assistant-owner-uat tests, offline owner fixture scenario;
+architecture map, this acceptance, STATUS, BUG_FIX_LOG and owner instructions.
+No retrieval redesign, quota change, Auth/Gradebook/RLS, AGENTS, dependency or CI change.
+
+| Concern | Controlled replay / expected result | Actual |
+| --- | --- | --- |
+| Exact question, new22/11 and superseded20/11 | đổi lịch, dời lịch, chuyển sang, đã được điều chỉnh; valid cited facts200 | PASS |
+| Natural acknowledgement alone | “diễn ra ngày22/11/2026; lịch đã được điều chỉnh” | Baseline503; corrected200 |
+| Necessary supporting citation absent | Original notice only cannot support22/11 | 503 unsupported_date |
+| Update-only citation | Update itself explicitly supports both dates/replacement; do not arbitrarily demand two sources | 200 |
+| Invented date or quantity |25/11 or99 sheets absent from sources |503 unsupported_date/unsupported_number |
+| Revision omitted |22/11 asserted with no change acknowledgement |503 revision |
+| JSON/envelope/contract/citation | Corrupt JSON, missing response, invalid shape, invented ID |503 distinct safe codes |
+| Qwen exception or timeout | Two calls started; one stop; no retry |503 generation_failure/inference_timeout |
+| Stop rejected or throws | Distinguish rejected/unconfirmed from confirmed |PASS; no retry |
+| Unsafe diagnostics | Unrecognized/raw header values discarded |PASS |
+| Clock, privacy, universal topics, cancellation/revocation | Existing affected offline specialists |PASS |
+
+Correction adds only `dieu chinh` to answer revision acknowledgement, leaving source
+revision detection and date-kind/year/number/citation/cancellation checks intact.
+This does not prove semantic entailment or prevent every stale-answer formulation.
+Diagnostics are bounded stage/reason, reserved boolean and failureStop enum;
+model-call counts already existed. HTTP errors remain generic. Worker checks stop
+response status; unknown storage outcome stays unconfirmed. Controller persists only
+allowlisted chat diagnostics/counts/status, no complete answer/source bodies by
+default; prior saved synthetic success evidence remains unchanged. Diagnostics take
+effect in hosted use only after a separately scoped deployment; none was performed.
+
+### Actual offline execution and Chrome evidence
+
+Before patch:14 exact-question replay cases,13 PASS/1 reproduced false rejection.
+After patch:14/14; after diagnostic assertions/additions, affected batch108/108
+(17 UAT +91 existing). Final UAT suite19/19 after two extra contract/storage cases;
+110 unique passing cases across these runs, not110 newly repeated full suites.
+Final wording assertions additionally isolate each revision phrase (no shared
+“thay thế” phrase masking the acknowledgement check).
+
+```powershell
+node --test tests/assistant-owner-uat.test.js tests/public-grounding-worker.test.js tests/assistant-learning-worker.test.js tests/assistant-pilot.test.js tests/assistant-preview.test.js tests/public-grounding.test.js tests/assistant-learning.test.js tests/board-assistant-transport.test.js
+node --test tests/assistant-owner-uat.test.js
+npm run check
+npm run build
+```
+
+Check/build PASS; existing chunk-size advisory remains. Scoped Prettier covers only
+seven changed executable files; git diff --check covers delivery. No broad CRLF
+reformat, curated CI rerun, stress/load, remote test or local DO migration required.
+Bindings are in-process synthetic equivalents, NOT real Qwen, BGE or hosted DO.
+
+Actual Chrome at `http://127.0.0.1:4173/tests/owner-ai-preview.html`, labelled
+SCRIPTED OFFLINE. New screenshots in ignored `tests/local/owner-uat-forensics/`:
+chrome-temporal.png, chrome-mobile.png, chrome-error.png, chrome-revocation.png.
+Desktop1536×720: consent, exact UAT answer200 with two fake model calls, notice/update
+citations, opening update source and filtering Board to two cited posts PASS.
+Viewport390×844: clientWidth=scrollWidth375, focus assistant-query, no horizontal
+overflow; temporary viewport reset. Error503 fake disables AI with generic message.
+Dừng tìm cancels a pending fake request and restores query focus; by click time
+both fake model calls had started, no claim that cancellation prevented Qwen start.
+Revocation invalidates/closes panel, hides revoked post, no stale answer, fake calls1.
+One sandbox localhost launch and one interrupted revocation observation failed;
+after loopback access fix/page refresh, bounded revocation check completed. These
+are tooling interruptions, not hosted errors. No screenshots reused from old pilot.
+
+### Budget, retest and owner handoff
+
+This investigation: Cloudflare data-plane0, control-plane0, BGE0, Qwen0, DO0,
+deployments0; Supabase/private backend0. Original ledger31/40, blocked=true and its
+SHA256 remain unchanged. No live state verification is claimed. Current hosted
+acceptance and owner-ready stay BLOCKED; earlier two hosted successes remain history.
+
+Owner can run [scripted offline replay](OWNER_AI_PREVIEW.md) without modifying source.
+Owner later allowed real models if useful; no new hosted request was made because
+the incident latch/DO stop and current Free/remaining allowance are unresolved.
+A bounded real retest would be useful after a concrete incident-recovery plan,
+verified $0/remaining allowance and authorized deployment with these diagnostics.
+It would validate a new completion, not recover the lost historical root cause.
+Do not erase the blocked ledger, reset storage, mint identities or silently
+replenish reservations to achieve it. No merge or website production deployment.
+
+---
+
+## Historical pilot acceptance (before owner UAT)
+
 Baseline9bd7bf5, branch feature/ai-learning-assistant-v2-e2e, existing Draft PR21.
 Owner explicitly authorizes one independent identity `approved-synthetic-v2-pilot-v1`,
 lifetime5 reservations (Codex<=3, prefer owner2). Legacy approved-synthetic-mvp-v1

@@ -1,27 +1,22 @@
-# V2 Owner UAT failure — OFFLINE CORRECTION / HOSTED BLOCKED / 2026-10-29
+# V2 owner UAT — correction PASS offline; overall PARTIAL / 2026-10-29
 
-Owner real Chrome reported /chat HTTP503 after BGE1/Qwen1; local ledger31/40, ownerReservations1, blocked=true, 403 revoked bearer. The earlier two hosted pilot answers remain PASS as small samples only; owner temporal question FAILED. Exact historical root cause remains UNCONFIRMED because the previous Worker/ledger did not preserve response-stage or Qwen output.
+Nhánh feature/ai-learning-assistant-v2-e2e, Draft PR21. Owner question về lịch Xưởng
+mô hình giấy trả503 sau BGE1/Qwen1 started. Không lưu stage/model output lịch sử:
+**ROOT CAUSE UNCONFIRMED**, không gọi owner scenario Hosted PASS. Baseline8ed8c19;
+owner commit phần source/tests thànhddd2a79, được giữ nguyên.
+Đã fast-forward các commit tới fb763e1, giữ correction env/tunnel của GitHub reviewer.
 
-Codex checkpoint `ddd2a798` added offline temporal revision wording correction (accepts “đã được điều chỉnh”), fixed-code diagnostics, an owner UAT replay suite and a scripted Chrome temporal scenario. Codex reported108 offline tests PASS and scripted Chrome timeline/Board interactions PASS; these tests were NOT rerun by the current GitHub-only reviewer. New diagnostics are only valid for future deployments; they cannot recover the failed historical response. AI hosted retest NOT RUN; existing allowance and ledger remain blocked, do not reset/replenish or create a new identity.
+Offline xác nhận validator từ chối câu đúng có “lịch đã được điều chỉnh”; đã sửa
+acknowledgement, giữ date/number/citation/security checks. Diagnostics safe stage/
+reason/reservation/failure-stop và controller receipt, bỏ log full answer/source
+mặc định.19 UAT +91 affected cases PASS; check/build/scoped format/diff PASS.
+Chrome SCRIPTED OFFLINE: exact question/citations/open/filter/error/cancel/revoke,
+viewport390×844 PASS; không suy thành real model hoặc thiết bị mobile thực.
 
-GitHub continuation restored the default-disabled Gradebook example and excluded unrelated local tunnel-host changes accidentally committed in the checkpoint. PR21 remains Draft; no merge, Cloudflare/Supabase call or website deploy. Source review done via GitHub; owner Windows worktree, local ledger and Chrome cannot be accessed or tested from this session. Production policy/rate limiting stays out of scope. Record final head and acceptance limits in PR21; preserve original 2-sample pilot record below as historical evidence.
-
----
-
-# V2 explicit pilot — Hosted Pilot PASS / 2026-10-29
-
-Baseline9bd7bf5, nhánh feature/ai-learning-assistant-v2-e2e/PR21. Owner phê duyệt
-identity độc lập `approved-synthetic-v2-pilot-v1`, cap5 trọn đời, giữ legacy1/stopped.
-2 câu Qwen3 thật trên Chrome (single-source và synthesis), BGE2/Qwen2, citations/
-core facts PASS theo mẫu nhỏ.54 focused +12/6 affected (56 unique),11 local workerd,
-check/build/scoped format PASS; không rerun toàn Gate A/B/curated CI không ảnh hưởng.
-
-V2 ledger **23/40** gồm carry3; pilot count2/stopped=false/remaining3. Workflow
-owner Start/Stop hosted đã chạy, không tốn inference owner, cap2 câu cho owner.
-**READY FOR OWNER LIVE TEST khi Free receipt30 phút còn hiệu lực**; hết hạn phải
-reverify Free/usage, không giả định hoặc cấp mới quota. Final Worker version
-`43f75f32-3805-4f14-884f-d1e48a84f5ce`, AI=false, expiry/access/hash rỗng, namespace cũ;
-old bearer403 verified. No paid/Supabase/real student/web deploy/merge.
+Ledger giữ nguyên **31/40**, qa2/owner1, blocked=true; bearer cũ403 có receipt.
+Không xác minh lại remote DO/Worker; không reset/deploy/re-enable/hosted calls.
+**NOT READY FOR OWNER LIVE TEST**. Retest thật hữu ích sau incident recovery và
+Free/allowance/deployment gates; không xóa ledger hoặc tự cấp quota để thử lại.
 [Pilot evidence/ledger](features/board-assistant/V2_PILOT_ACCEPTANCE.md),
 [Owner commands và cửa sổ preflight](features/board-assistant/OWNER_AI_PREVIEW.md).
 Giữ Draft PR21 target ai-learning-assistant. Các phần dưới là lịch sử.

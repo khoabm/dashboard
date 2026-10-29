@@ -1,14 +1,28 @@
-## 2026-10-29 — AI-V2-OWNER-UAT-01 / P2: owner temporal response HTTP503; offline revision guard correction
-
-Owner asked “Xưởng mô hình giấy diễn ra khi nào? Có thay đổi lịch không?”. Hosted /chat returned503 with reported BGE1/Qwen1; local budget31/40, ownerReservations1, pilot blocked=true. No historical stage/raw response was retained; do not claim the original Qwen output or exact cause.
-
-Offline replay at checkpoint `ddd2a798` reproduced a confirmed validator false-negative: “Xưởng mô hình giấy diễn ra ngày22/11/2026; lịch đã được điều chỉnh” was rejected as revision-unacknowledged. Changed `src/utils/public-temporal.js` to accept “điều chỉnh” while retaining unsupported-date, unsupported-number, source and other fact guards. Added `src/utils/assistant-diagnostics.js`, Worker fixed reason/stop metadata, sanitized local-ledger diagnostics, `tests/assistant-owner-uat.test.js`, and a scripted Chrome temporal scenario. Codex reported108 offline tests + Chrome synthetic PASS; GitHub continuation did not rerun test runtime.
-
-**Disposition:** Confirmed offline defect FIXED IN SOURCE; historical HTTP503 ROOT CAUSE UNCONFIRMED; live retest BLOCKED by existing failure-stop and budget. No new hosted inference, DO reset, production deployment or authorization to revive blocked identity. Unrelated `.env.example` / `vite.config.js` changes in the testing checkpoint have been reverted on feature branch, without overwriting owner local files. Draft PR21 stays open.
-
----
-
 # Nhật ký khắc phục lỗi
+
+## 2026-10-29 — AI-V2-OWNER-UAT-01 / P2: supported revision wording rejected; historical cause unconfirmed
+
+Incident baseline `8ed8c1965424ca86805ad98958930e6cd2df9ed0`, branch
+`feature/ai-learning-assistant-v2-e2e`. Owner committed in-progress correction as
+`ddd2a798b8f0d4010acd5880bd4d3939fc275f28`; retained without reset. Remote follow-up through fb763e1 restored the
+default-disabled Gradebook example and removed unrelated tunnel changes; preserved
+by fast-forward. Documentation conflict reconciled with this fuller Desktop evidence.
+Exact owner question returned503 with two model calls started. Local ledger did
+not retain stage/reason/completion; ROOT CAUSE UNCONFIRMED for that real request.
+Offline replay independently reproduced503 for a supported22/11/2026 answer
+saying “lịch đã được điều chỉnh”. `public-temporal.js` now recognizes this
+revision acknowledgement; date/number/citation/cancellation guards remain strict.
+Source revision detection was not broadened to unrelated uses of “điều chỉnh”.
+
+`assistant-diagnostics.js`, Worker and owner controller preserve allowlisted
+stage/reason, reservation and confirmed/rejected/unconfirmed failure-stop fields.
+Missing envelope, malformed JSON, invalid contract and unknown citation remain
+rejected with distinct codes. Stop HTTP failure is no longer implied successful.
+Future default receipts omit complete answers/source bodies; old evidence untouched.
+19 focused UAT cases PASS; 91 other affected cases PASS; check/build/scoped format
+and actual Chrome scripted QA recorded in [incident acceptance](features/board-assistant/V2_PILOT_ACCEPTANCE.md#owner-uat-incident--offline-correction--2026-10-29).
+Cloudflare requests/deployments/inferences0. Ledger unchanged31/40, blocked=true;
+real owner scenario remains FAILED, corrected hosted retest NOT RUN.
 
 ## 2026-10-29 — AI-V2-PILOT-01 / P2: self-disclosed DOB phrasing bypassed the cloud input guard
 
