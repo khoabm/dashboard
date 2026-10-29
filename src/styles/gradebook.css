@@ -2302,3 +2302,84 @@
   line-height: 1.75;
   overflow-wrap: anywhere;
 }
+
+/* Additional class comparison stays inside the existing selected-subject feedback panel. */
+.learning-class-comparison {
+  margin: 15px 0;
+  padding: 15px;
+  border: 1px solid #d6e5db;
+  border-radius: 12px;
+  background: #fff;
+}
+.learning-class-comparison h5 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #25523b;
+}
+.learning-class-status,
+.learning-class-note {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #486956;
+}
+.learning-class-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.learning-class-metrics > div {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 13px;
+  border-radius: 10px;
+  background: #f3f8f4;
+}
+.learning-class-metrics span {
+  color: #5b7163;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.learning-class-metrics strong {
+  color: #215c41;
+  font-size: 23px;
+  font-variant-numeric: tabular-nums;
+}
+.learning-class-action {
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 10px 15px;
+  border: 1px solid #438665;
+  border-radius: 10px;
+  background: #edf6ef;
+  color: #245d43;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.learning-class-action:hover:not(:disabled) {
+  background: #deeee2;
+}
+.learning-class-action:focus-visible {
+  outline: 3px solid #377c59;
+  outline-offset: 3px;
+}
+.learning-class-action:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+.learning-class-action[hidden] {
+  display: none;
+}
+@media (max-width: 420px) {
+  .learning-class-comparison {
+    padding: 12px;
+  }
+  .learning-class-metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
