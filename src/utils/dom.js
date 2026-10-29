@@ -51,10 +51,8 @@ export function field(label, control) {
 
 /** Shared native checkbox row: label-click, keyboard semantics, and disabled state stay native. */
 export function checkboxField(label, control) {
-  return el('label', { class: 'field field-checkbox ui-checkbox' },
-    control, el('span', {}, label));
+  return el('label', { class: 'field field-checkbox ui-checkbox' }, control, el('span', {}, label));
 }
-
 
 /**
  * Keeps numeric-looking controls free of text without changing value precision or submit rules.
@@ -66,11 +64,7 @@ export function checkboxField(label, control) {
  * @returns {HTMLInputElement} The unchanged control for fluent UI construction.
  */
 export function restrictNumericInput(input, { decimal = false, date = false } = {}) {
-  const accepted = decimal
-    ? /^[0-9]*(?:\\.[0-9]*)?$/
-    : date
-      ? /^[0-9/]*$/
-      : /^[0-9]*$/;
+  const accepted = decimal ? /^[0-9]*(?:\\.[0-9]*)?$/ : date ? /^[0-9/]*$/ : /^[0-9]*$/;
   let lastValue = accepted.test(input.value) ? input.value : '';
   let lastCaret = null;
   const caret = () => {
@@ -98,16 +92,21 @@ export function restrictNumericInput(input, { decimal = false, date = false } = 
       if (event.inputType?.startsWith('delete')) return;
       const start = caret();
       const end = input.selectionEnd;
-      const next = start === null
-        ? event.data
-        : input.value.slice(0, start) + event.data + input.value.slice(end ?? start);
+      const next =
+        start === null
+          ? event.data
+          : input.value.slice(0, start) + event.data + input.value.slice(end ?? start);
       if (!accepted.test(next)) event.preventDefault();
     },
     { capture: true },
   );
-  input.addEventListener('input', (event) => {
-    if (!event.isComposing) restore();
-  }, { capture: true });
+  input.addEventListener(
+    'input',
+    (event) => {
+      if (!event.isComposing) restore();
+    },
+    { capture: true },
+  );
   input.addEventListener('compositionend', restore);
   return input;
 }

@@ -345,15 +345,18 @@ export function GradebookScores({
       selectedSubject = catalog.subjects.find((s) => s.code === subject);
     const published = currentClass[`semester${semester}Published`];
     const entry = dialog('Chỉnh sửa điểm');
-    const input = restrictNumericInput(el('input', {
-      type: 'text',
-      inputmode: 'decimal',
-      autocomplete: 'off',
-      maxlength: 32,
-      value: existing?.rawScore ?? '',
-      required: true,
-      'aria-label': 'Điểm gốc',
-    }), { decimal: true });
+    const input = restrictNumericInput(
+      el('input', {
+        type: 'text',
+        inputmode: 'decimal',
+        autocomplete: 'off',
+        maxlength: 32,
+        value: existing?.rawScore ?? '',
+        required: true,
+        'aria-label': 'Điểm gốc',
+      }),
+      { decimal: true },
+    );
     const ack = el('input', { type: 'checkbox' }),
       error = el('p', { role: 'alert', class: 'form-error' });
     const save = el('button', { type: 'submit', class: 'button primary' }, 'Lưu điểm');

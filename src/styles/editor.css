@@ -347,7 +347,6 @@
   }
 }
 
-
 /* Shared checkbox control: native semantics, left-aligned label and calm motion. */
 .field.ui-checkbox {
   display: flex;
@@ -363,7 +362,10 @@
   background: #f8faf8;
   cursor: pointer;
   text-align: left;
-  transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
 }
 .field.ui-checkbox:hover {
   background: #eef5f0;
@@ -388,7 +390,9 @@
   display: grid;
   place-items: center;
   cursor: inherit;
-  transition: background-color 160ms ease, border-color 160ms ease;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
 }
 .field.ui-checkbox input[type='checkbox']::after {
   content: '';
@@ -398,7 +402,9 @@
   border-bottom: 2px solid white;
   transform: rotate(-45deg) scale(0.5);
   opacity: 0;
-  transition: opacity 120ms ease, transform 160ms ease;
+  transition:
+    opacity 120ms ease,
+    transform 160ms ease;
 }
 .field.ui-checkbox input[type='checkbox']:checked {
   background: var(--green);

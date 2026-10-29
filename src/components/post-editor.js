@@ -285,7 +285,9 @@ export async function PostEditorDrawer({
       el('option', { value: s.id, selected: s.id === model.section_id }, s.title),
     ),
   );
-  const order = restrictNumericInput(el('input', { type: 'number', step: 1, required: true, value: model.sort_order }));
+  const order = restrictNumericInput(
+    el('input', { type: 'number', step: 1, required: true, value: model.sort_order }),
+  );
   const status = el(
     'select',
     {},
