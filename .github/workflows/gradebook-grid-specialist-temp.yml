@@ -1,0 +1,32 @@
+name: Temporary Gradebook Grid Specialist Check
+on:
+  push:
+    branches: [feature/gradebook-bulk-grid-20261029]
+    paths: [.github/workflows/gradebook-grid-specialist-temp.yml]
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/gradebook-bulk-grid-20261029
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Format scoped specialist test
+        run: npx prettier --write tests/gradebook-edge.test.js
+      - name: Commit formatting only if required
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/gradebook-edge.test.js
+          if ! git diff --cached --quiet; then
+            git commit -m "style(gradebook): format grid batch specialist fixtures"
+            git push origin HEAD:feature/gradebook-bulk-grid-20261029
+          fi
+      - name: Offline signed-preview specialist regression
+        run: node --test --test-name-pattern "GRID-B0" tests/gradebook-edge.test.js
