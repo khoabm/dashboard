@@ -1,0 +1,31 @@
+name: One-shot weighted insights format
+on:
+  push:
+    branches:
+      - feature/ai-learning-insights
+    paths:
+      - .github/workflows/weighted-insights-format-once.yml
+permissions:
+  contents: write
+jobs:
+  format-and-remove:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Format three changed files with pinned Prettier
+        run: |
+          ./node_modules/.bin/prettier --write src/components/gradebook-learning-insights.js src/utils/gradebook-learning-comparison.js tests/gradebook-learning-insights.test.js
+      - name: Remove one-shot workflow and push formatting commit
+        run: |
+          git rm .github/workflows/weighted-insights-format-once.yml
+          git add src/components/gradebook-learning-insights.js src/utils/gradebook-learning-comparison.js tests/gradebook-learning-insights.test.js
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'style(insights): format weighted comparison and remove temporary workflow'
+          git push origin HEAD:feature/ai-learning-insights
