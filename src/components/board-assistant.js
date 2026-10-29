@@ -94,6 +94,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
     dialog?.close();
     dialog?.remove();
     dialog = null;
+    trigger.setAttribute('aria-expanded', 'false');
   }
 
   /** Opens a native modal; the chat transcript alone scrolls above its composer. */
@@ -209,7 +210,37 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
     suggestions.hidden = suggestionTopics.length === 0;
     topicTool.disabled = suggestions.hidden;
 
-    // The header, suggestion strip, scrolling transcript and fixed composer form the panel.
+    // Desktop keeps nonessential tools available without taking space from the transcript.
+    const utilityToggle = button('Công cụ & chủ đề', () => {
+      const expanded = utilities.classList.toggle('assistant-utilities-expanded');
+      utilityToggle.setAttribute('aria-expanded', String(expanded));
+    }, 'assistant-utilities-toggle', {
+      'aria-controls': 'assistant-utilities-content',
+      'aria-expanded': 'false',
+    });
+    utilityToggle.append(
+      el('span', { class: 'assistant-utilities-hint' }, 'Mở thao tác và gợi ý'),
+      el('span', { class: 'assistant-utilities-chevron', 'aria-hidden': 'true' }),
+    );
+    const utilities = el(
+      'section',
+      { class: 'assistant-utilities', 'aria-label': 'Công cụ và chủ đề học liệu' },
+      utilityToggle,
+      el(
+        'div',
+        { id: 'assistant-utilities-content', class: 'assistant-utilities-content' },
+        el(
+          'div',
+          { class: 'assistant-tools', role: 'group', 'aria-label': 'Tùy chọn cuộc trò chuyện' },
+          clear,
+          reset,
+          topicTool,
+        ),
+        suggestions,
+      ),
+    );
+
+    // The header, optional tools, scrolling transcript and fixed composer form the panel.
     const ownDialog = el(
       'dialog',
       {
@@ -235,14 +266,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
         ),
         close,
       ),
-      el(
-        'div',
-        { class: 'assistant-tools', role: 'group', 'aria-label': 'Tùy chọn cuộc trò chuyện' },
-        clear,
-        reset,
-        topicTool,
-      ),
-      suggestions,
+      utilities,
       messages,
       status,
       error,
