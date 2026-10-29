@@ -63,7 +63,12 @@ function fixture() {
       run: async (model, input) => {
         models.push({ model, input });
         if (failure) throw Error(failure);
-        if (model.includes('bge')) return { data: input.text.map(() => [1, 0]) };
+        if (model.includes('bge'))
+          return {
+            data: input.text.map((_, i) =>
+              input.text[0].includes('bầu trời') && i > 0 ? [0, 1] : [1, 0],
+            ),
+          };
         const p = JSON.parse(input.messages.at(-1).content.split('\n/no_think')[0]);
         return {
           response: {
@@ -148,6 +153,22 @@ test('public health reports Board availability without any model invocation or p
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), { enabled: true, publicPosts: 2 });
   assert.equal(h.models.length, 0);
+});
+
+test('a new general topic does not inherit the previous Board retrieval/citation', async () => {
+  const h = fixture();
+  h.general();
+  const response = await h.send('Vì sao bầu trời có màu xanh?', [
+    { role: 'user', content: 'Lịch thi GK1' },
+    { role: 'assistant', content: 'Văn lúc7g20.', sourceIds: ['post1'] },
+  ]);
+  assert.equal(response.status, 200);
+  assert.deepEqual((await response.json()).sources, []);
+  assert.equal(h.models[0].input.text[0].trim(), 'Vì sao bầu trời có màu xanh?');
+  assert.deepEqual(
+    JSON.parse(h.models.at(-1).input.messages.at(-1).content.split('\n/no_think')[0]).sources,
+    [],
+  );
 });
 test('seven consecutive accepted messages have no lifetime cap, and bounded follow-up memory reaches model', async () => {
   const h = fixture();
