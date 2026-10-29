@@ -876,10 +876,15 @@ export function GradebookScores({
             { 'data-grid-count': '', role: 'status', 'aria-live': 'polite' },
             gridPending.size ? `${gridPending.size} ô chưa lưu` : 'Mọi thay đổi đã lưu',
           ),
-          button('Xóa ô đang chọn', () => {
-            if (gridPending.size || !selectedGridCell) return;
-            editScore(selectedGridCell.student, selectedGridCell.column);
-          }, 'button', { 'data-grid-remove': '', disabled: gridPending.size > 0 || !selectedGridCell }),
+          button(
+            'Xóa ô đang chọn',
+            () => {
+              if (gridPending.size || !selectedGridCell) return;
+              editScore(selectedGridCell.student, selectedGridCell.column);
+            },
+            'button',
+            { 'data-grid-remove': '', disabled: gridPending.size > 0 || !selectedGridCell },
+          ),
           button('Lưu thay đổi', saveGrid, 'button primary', {
             'data-grid-save': '',
             disabled: !gridPending.size || gridStale,
