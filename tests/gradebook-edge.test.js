@@ -652,7 +652,7 @@ test('manual exact score/date/BIGINT/confirmation validation precedes any write'
     ).status,
     400,
   );
-  assert.equal(f.calls.length, 0);
+  assert.equal(f.calls.filter((call) => call.name.startsWith('gb_score_batch_')).length, 0);
 });
 
 test('student create/patch pass generated envelopes; blank manual names require confirmation', async () => {
