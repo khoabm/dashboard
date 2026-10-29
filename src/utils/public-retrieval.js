@@ -246,7 +246,7 @@ export function mapPublicSources(sources, plan, corpus) {
 
 /** Describes the actual search boundary instead of claiming complete semantic or attachment coverage. */
 export function publicCoverageNote(scope) {
-  return `${scope.snapshot === 'complete' ? 'Snapshot đã phân trang đủ theo loader' : 'Độ đầy đủ snapshot chưa xác minh hoặc chỉ một phần'}. ${scope.lexical === 'full' ? `Đã rà văn bản của ${scope.totalPosts} bài published trong snapshot` : 'Chưa thể rà đủ văn bản do giới hạn cục bộ'}. BGE chỉ xét tối đa ${scope.candidateChunks} đoạn, Qwen tối đa 5 đoạn và trả tối đa 3 trích dẫn; không phải tìm ngữ nghĩa đầy đủ toàn web, không đọc nội dung tệp. Ngày tạo/sửa bài không phải ngày diễn ra; ngày thiếu năm và thông báo mâu thuẫn cần làm rõ.`;
+  return `${scope.snapshot === 'complete' ? 'Đã tải đủ các bài hiện thấy ở lần tải này; bảng có thể thay đổi sau đó.' : 'Chưa xác minh đã tải đủ bài công khai.'} ${scope.lexical === 'full' ? `Đã tìm từ khóa trong văn bản của ${scope.totalPosts} bài đã tải.` : 'Chưa tìm đủ văn bản do giới hạn xử lý hiện tại.'} Trợ lý chỉ đối chiếu các đoạn được chọn, chưa phải toàn bộ web hay toàn bộ mọi bài. Chưa đọc nội dung tệp.`;
 }
 
 /** Builds temporal evidence only from supplied passages, retaining edit/publication uncertainty. */

@@ -583,7 +583,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
           return;
         }
         if (!result.note)
-          result.note = `Thông tin chỉ áp dụng cho snapshot công khai đã tải; độ đầy đủ ${corpus.coverage === 'complete' ? 'được loader xác minh theo phân trang, không phải transaction' : 'chưa xác minh'}. Không đọc nội dung tệp hoặc dữ liệu riêng.`;
+          result.note = `Thông tin dựa trên dữ liệu công khai đã tải. ${corpus.coverage === 'complete' ? 'Bảng có thể thay đổi sau khi tải.' : 'Chưa xác minh đã tải đủ dữ liệu.'} Không truy cập dữ liệu riêng hoặc nội dung tệp.`;
         context = result.sources.length
           ? {
               query: checkedContext?.query || question,

@@ -39,7 +39,8 @@ test('U02 notification preserves group and place rather than assigning whole cla
 test('U03 arbitrary post summary retrieves exact evidence and declares excerpt coverage', () => {
   const p = plan('Tóm tắt Sổ tay tinh thể xanh');
   assert.ok(ids(p).includes('deep'));
-  assert.match(publicCoverageNote(p.scope), /shortlist|đoạn/);
+  assert.match(publicCoverageNote(p.scope), /đoạn/);
+  assert.doesNotMatch(publicCoverageNote(p.scope), /BGE|Qwen|snapshot|loader|UTF-16/);
   assert.ok(p.lookup.every((ref) => Number.isInteger(ref.textLength)));
 });
 test('U04 comparison retains two named posts, not just one repeated keyword', () => {
@@ -138,7 +139,7 @@ test('U16 unknown/oversized corpus never claims full website search', () => {
   assert.equal(unknown.coverage, 'unknown');
   assert.match(
     publicCoverageNote(retrievePublicContent('tinh thể', unknown, { now: frozenClock }).scope),
-    /chưa xác minh/,
+    /chưa xác minh/i,
   );
   const huge = {
     posts: Array.from({ length: 101 }, (_, i) => ({

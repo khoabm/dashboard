@@ -136,7 +136,7 @@ test('U12/U15/U16 ambiguous, file-only and partial snapshots do not pretend comp
     ...options,
     snapshotCoverage: 'unknown',
   });
-  assert.match(unknown.note, /chưa xác minh/);
+  assert.match(unknown.note, /chưa xác minh/i);
 });
 test('T06/T08 valid citations cannot justify invented date/year or using creation time as event', async () => {
   for (const [id, answer] of [

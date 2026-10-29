@@ -109,7 +109,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
   await page.evaluate(() => (data.publicCoverage.complete = false));
   await page.locator('.assistant-trigger').click();
   await ask('Web này làm gì?');
-  assert.match(await page.locator('.assistant-result').last().textContent(), /chưa xác minh/);
+  assert.match(await page.locator('.assistant-result').last().textContent(), /chưa xác minh/i);
   await page.goto(url);
   await page.locator('.assistant-trigger').click();
   await page.locator('.assistant-consent input').check();
