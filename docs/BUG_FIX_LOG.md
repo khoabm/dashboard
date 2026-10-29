@@ -1,5 +1,16 @@
 # Nhật ký khắc phục lỗi
 
+## 2026-10-30 — AI-LIVE-03: topic change inherited unrelated Board citations
+
+At integrated410c722, actual Board time/duration and natural follow-up PASS. General
+sky-color question answered correctly but cited Lịch thi GK1, so general acceptance
+FAILED. Retrieval always concatenated the previous question. Use current query for
+new topics, retain prior query for referential follow-ups, filter weak semantic/
+lexical candidates and explicitly instruct current-question citation only. This
+filters sources, never blocks general knowledge. Added changed-topic regression;
+real general case must be retested after correction merge. No date/number guard,
+owner token, lifetime cap or permanent failure stop reintroduced.
+
 ## 2026-10-30 — AI-LIVE-02: Worker runtime rejects redirect:error on anonymous Board read
 
 Final-develop real Board question initially returned a general abstention without
