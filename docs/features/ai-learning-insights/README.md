@@ -53,3 +53,5 @@ The contextual-feedback change is limited to a pure suggestion helper, student p
 - Keeps the button disabled while a comparison is pending and marks its result region busy. A new subject/semester, route exit or publication denial cancels in-flight requests, clears loader/status and ignores any stale results.
 - Shows friendly terminal states for unavailable, rate-limited, denied, expired, empty and insufficient class data. A transient unavailable state offers **manual** `Thử lại` only; no automatic retries or extra APIs.
 - A per-subject operation uses the existing capability-authenticated histogram read sequentially and checks every aggregate's scope/cohort before fetching the next column. Synthetic offline tests cover progress, one-shot calls, cancellation, minimum cohort, no-scores, and fail-closed errors. No hosted API calls or browser QA were performed.
+
+- UI loading refinement has no endpoint additions: it reuses the existing `PulseIndicator` and the already authorized histogram read, and no new global loader or routing behavior is introduced.
