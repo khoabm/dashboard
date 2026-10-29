@@ -1,5 +1,5 @@
 /** Renders a date-only student lookup form; private inputs and capability never leave this view's memory. */
-import { el, button } from '../utils/dom.js';
+import { el, button, restrictNumericInput } from '../utils/dom.js';
 import { PulseIndicator } from './pending.js';
 import { BirthDatePicker } from './birth-date-picker.js';
 import { formatBirthdayInput } from '../utils/birth-calendar.js';
@@ -43,6 +43,7 @@ export function StudentLookup({ verify, request, navigate, clock = Date.now }) {
     placeholder: 'DD/MM/YYYY',
     'aria-describedby': 'lookup-date-help lookup-date-error',
   });
+  restrictNumericInput(documentInput);
   // Keep separators and cursor position in sync before the calendar reads the shared text field.
   dateInput.addEventListener('beforeinput', (event) => {
     if (event.data && /[^0-9/]/.test(event.data)) event.preventDefault();
