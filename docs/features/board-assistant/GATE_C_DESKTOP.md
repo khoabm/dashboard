@@ -202,3 +202,14 @@ Remaining gates: quyết định allowance/budget mới trước hosted; một r
 case và rubric; owner two-turn live; trustworthy real-content corpus/privacy;
 public auth/abuse/rate/cost protections và production release review riêng.
 Correction/code ready for review; **NOT READY FOR OWNER LIVE TEST**.
+
+## Publication receipt
+
+Source/tests checkpoint `85cc659448852ebc0b8fe428c207d9c004d45320` đã commit/push
+thành công, remote SHA khớp local. [Draft PR21](https://github.com/khoabm/dashboard/pull/21)
+đã tạo qua GitHub connector (draft=true, merged=false), base ai-learning-assistant
+50ea1cb; đã attach vào task. GraphQL Forbidden ở phiên cũ không còn ngăn REST
+connector hiện tại. PR gồm16 commits/68 files của toàn V2, correction Desktop
+riêng25 files; không suy inventory correction thành toàn bộ diff integration.
+Commit biên nhận docs-only sau checkpoint này không thay source/test evidence.
+Working tree sau push chỉ còn hai dirty file local có sẵn đã nêu; AGENTS không đổi.

@@ -16,7 +16,10 @@ bearer tạm đã revoke403 trước DO/model. Không trả phí, website deploy
 [Gate C report/ledger/evidence](features/board-assistant/GATE_C_DESKTOP.md),
 [Start/Stop demo owner local](features/board-assistant/OWNER_AI_PREVIEW.md).
 **NOT READY FOR OWNER LIVE TEST**; demo mặc định ghi rõ SCRIPTED OFFLINE.
-Commit/push/Draft PR receipt trong final delivery. Các bản ghi dưới đây là lịch sử.
+Source/tests checkpoint `85cc659` đã push, remote khớp;
+[Draft PR21](https://github.com/khoabm/dashboard/pull/21) về ai-learning-assistant
+đã tạo/attach, chưa merge. Commit biên nhận docs-only sau checkpoint không đổi
+bằng chứng code/tests. Các bản ghi dưới đây là lịch sử.
 
 ---
 
