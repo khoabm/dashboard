@@ -159,3 +159,55 @@ Chromium app guidance/zero-cloud/empty source action; existing educational
 routing/follow-ups must remain unchanged. This correction does not start CP03
 hosted evaluation, change DO, migrate schema, deploy or merge. Browser/runtime
 tests remain NOT RUN until a suitable worktree is available.
+
+## Gate A/B — Universal Public Content Grounding / kế hoạch trước code
+
+Baseline01198f0b8e1b298101d1ee8405ec988b507db109 đã fast-forward đúng nhánh V2 từ3 commit mới;
+base50ea1cb, cây ban đầu sạch. Gate C/D ngoài scope: hosted/inference/deploy/allowance/run-ID0 thay đổi.
+PRODUCT_PROFILE giữ nguyên. Các hướng dẫn sản phẩm mới phải được xác minh runtime Gate A trước.
+
+Schema thật: posts.body<=20000, title<=200, created_at/updated_at có thật, KHÔNG có published_at hoặc
+schema event/date/deadline. readAllRows đã phân trang exact count + unique id, chống missing/duplicate/
+count-change; không phải transaction snapshot. loadBoard lấy đủ visible rows, có thể gồm private khi
+admin: assistant bắt buộc lọc published và section hợp lệ. Snapshot hoàn chỉnh chỉ khi có evidence
+loader; fixtures/unknown không được tự gọi là full website.
+
+Thiết kế Gate B: giữ legacy wire V1/V2 và helper cũ; thêm corpus đầy đủ body + public timestamps/
+attachment-presence (không URL/path/filename/private fields), index chunk1000/overlap160 trên toàn
+corpus đủ điều kiện; lexical shortlist nội dung/IDF không theo tên topic hoặc vị trí. Mọi chunk được
+xét, payload model vẫn bounded <=8 chunks/query (<=3 follow-up), Qwen top5/output3 citations như cũ.
+V3 map chunk IDs/offset về native post IDs để open/filter/quote chính xác. Không tăng model calls:
+query mới BGE+Qwen, follow-up Qwen, deterministic0. Không vector DB/service mới. Không có lexical
+anchor trên corpus lớn => hỏi làm rõ thay vì tùy tiện chọn8 bài đầu; coverage phân biệt snapshot,
+full lexical scan, semantic shortlist và đoạn trích được gửi. Corpus vượt local resource bound phải
+báo partial/clarify, không âm thầm index prefix. Dates metadata không thay event dates.
+
+Temporal là helper con CP03: clock injected, Asia/Ho_Chi_Minh; date ranges today/week/month/upcoming,
+full-year validation, yearless không suy năm, date evidence có label event/registration/preparation/
+unknown theo chính văn bản. created/updated riêng, publication unknown. Canceled/rescheduled/conflict
+phải giữ evidence từng nguồn, không ghép do chung keyword/updated_at; model prompt nêu rõ giới hạn.
+Không xây calendar/schema, không claim mock proof là Qwen quality.
+
+Inventory: new public-retrieval/temporal helpers + focused fixtures/tests; component/service/Worker
+V3 integration; loadBoard coverage marker; main giữ native actions; source projection legacy giữ
+compatibility. Docs ExecPlan/acceptance/STATUS/BUG_FIX_LOG/ARCHITECTURE/ROADMAP. Không CI/dependency/
+Auth/Gradebook/RLS/migration/PRODUCT_PROFILE change. UI giữ thiết kế, chỉ thêm coverage/format limit.
+
+Matrix: Gate A pure + current6-viewport browser app-guidance/refusal/zero-model. Gate B U01–U20:
+synthetic topics bất kỳ, article>24, fact>1200, long chunk, duplicates, multi-source compare/synthesis,
+no match/private/revoked/file-only/partial; semantic paraphrase bằng fake vectors; answer assertions
+đúng source/quote/fact và fail-closed schema. T01–T10: injected2026-11 clock, explicit full dates,
+unknown/no year, post/event/deadline/preparation khác nhau, cancellation/conflict/different events.
+Specialists Worker/transport/pagination và browser ở ngoài test:ci. Browser6 viewports source open/
+filter/follow-up/reset/cancel/stale/large catalog/safe HTML, external HTTP blocked. Final curated/check/
+build/format/diff khi ổn định; commit/push/Draft PR hoặc remote+compare nếu GraphQL Forbidden.
+
+Rủi ro: candidate lexical mismatch với corpus lớn phải hiển thị partial/clarify; citations chỉ chứng
+minh membership/exact excerpt, không đảm bảo mọi mệnh đề model. Chunk offsets/context mapping có
+regression tests; snapshot ownership dùng full corpus fingerprint. Count paging không chứng minh
+server provenance hay atomic consistency. Public release vẫn blocked theo gates riêng.
+
+Gate A runtime receipt: baseline01198f0, explicit assistant suites43/43 PASS; current Chromium
+six-viewports app-guidance/private refusal/source/focus/cancel suite PASS, outside-loopback HTTP0.
+Tên, ba ứng dụng và hướng dẫn đường dẫn/quyền có runtime evidence; correction cũ NOT RUN được
+supersede chỉ trong scope này. Gate A PASS; Gate B đang triển khai, không suy thành model-quality PASS.
