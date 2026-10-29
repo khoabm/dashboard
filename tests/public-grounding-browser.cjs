@@ -35,6 +35,10 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
     await page.goto(url);
     await page.locator('.assistant-trigger').click();
     await page.locator('.assistant-consent input').check();
+    assert.match(
+      await page.locator('#assistant-privacy').textContent(),
+      /ngữ cảnh nguồn.*đoạn văn bản công khai/,
+    );
     await ask('Tôi muốn xem điểm thì vào đâu?');
     assert.match(
       await page.locator('.assistant-learning-answer').last().textContent(),

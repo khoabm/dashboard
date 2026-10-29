@@ -156,7 +156,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
       rows: 2,
       maxlength: assistantLimits.query,
       'aria-describedby': 'assistant-privacy assistant-error assistant-input-help',
-      placeholder: 'Bạn muốn tìm hiểu website hay học liệu nào?',
+      placeholder: 'Bạn muốn hỏi về website hoặc bài đăng nào?',
     });
     const send = el('button', { type: 'submit', class: 'assistant-send' }, 'Gửi');
     const stop = button(
@@ -273,7 +273,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
           { class: 'assistant-heading-copy' },
           el('span', { class: 'assistant-kicker' }, 'TRỢ LÝ HỌC LIỆU'),
           title,
-          el('p', { id: 'assistant-subtitle' }, 'Tìm trong tiêu đề và mô tả học liệu đã xuất bản.'),
+          el('p', { id: 'assistant-subtitle' }, 'Tìm và đối chiếu văn bản bài đăng công khai.'),
         ),
         close,
       ),
@@ -285,15 +285,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
         'div',
         { class: 'assistant-composer' },
         form,
-        el(
-          'p',
-          { id: 'assistant-privacy', class: 'assistant-disclosure' },
-          hosted
-            ? cloudAvailable
-              ? 'AI là tùy chọn: khi bật, câu hỏi cùng tiêu đề/mô tả học liệu công khai được gửi đến Cloudflare. Không nhập thông tin cá nhân. Trợ lý không đọc tệp, ảnh, video hay bảng điểm.'
-              : 'Kho học liệu vượt giới hạn AI bản thử. Bạn vẫn có thể tìm bằng từ khóa; không gửi nội dung đến Cloudflare.'
-            : 'Đang tìm theo từ khóa trên trang. AI chưa bật; không đọc tệp, ảnh, video hoặc bảng điểm.',
-        ),
+        el('p', { id: 'assistant-privacy', class: 'assistant-disclosure' }, ''),
       ),
     );
     const disclosure = ownDialog.querySelector('#assistant-privacy');
@@ -304,7 +296,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
         ? 'Dùng AI Cloudflare cho câu hỏi này'
         : 'AI không khả dụng · Chỉ tìm từ khóa';
       disclosure.textContent = cloudAvailable
-        ? 'AI là tùy chọn: khi bật, câu hỏi cùng tiêu đề/mô tả công khai được gửi đến Cloudflare. Không nhập thông tin cá nhân. Không đọc tệp hoặc bảng điểm.'
+        ? 'AI là tùy chọn: khi bật, câu hỏi, ngữ cảnh nguồn của phiên và các đoạn văn bản công khai được chọn sẽ gửi đến Cloudflare. Không nhập thông tin cá nhân. Không đọc nội dung tệp hoặc bảng điểm.'
         : hosted
           ? 'AI không khả dụng cho kho học liệu này. Chỉ tìm từ khóa; không gửi đến Cloudflare.'
           : 'AI đang tắt. Chỉ tìm từ khóa trên trang; không gửi đến Cloudflare, không đọc tệp hoặc bảng điểm.';
@@ -356,7 +348,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
     }
 
     assistantMessage(
-      'Xin chào! Mình có thể giới thiệu Vui học cùng cô Quỳnh, hướng dẫn tìm ứng dụng và hỗ trợ học liệu đã xuất bản.',
+      'Xin chào! Mình có thể giới thiệu Vui học cùng cô Quỳnh, hướng dẫn ứng dụng, tìm và đối chiếu nội dung các bài đăng công khai.',
       'assistant-welcome',
     );
     ownDialog.addEventListener(
@@ -418,7 +410,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
           result.mode === 'ai'
             ? result.status === 'insufficient'
               ? 'AI · Chưa đủ nguồn để trả lời'
-              : 'AI · Giải thích từ học liệu được dẫn nguồn'
+              : 'AI · Trả lời từ nội dung công khai có nguồn'
             : result.mode === 'deterministic'
               ? result.status === 'insufficient'
                 ? 'Cần làm rõ câu hỏi · Không dùng AI'
@@ -434,7 +426,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
               : 'Thông tin tính từ snapshot công khai hiện tại.'
             : result.sources.length
               ? 'Mình tìm thấy một số nội dung có thể hữu ích. Bạn có thể mở nguồn để xem đầy đủ.'
-              : 'Chưa tìm thấy nội dung phù hợp trong tiêu đề và mô tả hiện có. Bạn thử từ khóa cụ thể về bài học, hoặc hỏi “Web có những gì?” nhé.',
+              : 'Chưa tìm thấy nội dung phù hợp trong văn bản đã tải. Bạn thử chi tiết hoặc tên bài đăng, hoặc hỏi “Web có những gì?” nhé.',
         ),
       );
       if (result.note) content.append(el('p', { class: 'assistant-answer-note' }, result.note));
