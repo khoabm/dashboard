@@ -1,5 +1,11 @@
 # Desktop correction và owner preview — 2026-10-29
 
+**Luồng hiện hành:** [Live chatbot](LIVE_CHAT_ACCEPTANCE.md), Worker entry live.js,
+general knowledge +published Board thật, history trong memory, rate-limit3/10 giây.
+Không owner token, expiry, lifetime reservation hoặc permanent failure-stop trong
+live path. Main dùng createLiveAssistantRequest; các mục Pilot/UAT dưới đây là lịch
+sử, không phải hướng dẫn bật chatbot hay quota hiện hành.
+
 **Current: [V2 explicit pilot](V2_PILOT_ACCEPTANCE.md) Hosted Pilot PASS trên hai
 mẫu thật; [Owner hosted Start/Stop](OWNER_AI_PREVIEW.md) đã kiểm chứng.** Còn3/5
 reservations,23/40 operations; ưu tiên2 lượt owner, Free receipt có hạn30 phút.

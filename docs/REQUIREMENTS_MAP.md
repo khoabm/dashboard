@@ -5,6 +5,7 @@ chọn phần cần đọc, không thay SPEC hoặc loại bỏ tiêu chí.
 **Toàn website:** [PRODUCT_PROFILE](PRODUCT_PROFILE.md) (tên, mô hình, ý nghĩa, công dụng);
 **Gradebook:** [BRIEF](features/personal-gradebook/BRIEF.md);
 **Trợ lý:** [README](features/board-assistant/README.md).
+Contract live mới theo SPEC R07.1: [chat liên tục/hybrid, short cooldown và nghiệm thu](features/board-assistant/LIVE_CHAT_ACCEPTANCE.md); Pilot/UAT gates cũ không áp dụng luồng live.
 KHTN8 Board là tên lịch sử của ứng dụng Bảng học liệu, không phải tên toàn website.
 
 | ID | Nhóm yêu cầu | Đọc cùng khi làm việc |

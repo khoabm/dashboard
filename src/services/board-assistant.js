@@ -20,6 +20,88 @@ import {
   validatePublicGrounding,
 } from '../utils/public-retrieval.js';
 import { validatePublicAnswerFacts } from '../utils/public-temporal.js';
+import { validateChatPayload } from '../utils/assistant-chat.js';
+
+/** Sends normal chat once with bounded memory; only server-fetched published data grounds its answer. */
+export function createLiveAssistantRequest({ endpoint, enabled = true, fetcher = fetch }) {
+  return async (query, catalog, { signal, history = [] } = {}) => {
+    if (!enabled) throw Error('disabled');
+    const url = new URL(endpoint, location.origin);
+    if (
+      url.origin !== location.origin &&
+      !(url.protocol === 'https:' && url.hostname.endsWith('.workers.dev'))
+    )
+      throw Error('configuration');
+    const payload = validateChatPayload({ query, history });
+    const response = await fetcher(url, {
+      method: 'POST',
+      credentials: 'omit',
+      cache: 'no-store',
+      redirect: 'error',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: signal
+        ? AbortSignal.any([signal, AbortSignal.timeout(50000)])
+        : AbortSignal.timeout(50000),
+    });
+    if (!response.ok) {
+      let code = 'unavailable';
+      try {
+        const value = await response.json();
+        if (value.error === 'provider_quota') code = 'provider_quota';
+      } catch {
+        /* Generic upstream errors stay generic. */
+      }
+      throw Error(response.status === 429 ? 'rate_limit' : code);
+    }
+    const reader = response.body.getReader(),
+      chunks = [];
+    let size = 0;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        size += value.byteLength;
+        if (size > 24000) throw Error('response_size');
+        chunks.push(value);
+      }
+    } finally {
+      await reader.cancel();
+    }
+    const bytes = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.length;
+    }
+    const result = JSON.parse(new TextDecoder().decode(bytes));
+    if (
+      result.mode !== 'ai' ||
+      typeof result.answer !== 'string' ||
+      result.answer.length > 8000 ||
+      !Array.isArray(result.sources) ||
+      result.sources.length > 3
+    )
+      throw Error('response');
+    // Publication edits/revocations can race a response; omit stale sources instead of exposing an old action.
+    const sources = result.sources.filter((source) =>
+      catalog.some(
+        (p) =>
+          p.id === source.id &&
+          typeof source.quote === 'string' &&
+          source.quote.length <= 1200 &&
+          (p.body.includes(source.quote) || p.title.includes(source.quote)),
+      ),
+    );
+    return {
+      ...result,
+      sources,
+      note: sources.length
+        ? 'Nguồn: bài đăng công khai trên Board.'
+        : 'Kiến thức chung của AI; không phải thông tin đã xác minh từ Board.',
+    };
+  };
+}
 
 /** Creates a disabled-by-default local-preview adapter; endpoint configuration contains no secrets. */
 export function createBoardAssistantRequest({

@@ -84,7 +84,7 @@ function messageTime() {
  * Builds a Board-owned assistant and floating entry point.
  * The caller invalidates its memory-only conversation on snapshot or route changes.
  */
-export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
+export function BoardAssistant({ snapshot, request, perform, hosted = false, live = false }) {
   let dialog = null,
     controller = null,
     generation = 0;
@@ -115,6 +115,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
     const corpusAtOpen = publicAssistantCorpus(snapshot());
     const catalogAtOpen = corpusAtOpen.posts;
     let context = null;
+    let chatHistory = [];
     let cloudAvailable = hosted;
     const title = el('h2', { id: 'assistant-title' }, 'Cùng tìm học liệu');
     const close = button(
@@ -156,7 +157,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
       rows: 2,
       maxlength: assistantLimits.query,
       'aria-describedby': 'assistant-privacy assistant-error assistant-input-help',
-      placeholder: 'Bạn muốn hỏi về website hoặc bài đăng nào?',
+      placeholder: live ? 'Bạn muốn hỏi điều gì?' : 'Bạn muốn hỏi về website hoặc bài đăng nào?',
     });
     const send = el('button', { type: 'submit', class: 'assistant-send' }, 'Gửi');
     const stop = button(
@@ -174,6 +175,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
       { hidden: true },
     );
     const cloud = el('input', { type: 'checkbox', disabled: !cloudAvailable });
+    cloud.checked = live && hosted;
     const form = el(
       'form',
       { class: 'assistant-form' },
@@ -273,7 +275,13 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
           { class: 'assistant-heading-copy' },
           el('span', { class: 'assistant-kicker' }, 'TRỢ LÝ HỌC LIỆU'),
           title,
-          el('p', { id: 'assistant-subtitle' }, 'Tìm và đối chiếu văn bản bài đăng công khai.'),
+          el(
+            'p',
+            { id: 'assistant-subtitle' },
+            live
+              ? 'Hỏi kiến thức chung hoặc nội dung bài đăng công khai.'
+              : 'Tìm và đối chiếu văn bản bài đăng công khai.',
+          ),
         ),
         close,
       ),
@@ -348,7 +356,9 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
     }
 
     assistantMessage(
-      'Xin chào! Mình có thể giới thiệu Vui học cùng cô Quỳnh, hướng dẫn ứng dụng, tìm và đối chiếu nội dung các bài đăng công khai.',
+      live
+        ? 'Xin chào! Bạn có thể hỏi kiến thức chung, hỏi tiếp trong hội thoại hoặc tìm hiểu các bài đăng công khai trên Vui học cùng cô Quỳnh.'
+        : 'Xin chào! Mình có thể giới thiệu Vui học cùng cô Quỳnh, hướng dẫn ứng dụng, tìm và đối chiếu nội dung các bài đăng công khai.',
       'assistant-welcome',
     );
     ownDialog.addEventListener(
@@ -410,7 +420,9 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
           result.mode === 'ai'
             ? result.status === 'insufficient'
               ? 'AI · Chưa đủ nguồn để trả lời'
-              : 'AI · Trả lời từ nội dung công khai có nguồn'
+              : live && !result.sources.length
+                ? 'AI · Kiến thức chung'
+                : 'AI · Trả lời từ nội dung công khai có nguồn'
             : result.mode === 'deterministic'
               ? result.status === 'insufficient'
                 ? 'Cần làm rõ câu hỏi · Không dùng AI'
@@ -426,7 +438,9 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
               : 'Thông tin tính từ snapshot công khai hiện tại.'
             : result.sources.length
               ? 'Mình tìm thấy một số nội dung có thể hữu ích. Bạn có thể mở nguồn để xem đầy đủ.'
-              : 'Chưa tìm thấy nội dung phù hợp trong văn bản đã tải. Bạn thử chi tiết hoặc tên bài đăng, hoặc hỏi “Web có những gì?” nhé.',
+              : live && result.mode === 'ai'
+                ? 'Câu trả lời này dùng kiến thức của AI, không phải trích dẫn từ Board.'
+                : 'Chưa tìm thấy nội dung phù hợp trong văn bản đã tải. Bạn thử chi tiết hoặc tên bài đăng, hoặc hỏi “Web có những gì?” nhé.',
         ),
       );
       if (result.note) content.append(el('p', { class: 'assistant-answer-note' }, result.note));
@@ -439,7 +453,9 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
           el(
             'p',
             { class: 'assistant-answer-note' },
-            'AI có thể diễn giải sai. Hãy đối chiếu nguồn; chỉ dùng văn bản công khai được cung cấp.',
+            live
+              ? 'AI có thể trả lời sai. Hãy đối chiếu thông tin quan trọng và các nguồn được dẫn.'
+              : 'AI có thể diễn giải sai. Hãy đối chiếu nguồn; chỉ dùng văn bản công khai được cung cấp.',
           ),
         );
       for (const source of result.sources) {
@@ -517,7 +533,11 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
       event.preventDefault();
       if (controller) return;
       const question = input.value.trim();
-      if (!validAssistantQuery(question)) {
+      if (
+        !(live
+          ? question.length > 0 && question.length <= assistantLimits.query
+          : validAssistantQuery(question))
+      ) {
         error.textContent =
           'Nhập câu hỏi từ 1–400 ký tự. Hãy bỏ email, số định danh và ngày sinh cá nhân; ngày sự kiện được phép.';
         input.setAttribute('aria-invalid', 'true');
@@ -551,10 +571,13 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
       messages.scrollTop = messages.scrollHeight;
       busy(true);
       try {
-        const deterministic = websiteLearningAnswer(question, catalog);
+        const deterministic = live ? null : websiteLearningAnswer(question, catalog);
         const followup = learningIntent(question, catalog).kind === 'followup';
         const checkedContext = followup ? validateLearningContext(context, catalog) : null;
         const result =
+          (live && cloud.checked
+            ? await request(question, catalog, { signal, history: chatHistory })
+            : null) ||
           deterministic ||
           (followup && !checkedContext
             ? {
@@ -590,10 +613,29 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
               ids: result.sources.map((source) => source.id),
             }
           : null;
+        if (live && result.mode === 'ai')
+          chatHistory = [
+            ...chatHistory,
+            { role: 'user', content: question },
+            {
+              role: 'assistant',
+              content: result.answer,
+              sourceIds: result.sources.map((s) => s.id),
+            },
+          ].slice(-12);
         showResults(result, catalog, question, fingerprint);
         input.value = '';
       } catch (failure) {
         if (ticket !== generation || signal.aborted || !ownDialog.open) return;
+        if (live) {
+          error.textContent =
+            failure?.message === 'rate_limit'
+              ? 'Bạn gửi hơi nhanh. Chờ khoảng 10 giây rồi gửi tiếp nhé.'
+              : failure?.message === 'provider_quota'
+                ? 'Cloudflare tạm hết hạn mức miễn phí. Hãy thử lại sau; tìm bằng từ khóa vẫn dùng được.'
+                : 'AI tạm thời chưa trả lời được. Bạn có thể gửi lại sau hoặc bỏ chọn AI để tìm bằng từ khóa.';
+          return;
+        }
         context = null;
         // Failed requests never become fake AI answers or initiate implicit retries.
         cloud.checked = false;

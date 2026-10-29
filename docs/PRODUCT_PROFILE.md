@@ -40,8 +40,8 @@ Các đường dẫn trên được xác minh từ source. **Không được suy
 1. **Bảng học liệu:** người xem chỉ thấy bài `published`; quyền tạo/sửa/xóa thuộc người quản trị hợp lệ.
 2. **Bảng điểm cá nhân:** chỉ xử lý dữ liệu riêng sau xác minh, không đưa danh sách học sinh/điểm vào nội dung công khai.
 3. **Quản lý lớp/điểm:** kiểm tra quyền ở backend; tồn tại URL hoặc menu không đồng nghĩa được phép truy cập.
-4. **Trợ lý:** chỉ có profile website đã duyệt và tiêu đề/mô tả published của Board; không đọc file bytes, ảnh, video, bảng điểm hoặc thông tin Auth. Catalog do trình duyệt gửi **chưa phải chứng cứ server-side** cho trạng thái published; CORS không phải authentication.
-5. **Vận hành:** giữ ngân sách 0 USD; AI mặc định tắt. Hosted Qwen V2, provenance, abuse controls, real-content privacy và phát hành công khai có gate riêng.
+4. **Trợ lý live:** trả lời kiến thức chung và văn bản Board published; Worker tự đọc projection công khai bằng publishable key, không tin catalog từ client. Không đọc file bytes, ảnh/video, Gradebook/Auth hoặc có quyền ghi. Nguồn phù hợp có citation, kiến thức chung không bịa nguồn Board.
+5. **Vận hành:** giữ0 USD, Workers/Workers AI Free là trần dịch vụ; chat live bật theo cấu hình, rate-limit3/10 giây tự phục hồi, không lifetime cap hoặc permanent error-stop. Gate Pilot cũ chỉ là lịch sử; không tự nâng gói hoặc thêm paid fallback.
 
 ## 5. Tài liệu và phạm vi áp dụng
 

@@ -491,6 +491,19 @@ Các tính năng trên chỉ là khả năng mở rộng trong tương lai.
 
 ### 7.1. Board Assistant MVP — extension được yêu cầu 2026-10-29
 
+**Contract hiện hành — yêu cầu end-to-end live chat 2026-10-29:** chatbot hỏi đáp
+kiến thức chung và nội dung Board published thật, hội thoại tiếng Việt/follow-up;
+nguồn Board phù hợp có citation và mở/lọc bài, kiến thức chung không bắt buộc nguồn.
+Worker chỉ đọc public posts bằng publishable key, không nhận private catalog/Auth/
+Gradebook từ client. Lịch sử chỉ giữ trong memory với cửa sổ ngữ cảnh hữu hạn,
+không phải giới hạn số tin nhắn. Không hard reject nội dung theo ngày/số/từ revision.
+Không token owner, synthetic provenance, expiry, lifetime cap, manual reservation,
+permanent failure-stop hoặc khóa AI sau lỗi thường trong live path. Rate-limit spam
+ban đầu3 requests/10 giây/client bằng binding Cloudflare, tự phục hồi; Free quota
+thực là trần dịch vụ, không paid fallback/upgrade. Không retry inference tự động.
+Mọi giới hạn/gate Pilot bên dưới chỉ là lịch sử, không điều khiển live chatbot.
+[Implementation và nghiệm thu live](features/board-assistant/LIVE_CHAT_ACCEPTANCE.md).
+
 **Cập nhật Gate A/B:** trợ lý có thể tìm/đối chiếu/giải thích/tóm tắt nội dung văn bản mọi bài published
 đủ điều kiện trong snapshot Board đã tải, không giới hạn môn học, topic hoặc loại thông báo. Thông tin
 website/app xác định bằng code; nội dung cần diễn giải dùng retrieval + grounded generation với

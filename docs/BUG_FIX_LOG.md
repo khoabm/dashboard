@@ -1,5 +1,16 @@
 # Nhật ký khắc phục lỗi
 
+## 2026-10-29 — AI-LIVE-01: replace Pilot admission and permanent error lock in normal chat
+
+Baselineedc5f31. Owner replaces Pilot requirements with continuous Free-only hybrid
+chat. New live Worker/transport never call legacy reservation/stop or temporal/
+numeric/revision guards. Real anonymous published Board projection and optional
+citations, general knowledge, rolling history and3/10-second native spam limit.
+Existing component retains design/source actions; temporary errors keep AI and
+history available.8 focused offline contracts and actual Chrome offline recovery/
+mobile PASS; actual AI/develop integration evidence pending in [live acceptance](features/board-assistant/LIVE_CHAT_ACCEPTANCE.md).
+No private backend access, new framework, paid service or legacy ledger mutation.
+
 ## 2026-10-29 — AI-V2-UAT-FOLLOWUP-01 / P2: non-temporal facts rejected and503 model counter hidden
 
 Baselinea893526, same feature branch. Owner preparation/audience question503 has
