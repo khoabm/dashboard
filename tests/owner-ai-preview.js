@@ -21,6 +21,7 @@ const select = document.createElement('select');
 select.setAttribute('aria-label', 'Kịch bản offline');
 for (const [value, label] of [
   ['answer', 'Trả lời mô phỏng'],
+  ['temporal', 'Điều chỉnh lịch (mô phỏng offline)'],
   ['insufficient', 'Thiếu nguồn'],
   ['error', 'Lỗi mô phỏng'],
   ['hold', 'Chờ để kiểm tra Dừng'],
@@ -127,7 +128,10 @@ const request = createBoardAssistantRequest({
                   if (model.includes('bge')) return { data: input.text.map(() => [1, 0]) };
                   const p = JSON.parse(input.messages[1].content.split('\n/no_think')[0]);
                   const sources = p.sources.filter((s) =>
-                    ['Lực đẩy trong nước', 'Nếp gấp sao giấy'].includes(s.title),
+                    (scenario === 'temporal'
+                      ? ['Xưởng mô hình giấy', 'Điều chỉnh Xưởng mô hình giấy']
+                      : ['Lực đẩy trong nước', 'Nếp gấp sao giấy']
+                    ).includes(s.title),
                   );
                   return {
                     response:
@@ -136,9 +140,11 @@ const request = createBoardAssistantRequest({
                         : {
                             status: 'answered',
                             answer:
-                              scenario === 'html'
-                                ? "Văn bản thử: <img src=x onerror=alert('x')>."
-                                : sources.map((s) => `${s.title}: ${s.body}`).join('\n'),
+                              scenario === 'temporal'
+                                ? 'Xưởng mô hình giấy diễn ra ngày 22/11/2026; lịch cũ 20/11/2026 đã được điều chỉnh.'
+                                : scenario === 'html'
+                                  ? "Văn bản thử: <img src=x onerror=alert('x')>."
+                                  : sources.map((s) => `${s.title}: ${s.body}`).join('\n'),
                             ids: sources.map((s) => s.id),
                             coverage: 'provided_text',
                           },

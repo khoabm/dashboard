@@ -216,7 +216,7 @@ export function validateLearningAnswer(value, catalog) {
     throw Error('answer');
   const sources = value.ids.map((id) => {
     const post = catalog.find((p) => p.id === id);
-    if (!post) throw Error('answer');
+    if (!post) throw Error('citation');
     return { id, quote: post.body || post.title };
   });
   return {

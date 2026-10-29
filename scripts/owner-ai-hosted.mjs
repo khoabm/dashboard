@@ -7,6 +7,7 @@ import { pilotBudgetName } from '../workers/board-assistant/budget-policy.js';
 import { validAssistantQuery } from '../src/utils/board-assistant.js';
 import { publicAssistantCorpus, retrievePublicContent } from '../src/utils/public-retrieval.js';
 import { previewFixture } from '../workers/board-assistant/preview-fixture.js';
+import { assistantResponseDiagnostics } from '../src/utils/assistant-diagnostics.js';
 export const pilotDirectory = resolve('tests/local/owner-ai-pilot');
 const account = '78913564ee11ed7d2648d8b09852f88f';
 const worker = 'khtn8-board-assistant-mvp';
@@ -288,9 +289,7 @@ export async function startHostedPilot({ qa = false } = {}) {
       bge: models && !context ? 1 : 0,
       qwen: context ? models : Math.max(0, models - 1),
       ...(!chat ? { accounting: result } : {}),
-      ...(path === '/chat' && response.ok
-        ? { answer: result.answer, sources: result.sources }
-        : {}),
+      ...(chat ? { diagnostics: assistantResponseDiagnostics(response.headers) } : {}),
     });
     return { response, result, bytes };
   }

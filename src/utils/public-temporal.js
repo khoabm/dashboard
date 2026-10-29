@@ -182,7 +182,9 @@ export function validatePublicAnswerFacts(result, catalog, grounding, query) {
     throw Error('cancellation');
   if (
     evidence.revised &&
-    !/thay doi|doi lich|dinh chinh|thay the|chuyen sang|mau thuan|chua the/.test(normalized)
+    !/thay doi|doi lich|dinh chinh|dieu chinh|thay the|chuyen sang|mau thuan|chua the/.test(
+      normalized,
+    )
   )
     throw Error('revision');
   const ctx = publicTimeContext(query, grounding.clock);

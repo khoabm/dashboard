@@ -15,6 +15,7 @@ import {
 import { validatePublicGrounding, boundedPublicPrompt } from '../../src/utils/public-retrieval.js';
 
 import { validatePublicAnswerFacts } from '../../src/utils/public-temporal.js';
+import { assistantFailureReason } from '../../src/utils/assistant-diagnostics.js';
 import { assistantBudgetPolicy, legacyBudgetName, pilotReservationLimit } from './budget-policy.js';
 
 export { validateCatalog };
@@ -99,6 +100,7 @@ export function decodeAssistantCompletion(generated, catalog) {
 /** Discards private reasoning and validates a generated answer before crossing the Worker boundary. */
 export function decodeLearningCompletion(generated, catalog) {
   let value = generated?.response ?? generated?.choices?.[0]?.message?.content;
+  if (value === undefined || value === null) throw Error('model');
   if (typeof value === 'string') {
     if (value.length > 12000) throw Error('model');
     let text = value.trim();
@@ -143,7 +145,7 @@ function reply(status, value, origin = '', stage = '', modelCalls = 0) {
       Vary: 'Origin',
       'X-Assistant-Model-Calls': String(modelCalls),
       'Access-Control-Expose-Headers':
-        'X-Assistant-Clock, X-Assistant-Model-Calls, X-Assistant-Stage',
+        'X-Assistant-Clock, X-Assistant-Model-Calls, X-Assistant-Stage, X-Assistant-Reason, X-Assistant-Reserved, X-Assistant-Failure-Stop',
       ...(origin ? { 'Access-Control-Allow-Origin': origin } : {}),
       ...(stage ? { 'X-Assistant-Stage': stage } : {}),
     },
@@ -264,6 +266,7 @@ export async function assistantFetch(request, env) {
       }
       let publicPrompt = null;
       if (payload.version === 3) {
+        stage = 'prompt';
         publicPrompt = boundedPublicPrompt(payload.query, candidates, payload.grounding, context);
         candidates = publicPrompt.candidates;
       }
@@ -323,16 +326,28 @@ export async function assistantFetch(request, env) {
     );
     if (payload.version === 3) response.headers.set('X-Assistant-Clock', payload.grounding.clock);
     return response;
-  } catch {
+  } catch (error) {
     // Any model or storage failure closes the shared allowance; no confirmatory retry is made.
+    let failureStop = 'not_required';
     if (reserved) {
+      failureStop = 'unconfirmed';
       try {
-        await budget.fetch(`https://budget${policy.prefix}/stop`, { method: 'POST' });
+        const stopped = await budget.fetch(`https://budget${policy.prefix}/stop`, {
+          method: 'POST',
+        });
+        failureStop = stopped.ok ? 'confirmed' : 'rejected';
       } catch {
         /* Preview expiry and existing reservations remain enforced. */
       }
     }
-    return reply(503, { error: 'unavailable', stage }, origin, stage, modelCalls);
+    const response = reply(503, { error: 'unavailable', stage }, origin, stage, modelCalls);
+    response.headers.set(
+      'X-Assistant-Reason',
+      assistantFailureReason(error, stage, expired, request.signal.aborted),
+    );
+    response.headers.set('X-Assistant-Reserved', String(reserved));
+    response.headers.set('X-Assistant-Failure-Stop', failureStop);
+    return response;
   } finally {
     clearTimeout(timer);
     request.signal.removeEventListener('abort', cancel);
