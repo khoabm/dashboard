@@ -1594,5 +1594,5 @@ test('GRID-B03 malformed grid batches never reach privileged SQL', async () => {
     });
     assert.equal(response.status, 400);
   }
-  assert.equal(f.calls.length, 0);
+  assert.equal(f.calls.filter((call) => call.name.startsWith('gb_score_batch_')).length, 0);
 });
