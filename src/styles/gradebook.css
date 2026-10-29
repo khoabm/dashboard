@@ -44,8 +44,9 @@
   color: #715d39;
   border-radius: 10px;
 }
+/* Give the teacher score grid more desktop room without changing narrow-screen gutters. */
 .gradebook-admin {
-  max-width: 1160px;
+  max-width: 1440px;
   margin: 36px auto 80px;
   padding: 0 28px;
 }
