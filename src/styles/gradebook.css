@@ -2255,3 +2255,50 @@
     transition: none;
   }
 }
+
+/* Selected-subject feedback: clear evidence first, then one actionable next step. */
+.learning-feedback-panel {
+  margin-top: 16px;
+  padding: clamp(15px, 2.5vw, 21px);
+  border: 1px solid #d6e7db;
+  border-radius: 14px;
+  background: #eef8f0;
+  color: #28513c;
+}
+.learning-feedback-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.learning-feedback-title svg {
+  flex-shrink: 0;
+}
+.learning-feedback-heading {
+  margin: 0;
+  font-size: clamp(15px, 2vw, 18px);
+  line-height: 1.4;
+}
+.learning-feedback-observation {
+  margin: 12px 0;
+  font-size: 13px;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+.learning-feedback-tip {
+  padding: 12px 15px;
+  border: 1px solid #d7e8dc;
+  border-radius: 11px;
+  background: #fff;
+}
+.learning-feedback-tip strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #276044;
+  font-size: 12px;
+}
+.learning-feedback-advice {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
