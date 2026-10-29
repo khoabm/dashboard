@@ -1529,3 +1529,47 @@ test('CON-004 static chain guard verifies eight reviewed replacements and unchan
   assert.match(reveal, /lookupKeyVersion.*,s\.lookup_key_version/);
   assert.doesNotMatch(reveal, /ERRCODE.*40[0-9A-Z]{3}/);
 });
+
+test('GRID-B02 signed grid batch preview/apply preserves revision string and rejects tampered input', async () => {
+  const changes = [
+    { studentId: sid, subjectCode: 'math', columnCode: 'midterm', expectedRevision: null, score: '8.12345' },
+  ];
+  const mock = fixture('admin', {
+    gb_score_batch_preview: plan,
+    gb_score_batch_apply: { counts, errors: [], committed: true },
+  });
+  const source = { classId: cid, semester: 1, changes };
+  const preview = await mock.send({ op: 'scores.batch.preview', ...source });
+  assert.equal(preview.status, 200);
+  assert.equal(typeof preview.body.previewToken, 'string');
+  assert.equal(preview.body.internalStateHash, undefined);
+  const applied = await mock.send({
+    op: 'scores.batch.apply', ...source, previewToken: preview.body.previewToken,
+  });
+  assert.equal(applied.status, 200);
+  assert.equal(applied.body.committed, true);
+  assert.equal(mock.calls.filter((c) => c.name === 'gb_score_batch_apply').length, 1);
+  const sent = mock.calls.find((c) => c.name === 'gb_score_batch_apply');
+  assert.equal(sent.args.changes[0].score, '8.12345');
+  assert.equal(sent.args.changes[0].expectedRevision, null);
+  const tampered = await mock.send({
+    op: 'scores.batch.apply', ...source,
+    changes: [{ ...changes[0], score: '8.12344' }],
+    previewToken: preview.body.previewToken,
+  });
+  assert.equal(tampered.status, 409);
+  assert.equal(mock.calls.filter((c) => c.name === 'gb_score_batch_apply').length, 1);
+});
+
+test('GRID-B03 malformed grid batches never reach privileged SQL', async () => {
+  const f = fixture();
+  const cell = { studentId: sid, subjectCode: 'math', columnCode: 'midterm', expectedRevision: null, score: '8' };
+  for (const changes of [
+    [cell, cell], [{ ...cell, score: '8.123456' }], [{ ...cell, studentId: 1 }],
+    [{ ...cell, role: 'service_role' }], [],
+  ]) {
+    const response = await f.send({ op: 'scores.batch.preview', classId: cid, semester: 1, changes });
+    assert.equal(response.status, 400);
+  }
+  assert.equal(f.calls.length, 0);
+});
