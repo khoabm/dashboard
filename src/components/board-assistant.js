@@ -16,6 +16,51 @@ function assistantAvatar(className = 'assistant-avatar') {
   return el('img', { src: avatarPath, alt: '', class: className, 'aria-hidden': 'true' });
 }
 
+/** Draws monochrome toolbar icons without adding a UI dependency. */
+function assistantToolIcon(kind) {
+  const paths = {
+    new: ['M4 5h16v12H9l-5 3V5', 'M12 8v6', 'M9 11h6'],
+    filter: ['M4 6h16', 'M7 12h10', 'M10 18h4'],
+    topic: ['M9 18h6', 'M10 21h4', 'M8 14a6 6 0 1 1 8 0c-1 1-1.5 2-1.5 4h-5C9.5 16 9 15 8 14'],
+  };
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', '22');
+  svg.setAttribute('height', '22');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '1.8');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  svg.setAttribute('aria-hidden', 'true');
+  for (const d of paths[kind]) {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', d);
+    svg.append(path);
+  }
+  return svg;
+}
+
+/** Creates a labelled shortcut with a distinct accessible action and supporting description. */
+function assistantTool(label, detail, icon, callback) {
+  const control = button(
+    '',
+    callback,
+    'assistant-tool-card',
+    { 'aria-label': `${label} — ${detail}` },
+  );
+  control.append(
+    el('span', { class: `assistant-tool-icon assistant-tool-icon--${icon}` }, assistantToolIcon(icon)),
+    el(
+      'span',
+      { class: 'assistant-tool-copy' },
+      el('strong', {}, label),
+      el('span', { class: 'assistant-tool-detail' }, detail),
+    ),
+  );
+  return control;
+}
+
 /** Returns a local display time; no conversation data is persisted or transmitted. */
 function messageTime() {
   return new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' }).format(
@@ -37,7 +82,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
     'aria-label': 'Mở trợ lý học liệu',
   });
   trigger.append(
-    assistantAvatar('assistant-trigger-avatar'),
+    el('span', { class: 'assistant-trigger-badge' }, assistantAvatar('assistant-trigger-avatar')),
     el('span', { class: 'assistant-trigger-label' }, 'Hỏi trợ lý'),
   );
 
@@ -61,13 +106,29 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
       'aria-label': 'Đóng trợ lý học liệu',
       title: 'Đóng trợ lý',
     });
-    const clear = button(
+    const clear = assistantTool(
       'Cuộc trò chuyện mới',
+      'Bắt đầu lại',
+      'new',
       () => {
         invalidate();
         open();
       },
-      'button subtle assistant-tool-button',
+    );
+    const reset = assistantTool(
+      'Bộ lọc trang',
+      'Đặt lại bộ lọc',
+      'filter',
+      () => act({ type: 'reset' }),
+    );
+    const topicTool = assistantTool(
+      'Gợi ý chủ đề',
+      'Từ học liệu hiện có',
+      'topic',
+      () => {
+        suggestions.scrollIntoView({ block: 'nearest' });
+        suggestionRow.querySelector('button')?.focus({ preventScroll: true });
+      },
     );
     const messages = el('div', {
       id: 'assistant-messages',
@@ -120,32 +181,33 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
         stop,
       ),
     );
-    // Suggested questions are derived only from current published titles, not assumed content.
-    const suggestionTitles = [...new Set(catalogAtOpen.map((post) => post.title.trim()))]
+    // Only sections represented by published posts may appear in suggested topics.
+    const suggestionTopics = [...new Set(catalogAtOpen.map((post) => post.sectionTitle.trim()))]
       .filter(Boolean)
       .slice(0, 3);
     const suggestionRow = el('div', { class: 'assistant-suggestions' });
-    for (const suggestion of suggestionTitles) {
+    for (const topic of suggestionTopics) {
       suggestionRow.append(
         button(
-          suggestion,
+          topic,
           () => {
-            input.value = suggestion.slice(0, assistantLimits.query);
+            input.value = topic.slice(0, assistantLimits.query);
             input.focus();
             input.setSelectionRange(input.value.length, input.value.length);
           },
           'assistant-suggestion',
-          { title: suggestion },
+          { title: topic, 'aria-label': `Tìm học liệu thuộc chủ đề ${topic}` },
         ),
       );
     }
     const suggestions = el(
       'section',
-      { class: 'assistant-suggestions-section', 'aria-label': 'Gợi ý tìm kiếm' },
-      el('span', { class: 'assistant-suggestions-title' }, 'Gợi ý từ học liệu hiện có'),
+      { class: 'assistant-suggestions-section', 'aria-label': 'Gợi ý chủ đề' },
+      el('span', { class: 'assistant-suggestions-title' }, 'Khám phá chủ đề'),
       suggestionRow,
     );
-    suggestions.hidden = suggestionTitles.length === 0;
+    suggestions.hidden = suggestionTopics.length === 0;
+    topicTool.disabled = suggestions.hidden;
 
     // The header, suggestion strip, scrolling transcript and fixed composer form the panel.
     const ownDialog = el(
@@ -177,7 +239,8 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
         'div',
         { class: 'assistant-tools', role: 'group', 'aria-label': 'Tùy chọn cuộc trò chuyện' },
         clear,
-        button('Bỏ bộ lọc trang', () => act({ type: 'reset' }), 'button subtle assistant-tool-button'),
+        reset,
+        topicTool,
       ),
       suggestions,
       messages,
