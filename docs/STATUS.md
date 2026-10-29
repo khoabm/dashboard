@@ -1,3 +1,13 @@
+# V2 Owner UAT failure — OFFLINE CORRECTION / HOSTED BLOCKED / 2026-10-29
+
+Owner real Chrome reported /chat HTTP503 after BGE1/Qwen1; local ledger31/40, ownerReservations1, blocked=true, 403 revoked bearer. The earlier two hosted pilot answers remain PASS as small samples only; owner temporal question FAILED. Exact historical root cause remains UNCONFIRMED because the previous Worker/ledger did not preserve response-stage or Qwen output.
+
+Codex checkpoint `ddd2a798` added offline temporal revision wording correction (accepts “đã được điều chỉnh”), fixed-code diagnostics, an owner UAT replay suite and a scripted Chrome temporal scenario. Codex reported108 offline tests PASS and scripted Chrome timeline/Board interactions PASS; these tests were NOT rerun by the current GitHub-only reviewer. New diagnostics are only valid for future deployments; they cannot recover the failed historical response. AI hosted retest NOT RUN; existing allowance and ledger remain blocked, do not reset/replenish or create a new identity.
+
+GitHub continuation restored the default-disabled Gradebook example and excluded unrelated local tunnel-host changes accidentally committed in the checkpoint. PR21 remains Draft; no merge, Cloudflare/Supabase call or website deploy. Source review done via GitHub; owner Windows worktree, local ledger and Chrome cannot be accessed or tested from this session. Production policy/rate limiting stays out of scope. Record final head and acceptance limits in PR21; preserve original 2-sample pilot record below as historical evidence.
+
+---
+
 # V2 explicit pilot — Hosted Pilot PASS / 2026-10-29
 
 Baseline9bd7bf5, nhánh feature/ai-learning-assistant-v2-e2e/PR21. Owner phê duyệt
