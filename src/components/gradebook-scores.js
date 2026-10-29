@@ -46,6 +46,7 @@ export function GradebookScores({
     dirty = false,
     gridPending = new Map(),
     gridStale = false,
+    selectedGridCell = null,
     disposed = false,
     generation = 0,
     lastOperation = null;
@@ -246,6 +247,7 @@ export function GradebookScores({
     preview.clear();
     loaded = false;
     students = [];
+    selectedGridCell = null;
     wipe(panel);
     render();
     pending(`Đang tải trang điểm ${history.length}…`);
@@ -466,6 +468,8 @@ export function GradebookScores({
     if (info) info.textContent = count ? `${count} ô chưa lưu` : 'Mọi thay đổi đã lưu';
     for (const action of panel.querySelectorAll('[data-grid-exclusive]'))
       action.disabled = count > 0 || busy;
+    const remove = panel.querySelector('[data-grid-remove]');
+    if (remove) remove.disabled = count > 0 || busy || !selectedGridCell;
     const save = panel.querySelector('[data-grid-save]');
     const discard = panel.querySelector('[data-grid-discard]');
     if (save) save.disabled = count === 0 || gridStale || busy;
@@ -872,6 +876,10 @@ export function GradebookScores({
             { 'data-grid-count': '', role: 'status', 'aria-live': 'polite' },
             gridPending.size ? `${gridPending.size} ô chưa lưu` : 'Mọi thay đổi đã lưu',
           ),
+          button('Xóa ô đang chọn', () => {
+            if (gridPending.size || !selectedGridCell) return;
+            editScore(selectedGridCell.student, selectedGridCell.column);
+          }, 'button', { 'data-grid-remove': '', disabled: gridPending.size > 0 || !selectedGridCell }),
           button('Lưu thay đổi', saveGrid, 'button primary', {
             'data-grid-save': '',
             disabled: !gridPending.size || gridStale,
@@ -900,7 +908,7 @@ export function GradebookScores({
         { class: 'muted' },
         published
           ? 'Học kỳ đã công bố: nhấn ô để sửa/xóa điểm với xác nhận.'
-          : 'Nhập trực tiếp vào nhiều ô, rồi chọn Lưu thay đổi. Ô trống không phải lệnh xóa. Nhấn tên cột để sắp xếp trang hiện tại.',
+          : 'Nhập trực tiếp nhiều ô rồi Lưu thay đổi. Để xóa, chọn ô và nhấn Xóa ô đang chọn. Ô trống không phải lệnh xóa.',
       ),
     );
     const list = students.filter((s) => !selected || s.id === selected);
