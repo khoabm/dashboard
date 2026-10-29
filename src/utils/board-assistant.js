@@ -17,7 +17,12 @@ export function validAssistantQuery(value) {
     typeof value === 'string' &&
     value.trim().length > 0 &&
     value.length <= assistantLimits.query &&
-    !/\d{9,}|\b\d{1,2}[/-]\d{1,2}[/-]\d{4}\b|\S+@\S+/.test(value)
+    !/\d{9,}|\S+@\S+/.test(value) &&
+    (!/\b\d{1,2}[/-]\d{1,2}[/-]\d{4}\b/.test(value) ||
+      /dien ra|hoat dong|thong bao|lich|ngay nao|dang ky|chuan bi/.test(
+        normalizeAssistantText(value),
+      )) &&
+    !/ngay sinh|sinh ngay|cccd|cmnd|\bdob\b/.test(normalizeAssistantText(value))
   );
 }
 

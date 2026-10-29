@@ -12,13 +12,25 @@ import {
   websiteLearningAnswer,
 } from '../utils/assistant-learning.js';
 
+import {
+  retrievePublicContent,
+  mapPublicSources,
+  publicLocalResult,
+  publicCoverageNote,
+  validatePublicGrounding,
+} from '../utils/public-retrieval.js';
+
 /** Creates a disabled-by-default local-preview adapter; endpoint configuration contains no secrets. */
 export function createBoardAssistantRequest({
   endpoint = '',
   enabled = false,
   fetcher = fetch,
 } = {}) {
-  return async (query, catalog, { signal, version = 1, context = null } = {}) => {
+  const send = async (
+    query,
+    catalog,
+    { signal, version = 1, context = null, grounding = null } = {},
+  ) => {
     if (!enabled || !endpoint) throw Error('disabled');
     const url = new URL(endpoint, location.origin);
     if (
@@ -30,8 +42,9 @@ export function createBoardAssistantRequest({
       throw Error('configuration');
     catalog = validateAssistantCatalog(catalog);
     if (!validAssistantQuery(query) || catalog.length > assistantLimits.posts) throw Error('input');
-    if (![1, 2].includes(version)) throw Error('version');
-    const checkedContext = version === 2 ? validateLearningContext(context, catalog) : null;
+    if (![1, 2, 3].includes(version)) throw Error('version');
+    const checkedContext = version >= 2 ? validateLearningContext(context, catalog) : null;
+    if (version === 3) validatePublicGrounding(grounding, catalog);
     const abort = new AbortController();
     const cancel = () => abort.abort();
     signal?.addEventListener('abort', cancel, { once: true });
@@ -46,8 +59,14 @@ export function createBoardAssistantRequest({
         redirect: 'error',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(
-          version === 2
-            ? { query, catalog, version: 2, context: checkedContext }
+          version >= 2
+            ? {
+                query,
+                catalog,
+                version,
+                context: checkedContext,
+                ...(version === 3 ? { grounding } : {}),
+              }
             : { query, catalog },
         ),
         signal: abort.signal,
@@ -87,7 +106,7 @@ export function createBoardAssistantRequest({
         return expected;
       }
       if (result.mode !== 'ai') throw Error('response');
-      if (version === 2) {
+      if (version >= 2) {
         if (Object.keys(result).sort().join(',') !== 'answer,coverage,mode,sources,status')
           throw Error('response');
         const sources = validateAssistantSources(result.sources, catalog);
@@ -106,5 +125,46 @@ export function createBoardAssistantRequest({
       clearTimeout(timer);
       signal?.removeEventListener('abort', cancel);
     }
+  };
+  return async (query, catalog, options = {}) => {
+    if (options.version !== 3) return send(query, catalog, options);
+    if (options.signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
+    if (!validAssistantQuery(query)) throw Error('input');
+    // Only the local public projection may enter the planner; reject unexpected private fields.
+    for (const p of catalog)
+      if (
+        Object.keys(p).sort().join(',') !==
+        'body,createdAt,hasAttachments,id,sectionId,sectionTitle,title,updatedAt'
+      )
+        throw Error('catalog');
+    const corpus = {
+      posts: catalog,
+      coverage: options.snapshotCoverage || 'unknown',
+      invalid:
+        catalog.some((p) => typeof p.body !== 'string' || Array.from(p.body).length > 20000) ||
+        new Set(catalog.map((p) => p.id)).size !== catalog.length,
+    };
+    const context = validateLearningContext(options.context, catalog);
+    const plan = retrievePublicContent(query, corpus, { context, now: options.now || new Date() });
+    if (plan.reason) return publicLocalResult(plan, corpus);
+    const wireContext = context
+      ? { query: context.query, ids: plan.catalog.map((p) => p.id) }
+      : null;
+    const result = await send(query, plan.catalog, {
+      ...options,
+      context: wireContext,
+      grounding: plan.grounding,
+    });
+    const sources = mapPublicSources(result.sources, plan, corpus);
+    return {
+      ...result,
+      sources,
+      note: publicCoverageNote(plan.scope),
+      retrieval: plan.scope,
+      evidence: result.sources.map((s) => ({
+        ...plan.lookup.find((p) => p.id === s.id),
+        quote: s.quote,
+      })),
+    };
   };
 }

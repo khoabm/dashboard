@@ -2,8 +2,6 @@
 import { el, button } from '../utils/dom.js';
 import {
   assistantLimits,
-  assistantCatalog,
-  localAssistantResults,
   validAssistantQuery,
   resolveAssistantAction,
   validateAssistantSources,
@@ -15,6 +13,12 @@ import {
   websiteLearningAnswer,
   validateLearningContext,
 } from '../utils/assistant-learning.js';
+
+import {
+  publicAssistantCorpus,
+  retrievePublicContent,
+  publicLocalResult,
+} from '../utils/public-retrieval.js';
 
 const avatarPath = '/placeholders/assistant-avatar.png';
 
@@ -108,14 +112,23 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
   /** Opens a native modal; the chat transcript alone scrolls above its composer. */
   function open() {
     if (dialog?.open) return;
-    const catalogAtOpen = assistantCatalog(snapshot());
+    const corpusAtOpen = publicAssistantCorpus(snapshot());
+    const catalogAtOpen = corpusAtOpen.posts;
     let context = null;
-    let cloudAvailable = hosted && catalogAtOpen.length <= assistantLimits.posts;
+    let cloudAvailable = hosted;
     const title = el('h2', { id: 'assistant-title' }, 'Cùng tìm học liệu');
-    const close = button('×', () => dialog.close(), 'assistant-close', {
-      'aria-label': 'Đóng trợ lý học liệu',
-      title: 'Đóng trợ lý',
-    });
+    const close = button(
+      '×',
+      () => {
+        invalidate();
+        trigger.focus();
+      },
+      'assistant-close',
+      {
+        'aria-label': 'Đóng trợ lý học liệu',
+        title: 'Đóng trợ lý',
+      },
+    );
     const clear = assistantTool('Cuộc trò chuyện mới', 'Bắt đầu lại', 'new', () => {
       invalidate();
       open();
@@ -317,6 +330,14 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
         first?.focus();
       }
     });
+    // Native cancel precedes the queued close event: abort before a late embedding can start Qwen.
+    ownDialog.addEventListener('cancel', () => {
+      if (dialog !== ownDialog) return;
+      generation++;
+      context = null;
+      controller?.abort();
+      controller = null;
+    });
     ownDialog.showModal();
     trigger.setAttribute('aria-expanded', 'true');
     input.focus();
@@ -368,7 +389,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
 
     /** Rechecks current published sources before any user-confirmed Board action. */
     function act(value) {
-      const action = resolveAssistantAction(value, assistantCatalog(snapshot()));
+      const action = resolveAssistantAction(value, publicAssistantCorpus(snapshot()).posts);
       if (!action) {
         error.textContent = 'Học liệu đã thay đổi. Hãy tìm lại.';
         return;
@@ -416,6 +437,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
               : 'Chưa tìm thấy nội dung phù hợp trong tiêu đề và mô tả hiện có. Bạn thử từ khóa cụ thể về bài học, hoặc hỏi “Web có những gì?” nhé.',
         ),
       );
+      if (result.note) content.append(el('p', { class: 'assistant-answer-note' }, result.note));
       if (result.answer)
         content
           .querySelector('strong')
@@ -425,14 +447,14 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
           el(
             'p',
             { class: 'assistant-answer-note' },
-            'AI có thể diễn giải sai. Hãy đối chiếu nguồn; chỉ dùng tiêu đề và mô tả được cung cấp.',
+            'AI có thể diễn giải sai. Hãy đối chiếu nguồn; chỉ dùng văn bản công khai được cung cấp.',
           ),
         );
       for (const source of result.sources) {
         const post = catalog.find((p) => p.id === source.id);
         if (!post) continue;
         const checkedAct = (action) => {
-          if (JSON.stringify(assistantCatalog(snapshot())) !== fingerprint) {
+          if (JSON.stringify(publicAssistantCorpus(snapshot())) !== fingerprint) {
             invalidate();
             return;
           }
@@ -445,6 +467,16 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
             el('span', { class: 'assistant-source-category' }, post.sectionTitle),
             el('h3', {}, post.title),
             el('blockquote', {}, source.quote),
+            ...(result.evidence || [])
+              .filter(
+                (ref) =>
+                  ref.postId === post.id &&
+                  ref.quote !== source.quote &&
+                  typeof ref.quote === 'string' &&
+                  ref.quote.length <= assistantLimits.body &&
+                  (post.body.includes(ref.quote) || post.title.includes(ref.quote)),
+              )
+              .map((ref) => el('blockquote', {}, ref.quote)),
             el(
               'div',
               { class: 'assistant-source-actions' },
@@ -467,7 +499,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
           button(
             'Lọc trang theo nguồn đã chọn',
             () => {
-              if (JSON.stringify(assistantCatalog(snapshot())) !== fingerprint) {
+              if (JSON.stringify(publicAssistantCorpus(snapshot())) !== fingerprint) {
                 invalidate();
                 return;
               }
@@ -502,9 +534,10 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
       }
       input.removeAttribute('aria-invalid');
       error.textContent = '';
-      const catalog = assistantCatalog(snapshot());
-      const fingerprint = JSON.stringify(catalog);
-      if (fingerprint !== JSON.stringify(catalogAtOpen)) {
+      const corpus = publicAssistantCorpus(snapshot());
+      const catalog = corpus.posts;
+      const fingerprint = JSON.stringify(corpus);
+      if (fingerprint !== JSON.stringify(corpusAtOpen)) {
         invalidate();
         return;
       }
@@ -536,23 +569,29 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
                 mode: 'deterministic',
                 status: 'insufficient',
                 sources: [],
-                answer: 'Bạn hãy chọn hoặc tìm một bài học trước khi yêu cầu giải thích tiếp.',
+                answer:
+                  'Bạn hãy chọn hoặc tìm một bài đăng công khai trước khi yêu cầu giải thích tiếp.',
                 coverage: 'insufficient',
               }
             : cloud.checked
-              ? await request(question, catalog, { signal, version: 2, context: checkedContext })
-              : {
-                  mode: 'keyword',
-                  sources: localAssistantResults(
-                    checkedContext ? checkedContext.query : question,
-                    catalog,
-                  ),
-                });
+              ? await request(question, catalog, {
+                  signal,
+                  version: 3,
+                  context: checkedContext,
+                  snapshotCoverage: corpus.coverage,
+                })
+              : publicLocalResult(
+                  retrievePublicContent(question, corpus, { context: checkedContext }),
+                  corpus,
+                  { keyword: true },
+                ));
         if (ticket !== generation || signal.aborted || !ownDialog.open) return;
-        if (fingerprint !== JSON.stringify(assistantCatalog(snapshot()))) {
+        if (fingerprint !== JSON.stringify(publicAssistantCorpus(snapshot()))) {
           invalidate();
           return;
         }
+        if (!result.note)
+          result.note = `Thông tin chỉ áp dụng cho snapshot công khai đã tải; độ đầy đủ ${corpus.coverage === 'complete' ? 'được loader xác minh theo phân trang, không phải transaction' : 'chưa xác minh'}. Không đọc nội dung tệp hoặc dữ liệu riêng.`;
         context = result.sources.length
           ? {
               query: checkedContext?.query || question,

@@ -5,6 +5,7 @@ import '/src/styles/board-assistant.css';
 import { BoardAssistant } from '/src/components/board-assistant.js';
 import { PostPreviewModal } from '/src/components/board.js';
 window.data = {
+  publicCoverage: { complete: true },
   sections: [{ id: 's', title: 'Chủ đề mẫu' }],
   posts: [
     {
