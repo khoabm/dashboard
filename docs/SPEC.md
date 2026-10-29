@@ -506,8 +506,12 @@ Không đưa trường riêng của backend/Gradebook/Auth vào corpus. Hosted t
 clock Worker (Asia/Ho_Chi_Minh), giữ frozen clock cho tests và clock client cho local
 ranking; không suy created/updated thành event hoặc thêm năm/end date.
 Preview hosted bắt buộc admission owner có hạn + server-approved synthetic corpus,
-giữ allowance hiện có/cap3. Khi state stopped hoặc chưa xác minh thì BLOCKED, không
-cấp lại run ID. [Evidence và owner workflow](features/board-assistant/GATE_C_DESKTOP.md).
+giữ MVP cũ/cap3/stopped bất biến. Owner đã phê duyệt riêng một identity
+`approved-synthetic-v2-pilot-v1`, cap5 trọn đời (Codex<=3, ưu tiên giữ2 lượt owner),
+cùng namespace/class; không reset/replenish hoặc tự sinh identity tiếp theo.
+Tổng V2 vẫn40 operations, đã carry3 từ task trước. Khi stopped/chưa xác minh
+Free/usage/allowance thì BLOCKED; Worker time authoritative và chỉ synthetic corpus.
+[Pilot evidence và owner workflow](features/board-assistant/V2_PILOT_ACCEPTANCE.md).
 Chỉ task Desktop này được owner miễn ngưỡng safe-close55%; zero-cost và quyền task
 sau/AGENTS giữ nguyên. Không mở website production hoặc tự merge.
 

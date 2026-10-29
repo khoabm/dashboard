@@ -49,6 +49,7 @@ function fixture() {
     budget,
     names,
     env: {
+      BUDGET_RUN_ID: previewBudgetName,
       AI_ENABLED: 'true',
       PREVIEW_EXPIRES: new Date(Date.now() + 60000).toISOString(),
       PREVIEW_ACCESS_EXPIRES: new Date(Date.now() + 60000).toISOString(),
@@ -62,7 +63,7 @@ function fixture() {
           fetch: async (url) => {
             budget.push(url);
             return url.endsWith('/status')
-              ? Response.json({ count: 1, stopped: true, limit: 3, remaining: 0 })
+              ? Response.json({ count: 1, stopped: true, limit: 5, remaining: 0 })
               : new Response(null, { status: 204 });
           },
         }),
@@ -125,7 +126,7 @@ test('status reads same lifetime allowance without reserve/write/model; disabled
   const r = await previewFetch(req(null, `Bearer ${token}`, '/preview/status', 'GET'), h.env);
   assert.equal(r.status, 200);
   assert.equal((await r.json()).budget.remaining, 0);
-  assert.deepEqual(h.budget, ['https://budget/status']);
+  assert.deepEqual(h.budget, ['https://budget/pilot/status']);
   assert.equal(h.models.length, 0);
   assert.equal((await previewFetch(req(), h.env)).status, 503);
   assert.equal(h.budget.length, 1);
@@ -168,7 +169,12 @@ test('explicit personal identifiers in current/prior questions never fetch; priv
       throw Error('unexpected');
     },
   });
-  for (const q of ['CMND 012 345 678', 'DOB 2010-01-01', 'ngày sinh của tôi 01/01/2010'])
+  for (const q of [
+    'CMND 012 345 678',
+    'DOB 2010-01-01',
+    'ngày sinh của tôi 01/01/2010',
+    'Em sinh 20/11/2010, có hoạt động nào phù hợp?',
+  ])
     await assert.rejects(send(q, corpus.posts, { version: 3 }));
   await assert.rejects(
     send('giải thích tiếp', corpus.posts, {
@@ -215,7 +221,7 @@ test('forged past clock cannot authorize an upcoming claim; transport requires s
   );
   assert.equal(response.status, 503);
   assert.equal((await response.json()).stage, 'validation');
-  assert.equal(h.budget.at(-1), 'https://budget/stop');
+  assert.equal(h.budget.at(-1), 'https://budget/pilot/stop');
   const makeSend = (clock) =>
     createBoardAssistantRequest({
       enabled: true,

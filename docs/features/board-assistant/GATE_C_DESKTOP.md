@@ -1,5 +1,10 @@
 # Gate C Desktop — 2026-10-29
 
+**Superseded only for current hosted/owner gate:** owner sau đó phê duyệt một
+identity V2 pilot độc lập cap5. [Pilot receipt](V2_PILOT_ACCEPTANCE.md) ghi hai
+Qwen thật PASS theo mẫu nhỏ, ledger23/40 và owner Start/Stop; MVP cũ vẫn stopped.
+Các bằng chứng/ngân sách/task authority trong snapshot dưới giữ nguyên lịch sử.
+
 Baseline `b5dc07053ae5c125b9903a6ebd3a808916c452fd`, branch
 `feature/ai-learning-assistant-v2-e2e`. Owner authorizes this task's bounded
 Cloudflare/Chrome work, commit/push/Draft PR; no merge, website deployment,

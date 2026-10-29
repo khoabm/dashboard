@@ -6,6 +6,7 @@
   "preview_urls": false,
   "ai": { "binding": "AI" },
   "vars": {
+    "BUDGET_RUN_ID": "approved-synthetic-v2-pilot-v1",
     "AI_ENABLED": "false",
     "PREVIEW_EXPIRES": "",
     "PREVIEW_ACCESS_EXPIRES": "",

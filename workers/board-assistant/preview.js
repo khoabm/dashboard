@@ -1,10 +1,11 @@
 /** Admits only an expiring owner bearer and server-approved synthetic passages to hosted inference. */
-import { assistantFetch, assistantReservationLimit } from './index.js';
+import { assistantFetch } from './index.js';
+import { pilotBudgetName, pilotReservationLimit, legacyBudgetName } from './budget-policy.js';
 import { previewFixture } from './preview-fixture.js';
 import { publicAssistantCorpus, retrievePublicContent } from '../../src/utils/public-retrieval.js';
 import { validAssistantQuery } from '../../src/utils/board-assistant.js';
 export { AssistantBudget } from './index.js';
-export const previewBudgetName = 'approved-synthetic-mvp-v1';
+export const previewBudgetName = pilotBudgetName;
 
 /** Compares the digest of a bounded ephemeral bearer; raw tokens never enter logs or browser code. */
 async function authorized(request, env) {
@@ -87,26 +88,28 @@ function approvedPayload(payload) {
   return payload;
 }
 
-/** Routes authenticated status/stop without inference; enabled chat remains lifetime-capped and synthetic-only. */
+/** Routes authenticated status without inference; enabled chat remains lifetime-capped and synthetic-only. */
 export async function previewFetch(request, env) {
   const json = (status, value) =>
     Response.json(value, { status, headers: { 'Cache-Control': 'no-store' } });
   if (!(await authorized(request, env))) return json(403, { error: 'preview_access' });
-  if (env.BUDGET_RUN_ID && env.BUDGET_RUN_ID !== previewBudgetName)
-    return json(503, { error: 'identity' });
+  if (env.BUDGET_RUN_ID !== previewBudgetName) return json(503, { error: 'identity' });
   const path = new URL(request.url).pathname;
-  if (path === '/preview/status' && request.method === 'GET') {
+  if (['/preview/status', '/preview/legacy-status'].includes(path) && request.method === 'GET') {
     if (!env.BUDGET) return json(503, { error: 'budget' });
     try {
-      const res = await env.BUDGET.get(env.BUDGET.idFromName(previewBudgetName)).fetch(
-        'https://budget/status',
+      const legacy = path === '/preview/legacy-status';
+      const identity = legacy ? legacyBudgetName : previewBudgetName;
+      const res = await env.BUDGET.get(env.BUDGET.idFromName(identity)).fetch(
+        legacy ? 'https://budget/status' : 'https://budget/pilot/status',
         { method: 'POST' },
       );
       if (!res.ok) return json(503, { error: 'budget' });
       return json(200, {
         budget: await res.json(),
         enabled: env.AI_ENABLED === 'true',
-        limit: assistantReservationLimit,
+        identity,
+        limit: legacy ? 3 : pilotReservationLimit,
       });
     } catch {
       return json(503, { error: 'budget' });

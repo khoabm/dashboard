@@ -1,5 +1,11 @@
 # Desktop correction/Gate C — 2026-10-29
 
+Latest explicit pilot authority/result: [V2 pilot](V2_PILOT_ACCEPTANCE.md).
+One fixed identity5, same namespace/class, legacy unchanged;2 QA reservations,
+3 remaining,23/40 cumulative; owner hosted Start/Stop verified, final disabled.
+No further inference/identity/replenishment by implication. Earlier plans below
+are historical; Free receipt expiry blocks hosted Start until reverified.
+
 Owner yêu cầu tiếp tục từb5dc070, tự thực hiện correction/Chrome/Cloudflare trong
 cap20+20 operations, cap3 existing reservations, không reset/đổi ID. Weekly55%
 threshold được waive riêng task; zero-cost/AGENTS/quyền task sau giữ nguyên.

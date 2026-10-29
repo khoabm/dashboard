@@ -22,7 +22,7 @@ export function validAssistantQuery(value) {
     !/\b(?:\d[ .-]?){9,}\b/.test(
       value.replace(/\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[/-]\d{1,2}(?:[/-]\d{4})?)\b/g, ''),
     ) &&
-    !/(?:ngay sinh|sinh ngay|\bdob\b)[\s\S]*\d|(?:cccd|cmnd)[\s\S]*\d/.test(
+    !/(?:ngay sinh|sinh ngay|\bdob\b)[\s\S]*\d|(?:cccd|cmnd)[\s\S]*\d|\b(?:em|toi|minh|con|chau)\s+(?:duoc\s+)?sinh\s+(?:vao\s+|ngay\s+)?\d/.test(
       normalizeAssistantText(value),
     )
   );

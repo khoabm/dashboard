@@ -1,115 +1,112 @@
-# OWNER AI PREVIEW
+# OWNER AI PREVIEW — V2 pilot
 
-**2026-10-29: PARTIAL / live preview BLOCKED, chưa READY FOR OWNER TEST.**
-Đọc [Gate C Desktop](GATE_C_DESKTOP.md) để biết bằng chứng và ledger. Preview
-local bên dưới chạy được nhưng là **scripted offline**, không phải Qwen3 thật.
+**2026-10-29: Hosted Pilot PASS trên hai mẫu nhỏ; owner workflow đã kiểm chứng.**
+[Evidence/ledger/giới hạn](V2_PILOT_ACCEPTANCE.md). Worker sau bàn giao **disabled**.
+Pilot `approved-synthetic-v2-pilot-v1` đã dùng2/5, còn3, stopped=false; workflow
+owner cho phép tối đa2 câu. MVP cũ count1/stopped không đổi. Không production-ready.
 
-## Vì sao chưa bật model thật
+## Start AI thật — máy hiện tại
 
-Đã kiểm tra đúng Worker `khtn8-board-assistant-mvp`, account kết thúc `852f88f`,
-Free/$0 trên Chrome. Binding AI/BUDGET và model catalog BGE-M3/Qwen3 tồn tại.
-Ngày 2026-10-29 19:44:45 giờ Việt Nam, endpoint status xác thực trả:
-
-```json
-{"count":1,"stopped":true,"limit":3,"remaining":0}
-```
-
-Đây là **allowance dùng chung hiện có**, ID `approved-synthetic-mvp-v1`;
-ledger V2 cũ 0/40 không làm mới state MVP. Không có hai reservations còn lại
-để dành cho owner. Còn operations trong ngân sách test không đồng nghĩa còn
-inference reservations. Tác vụ này cấm reset/đổi ID/tạo DO mới để cấp thêm.
-`--hosted` vì vậy kết thúc BLOCKED trước bất kỳ request/deployment nào.
-
-## Prerequisites
-
-- Windows, Node và dependencies repository đã có (`node_modules`). Không cần
-  extension mới, key, credentials hay tài khoản học sinh.
-- Checkout nhánh `feature/ai-learning-assistant-v2-e2e`.
-- Port4173 rảnh. Nếu server khác đang dùng port này, dừng **đúng server của mình**;
-  script không tự kill process hoặc chuyển port.
-
-## Start và Stop — demo local đã kiểm chứng
-
-Mở terminal tại thư mục repository:
+Trong terminal tại repository:
 
 ```powershell
-node scripts/owner-preview-start.mjs
+node scripts/owner-preview-start.mjs --hosted
 ```
 
-Mở Chrome tại **http://127.0.0.1:4173/tests/owner-ai-preview.html**.
-Trang hiển thị `DỮ LIỆU GIẢ · SCRIPTED OFFLINE`. Dùng component Board và
-Trợ lý học liệu thật; mọi dữ liệu của trang đều là mẫu, không đọc Supabase.
+Mở **[Chrome owner preview](http://127.0.0.1:4173/tests/owner-ai-preview.html)**.
 
-1. Bấm **Mở trợ lý học liệu**.
-2. Bật checkbox AI để thử **nhánh xử lý scripted** trong demo. Consent là
-   component thật; banner của trang xác nhận chế độ đang chạy. Checkbox này
-   không vượt được hosted gate hoặc gọi model thật trong workflow mặc định.
-3. Hỏi một câu và mở nguồn hoặc bấm lọc Board.
-4. Nhấn Escape để đóng. Có thể chọn kịch bản offline trước khi mở lại panel:
-   thiếu nguồn, lỗi, chờ để Dừng, thu hồi nguồn khi chờ, HTML dạng văn bản.
+1. Đợi terminal báo HOSTED synthetic pilot, expiry và allowance.
+2. Trang phải hiện **DỮ LIỆU GIẢ · Cloudflare thật**. Mở trợ lý, chọn checkbox AI.
+3. Hỏi một câu. Banner sau phản hồi hiện HTTP200/model calls2 cho câu mới,
+   hoặc1 cho follow-up; answer/source cards xuất hiện. Không gửi lặp vì thấy chậm.
+4. Mở học liệu/lọc Board để đối chiếu, không gọi model. Đóng/mở panel xóa context;
+   hãy hỏi follow-up trước khi đóng. Tối đa2 câu trong workflow owner.
+
+Chỉ dùng4 bài synthetic đang hiển thị. Không dùng production, Supabase,
+Gradebook hoặc dữ liệu học sinh. Không cần sửa source hay nhập token.
+
+| Lượt | Câu hỏi gợi ý | Nguồn kỳ vọng |
+| --- | --- | --- |
+|1|Nếp gấp sao giấy cần làm những gì và dùng loại giấy nào?|Gấp mép theo đường chéo, miết phẳng, giấy tái chế sạch |
+|2|Nói dễ hiểu hơn về bài này được không?|Cùng nguồn câu trước; không nguồn riêng tư |
+
+Hai câu thật Codex đã kiểm chứng là hướng lực trong nước và so sánh bài lực đẩy/
+gấp giấy. Follow-up/temporal/abstention chưa chấm model thật; có regression offline.
+“Web này làm gì?” dùng deterministic profile, không model.
+
+## Stop — tắt hosted thật trước khi đóng server
+
+Trong terminal thứ hai, cùng repository:
 
 ```powershell
 node scripts/owner-preview-stop.mjs
 ```
 
-Hoặc Ctrl+C trong terminal Start. Server tự đóng sau30 phút; không cron,
-watcher thường trực hay service cài vào Windows. Sau Stop, Chrome reload URL
-trên phải không kết nối được. Lệnh Stop chỉ gọi loopback, không gọi Cloudflare.
+Hoặc Ctrl+C tại terminal Start. Stop đợi deploy-disable/readback rồi kiểm tra
+bearer cũ403; có thể cần20–40 giây, client chờ tối đa60 giây. Thành công mới trả
+“Đã dừng owner preview”. Server đóng, reload URL local không kết nối được.
+Không tắt cưỡng bức terminal khi Stop đang chạy.
 
-## Câu hỏi mẫu và nguồn kỳ vọng
+Nếu process crash hoặc không còn local server:
 
-| Câu hỏi | Nguồn / kỳ vọng |
-| --- | --- |
-| Web này làm gì? | Profile website deterministic, không model |
-| So sánh Lực đẩy trong nước và Nếp gấp sao giấy | Hai nguồn lesson/fold; scripted giữ đúng hướng lực và thao tác gấp |
-| Giải thích thêm được không? | Theo hai nguồn của câu trước trong memory; không thêm nguồn riêng tư |
-| 20/11/2026 có phong trào gì? (bỏ chọn AI) | Ngày có năm được nhận; tìm từ khóa có thông báo gốc và bản đổi lịch, tự đọc cả hai |
+```powershell
+node scripts/owner-preview-stop.mjs --recover
+```
 
-Scripted model không đánh giá relevance/tổng hợp tự nhiên của Qwen. Không dùng
-câu trả lời scripted cho thông báo để kết luận chất lượng model thật.
+Recover chỉ deploy default-disabled/đọc flags; không reset/unlock allowance,
+không inference hoặc tự khôi phục hoạt động có completion không chắc chắn.
+Không xóa ledger/lock để chạy lại. Báo lỗi để kiểm tra riêng nếu ledger bị blocked.
+Worker tự fail-closed theo expiry tuyệt đối tối đa15 phút kể cả Chrome/Codex đóng;
+không cron, service hay watcher thường trực. Không để AI=true vô thời hạn.
 
-## Phân biệt model thật và fallback
+## Free và quota trước mỗi Start
 
-- Workflow Start hiện tại **luôn offline**; nó override AI=false và bỏ `.env`
-  khỏi Vite. Không có yêu cầu owner sửa source/config.
-- `Tìm bằng từ khóa · AI không được sử dụng` là deterministic fallback.
-- Nhãn `AI · ...` trong fixture là kết quả của scripted transport/Worker,
-  **không đủ chứng minh hosted**. Live acceptance cần banner Cloudflare thật,
-  deployment/version được xác minh và receipt model-calls2 cho câu mới,
- 1 cho follow-up, citations/facts được kiểm tra. Hiện chưa có bằng chứng này.
+- Máy hiện tại có Node/dependencies, Wrangler tại
+  `tests/local/ai-tools/node_modules/wrangler/bin/wrangler.js`, CLI đã đăng nhập
+  đúng account. Không tạo key hoặc yêu cầu billing/scope mới. Port4173 phải rảnh;
+  script không kill process hoặc chuyển port.
+- `tests/local/owner-ai-pilot/free-preflight.json` giữ bằng chứng Free/usage đã
+  kiểm tra bằng Chrome, giá trị30 phút, còn ít nhất2000 neurons theo tính bảo thủ.
+  Hosted Start bị chặn khi receipt hết hạn; không suy Free từ config hoặc trả phí.
+- Sau expiry, yêu cầu Codex **xác minh lại Workers Free/$0 và usage trên Chrome,
+  làm mới preflight cho cùng pilot**. Không sửa timestamp/plan/quota bằng tay để
+  vượt gate. Final handoff ghi cửa sổ receipt hiện tại.
+- Start đọc live settings/bindings/identity và DO trước enable. Raw bearer chỉ ở
+  memory controller; Worker nhận SHA-256/expiry. Controller thêm Authorization,
+  không đưa token vào VITE/frontend/Git.
+- Ledger `tests/local/owner-ai-pilot/ledger.json` carry3 operations trước,
+  hiện23/40. Start/Stop thành công dùng5 operations, câu mới4, follow-up3.
+  Một Start +2 câu mới +Stop đưa tổng tối đa36/40, không cấp thêm40.
+- Ledger thiếu/corrupt/unsettled/failure-stop thì BLOCKED; không auto-init/reset/
+  identity mới. Role cap Codex3/owner2 giữ qua restart. `--qa` dành cho QA được duyệt;
+  owner dùng `--hosted` thông thường. Start/Stop không hỏi câu nào vẫn tiêu5 operations.
 
-## Cloudflare safety và cách xác minh đã tắt
+Trạng thái local (không gọi Cloudflare): `http://127.0.0.1:4173/__owner/status`.
+used/sessionRemaining/operations là cục bộ; lastStatus đọc lúc Start,
+pilotRemainingEstimate chỉ là ước lượng. Stop đọc DO thật. Final settings đã xác
+minh AI=false, expiry/access/hash rỗng, namespace cũ.
 
-Worker deployment cuối giữ AI_ENABLED=false, PREVIEW_EXPIRES rỗng,
-PREVIEW_ACCESS_EXPIRES rỗng, PREVIEW_TOKEN_SHA256 rỗng. Đã xác minh cấu hình
-live và bearer cũ trả403 trước DO/model sau khi thu hồi. Không cần owner gọi
-probe lặp lại hoặc chạy lệnh Stop để tiêu thêm quota.
+## Scripted offline — fallback không quota
 
-Trong Cloudflare dashboard → Workers & Pages → Worker trên → Settings,
-chỉ đọc các biến public flags/expiry này. Không bấm Upgrade hoặc reset DO.
-Nếu cần khẩn cấp: đặt AI_ENABLED=false và xóa hai expiry/hash; hoặc deploy
-default-disabled config đã review bằng Wrangler hiện có. Rollback về pre-state
-version được ghi trong Gate C. Không dùng `--keep-vars` để vô tình giữ access.
+```powershell
+node scripts/owner-preview-start.mjs
+```
 
-Admission mới dùng bearer256-bit có hạn tối đa30 phút, digest SHA-256 phía
-Worker, raw bearer chỉ ở server local và proxy header (không VITE env/Git).
-Worker chỉ chấp nhận exact windows từ corpus synthetic bundled phía server;
-CORS/publication claims của browser không cấp quyền. Proxy kiểm origin/host
-loopback và expiry. Không tự mở tunnel hoặc endpoint cho public.
+Cùng URL Chrome, banner **SCRIPTED OFFLINE**. Checkbox AI lúc này chạy scripted
+transport/Worker trong browser; nhãn AI trong panel không chứng minh model thật.
+Chọn kịch bản offline ngoài panel để thử lỗi/thiếu nguồn/hủy/thu hồi/HTML literal.
+Stop vẫn dùng command trên nhưng không gọi hosted.
 
-## Troubleshooting / giới hạn
+## Troubleshooting và quyền riêng tư
 
-- **Port đang dùng:** dừng server đúng terminal; không tự đổi origin.
-- **AI lỗi:** UI khóa cloud cho phiên trang, vẫn tìm từ khóa; không tự retry.
-- **Allowance stopped/exhausted:** đây là blocker hiện tại, không phải lỗi cần
-  restart script. Không đổi run ID/DO, không reset counter hoặc tự cấp quota.
-- **Không kết nối sau30 phút/Stop:** chạy lại Start cho demo local, không làm
-  mới hosted reservations.
-- **Mất focus/nguồn bị ẩn:** panel bỏ context; mở lại và hỏi dựa trên snapshot mới.
-- **Cần Qwen3 thật:** cần một quyết định ngân sách/allowance mới được chỉ định
-  rõ và review riêng; hiện không cung cấp lệnh lách gate. Không mua credit/gói.
-- Không nhập CCCD, DOB cá nhân, điểm, session/password, học sinh thật; không
-  dùng Board production hoặc Gradebook làm corpus. Ngày sự kiện bình thường
-  được phép. Chưa có provenance/privacy gate cho dữ liệu thực.
-
-Đây là owner demo cục bộ; không production-ready và chưa có live owner preview.
+- Free/usage chưa xác minh hoặc receipt hết hạn: hosted BLOCKED, dùng offline.
+- 429/503/timeout/entitlement: không gửi lại/Start để retry; phiên latch blocked,
+  Worker được disable. Không đổi ID hoặc mua credits/gói/thẻ.
+- Stop lỗi: xem terminal Start, dùng --recover nếu cần. Chỉ báo an toàn khi flags
+  live đã xác minh; expiry là lớp cuối, không phải lý do bỏ Stop.
+- Không nhập CCCD/email/DOB cá nhân, điểm, credentials/session. Ngày sự kiện và
+  tháng/năm bình thường được phép. Fixture không có dữ liệu học sinh.
+- Không public/tunnel preview; Worker chỉ nhận exact windows từ corpus synthetic
+  server-approved, không tin publication claim của browser.
+- Clone/máy khác thiếu ledger/receipt/CLI sẽ BLOCKED; không tự tạo lại file để có
+  allowance mới. State thật nằm trong cùng DO và không được replenish.

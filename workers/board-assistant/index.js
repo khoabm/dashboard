@@ -15,6 +15,7 @@ import {
 import { validatePublicGrounding, boundedPublicPrompt } from '../../src/utils/public-retrieval.js';
 
 import { validatePublicAnswerFacts } from '../../src/utils/public-temporal.js';
+import { assistantBudgetPolicy, legacyBudgetName, pilotReservationLimit } from './budget-policy.js';
 
 export { validateCatalog };
 
@@ -220,9 +221,9 @@ export async function assistantFetch(request, env) {
         : { mode: 'ai', sources: [] },
       origin,
     );
-  const runId = env.BUDGET_RUN_ID || 'approved-synthetic-mvp-v1';
-  if (!/^approved-synthetic-mvp-v[1-9][0-9]?$/.test(runId))
-    return reply(503, { error: 'disabled' }, origin);
+  const runId = env.BUDGET_RUN_ID || legacyBudgetName;
+  const policy = assistantBudgetPolicy(runId);
+  if (!policy) return reply(503, { error: 'disabled' }, origin);
   const budget = env.BUDGET.get(env.BUDGET.idFromName(runId));
   let reserved = false;
   let timer;
@@ -234,7 +235,9 @@ export async function assistantFetch(request, env) {
   request.signal.addEventListener('abort', cancel, { once: true });
   if (request.signal.aborted) cancel();
   try {
-    const reserve = await budget.fetch('https://budget/reserve', { method: 'POST' });
+    const reserve = await budget.fetch(`https://budget${policy.prefix}/reserve`, {
+      method: 'POST',
+    });
     if (!reserve.ok) return reply(429, { error: 'budget' }, origin);
     reserved = true;
     // Fresh retrieval owns BGE+Qwen; a validated follow-up already owns its source set.
@@ -324,7 +327,7 @@ export async function assistantFetch(request, env) {
     // Any model or storage failure closes the shared allowance; no confirmatory retry is made.
     if (reserved) {
       try {
-        await budget.fetch('https://budget/stop', { method: 'POST' });
+        await budget.fetch(`https://budget${policy.prefix}/stop`, { method: 'POST' });
       } catch {
         /* Preview expiry and existing reservations remain enforced. */
       }
@@ -349,7 +352,10 @@ export class AssistantBudget {
   async fetch(request) {
     if (request.method !== 'POST') return new Response(null, { status: 405 });
     return this.state.blockConcurrencyWhile(async () => {
-      const path = new URL(request.url).pathname;
+      const rawPath = new URL(request.url).pathname;
+      const pilot = rawPath.startsWith('/pilot/');
+      const path = pilot ? rawPath.slice(6) : rawPath;
+      const limit = pilot ? pilotReservationLimit : assistantReservationLimit;
       const saved = await this.state.storage.get('allowance');
       const stored = saved === undefined ? { count: 0, stopped: false } : saved;
       if (
@@ -369,11 +375,11 @@ export class AssistantBudget {
         return Response.json({
           count: stored.count,
           stopped: stored.stopped,
-          limit: assistantReservationLimit,
-          remaining: stored.stopped ? 0 : Math.max(0, assistantReservationLimit - stored.count),
+          limit,
+          remaining: stored.stopped ? 0 : Math.max(0, limit - stored.count),
         });
       // Keep the existing count/stopped schema; tightening the cap never replenishes old allowance.
-      if (path !== '/reserve' || stored.stopped || stored.count >= assistantReservationLimit)
+      if (path !== '/reserve' || stored.stopped || stored.count >= limit)
         return new Response(null, { status: 429 });
       await this.state.storage.put('allowance', { count: stored.count + 1, stopped: false });
       return new Response(null, { status: 204 });

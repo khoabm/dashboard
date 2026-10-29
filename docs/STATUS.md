@@ -1,3 +1,23 @@
+# V2 explicit pilot — Hosted Pilot PASS / 2026-10-29
+
+Baseline9bd7bf5, nhánh feature/ai-learning-assistant-v2-e2e/PR21. Owner phê duyệt
+identity độc lập `approved-synthetic-v2-pilot-v1`, cap5 trọn đời, giữ legacy1/stopped.
+2 câu Qwen3 thật trên Chrome (single-source và synthesis), BGE2/Qwen2, citations/
+core facts PASS theo mẫu nhỏ.54 focused +12/6 affected (56 unique),11 local workerd,
+check/build/scoped format PASS; không rerun toàn Gate A/B/curated CI không ảnh hưởng.
+
+V2 ledger **23/40** gồm carry3; pilot count2/stopped=false/remaining3. Workflow
+owner Start/Stop hosted đã chạy, không tốn inference owner, cap2 câu cho owner.
+**READY FOR OWNER LIVE TEST khi Free receipt30 phút còn hiệu lực**; hết hạn phải
+reverify Free/usage, không giả định hoặc cấp mới quota. Final Worker version
+`43f75f32-3805-4f14-884f-d1e48a84f5ce`, AI=false, expiry/access/hash rỗng, namespace cũ;
+old bearer403 verified. No paid/Supabase/real student/web deploy/merge.
+[Pilot evidence/ledger](features/board-assistant/V2_PILOT_ACCEPTANCE.md),
+[Owner commands và cửa sổ preflight](features/board-assistant/OWNER_AI_PREVIEW.md).
+Giữ Draft PR21 target ai-learning-assistant. Các phần dưới là lịch sử.
+
+---
+
 # V2 Desktop correction — PARTIAL / hosted BLOCKED / 2026-10-29
 
 Baseline `b5dc070`, đúng branch `feature/ai-learning-assistant-v2-e2e`.

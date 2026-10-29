@@ -109,6 +109,8 @@ test('V2-REV-01/02 accepts public dates regardless of topic or year, blocks expl
     '20/11 có hoạt động gì?',
     '20/11/2026 có hoạt động gì?',
     '20/11/2026 có phong trào gì?',
+    'Ngày 20/11/2026 có phong trào gì?',
+    'Tháng 11/2026 có thông báo gì?',
     'Ngày 20/11/2026 có thông báo gì?',
     'Những sự kiện từ 15/11/2026 đến 20/11/2026 là gì?',
     'Giải thích bài lịch sử ngày 02/09/1945',
@@ -123,6 +125,8 @@ test('V2-REV-01/02 accepts public dates regardless of topic or year, blocks expl
     'DOB 2010-01-01',
     'sinh ngày 1 tháng 1 năm 2010',
     'a@example.test',
+    'Em sinh 20/11/2010, có hoạt động nào phù hợp?',
+    'Ngày sinh của tôi là 20/11/2010.',
   ])
     assert.equal(validAssistantQuery(query), false, query);
 });

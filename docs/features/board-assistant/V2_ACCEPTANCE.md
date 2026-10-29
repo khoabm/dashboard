@@ -1,5 +1,10 @@
 # Desktop correction/Gate C — PARTIAL / 2026-10-29
 
+Current hosted gate is [explicit pilot](V2_PILOT_ACCEPTANCE.md): Hosted Pilot
+PASS on two small real samples; owner workflow verified/time-bounded Free proof,
+pilot2/5 remaining3, cumulative23/40. Final Worker disabled. Historical blocked
+legacy allowance below remains stopped; no reset or new40 budget.
+
 [Acceptance mới, exact ledger và giới hạn](GATE_C_DESKTOP.md): V2-REV-01/02,
 server-clock trust và mobile clipping đã sửa;103 focused/131 curated/check/build
 và Chrome synthetic PASS. Strict whole-checkout format FAIL chỉ CRLF, normalized

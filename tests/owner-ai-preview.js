@@ -71,7 +71,15 @@ const request = createBoardAssistantRequest({
   enabled: true,
   endpoint: hosted ? import.meta.env.VITE_BOARD_ASSISTANT_ENDPOINT : '/chat',
   ...(hosted
-    ? {}
+    ? {
+        fetcher: async (url, options) => {
+          const response = await fetch(url, options);
+          disclosure.dataset.workerStatus = String(response.status);
+          disclosure.dataset.modelCalls = response.headers.get('X-Assistant-Model-Calls') || '0';
+          disclosure.textContent = `DỮ LIỆU GIẢ · Cloudflare thật · HTTP ${response.status} · model calls ${disclosure.dataset.modelCalls}. Không gửi lại tự động; lượt dùng có giới hạn.`;
+          return response;
+        },
+      }
     : {
         fetcher: async (url, options) => {
           disclosure.dataset.modelCalls = '0';

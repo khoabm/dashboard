@@ -1,5 +1,11 @@
 # Desktop correction và owner preview — 2026-10-29
 
+**Current: [V2 explicit pilot](V2_PILOT_ACCEPTANCE.md) Hosted Pilot PASS trên hai
+mẫu thật; [Owner hosted Start/Stop](OWNER_AI_PREVIEW.md) đã kiểm chứng.** Còn3/5
+reservations,23/40 operations; ưu tiên2 lượt owner, Free receipt có hạn30 phút.
+Final Worker disabled; không production-ready. Legacy blocked snapshot dưới
+không thay cho authorization/receipt pilot mới và vẫn được giữ nguyên.
+
 [Gate C Desktop](GATE_C_DESKTOP.md): date/privacy/server-clock corrections và
 Chrome scripted QA hoàn tất. Hosted model/owner live BLOCKED do existing allowance
 stopped/remaining0, không reset hoặc cấp mới. [Owner demo Start/Stop](OWNER_AI_PREVIEW.md)

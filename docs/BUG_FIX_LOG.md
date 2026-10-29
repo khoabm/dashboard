@@ -1,5 +1,24 @@
 # Nhật ký khắc phục lỗi
 
+## 2026-10-29 — AI-V2-PILOT-01 / P2: self-disclosed DOB phrasing bypassed the cloud input guard
+
+Baseline9bd7bf5, feature/ai-learning-assistant-v2-e2e. “Em sinh20/11/2010...”
+lacked the old explicit ngày-sinh/sinh-ngày cues. Added a small first-person birth
+cue, retaining event/month/year and biology questions; pure + zero-fetch transport
+regression PASS, actual Chrome offline rejects before adding a turn. No real PII
+or private backend access. [Pilot acceptance](features/board-assistant/V2_PILOT_ACCEPTANCE.md).
+
+## 2026-10-29 — AI-V2-PILOT-02 / P2: Stop client deadline was shorter than hosted disable
+
+Same baseline/branch. Original Stop used3s local timeout, while hosted shutdown
+requires a control-plane deployment/readback. First local Stop caller timed out;
+server continued and successfully disabled/revoked, no inference retry. Increased
+deadline to60s; separate owner Start/Stop rehearsal PASS with same remaining
+allowance, zero additional model calls. Stop acknowledges only after disabled
+settings + old-bearer403; shutdown status errors do not skip disable. Local
+failure/uncertain ledger latches prevent later silent continuation. Worker expiry
+still fail-closes after a process crash; no global CI/Gradebook changes.
+
 ## 2026-10-29 — AI-V2-REV-01/02 / P2: legitimate public dates rejected by PII keyword allowlist
 
 Baselineb5dc070, branch feature/ai-learning-assistant-v2-e2e. Validator rejected
