@@ -19,8 +19,7 @@ Base: `ai-learning-assistant` at `34ce44eaf4109f2d0b943b4920b8b25b9df75e07`.
 UI only: no changes to retrieval ranking, Cloudflare Worker, hosted activation, source quote validation,
 authorization, Supabase, Gradebook, data persistence or pricing. The current public snapshot still
 owns all content. The source-derived excerpt cards must never suggest that PDF/image/video bytes
-were inspected. The avatar is an original vector interpretation of the approved friendly robot,
-not a copy of the supplied raster file.
+were inspected. The avatar is the owner-supplied PNG stored unchanged; checksum SHA-256 `927cdd151837d4b1497a812402f3b020058382e5a2569812736af6d977c28656`. CSS only scales its rendering.
 
 ## Verification matrix
 
@@ -44,7 +43,7 @@ MVP synthetic browser evidence as fresh UI acceptance for this branch.
 
 - `src/components/board-assistant.js` — chatbot structure and UI interactions.
 - `src/styles/board-assistant.css` — floating launcher, desktop panel, chat bubbles and mobile layout.
-- `public/placeholders/assistant-avatar.svg` — decorative robot asset.
+- `public/placeholders/assistant-avatar.png` — original owner-supplied 51×61 RGBA avatar (byte-for-byte).
 
 Keep the existing Worker and transport policy unchanged. No hosted test, deploy or merge is
 authorized by this change.
