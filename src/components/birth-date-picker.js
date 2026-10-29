@@ -1,5 +1,5 @@
 /** Feature-local accessible birthday calendar; the manual text field remains the sole selected value. */
-import { el, button } from '../utils/dom.js';
+import { el, button, restrictNumericInput } from '../utils/dom.js';
 import { displayDate, vietnamToday } from '../utils/gradebook/dates.js';
 import {
   monthLength,
@@ -48,13 +48,13 @@ export function BirthDatePicker(input, clock = Date.now) {
       el('option', { value: String(i + 1) }, `Tháng ${i + 1}`),
     ),
   );
-  const yearInput = el('input', {
+  const yearInput = restrictNumericInput(el('input', {
     type: 'number',
     min: '1',
     max: vietnamToday(clock).slice(0, 4),
     'aria-label': 'Năm sinh',
     inputmode: 'numeric',
-  });
+  }));
   const grid = el('div', {
     class: 'birthday-grid',
     role: 'grid',
