@@ -398,9 +398,29 @@
   color: var(--ink);
   font-size: 13px;
   resize: vertical;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
 }
-.assistant-form textarea[aria-invalid='true'] {
-  border-color: #b84a40;
+/* Match the student CCCD field's single green focus ring without the global blue outline. */
+.assistant-form textarea:hover {
+  border-color: #abc8b7;
+}
+.assistant-form textarea:focus,
+.assistant-form textarea:focus-visible {
+  outline: none;
+  outline-offset: 0;
+  border-color: #367c58;
+  box-shadow: 0 0 0 3px #367c582b;
+}
+.assistant-form textarea[aria-invalid='true'],
+.assistant-form textarea[aria-invalid='true']:focus,
+.assistant-form textarea[aria-invalid='true']:focus-visible {
+  border-color: #b65243;
+}
+.assistant-form textarea[aria-invalid='true']:focus,
+.assistant-form textarea[aria-invalid='true']:focus-visible {
+  box-shadow: 0 0 0 3px #b6524330;
 }
 .assistant-send {
   flex: none;
