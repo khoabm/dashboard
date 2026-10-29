@@ -1,26 +1,32 @@
-/** Computes explainable, session-only trends from a student's already validated semester scores. */
-import { normalizeScore } from './gradebook/decimal.js';
+/** Computes explainable session-only learning trends from validated, published own scores. */
+import { normalizeScore, displayScore } from './gradebook/decimal.js';
+import { allowFields, requireContract } from './gradebook/contracts.js';
 
-const fail = (condition) => {
-  if (!condition) throw Error('Invalid learning insights data');
+const check = (condition) => requireContract(condition, 'insights');
+const middle = (values) => {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 };
-
-const median = (values) => {
-  const ordered = [...values].sort((a, b) => a - b);
-  const middle = Math.floor(ordered.length / 2);
-  return ordered.length % 2 ? ordered[middle] : (ordered[middle - 1] + ordered[middle]) / 2;
+const scoreUnits = (raw) => {
+  const [integer, fraction = ''] = normalizeScore(raw).split('.');
+  return Number(integer) * 100000 + Number(fraction.padEnd(5, '0'));
 };
+const labelUnits = (units) => {
+  const rounded = Math.floor((units + 5000) / 10000);
+  return `${Math.floor(rounded / 10)}.${rounded % 10}`;
+};
+const coordinate = (subject, column) => JSON.stringify([subject, column]);
 
 /**
- * Computes a robust Theil–Sen slope across the numbered continuous-assessment slots.
- * Missing slots retain their positions, and a single outlier cannot dominate the estimate.
- * The slot order does not establish real assessment dates or predict future performance.
+ * Estimates the median pairwise change per assessment slot (Theil–Sen).
+ * Slots are ordered labels, not verified dates; the result is descriptive, never predictive.
  *
- * @param {{index: number, value: number}[]} points - At least three bounded grade observations.
- * @returns {number} Median change per score-column step.
+ * @param {{index: number, value: number}[]} points - 3–4 ascending, unique TX1–TX4 observations.
+ * @returns {number} Score change per slot.
  */
 export function robustScoreSlope(points) {
-  fail(
+  check(
     Array.isArray(points) &&
       points.length >= 3 &&
       points.length <= 4 &&
@@ -41,72 +47,121 @@ export function robustScoreSlope(points) {
       slopes.push((points[j].value - points[i].value) / (points[j].index - points[i].index));
     }
   }
-  return median(slopes);
+  return middle(slopes);
 }
 
 /**
- * Projects only student-owned, already published scores into a deterministic insight summary.
- * Uses the shared exact-decimal contract and catalog codes; refuses unknown or extra fields.
- * No peer scores, remote requests, storage or model-generated text are involved.
+ * Produces only personal, bounded per-subject summaries from the existing own-grades response.
+ * Never reads class distributions, identifiers, unpublished semesters or remote services.
  *
- * @param {Array<{subjectCode: string, columnCode: string, rawScore: string}>} scores - Own semester values.
- * @param {{subjects: object[], scoreColumns: object[]}} catalog - Validated teacher catalog.
- * @returns {{recorded: number, slots: number, analyzed: number, rising: number, profiles: object[]}} Display-safe summaries.
+ * @param {Array<{subjectCode: string, columnCode: string, rawScore: string}>} scores - Validated own grades.
+ * @param {{subjects: object[], scoreColumns: object[]}} catalog - Server-verified ordered catalog.
+ * @returns {object} Statistics, four-point trend profiles and three independent assessment slots.
  */
 export function analyzeLearningInsights(scores, catalog) {
-  fail(Array.isArray(scores) && scores.length <= 56);
-  fail(
+  check(Array.isArray(scores) && scores.length <= 56);
+  check(
     Array.isArray(catalog?.subjects) &&
       catalog.subjects.length === 8 &&
-      Array.isArray(catalog.scoreColumns) &&
+      Array.isArray(catalog?.scoreColumns) &&
       catalog.scoreColumns.length === 7,
   );
-  const subjectCodes = new Set(catalog.subjects.map((item) => item.code));
-  const columns = new Set(catalog.scoreColumns.map((item) => item.code));
-  fail(subjectCodes.size === 8 && columns.size === 7);
-  const txColumns = [1, 2, 3, 4].map((n) =>
+  const subjectCodes = new Set(catalog.subjects.map((s) => s.code));
+  const columnCodes = new Set(catalog.scoreColumns.map((c) => c.code));
+  check(subjectCodes.size === 8 && columnCodes.size === 7);
+  const continuous = [1, 2, 3, 4].map((n) =>
     catalog.scoreColumns.find((column) => column.displayName === `Thường xuyên ${n}`),
   );
-  fail(txColumns.every(Boolean) && new Set(txColumns.map((item) => item.code)).size === 4);
-
-  const byCoordinate = new Map();
+  const other = ['1 tiết', 'Giữa kì', 'Cuối kì'].map((name) =>
+    catalog.scoreColumns.find((column) => column.displayName === name),
+  );
+  check(
+    [...continuous, ...other].every(Boolean) &&
+      new Set([...continuous, ...other].map((column) => column.code)).size === 7,
+  );
+  const values = new Map();
   for (const entry of scores) {
-    fail(
-      entry !== null &&
-        typeof entry === 'object' &&
-        Object.keys(entry).length === 3 &&
-        ['subjectCode', 'columnCode', 'rawScore'].every((key) => Object.hasOwn(entry, key)) &&
-        subjectCodes.has(entry.subjectCode) &&
-        columns.has(entry.columnCode),
-    );
-    const key = `${entry.subjectCode}:${entry.columnCode}`;
-    fail(!byCoordinate.has(key));
-    // Validation is intentionally shared with Gradebook B1; absent and exact zero differ.
-    const value = Number(normalizeScore(entry.rawScore));
-    byCoordinate.set(key, value);
+    allowFields(entry, ['subjectCode', 'columnCode', 'rawScore'], [
+      'subjectCode',
+      'columnCode',
+      'rawScore',
+    ]);
+    check(subjectCodes.has(entry.subjectCode) && columnCodes.has(entry.columnCode));
+    const key = coordinate(entry.subjectCode, entry.columnCode);
+    check(!values.has(key));
+    const units = scoreUnits(entry.rawScore);
+    values.set(key, units);
   }
-
   const profiles = catalog.subjects.map((subject) => {
-    const points = txColumns.flatMap((column, index) => {
-      const value = byCoordinate.get(`${subject.code}:${column.code}`);
-      return value === undefined ? [] : [{ index, value }];
+    const points = continuous.map((column, index) => {
+      const units = values.get(coordinate(subject.code, column.code));
+      return {
+        index,
+        label: column.displayName,
+        value: units === undefined ? null : units / 100000,
+        display: units === undefined ? '—' : labelUnits(units),
+      };
     });
-    const slope = points.length >= 3 ? robustScoreSlope(points) : null;
+    const observed = points.filter((point) => point.value !== null);
+    const units = continuous
+      .map((column) => values.get(coordinate(subject.code, column.code)))
+      .filter((value) => value !== undefined);
+    const slope = observed.length >= 3 ? robustScoreSlope(observed) : null;
     const trend =
-      slope === null ? 'insufficient' : slope >= 0.25 ? 'rising' : slope <= -0.25 ? 'falling' : 'steady';
+      slope === null
+        ? 'insufficient'
+        : slope >= 0.25
+          ? 'rising'
+          : slope <= -0.25
+            ? 'falling'
+            : 'steady';
     return {
       subjectCode: subject.code,
       name: subject.displayName,
-      samples: points.length,
-      median: points.length ? median(points.map((point) => point.value)) : null,
+      samples: observed.length,
+      median: units.length ? middle(units) / 100000 : null,
+      medianLabel: units.length ? labelUnits(middle(units)) : '—',
       trend,
+      points,
+      assessments: other.map((column) => {
+        const value = values.get(coordinate(subject.code, column.code));
+        return {
+          label: column.displayName,
+          display: value === undefined ? '—' : labelUnits(value),
+        };
+      }),
     };
   });
   return {
-    recorded: byCoordinate.size,
-    slots: catalog.subjects.length * catalog.scoreColumns.length,
+    recorded: values.size,
+    slots: 56,
     analyzed: profiles.filter((profile) => profile.trend !== 'insufficient').length,
     rising: profiles.filter((profile) => profile.trend === 'rising').length,
+    falling: profiles.filter((profile) => profile.trend === 'falling').length,
     profiles,
   };
+}
+
+/**
+ * Builds a bounded, non-evaluative observation; it never suggests grades or predicts outcomes.
+ *
+ * @param {ReturnType<typeof analyzeLearningInsights>} summary - Previously validated analysis.
+ * @returns {string} One Vietnamese descriptive sentence.
+ */
+export function learningInsightRemark(summary) {
+  check(
+    summary &&
+      Number.isInteger(summary.analyzed) &&
+      summary.analyzed >= 0 &&
+      summary.analyzed <= 8 &&
+      Number.isInteger(summary.rising) &&
+      Number.isInteger(summary.falling) &&
+      summary.rising >= 0 &&
+      summary.falling >= 0 &&
+      summary.rising + summary.falling <= summary.analyzed,
+  );
+  if (!summary.analyzed)
+    return 'Chưa có môn học nào đủ ba điểm Thường xuyên để mô tả xu hướng trong học kỳ này.';
+  const stable = summary.analyzed - summary.rising - summary.falling;
+  return `Trong ${summary.analyzed} môn đủ dữ liệu, có ${summary.rising} môn tăng, ${summary.falling} môn giảm và ${stable} môn ổn định theo thứ tự các lần điểm Thường xuyên.`;
 }
