@@ -468,7 +468,9 @@ export function GradebookScores({
     const info = panel.querySelector('[data-grid-count]');
     if (info) info.textContent = count ? `${count} ô chưa lưu` : 'Mọi thay đổi đã lưu';
     for (const action of panel.querySelectorAll('[data-grid-exclusive]'))
-      action.disabled = count > 0 || busy ||
+      action.disabled =
+        count > 0 ||
+        busy ||
         (action.getAttribute('data-grid-exclusive') === 'upload' &&
           currentClass[`semester${semester}Published`]);
     const remove = panel.querySelector('[data-grid-remove]');
