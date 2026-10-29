@@ -463,3 +463,34 @@ Additional Chromium probe changed body with the same ID then submitted follow-up
 no follow-up transmitted (PASS). Source-action and post-response fingerprint checks retained.
 Related correction: stale canceled-request catch must check ownership before clearing newer context.
 No hosted calls; [V2 acceptance](features/board-assistant/V2_ACCEPTANCE.md).
+
+## 2026-10-29 — AI-V2-002–006 / correction V2-F01–F05
+
+Baseline cee8e1dffd8fccfe94d8f9b7becae34ee9226806, cùng nhánh V2; dữ liệu synthetic.
+
+- AI-V2-002/P2: showResults luôn tạo filter với sources[]; component chỉ render sau source validation
+  và khác rỗng, resolver cũng từ chối empty IDs. Browser metadata/insufficient/keyword-zero/invalid
+  không có filter; source hợp lệ vẫn mở/lọc và trả focus (PASS).
+- AI-V2-003/P2: routing bỏ sót website inventory và có thể nhầm câu hỏi nội dung. Nhóm tín hiệu
+  website/inventory/listing/specific/follow-up, normalize dấu câu/space; bảng positive/negative
+  và6 viewport câu hỏi tự nhiên PASS, không thêm classifier/model call.
+- AI-V2-004/P3: profile dùng KHTN8 Board thay tên sản phẩm. websiteProfile.name dùng Vui học cùng
+  cô Quỳnh; pure test đối chiếu index.html đã đúng, browser xác nhận; giữ technical IDs/lịch sử.
+- AI-V2-005/P2: Worker gọi BGE rồi bỏ vectors ở follow-up. Context hợp lệ cấp candidates trực tiếp
+  rồi chỉ Qwen; test model list/header/candidate scope xác nhận1 call, query mới2 calls.
+- AI-V2-006/P2: cap4 V1 thiếu accounting dự phòng. Cap3 bảo thủ, count/stopped không migration/reset;
+  state3/4/stopped/corrupt/null đều không mở allowance. Serialized last-slot/restart/failure/abort/
+  deadline PASS;22 specialist bị tác động PASS sau lần siết corrupt-state cuối.
+
+Cải tiến trực tiếp: API V2 xử lý metadata deterministic trước budget; transport xác minh lại profile
+không phụ thuộc thứ tự JSON keys. Regression bắt lỗi key-order39/40 rồi được sửa; không bỏ assertion.
+[Acceptance hiện tại](features/board-assistant/V2_ACCEPTANCE.md): final131+40 PASS, Chromium6 V2/8 V1,
+actual-main persistence PASS; hosted0/40/BLOCKED, không Supabase/deploy/merge.
+
+### AI-V2-004 — bổ sung chuẩn phạm vi web theo chỉ đạo chủ sở hữu
+
+Không suy sản phẩm là web KHTN8 từ seed/brief cũ. websiteProfile giờ mô tả web quản lý lớp online,
+đối tượng giáo viên/người quản lý lớp/học sinh và các ứng dụng thấy trong app.js/site-navigation/
+Gradebook UI. Không sửa logic Gradebook/Auth; inventory chỉ đếm Board published, không private
+counts. PRODUCT_PROFILE/README/OVERVIEW/SPEC chuẩn hóa cùng hợp đồng; evidence lịch sử giữ nguyên.
+Regression purpose/audience/apps/privacy và browser identity kiểm chứng lại; current assistant41.

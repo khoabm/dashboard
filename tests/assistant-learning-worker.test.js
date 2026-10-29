@@ -90,7 +90,7 @@ test('follow-up restricts allowed sources to prior selection and embeds prior qu
     ).status,
     200,
   );
-  const user = JSON.parse(f.calls[1].input.messages[1].content.split('\n/no_think')[0]);
+  const user = JSON.parse(f.calls[0].input.messages[1].content.split('\n/no_think')[0]);
   assert.deepEqual(
     user.sources.map((p) => p.id),
     ['p'],
@@ -236,4 +236,67 @@ test('frontend transport -> Worker -> model contract -> validated response works
   assert.equal(result.answer, answer.answer);
   assert.equal(result.sources[0].id, 'p');
   assert.equal(f.calls.length, 2);
+});
+
+test('validated follow-up spends one Qwen call and zero embeddings', async () => {
+  const f = fixture();
+  const response = await assistantFetch(
+    req({ query: 'Nói đơn giản hơn nữa.', context: { query: 'Bọt khí', ids: ['p'] } }),
+    f.env,
+  );
+  assert.equal(response.status, 200);
+  assert.equal(f.calls.length, 1);
+  assert.match(f.calls[0].model, /qwen/);
+  assert.equal(response.headers.get('X-Assistant-Model-Calls'), '1');
+});
+test('direct V2 website metadata request reserves no budget and invokes no model', async () => {
+  const f = fixture();
+  const response = await assistantFetch(req({ query: 'Web có những gì?' }), f.env);
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).mode, 'deterministic');
+  assert.equal(f.calls.length, 0);
+  assert.equal(f.budgets.length, 0);
+});
+
+test('deterministic transport accepts semantic key order but rejects fabricated profile', async () => {
+  globalThis.location = { origin: 'http://localhost:4173' };
+  const f = fixture();
+  const send = createBoardAssistantRequest({
+    enabled: true,
+    endpoint: '/chat',
+    fetcher: async (url, o) => {
+      const h = new Headers(o.headers);
+      h.set('Origin', location.origin);
+      const r = await assistantFetch(new Request(url, { ...o, headers: h }), f.env);
+      const value = await r.json();
+      return Response.json(Object.fromEntries(Object.entries(value).reverse()));
+    },
+  });
+  const result = await send('Web có những gì?', catalog, { version: 2 });
+  assert.equal(result.mode, 'deterministic');
+  assert.equal(f.calls.length, 0);
+  assert.equal(f.budgets.length, 0);
+  const bad = createBoardAssistantRequest({
+    enabled: true,
+    endpoint: '/chat',
+    fetcher: async () => Response.json({ ...result, answer: 'Có 999 học liệu' }),
+  });
+  await assert.rejects(bad('Web có những gì?', catalog, { version: 2 }));
+});
+
+test('operation ceiling reserves failure margin and follow-up failure never retries embeddings', async () => {
+  const { assistantReservationLimit } = await import('../workers/board-assistant/index.js');
+  assert.equal(assistantReservationLimit, 3);
+  assert.ok(assistantReservationLimit * (1 + 1 + 2 + 1) + 2 + 1 + 2 <= 20);
+  const f = fixture();
+  f.env.AI.run = async (model) => {
+    f.calls.push({ model });
+    throw Error('synthetic failure');
+  };
+  const r = await assistantFetch(req({ context: { query: 'Bọt khí', ids: ['p'] } }), f.env);
+  assert.equal(r.status, 503);
+  assert.equal(f.calls.length, 1);
+  assert.match(f.calls[0].model, /qwen/);
+  assert.equal(f.budgets.length, 2);
+  assert.equal(r.headers.get('X-Assistant-Model-Calls'), '1');
 });

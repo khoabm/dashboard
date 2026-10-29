@@ -1,3 +1,30 @@
+# Chuẩn web và scope correction V2 — cập nhật chủ sở hữu
+
+**Vui học cùng cô Quỳnh là web quản lý lớp online với các ứng dụng đính kèm**, không phải hệ thống
+chỉ dành cho KHTN8. [PRODUCT_PROFILE](PRODUCT_PROFILE.md) ghi căn cứ từ source và ranh giới ứng dụng.
+Profile trợ lý/README/OVERVIEW/SPEC đã chuẩn hóa; inventory chỉ đếm Board published, không suy số lớp,
+học sinh hoặc quyền riêng. Pure regression purpose/audience/apps/privacy được bổ sung; assistant
+suite hiện41/41 PASS sau chuẩn hóa profile; browser6 viewport/check/build/format được kiểm lại PASS. Không thay business logic Gradebook/Auth/Supabase; không deploy/merge.
+Các số40/131 và mô tả KHTN8 bên dưới là bằng chứng tại checkpoint trước; acceptance correction
+hiện hành nằm tại [V2_ACCEPTANCE](features/board-assistant/V2_ACCEPTANCE.md).
+
+---
+
+# V2 correction/refinement — 2026-10-29
+
+Baseline cee8e1d, nhánh feature/ai-learning-assistant-v2-e2e. V2-F01–F05 đã sửa: không filter
+nguồn rỗng, routing câu hỏi Việt thông thường, tên Vui học cùng cô Quỳnh, follow-up chỉ Qwen
+và cap server3 reservations giữ nguyên legacy state. Deterministic metadata cũng không inference
+ở Worker V2; transport kiểm chứng profile. Final131 curated +40 assistant PASS;22 Worker tests
+bị tác động rerun PASS sau siết corrupted allowance; check/build/format/diff PASS. Chromium6 V2/8 V1
+và actual-main Board persistence PASS. [Evidence/ledger](features/board-assistant/V2_ACCEPTANCE.md).
+**Offline READY FOR OWNER REVIEW; tổng thể PARTIAL.** Cloudflare hosted BLOCKED vì thiếu access/
+quota verification; lifetime V2 vẫn0/40, không deploy/activate hay Supabase calls. Native device/
+Safari/screen reader chưa test. Không tự merge; GitHub API có thể chặn Draft PR. Hồ sơ cũ bên dưới
+giữ lịch sử, không coi là test vừa chạy lại.
+
+---
+
 # Learning Assistant V2 — local acceptance / 2026-10-29
 
 Baseline50ea1cb (PR18 included), dedicated feature/ai-learning-assistant-v2-e2e. Implemented

@@ -146,10 +146,7 @@ test('source filters use validated IDs, never raw paraphrases, and fail closed a
       ids,
     });
   }
-  assert.deepEqual(resolveAssistantAction({ type: 'filter', ids: [] }, catalog), {
-    type: 'filter',
-    ids: [],
-  });
+  assert.equal(resolveAssistantAction({ type: 'filter', ids: [] }, catalog), null);
   assert.equal(resolveAssistantAction({ type: 'filter', query: 'raw question' }, catalog), null);
   assert.equal(resolveAssistantAction({ type: 'filter', ids: ['hidden'] }, catalog), null);
   assert.equal(resolveAssistantAction({ type: 'filter', ids: ['gas'] }, catalog.slice(1)), null);

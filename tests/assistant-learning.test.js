@@ -41,9 +41,12 @@ test('website paraphrases are deterministic and never invent permissions', () =>
   ]) {
     const result = websiteLearningAnswer(query, catalog);
     assert.equal(result.mode, 'deterministic');
-    assert.match(result.answer, /KHTN8 Board/);
+    assert.match(result.answer, /Vui học cùng cô Quỳnh/);
   }
-  assert.match(websiteLearningAnswer('Trang này dành cho ai?', catalog).answer, /lớp 8/);
+  assert.match(
+    websiteLearningAnswer('Trang này dành cho ai?', catalog).answer,
+    /giáo viên.*quản lý lớp.*học sinh/,
+  );
 });
 test('counts/listings use only current published snapshot; empty and large catalogs explicit', () => {
   assert.match(
@@ -132,4 +135,56 @@ test('source content remains data and generated markup is not interpreted by pur
     ).answer,
     '<script>untrusted</script>',
   );
+});
+
+test('Vietnamese overview paraphrases and follow-ups preserve intent without swallowing content queries', () => {
+  for (const q of [
+    'Web có những gì?',
+    'Web này có những gì?',
+    'Trang này có bài học nào?',
+    'Website có nội dung gì?',
+    'Tóm tắt nội dung trang này.',
+    'Ở đây có những học liệu nào?',
+  ])
+    assert.equal(learningIntent(q, catalog).kind, 'overview', q);
+  for (const q of [
+    'Nói đơn giản hơn nữa.',
+    'Giải thích theo cách dễ hiểu hơn.',
+    'Tóm tắt giúp mình bài này.',
+    'Bạn có thể nói rõ hơn không?',
+  ])
+    assert.equal(learningIntent(q, catalog).kind, 'followup', q);
+  for (const q of [
+    'Tìm bọt khí',
+    'Có bài học nào về phản ứng tạo khí?',
+    'Web có học liệu về lực đẩy không?',
+    'trang trí mô hình',
+    'Ứng dụng áp suất có những gì?',
+  ])
+    assert.notEqual(learningIntent(q, catalog).kind, 'overview', q);
+  assert.equal(websiteLearningAnswer('Có bài học nào về phản ứng tạo khí?', catalog), null);
+});
+test('official profile identity matches static page title without renaming technical IDs', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  const title = html.match(/<title>([^<]+)<\/title>/)[1];
+  assert.equal(title, 'Vui học cùng cô Quỳnh');
+  assert.ok(websiteLearningAnswer('Web này làm gì?', catalog).answer.includes(title));
+  assert.ok(websiteLearningAnswer('Trang này dành cho ai?', catalog).answer.includes(title));
+});
+
+test('web profile describes existing applications without inferring subject, private counts or access', () => {
+  const purpose = websiteLearningAnswer('Web này làm gì?', catalog).answer;
+  assert.match(purpose, /web quản lý lớp online/);
+  assert.match(purpose, /Bảng học liệu.*Bảng điểm cá nhân.*Quản lý bảng điểm và lớp/);
+  assert.equal(/KHTN|lớp 8|Khoa học tự nhiên/.test(purpose), false);
+  const apps = websiteLearningAnswer('Web này có những ứng dụng nào?', catalog);
+  assert.equal(learningIntent('Web này có những ứng dụng nào?', catalog).kind, 'applications');
+  assert.match(apps.answer, /xác minh/);
+  assert.match(
+    websiteLearningAnswer('Web có những gì?', catalog).answer,
+    /Bảng học liệu hiện có 2 học liệu/,
+  );
+  assert.equal(websiteLearningAnswer('Web có bao nhiêu lớp?', catalog).status, 'insufficient');
+  assert.equal(websiteLearningAnswer('Web có bao nhiêu học sinh?', catalog).sources.length, 0);
 });

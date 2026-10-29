@@ -6,7 +6,11 @@ import {
   validateAssistantSources,
 } from '../utils/board-assistant.js';
 
-import { validateLearningAnswer, validateLearningContext } from '../utils/assistant-learning.js';
+import {
+  validateLearningAnswer,
+  validateLearningContext,
+  websiteLearningAnswer,
+} from '../utils/assistant-learning.js';
 
 /** Creates a disabled-by-default local-preview adapter; endpoint configuration contains no secrets. */
 export function createBoardAssistantRequest({
@@ -70,6 +74,18 @@ export function createBoardAssistantRequest({
         offset += chunk.length;
       }
       const result = JSON.parse(new TextDecoder().decode(bytes));
+      if (version === 2 && result.mode === 'deterministic') {
+        const expected = websiteLearningAnswer(query, catalog);
+        if (
+          !expected ||
+          Object.keys(result).sort().join(',') !== Object.keys(expected).sort().join(',') ||
+          Object.entries(expected).some(
+            ([key, value]) => JSON.stringify(result[key]) !== JSON.stringify(value),
+          )
+        )
+          throw Error('response');
+        return expected;
+      }
       if (result.mode !== 'ai') throw Error('response');
       if (version === 2) {
         if (Object.keys(result).sort().join(',') !== 'answer,coverage,mode,sources,status')

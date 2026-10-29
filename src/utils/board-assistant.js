@@ -83,6 +83,7 @@ export function resolveAssistantAction(action, catalog) {
   if (
     action?.type === 'filter' &&
     Array.isArray(action.ids) &&
+    action.ids.length > 0 &&
     action.ids.length <= 3 &&
     action.ids.every((id) => catalog.some((post) => post.id === id))
   )

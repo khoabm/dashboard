@@ -1,3 +1,13 @@
+# ExecPlan hiện hành — correction và chuẩn hóa sản phẩm web
+
+Chuẩn sản phẩm: [PRODUCT_PROFILE](../../PRODUCT_PROFILE.md). Phần “Đợt correction V2-F01–F05” và
+“Điều chỉnh chuẩn sản phẩm theo chủ sở hữu” bên dưới áp dụng cho tác vụ hiện tại: cap3 reservations,
+query mới2 model calls/follow-up1, web quản lý lớp online có các ứng dụng đính kèm. Các giả định
+KHTN8/cap4/two-call-follow-up của kế hoạch ban đầu bên dưới chỉ còn là lịch sử thiết kế.
+Kết quả hiện hành và ledger0/40 tại [V2_ACCEPTANCE](V2_ACCEPTANCE.md); không có quyền deploy/merge mới.
+
+---
+
 # Grounded Learning Assistant V2 — execution plan / 2026-10-29
 
 Baseline50ea1cbf30b6fa603fce43f588aaa921f6ec54da; dedicated feature/ai-learning-assistant-v2-e2e.
@@ -75,3 +85,61 @@ CP01–05 implemented and validated offline; CP06 synthetic Chromium/checks PASS
 artifacts, zero-usage ledger and owner trial. Final owner report records the final pushed SHA/PR.
 No Cloudflare identity in environment_status or identity manifest, no CLI/connector: activation
 not attempted. GitHub API remains unavailable; use verified Git push plus compare URL if needed.
+
+## Đợt correction V2-F01–F05 — kế hoạch trước sửa / 2026-10-29
+
+Baseline local/remote cee8e1dffd8fccfe94d8f9b7becae34ee9226806, nhánh V2 hiện tại sạch;
+base vẫn50ea1cb. Không overwrite, merge hoặc đổi nhánh. Ledger V2 cũ0/40 được giữ nguyên.
+
+| Finding | Nguyên nhân đã xác minh | Phương án / file / kiểm chứng |
+| --- | --- | --- |
+| F01/P2 | showResults luôn append filter dù sources rỗng | Chỉ render source action khi có nguồn hợp lệ trong catalog; deterministic/insufficient/zero-result không có filter. Component + browser assertions, V1 filter regression |
+| F02/P2 | Regex bỏ sót câu hỏi có-những-gì và follow-up có từ xen giữa | Chuẩn hóa từ/ngữ cảnh hỏi; nhóm tín hiệu website/listing/follow-up rõ ràng, giữ truy vấn học liệu cụ thể ở search/educational; bảng paraphrase positives/negatives thuần + browser |
+| F03/P3 | Profile hardcode KHTN8 Board trong khi index title đã đúng | Một websiteProfile tên chính thức trong helper; test đối chiếu index.html, không đổi identifier hay lịch sử |
+| F04/P2 | BGE chạy trước nhánh candidates lấy từ context | Context hợp lệ lấy trực tiếp sources rồi chỉ Qwen; query mới BGE+Qwen. Worker specialist xác minh1vs2 calls, revoked context0 |
+| F05/P2 | Cap4 V1 chưa dành chỗ cho stop/preflight/invalid | Giảm cap còn3 reservations bằng constant server-side; giữ nguyên storage count/stopped và tên DO. Không weighted migration, không reset allowance. Legacycount>=3 tiếp tục bị chặn; last-slot serialize/restart/stop/failure kiểm thử rõ |
+
+Chọn cap3 bảo thủ thay weighted counters vì không đổi schema/trạng thái hay khôi phục allowance cũ.
+Worst-case một accepted query mới: POST1+reserve1+BGE1+Qwen1+stop tối đa1=5; follow-up=4.
+Cap3 => tối đa15 operations cho accepted inference chains. Activity A dành tối đa2 OPTIONS,
+1 invalid POST,1 denied POST+reserve2 =>20. Đây là trần client ledger cho test hợp lệ, không phải
+bảo đảm số request đối nghịch đến endpoint public. Deterministic trên trang0; API V2 deterministic
+nếu hỗ trợ dùng cùng helper trước reserve, không inference. Không host khi admission/quota chưa rõ.
+A dự kiến3 case: grounded new4, follow-up3, unsupported new4 =11 trước stop/preflight margins.
+B chỉ sau lỗi tích hợp đã sửa, không replenishment run ID; tổng còn40, không cấp mới40.
+
+Inventory: helper/profile, component, Worker/service nếu cần deterministic envelope; pure/Worker/browser
+regressions; ExecPlan/acceptance/BUG_FIX_LOG/STATUS và kiến trúc nếu contract thực sự đổi. Không dependency,
+CI, Auth/Gradebook/Supabase/migrations/global deployment edits. Giữ V1 wire contract; cap tightening
+là thay đổi vận hành chủ ý, test cập nhật theo invariant mới và legacy-state không hồi sinh.
+
+Thứ tự: regression cases trước -> sửa -> focused offline -> browser6 viewports gồm landscape,
+nguồn/filter/reset/preview focus/context/abort/fallback -> final131 curated + explicit specialists/check/
+build/format/diff một lượt khi ổn định -> commit/push/Draft PR. Chỉ rerun phần bị tác động khi sửa thêm.
+Hosted hiện BLOCKED: environment metadata không có credential/identity, không có connector Cloudflare.
+Không activation hay rollback nếu chưa đủ quyền/Free/quota. Nếu đủ: verify current Worker, expiry ngắn,
+try/finally disabled+expiry rỗng/no allowance và verify read-only; dừng ngay lỗi/timeout/quota mơ hồ,
+không retry. Native Safari/physical mobile/screen reader không suy từ Chromium. Tiêu chí offline:
+5 finding sửa xong, tests thực chạy PASS, evidence synthetic, commitremote/link review; hosted tách riêng.
+
+### Kết quả đợt correction
+
+Đã thực thi cả5 finding; final131 curated +40 assistant PASS, browser6 V2 +8 V1 và actual-main
+Board persistence PASS. Guard malformed/null allowance được siết sau final suite,22 Worker tests
+bị tác động PASS khi rerun. Một lỗi validator so sánh thứ tự JSON keys đã được phát hiện/sửa bằng
+regression. No-empty-filter cũng được enforce ở action resolver; service xác minh deterministic
+envelope bằng dữ liệu tính cục bộ. [Acceptance hiện tại](V2_ACCEPTANCE.md) lưu evidence/ledger0/40.
+Không hosted/deploy/merge; final Git receipt trong báo cáo bàn giao.
+
+### Điều chỉnh chuẩn sản phẩm theo chủ sở hữu — cùng tác vụ correction
+
+Chủ sở hữu yêu cầu chuẩn hóa web là sản phẩm quản lý lớp online có các ứng dụng đính kèm,
+không suy mục đích/đối tượng toàn sản phẩm từ seed KHTN8. Đã đọc src/app.js (route lifecycle),
+site-navigation.js (Bảng học liệu/Bảng điểm cá nhân/Quản lý bảng điểm), gradebook-ui.js (routes),
+gradebook-admin.js (class/roster/score UI) và student-lookup.js (luồng xác minh cá nhân).
+Cập nhật websiteProfile, deterministic answers và tài liệu hiện hành README/OVERVIEW/SPEC/profile/
+acceptance/status theo chỉ đạo này. Chỉ mô tả ứng dụng tồn tại trong source; không suy thành quyền
+truy cập dữ liệu riêng hoặc chứng nhận đã release. Inventory chỉ đếm Board published snapshot,
+không suy số lớp/học sinh/điểm. Regression purpose/audience/apps/no-private-count và Chromium
+identity/overview kiểm chứng lại. Không thay business logic Gradebook/Auth/Supabase hoặc UI redesign.
+Tài liệu bằng chứng lịch sử giữ nguyên; thêm chuẩn sản phẩm hiện hành và giải thích scope cũ.

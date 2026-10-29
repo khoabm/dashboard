@@ -9,7 +9,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
   });
   const page = await browser.newPage();
   let external = 0;
-  const output = 'tests/local/assistant-v2';
+  const output = 'tests/local/assistant-v2-correction';
   fs.mkdirSync(output, { recursive: true });
   await page.route('**/*', (route) =>
     route.request().url().startsWith('http://127.0.0.1:4173/')
@@ -38,8 +38,36 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
     await ask('Web này làm gì?');
     assert.match(
       await page.locator('.assistant-learning-answer').last().textContent(),
-      /KHTN8 Board/,
+      /Vui học cùng cô Quỳnh/,
     );
+    assert.match(
+      await page.locator('.assistant-learning-answer').last().textContent(),
+      /web quản lý lớp online/,
+    );
+    assert.equal(
+      /KHTN|lớp 8/.test(await page.locator('.assistant-learning-answer').last().textContent()),
+      false,
+    );
+    assert.equal(
+      await page.locator('.assistant-result').last().locator('.assistant-filter-button').count(),
+      0,
+    );
+    for (const question of [
+      'Web có những gì?',
+      'Trang này có bài học nào?',
+      'Website có nội dung gì?',
+      'Tóm tắt nội dung trang này.',
+    ]) {
+      await ask(question);
+      assert.match(
+        await page.locator('.assistant-learning-answer').last().textContent(),
+        /1 học liệu/,
+      );
+      assert.equal(
+        await page.locator('.assistant-result').last().locator('.assistant-filter-button').count(),
+        0,
+      );
+    }
     await ask('Có bao nhiêu học liệu?');
     assert.match(
       await page.locator('.assistant-learning-answer').last().textContent(),
@@ -63,7 +91,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
     await page.evaluate(
       () => (window.mockReply.answer = 'Phản ứng tạo ra khí nên bạn quan sát được bọt khí.'),
     );
-    await ask('Giải thích dễ hiểu hơn');
+    await ask('Nói đơn giản hơn nữa.');
     await page.waitForFunction(() => calls === 2);
     assert.deepEqual(await page.evaluate(() => lastRequest.context), {
       query: 'Giải thích bọt khí',
@@ -90,7 +118,11 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
       true,
     );
     await page.locator('.assistant-trigger').click();
-    await ask('Giải thích dễ hiểu hơn');
+    await ask('khí');
+    await page.locator('.assistant-filter-button').last().click();
+    assert.deepEqual(await page.evaluate(() => actions.at(-1)), { type: 'filter', ids: ['p'] });
+    await page.locator('.assistant-trigger').click();
+    await ask('Giải thích theo cách dễ hiểu hơn.');
     assert.match(
       await page.locator('.assistant-learning-answer').last().textContent(),
       /chọn hoặc tìm/,
@@ -101,6 +133,39 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
       false,
     );
   }
+  await page.goto(url);
+  await page.locator('.assistant-trigger').click();
+  await page.locator('#assistant-query').fill('zzzzzzzz');
+  await page.locator('#assistant-query').press('Enter');
+  assert.equal(
+    await page.locator('.assistant-result').last().locator('.assistant-filter-button').count(),
+    0,
+  );
+  await page.evaluate(
+    () =>
+      (window.mockReply = {
+        mode: 'ai',
+        status: 'insufficient',
+        answer: 'Chưa đủ nguồn.',
+        coverage: 'insufficient',
+        sources: [],
+      }),
+  );
+  await page.locator('.assistant-consent input').check();
+  await page.locator('#assistant-query').fill('Thủ đô của nước Pháp là gì?');
+  await page.locator('#assistant-query').press('Enter');
+  await page.waitForFunction(() => calls === 1);
+  assert.equal(
+    await page.locator('.assistant-result').last().locator('.assistant-filter-button').count(),
+    0,
+  );
+  await page.evaluate(
+    () => (window.mockReply.sources = [{ id: 'revoked', quote: 'Không hợp lệ' }]),
+  );
+  await page.locator('#assistant-query').fill('khí');
+  await page.locator('#assistant-query').press('Enter');
+  await page.getByRole('alert').filter({ hasText: 'Đã tắt AI' }).waitFor();
+  assert.equal(await page.locator('.assistant-consent input').isDisabled(), true);
   await page.goto(url);
   await page.evaluate(() => (window.quota = true));
   await page.locator('.assistant-trigger').click();

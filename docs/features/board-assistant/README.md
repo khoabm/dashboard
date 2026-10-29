@@ -1,3 +1,12 @@
+# Trợ lý học liệu trong web Vui học cùng cô Quỳnh
+
+Web là sản phẩm quản lý lớp online với các ứng dụng đính kèm; trợ lý hỗ trợ học liệu công khai và
+mô tả chức năng web, không đọc dữ liệu riêng của các ứng dụng. [Chuẩn sản phẩm](../../PRODUCT_PROFILE.md).
+[Correction/acceptance hiện hành](V2_ACCEPTANCE.md), [ExecPlan](V2_EXECPLAN.md). Các hồ sơ KHTN8/MVP
+và ngân sách cũ bên dưới giữ lịch sử, không định nghĩa phạm vi toàn web hay cấp thêm quyền hosted.
+
+---
+
 # V2 corrective extension — 2026-10-29
 
 [Implemented scope, tests, browser evidence and hosted ledger](V2_ACCEPTANCE.md).

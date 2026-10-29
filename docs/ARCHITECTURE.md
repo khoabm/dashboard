@@ -171,3 +171,24 @@ Tổ chức kiểm thử: mọi file frontend test/fixture nằm trong `tests/` 
 > Historical implementation snapshot at the referenced baseline. Current applied versions/deployed functions are recorded in DATABASE/STATUS; old unimplemented/unapplied labels below are not current state.
 
 B2 accepted baseline `d86627f`. New `20261026030000_gradebook_transactions.sql` adds 22 service-only invoker RPCs, private validation/planner/framing helpers, shared import preview/apply/state hash, class-scoped audit and atomic limiter. Five prior migrations unchanged, no tables added. [B3 inventory, DTO signatures, evidence and limits](features/personal-gradebook/B3_TRANSACTION_REVIEW.md). B3 READY FOR REVIEW; B4/B5 NOT STARTED, CP01-C and real-data gate NOT RUN. 14 B3/18 B2 disposable SQL groups and81 app tests PASS; native17, multi-connection locks, hosted API/security and browser NOT RUN. Draft not applied. Earlier B3 NOT STARTED entries are historical.
+
+## Correction V2 — routing, identity và chi phí / 2026-10-29
+
+websiteProfile trong assistant-learning.js giữ tên sản phẩm chính thức; regression so với index.html,
+không đổi technical identifiers. Intent routing nhóm tín hiệu website/inventory/follow-up, giữ
+content-specific query ở search/educational; fallback không giả metadata. Source actions chỉ có khi
+nguồn được validate và khác rỗng, resolver cũng từ chối IDs[].
+
+V2 Worker dùng cùng deterministic helper trước budget. Envelope deterministic được service tính
+lại và so sánh fields, không tin model hay thứ tự JSON keys. Query mới dùng BGE+Qwen; context
+follow-up hợp lệ chỉ Qwen. Output AI vẫn contract status/answer/IDs/coverage cũ. DO giữ nguyên
+count/stopped, cap3 bảo thủ; chỉ storage record undefined mới khởi tạo, corruption fail closed.
+Accounting/legacy-state evidence và giới hạn public admission tại [V2 acceptance](features/board-assistant/V2_ACCEPTANCE.md).
+
+## Chuẩn web và các ứng dụng đính kèm — cập nhật chủ sở hữu
+
+[PRODUCT_PROFILE](PRODUCT_PROFILE.md) chuẩn hóa web quản lý lớp online. app.js sở hữu route
+lifecycle giữa Board, tra cứu cá nhân và quản lý bảng điểm/lớp; không đồng nhất website với Board
+hay chatbot. websiteProfile chỉ mô tả chức năng tồn tại trong source và đối tượng sản phẩm.
+Inventory trợ lý chỉ dùng published Board snapshot; không suy tổng lớp/học sinh hay gọi Gradebook.
+Không thay business logic/quyền của các ứng dụng; trạng thái nghiệm thu từng module vẫn riêng.

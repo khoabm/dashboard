@@ -182,7 +182,7 @@ test('invented model citations fail closed rather than reaching the chat', async
 
 test('two final-slot reservations serialize; lifetime cap is retained across object restart', async () => {
   const { object, state, values } = budgetFixture();
-  values.set('allowance', { count: 3, stopped: false });
+  values.set('allowance', { count: 2, stopped: false });
   const reserve = () => object.fetch(new Request('https://budget/reserve', { method: 'POST' }));
   assert.deepEqual(
     (await Promise.all([reserve(), reserve()])).map((r) => r.status),
@@ -204,4 +204,26 @@ test('storage failure cannot authorize inference', async () => {
   });
   assert.equal((await assistantFetch(request(), env)).status, 503);
   assert.equal(calls.length, 0);
+});
+
+test('tightened cap preserves exhausted/stopped legacy state and rejects corrupt allowance', async () => {
+  for (const stored of [
+    { count: 3, stopped: false },
+    { count: 4, stopped: false },
+    { count: 1, stopped: true },
+    { count: -1, stopped: false },
+    { count: '0', stopped: false },
+    null,
+    false,
+    0,
+  ]) {
+    const { object, values } = budgetFixture();
+    values.set('allowance', stored);
+    const response = await object.fetch(new Request('https://budget/reserve', { method: 'POST' }));
+    assert.equal(
+      response.status,
+      Number.isSafeInteger(stored?.count) && stored.count >= 0 ? 429 : 503,
+    );
+    assert.deepEqual(values.get('allowance'), stored);
+  }
 });

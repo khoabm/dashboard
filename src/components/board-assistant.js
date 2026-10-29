@@ -6,6 +6,7 @@ import {
   localAssistantResults,
   validAssistantQuery,
   resolveAssistantAction,
+  validateAssistantSources,
 } from '../utils/board-assistant.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
 
@@ -386,6 +387,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
 
     /** Shows exact cited excerpts in compact resource cards with explicit read-only actions. */
     function showResults(result, catalog, question, fingerprint) {
+      result = { ...result, sources: validateAssistantSources(result.sources, catalog) };
       const content = el(
         'div',
         {},
@@ -393,19 +395,25 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
           'strong',
           { class: 'assistant-result-mode' },
           result.mode === 'ai'
-            ? 'AI · Giải thích từ học liệu được dẫn nguồn'
+            ? result.status === 'insufficient'
+              ? 'AI · Chưa đủ nguồn để trả lời'
+              : 'AI · Giải thích từ học liệu được dẫn nguồn'
             : result.mode === 'deterministic'
-              ? 'Thông tin website · Không dùng AI'
+              ? result.status === 'insufficient'
+                ? 'Cần làm rõ câu hỏi · Không dùng AI'
+                : 'Thông tin website · Không dùng AI'
               : 'Tìm bằng từ khóa · AI không được sử dụng',
         ),
         el(
           'p',
           { class: 'assistant-result-intro' },
           result.mode === 'deterministic'
-            ? 'Thông tin tính từ snapshot công khai hiện tại.'
+            ? result.status === 'insufficient'
+              ? 'Bạn hãy nêu tên bài học hoặc chọn nguồn để trợ lý hỗ trợ đúng nội dung.'
+              : 'Thông tin tính từ snapshot công khai hiện tại.'
             : result.sources.length
               ? 'Mình tìm thấy một số nội dung có thể hữu ích. Bạn có thể mở nguồn để xem đầy đủ.'
-              : 'Chưa tìm thấy nội dung phù hợp trong tiêu đề và mô tả hiện có. Bạn thử từ khóa khác nhé.',
+              : 'Chưa tìm thấy nội dung phù hợp trong tiêu đề và mô tả hiện có. Bạn thử từ khóa cụ thể về bài học, hoặc hỏi “Web có những gì?” nhé.',
         ),
       );
       if (result.answer)
@@ -454,19 +462,21 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
           ),
         );
       }
-      content.append(
-        button(
-          'Lọc trang theo nguồn đã chọn',
-          () => {
-            if (JSON.stringify(assistantCatalog(snapshot())) !== fingerprint) {
-              invalidate();
-              return;
-            }
-            act({ type: 'filter', ids: result.sources.map((source) => source.id) });
-          },
-          'button subtle assistant-filter-button',
-        ),
-      );
+      if (result.sources.length) {
+        content.append(
+          button(
+            'Lọc trang theo nguồn đã chọn',
+            () => {
+              if (JSON.stringify(assistantCatalog(snapshot())) !== fingerprint) {
+                invalidate();
+                return;
+              }
+              act({ type: 'filter', ids: result.sources.map((source) => source.id) });
+            },
+            'button subtle assistant-filter-button',
+          ),
+        );
+      }
       assistantMessage(content, 'assistant-result');
       while (messages.children.length > 9) messages.firstElementChild.remove();
       messages.scrollTop = messages.scrollHeight;

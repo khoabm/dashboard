@@ -9,6 +9,7 @@ import {
 import {
   validateLearningAnswer,
   validateLearningContext,
+  websiteLearningAnswer,
 } from '../../src/utils/assistant-learning.js';
 
 export { validateCatalog };
@@ -192,6 +193,9 @@ export async function assistantFetch(request, env) {
   } catch {
     return reply(422, { error: 'input' }, origin);
   }
+  const deterministic =
+    payload.version === 2 ? websiteLearningAnswer(payload.query, catalog) : null;
+  if (deterministic) return reply(200, deterministic, origin);
   if (!catalog.length)
     return reply(
       200,
@@ -220,26 +224,29 @@ export async function assistantFetch(request, env) {
     const reserve = await budget.fetch('https://budget/reserve', { method: 'POST' });
     if (!reserve.ok) return reply(429, { error: 'budget' }, origin);
     reserved = true;
-    // One request owns one embedding call and one excerpt-selection call. No retry path exists.
+    // Fresh retrieval owns BGE+Qwen; a validated follow-up already owns its source set.
     const task = async () => {
-      stage = 'embedding';
       if (inference.signal.aborted) throw Error('deadline');
-      modelCalls++;
-      const embedded = await env.AI.run(
-        '@cf/baai/bge-m3',
-        {
-          text: [
-            context ? `${context.query}\n${payload.query}` : payload.query,
-            ...catalog.map((post) => `${post.title}\n${post.sectionTitle}\n${post.body}`),
-          ],
-        },
-        { signal: inference.signal },
-      );
-      if (expired || request.signal.aborted) throw Error('deadline');
-      const candidates = context
-        ? catalog.filter((post) => context.ids.includes(post.id))
-        : rankAssistantCatalog(payload.query, catalog, embedded.data);
-      stage = 'excerpt';
+      let candidates;
+      if (context) {
+        candidates = catalog.filter((post) => context.ids.includes(post.id));
+      } else {
+        stage = 'embedding';
+        modelCalls++;
+        const embedded = await env.AI.run(
+          '@cf/baai/bge-m3',
+          {
+            text: [
+              payload.query,
+              ...catalog.map((post) => `${post.title}\n${post.sectionTitle}\n${post.body}`),
+            ],
+          },
+          { signal: inference.signal },
+        );
+        if (expired || request.signal.aborted) throw Error('deadline');
+        candidates = rankAssistantCatalog(payload.query, catalog, embedded.data);
+      }
+      stage = payload.version === 2 ? 'answer' : 'excerpt';
       modelCalls++;
       const generated = await env.AI.run(
         '@cf/qwen/qwen3-30b-a3b-fp8',
@@ -306,6 +313,9 @@ export async function assistantFetch(request, env) {
 
 export default { fetch: assistantFetch };
 
+// Three accepted inference chains cost at most 15 operations including failure stops.
+export const assistantReservationLimit = 3;
+
 /** Stores only a lifetime allowance and stop flag in one SQLite-backed Durable Object. */
 export class AssistantBudget {
   constructor(state) {
@@ -317,13 +327,23 @@ export class AssistantBudget {
     if (request.method !== 'POST') return new Response(null, { status: 405 });
     return this.state.blockConcurrencyWhile(async () => {
       const path = new URL(request.url).pathname;
-      const stored = (await this.state.storage.get('allowance')) || { count: 0, stopped: false };
+      const saved = await this.state.storage.get('allowance');
+      const stored = saved === undefined ? { count: 0, stopped: false } : saved;
+      if (
+        !stored ||
+        typeof stored !== 'object' ||
+        Array.isArray(stored) ||
+        !Number.isSafeInteger(stored.count) ||
+        stored.count < 0 ||
+        typeof stored.stopped !== 'boolean'
+      )
+        return new Response(null, { status: 503 });
       if (path === '/stop') {
         await this.state.storage.put('allowance', { ...stored, stopped: true });
         return new Response(null, { status: 204 });
       }
-      // Four chats allow up to eight inference calls, leaving room within the approved 20-call E2E activity.
-      if (path !== '/reserve' || stored.stopped || stored.count >= 4)
+      // Keep the existing count/stopped schema; tightening the cap never replenishes old allowance.
+      if (path !== '/reserve' || stored.stopped || stored.count >= assistantReservationLimit)
         return new Response(null, { status: 429 });
       await this.state.storage.put('allowance', { count: stored.count + 1, stopped: false });
       return new Response(null, { status: 204 });

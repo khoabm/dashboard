@@ -4,7 +4,7 @@ SPEC.md là bản đầy đủ. Bảng này chỉ giúp chọn phần cần đ�
 
 | ID | Nhóm yêu cầu | Đọc cùng khi làm việc |
 | --- | --- | --- |
-| [R01](SPEC.md#r01) | Vai trò, mục tiêu | OVERVIEW.md |
+| [R01](SPEC.md#r01) | Vai trò, mục tiêu và phạm vi ứng dụng Bảng học liệu | OVERVIEW.md; PRODUCT_PROFILE.md |
 | [R02](SPEC.md#r02) | 0 USD, quota | ZERO_COST.md |
 | [R03](SPEC.md#r03) | Tech stack | ARCHITECTURE.md |
 | [R04](SPEC.md#r04) | Work và plugins | WORKFLOW.md |
