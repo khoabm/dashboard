@@ -41,11 +41,11 @@
 }
 .assistant-dialog {
   position: fixed;
-  inset: auto max(20px, env(safe-area-inset-right)) max(90px, calc(env(safe-area-inset-bottom) + 90px)) auto;
+  inset: 12px max(20px, env(safe-area-inset-right)) 12px auto;
   margin: 0;
   padding: 0;
-  width: min(480px, calc(100vw - 40px));
-  height: min(740px, calc(100dvh - 116px));
+  width: min(520px, calc(100vw - 40px));
+  height: calc(100dvh - 24px);
   max-width: none;
   max-height: none;
   border: 1px solid #d2e4dd;
@@ -114,6 +114,49 @@
 .assistant-close:hover,
 .assistant-close:focus-visible {
   background: #edf4f0;
+}
+/* Desktop prioritizes the conversation over secondary toolbar and topic shortcuts. */
+.assistant-utilities-toggle {
+  display: flex;
+  width: 100%;
+  min-height: 42px;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 18px;
+  border: 0;
+  border-bottom: 1px solid #edf2ef;
+  background: #f8fbf9;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+}
+.assistant-utilities-toggle:hover {
+  background: #eef6f1;
+}
+.assistant-utilities-hint {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+  margin-left: auto;
+}
+.assistant-utilities-chevron {
+  width: 8px;
+  height: 8px;
+  border-right: 1.7px solid currentColor;
+  border-bottom: 1.7px solid currentColor;
+  transform: rotate(45deg);
+  margin: -4px 2px 0;
+}
+.assistant-utilities-expanded .assistant-utilities-chevron {
+  transform: rotate(225deg);
+  margin: 4px 2px 0;
+}
+.assistant-utilities-content {
+  display: none;
+}
+.assistant-utilities-expanded .assistant-utilities-content {
+  display: block;
 }
 /* Three compact toolbar cards retain predictable widths at all breakpoints. */
 .assistant-tools {
@@ -422,6 +465,15 @@
 .assistant-dialog [hidden] {
   display: none !important;
 }
+/* Mobile retains the already approved visible shortcuts and fullscreen layout. */
+@media (max-width: 700px) {
+  .assistant-utilities-toggle {
+    display: none;
+  }
+  .assistant-utilities-content {
+    display: block;
+  }
+}
 /* A compact handset uses the full visual viewport and keeps the composer reachable. */
 @media (max-width: 700px) {
   .assistant-trigger {
@@ -509,8 +561,11 @@
     padding-top: 9px;
     padding-bottom: 8px;
   }
-  .assistant-suggestions-section {
+  .assistant-utilities-content {
     display: none;
+  }
+  .assistant-utilities-expanded .assistant-utilities-content {
+    display: block;
   }
   .assistant-heading-avatar {
     width: 38px;
