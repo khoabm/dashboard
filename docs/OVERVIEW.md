@@ -8,7 +8,7 @@ cho **mục đích, ý nghĩa, công dụng và phạm vi từng ứng dụng**;
 
 **Ứng dụng:** Bảng học liệu (`/`, tên lịch sử KHTN8 Board); Bảng điểm cá nhân
 (`/personal-gradebook`); Quản lý bảng điểm và lớp (`/personal-gradebook/admin`).
-Trợ lý học liệu là tính năng trong Board, chỉ xử lý profile và học liệu công khai.
+Trợ lý học liệu trong Board trả lời kiến thức chung và bài published; dữ liệu ứng dụng chỉ lấy từ Board công khai, không Gradebook/Auth.
 Khách xem bài published; học sinh tra cứu điểm riêng qua xác minh; người quản trị
 có công cụ theo quyền. Tên route/menu không cấp quyền.
 

@@ -31,7 +31,7 @@ Cần phân biệt **thương hiệu website**, **ứng dụng**, **tính năng 
 | Ứng dụng | **Bảng học liệu** — `/` | Xem/tìm/mở học liệu đã xuất bản; quản lý nội dung có quyền: `src/main.js`, `src/components/board.js` | Tên kỹ thuật lịch sử: KHTN8 Board; khách chỉ đọc published |
 | Ứng dụng | **Bảng điểm cá nhân** — `/personal-gradebook` | Tra cứu thông tin điểm cá nhân: `src/components/student-lookup.js`, `src/app.js` | Phải xác minh; không cung cấp dữ liệu điểm công khai |
 | Ứng dụng | **Quản lý bảng điểm và lớp** — `/personal-gradebook/admin` | Màn hình lớp/danh sách học sinh/điểm, nhập liệu: `src/components/gradebook-admin.js`, `src/app.js` | Có quyền phía server; route/menu không cấp quyền |
-| Tính năng | **Trợ lý học liệu V2** trong Bảng học liệu | Thông tin website, thống kê Board published, tìm/giải thích/tóm tắt trong giới hạn văn bản: `src/utils/assistant-learning.js`, `workers/board-assistant/index.js` | AI hosted mặc định tắt; không truy cập Gradebook/Auth, tệp hoặc thao tác ghi |
+| Tính năng | **Trợ lý học liệu V2** trong Bảng học liệu | Thông tin website, thống kê Board published, tìm/giải thích/tóm tắt trong giới hạn văn bản: `src/utils/assistant-learning.js`, `workers/board-assistant/index.js` | Live hybrid Qwen/Board published, không truy cập Gradebook/Auth, tệp hoặc thao tác ghi |
 
 Các đường dẫn trên được xác minh từ source. **Không được suy luận rằng mọi route/Edge/Worker đã được public deploy hoặc nghiệm thu dữ liệu thật.**
 

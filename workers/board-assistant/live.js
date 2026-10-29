@@ -252,7 +252,7 @@ export async function liveFetch(request, env, { fetcher = fetch } = {}) {
       knowledge: sources.length ? 'board' : 'general',
     });
   } catch (error) {
-    const quota = /quota|neurons|daily limit|10000|1015/i.test(String(error?.message || ''));
+    const quota = /quota|neuron|daily limit|10000|1015/i.test(String(error?.message || ''));
     return reply(503, { error: quota ? 'provider_quota' : 'unavailable' });
   }
 }
