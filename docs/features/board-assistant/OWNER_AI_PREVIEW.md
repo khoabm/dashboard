@@ -1,3 +1,7 @@
+# Historical Owner UAT only
+
+Normal chatbot now uses [live chat](LIVE_CHAT_ACCEPTANCE.md), no Owner Start/Stop, bearer, reservations or expiry. Do not use archived setup/recover commands to operate the live Worker. Old failure evidence below is retained unchanged.
+
 # OWNER AI PREVIEW — UAT có giới hạn
 
 **2026-10-29: HOSTED BLOCKED sau owner follow-up503; KHÔNG READY.**

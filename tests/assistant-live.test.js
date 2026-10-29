@@ -198,14 +198,14 @@ test('spam429 recovers after10 seconds without a ban or any rejected-request mod
   assert.equal((await h.send()).status, 200);
 });
 test('ordinary model503 and provider quota both recover on the next user request without stop/reset', async () => {
-  for (const failure of ['temporary service failure', 'daily neurons quota exhausted']) {
+  for (const failure of ['temporary service failure', 'daily neuron limit exceeded']) {
     const h = fixture();
     h.fail(failure);
     const r = await h.send();
     assert.equal(r.status, 503);
     assert.equal(
       (await r.json()).error,
-      failure.includes('quota') ? 'provider_quota' : 'unavailable',
+      /quota|neuron/.test(failure) ? 'provider_quota' : 'unavailable',
     );
     h.fail(null);
     assert.equal((await h.send()).status, 200);

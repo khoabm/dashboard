@@ -1,5 +1,13 @@
 # Nhật ký khắc phục lỗi
 
+## 2026-10-30 — AI-LIVE-04: singular neuron quota errors classified as temporary errors
+
+Final delivery based on develop27b9fb9. Match singular neuron as well as plural
+neurons in provider error classification so daily neuron limit exhaustion produces
+the quota-unavailable message. One fake-provider regression and all11 focused cases
+PASS; no extra hosted inference required. No paid fallback, admission or message
+limit change. Final Worker receipt d1bc8f31; full acceptance linked below.
+
 ## 2026-10-30 — AI-LIVE-03: topic change inherited unrelated Board citations
 
 At integrated410c722, actual Board time/duration and natural follow-up PASS. General
@@ -8,7 +16,7 @@ FAILED. Retrieval always concatenated the previous question. Use current query f
 new topics, retain prior query for referential follow-ups, filter weak semantic/
 lexical candidates and explicitly instruct current-question citation only. This
 filters sources, never blocks general knowledge. Added changed-topic regression;
-real general case must be retested after correction merge. No date/number guard,
+real general retest at develop27b9fb9 PASS: useful sky-color explanation, general label, no Board citation. No date/number guard,
 owner token, lifetime cap or permanent failure stop reintroduced.
 
 ## 2026-10-30 — AI-LIVE-02: Worker runtime rejects redirect:error on anonymous Board read
@@ -21,8 +29,8 @@ fetch to manual and kept non200 rejection. Added bounded, rate-limited public he
 counts/errors (no model/body/private data), separated runtime ExecutionContext from
 test dependency options, and regression for manual redirect/zero-model health.
 Worker health now200/publicPosts7. Initial inference is not counted PASS. Correction
-goes through scoped PR into develop; specific real case/follow-up/general acceptance
-pending. No Pilot gate, paid upgrade or automatic inference retry introduced.
+goes through scoped PR into develop; specific real Board time/duration and follow-up retests at develop410c722 PASS;
+general-topic citation correction separately recorded above. No Pilot gate, paid upgrade or automatic inference retry introduced.
 
 ## 2026-10-29 — AI-LIVE-01: replace Pilot admission and permanent error lock in normal chat
 
@@ -32,7 +40,7 @@ numeric/revision guards. Real anonymous published Board projection and optional
 citations, general knowledge, rolling history and3/10-second native spam limit.
 Existing component retains design/source actions; temporary errors keep AI and
 history available.8 focused offline contracts and actual Chrome offline recovery/
-mobile PASS; actual AI/develop integration evidence pending in [live acceptance](features/board-assistant/LIVE_CHAT_ACCEPTANCE.md).
+mobile PASS; actual AI/develop integration subsequently PASS in [live acceptance](features/board-assistant/LIVE_CHAT_ACCEPTANCE.md).
 No private backend access, new framework, paid service or legacy ledger mutation.
 
 ## 2026-10-29 — AI-V2-UAT-FOLLOWUP-01 / P2: non-temporal facts rejected and503 model counter hidden

@@ -1,3 +1,27 @@
+# Live AI chatbot — real-data acceptance PASS / 2026-10-30
+
+Normal Free-only chatbot integrated into develop via ordered PR21(ecc7300),
+PR16(6d30baf), PR22(f15b0c9), with corrections23(410c722)/24(27b9fb9).
+Real Chrome on integrated website: published Lịch thi GK1 ->7g20/90 phút +citation;
+natural follow-up ->11g10 +citation; general sky-color answer ->general mode/no
+Board citation. Source opens exact real post;390x844 no horizontal overflow.
+
+Worker live: anonymous published posts-only read, BGE-M3/Qwen3; no owner token,
+expiry, lifetime message cap, date/number/revision reject or permanent error lock.
+Native cooldown3 requests/10 seconds/IP automatically recovers; Free provider quota
+is service ceiling. Historical DO/ledgers unchanged and unused by live admission.
+11 focused offline cases +156 curated/CI checks PASS; no forced hosted quota/spam.
+Two real defects found/fixed: Workers redirect:error unsupported; topic change
+inherited an irrelevant citation. Only failing live cases retested.
+
+Workers and Supabase Free verified; no paid upgrade, privileged backend, schema,
+Auth/Gradebook/RLS change, main merge or production website deployment. Worker stays
+AI_ENABLED=true as requested; local develop website available at localhost4173.
+[Deployment, merge receipts, tests and limitations](features/board-assistant/LIVE_CHAT_ACCEPTANCE.md).
+Older Pilot/PoC status below is historical and does not gate normal chat.
+
+---
+
 # Live chatbot integration — in progress / 2026-10-30
 
 PR21 merged ecc7300; PR16 merged6d30baf. Live implementation/offline8 cases and Chrome error recovery PASS; PR16 conflicts were docs-only, both historical records retained. Final develop merge/real AI acceptance pending. [Live contract/evidence](features/board-assistant/LIVE_CHAT_ACCEPTANCE.md). Old Pilot incidents below are historical, not live admission.

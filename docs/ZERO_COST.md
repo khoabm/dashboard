@@ -1,3 +1,7 @@
+## Live chat Free verification — 2026-10-30
+
+Actual Chrome Workers plans Free/$0/Current plan, pre-acceptance59.41/10k daily neurons; Supabase organization API plan=free/tier_free. Same Worker/AI and historical namespace retained, native rate binding3/10 seconds, no paid fallback/upgrade/card/credits. Real acceptance uses five UI submissions total (three scenarios plus two failing-case retests); no forced quota exhaustion or hosted spam. Provider Free ceiling replaces old artificial lifetime budgets for normal chat. [Evidence](features/board-assistant/LIVE_CHAT_ACCEPTANCE.md). No privileged database access or normal-user manual Free receipt gate.
+
 # Ràng buộc chi phí 0 USD
 
 ## Board Assistant — xác minh 2026-10-29
