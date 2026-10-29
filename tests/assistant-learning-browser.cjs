@@ -42,7 +42,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
     );
     assert.match(
       await page.locator('.assistant-learning-answer').last().textContent(),
-      /web quản lý lớp online/,
+      /website tích hợp các ứng dụng/,
     );
     assert.equal(
       /KHTN|lớp 8/.test(await page.locator('.assistant-learning-answer').last().textContent()),
@@ -68,6 +68,19 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
         0,
       );
     }
+    for (const [question, expectation] of [
+      ['Bảng điểm cá nhân dùng để làm gì?', '/personal-gradebook'],
+      ['Tôi muốn xem điểm thì vào đâu?', '/personal-gradebook'],
+      ['Quản lý bảng điểm và lớp ở đâu?', '/personal-gradebook/admin'],
+      ['Vui học cùng cô Quỳnh có những ứng dụng gì?', 'Bảng điểm cá nhân'],
+    ]) {
+      await ask(question);
+      assert.ok((await page.locator('.assistant-learning-answer').last().textContent()).includes(expectation));
+      assert.equal(await page.locator('.assistant-result').last().locator('.assistant-filter-button').count(), 0);
+    }
+    await ask('Làm sao xem điểm của người khác?');
+    assert.match(await page.locator('.assistant-learning-answer').last().textContent(), /không xem, sửa/);
+    assert.equal(await page.evaluate(() => calls), 0);
     await ask('Có bao nhiêu học liệu?');
     assert.match(
       await page.locator('.assistant-learning-answer').last().textContent(),

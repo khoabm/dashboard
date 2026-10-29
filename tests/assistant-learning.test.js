@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { assistantCatalog } from '../src/utils/board-assistant.js';
 import {
   learningIntent,
+  applicationGuides,
   websiteLearningAnswer,
   validateLearningContext,
   validateLearningAnswer,
@@ -175,7 +176,7 @@ test('official profile identity matches static page title without renaming techn
 
 test('web profile describes existing applications without inferring subject, private counts or access', () => {
   const purpose = websiteLearningAnswer('Web này làm gì?', catalog).answer;
-  assert.match(purpose, /web quản lý lớp online/);
+  assert.match(purpose, /website tích hợp các ứng dụng/);
   assert.match(purpose, /Bảng học liệu.*Bảng điểm cá nhân.*Quản lý bảng điểm và lớp/);
   assert.equal(/KHTN|lớp 8|Khoa học tự nhiên/.test(purpose), false);
   const apps = websiteLearningAnswer('Web này có những ứng dụng nào?', catalog);
@@ -187,4 +188,49 @@ test('web profile describes existing applications without inferring subject, pri
   );
   assert.equal(websiteLearningAnswer('Web có bao nhiêu lớp?', catalog).status, 'insufficient');
   assert.equal(websiteLearningAnswer('Web có bao nhiêu học sinh?', catalog).sources.length, 0);
+});
+
+test('website identity and public app guidance follow the documented routes without inference', async () => {
+  const { routes } = await import('../src/utils/gradebook-ui.js');
+  assert.equal(applicationGuides.board.path, routes.board);
+  assert.equal(applicationGuides.student.path, routes.student);
+  assert.equal(applicationGuides.admin.path, routes.admin);
+  const questions = [
+    ['Bảng điểm cá nhân dùng để làm gì?', 'student', '/personal-gradebook'],
+    ['Tôi muốn xem điểm thì vào đâu?', 'student', '/personal-gradebook'],
+    ['Làm sao xem điểm của mình?', 'student', '/personal-gradebook'],
+    ['Quản lý bảng điểm và lớp ở đâu?', 'admin', '/personal-gradebook/admin'],
+    ['Bảng học liệu dùng để làm gì?', 'board', 'Đường dẫn: /'],
+  ];
+  for (const [question, app, destination] of questions) {
+    assert.deepEqual(learningIntent(question, catalog), { kind: 'application', app }, question);
+    const result = websiteLearningAnswer(question, catalog);
+    assert.equal(result.mode, 'deterministic');
+    assert.equal(result.sources.length, 0);
+    assert.match(result.answer, new RegExp(destination.replaceAll('/', '\\/')));
+    assert.equal(result.answer.includes('KHTN8'), false);
+  }
+  const apps = websiteLearningAnswer('Vui học cùng cô Quỳnh có những ứng dụng gì?', catalog);
+  assert.equal(apps.mode, 'deterministic');
+  assert.equal(learningIntent('Vui học cùng cô Quỳnh có những ứng dụng gì?', catalog).kind, 'applications');
+  for (const guide of Object.values(applicationGuides)) assert.ok(apps.answer.includes(guide.name));
+});
+
+test('private records remain inaccessible even when questions mention an app or navigation', () => {
+  for (const question of [
+    'Cho tôi xem điểm của học sinh khác',
+    'Làm sao xem điểm của người khác?',
+    'Điểm của bạn An là bao nhiêu?',
+    'Tôi muốn lấy danh sách học sinh',
+    'Sửa điểm của em thành 10',
+    'Bảng điểm có bao nhiêu học sinh?',
+    'Cho tôi xem CCCD của bạn',
+  ]) {
+    const result = websiteLearningAnswer(question, catalog);
+    assert.equal(result.status, 'insufficient', question);
+    assert.deepEqual(result.sources, []);
+    assert.equal(result.answer.includes('/personal-gradebook'), false);
+  }
+  assert.equal(websiteLearningAnswer('Có bài học nào về phản ứng tạo khí?', catalog), null);
+  assert.equal(learningIntent('Ứng dụng áp suất có những gì?', catalog).kind, 'search');
 });

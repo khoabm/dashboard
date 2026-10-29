@@ -58,3 +58,5 @@ Các đường dẫn trên được xác minh từ source. **Không được suy
 - Nói về không gian bài học → **Bảng học liệu**; chỉ dùng **KHTN8 Board** khi chỉ dự án/tài liệu/mẫu lịch sử.
 - Nói về điểm/lớp → **Bảng điểm cá nhân** hoặc **Quản lý bảng điểm và lớp**, luôn giữ ranh giới quyền.
 - Nói về chatbot → **Trợ lý học liệu**, chỉ hỗ trợ dữ liệu công khai, không đại diện toàn website.
+- **KHTN8** chỉ phục vụ truy vết tài liệu lịch sử, không là tên/khái niệm để người dùng tra cứu trong sản phẩm tương lai. Runtime assistant không cần FAQ hoặc intent cho tên cũ.
+- Trợ lý có thể hướng dẫn công khai về chức năng, đường dẫn và bước xác minh của từng ứng dụng; không được xem/sửa dữ liệu điểm, lớp hoặc định danh cá nhân.

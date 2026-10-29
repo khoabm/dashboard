@@ -1,5 +1,20 @@
 # Nhật ký khắc phục lỗi
 
+## 2026-10-29 — AI-V2-006 / P2: public app-help questions were rejected as private grade requests
+
+Baseline `1429789`, branch `feature/ai-learning-assistant-v2-e2e`. V2 profile exposed
+only application names while the broad `bang diem` guard rejected ordinary questions such
+as "Bảng điểm cá nhân dùng để làm gì?". The website's official name also was not
+recognized as a website reference in intent routing. Extended deterministic public
+application guidance with descriptions, documented routes and explicit authorization
+boundaries; separated help/navigation intent from requests to inspect or modify private
+grade/student data. No runtime answer or prompt offers the obsolete KHTN8 product name.
+Pure and synthetic Chromium regression cases were added for app purpose, route help,
+official-name paraphrases and private-data denial. **Automated runtime tests NOT RUN in
+this connector-only update**; static diff verified. No Cloudflare/Supabase hosted calls,
+deploy, Auth/Gradebook/schema change or new feature beyond V2 CP01–CP02 correction.
+
+
 ## 2026-10-29 — AI-MVP-001 / P2: canceled dialog close events could invalidate a new conversation
 
 Baseline `develop` / `4f254961e9fa3604e8e843e3c5f63a15f2e9edc7`, new Board Assistant

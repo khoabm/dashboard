@@ -1,5 +1,21 @@
 # Correction V2-F01–F05 — nghiệm thu / 2026-10-29
 
+## CP01–CP02 follow-up — public website/app guidance correction (2026-10-29)
+
+The website name is **Vui học cùng cô Quỳnh**; historical KHTN8 labels remain
+documentation-only and are not exposed as a product concept in assistant replies.
+Runtime website profile now describes each existing app's verified purpose, route
+and read-only guidance. Deterministic routing separates general help about
+Bảng điểm cá nhân / Quản lý bảng điểm from requests for private records,
+which remain refused. Official-name website paraphrases resolve without AI.
+
+Tests added: pure route/profile/public-help/third-party-denial cases and
+Chromium synthetic browser help/denial cases. **NOT RUN in this GitHub connector
+editing session**; previous assistant41/41 and browser evidence are historical
+and do not establish new correction PASS. No Worker/model/DO changes; hosted
+V2 ledger remains 0/40, production and provenance gates unchanged.
+
+
 **Offline: READY FOR OWNER REVIEW. Tổng thể: PARTIAL vì hosted chưa được xác minh.**
 Baseline review/local/remote cee8e1dffd8fccfe94d8f9b7becae34ee9226806; tiếp tục cùng nhánh
 feature/ai-learning-assistant-v2-e2e, base ai-learning-assistant50ea1cb. Không merge hoặc deploy website.

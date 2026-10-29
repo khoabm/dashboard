@@ -143,7 +143,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
       rows: 2,
       maxlength: assistantLimits.query,
       'aria-describedby': 'assistant-privacy assistant-error assistant-input-help',
-      placeholder: 'Bạn muốn tìm học liệu nào?',
+      placeholder: 'Bạn muốn tìm hiểu website hay học liệu nào?',
     });
     const send = el('button', { type: 'submit', class: 'assistant-send' }, 'Gửi');
     const stop = button(
@@ -335,7 +335,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
     }
 
     assistantMessage(
-      'Xin chào! Mình giúp bạn tìm học liệu theo chủ đề hoặc câu hỏi. Mình sẽ gợi ý những bài học phù hợp từ nội dung đã xuất bản.',
+      'Xin chào! Mình có thể giới thiệu Vui học cùng cô Quỳnh, hướng dẫn tìm ứng dụng và hỗ trợ học liệu đã xuất bản.',
       'assistant-welcome',
     );
     ownDialog.addEventListener(

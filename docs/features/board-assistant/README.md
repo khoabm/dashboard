@@ -11,6 +11,14 @@ AI hosted mặc định tắt; đánh giá synthetic không tự cho phép dùng
 hoặc phát hành công khai. [Acceptance V2](V2_ACCEPTANCE.md) ·
 [ExecPlan](V2_EXECPLAN.md). Các log MVP bên dưới là lịch sử, không cấp thêm quyền.
 
+**Website Knowledge / Navigation correction:** runtime profile được mở rộng
+với công dụng và hướng dẫn mở các ứng dụng đã có; câu hỏi công khai về Bảng
+điểm cá nhân không còn bị chặn bởi mỗi từ khóa "bảng điểm". Yêu cầu đọc/sửa
+dữ liệu riêng vẫn bị từ chối. Nhãn lịch sử KHTN8 chỉ nằm trong documentation,
+không có chatbot intent cho tên cũ. Đây là refinement CP01–CP02, không mở
+AI public hay thay đổi roadmap và quyền truy cập.
+
+
 ---
 
 

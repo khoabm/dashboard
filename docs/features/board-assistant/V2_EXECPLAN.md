@@ -143,3 +143,19 @@ truy cập dữ liệu riêng hoặc chứng nhận đã release. Inventory ch�
 không suy số lớp/học sinh/điểm. Regression purpose/audience/apps/no-private-count và Chromium
 identity/overview kiểm chứng lại. Không thay business logic Gradebook/Auth/Supabase hoặc UI redesign.
 Tài liệu bằng chứng lịch sử giữ nguyên; thêm chuẩn sản phẩm hiện hành và giải thích scope cũ.
+
+## CP01–CP02 scope correction — Website Knowledge & Navigation (2026-10-29)
+
+Baseline `1429789`. Product-level requirement: KHTN8 remains documentation
+history only; never add a chatbot intent/FAQ for that obsolete label.
+Problem: runtime knows three app names but lacks useful descriptions/routes;
+broad `bang diem` match rejects legitimate public guidance. Decision:
+extend approved deterministic websiteProfile + public app guides, route
+known general questions without model inference, keep private read/write
+requests fail-closed and preserve existing generated-answer/Worker contracts.
+
+Test matrix: pure intent/profile/route vs app routes/private denial; synthetic
+Chromium app guidance/zero-cloud/empty source action; existing educational
+routing/follow-ups must remain unchanged. This correction does not start CP03
+hosted evaluation, change DO, migrate schema, deploy or merge. Browser/runtime
+tests remain NOT RUN until a suitable worktree is available.

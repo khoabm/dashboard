@@ -1,3 +1,19 @@
+# V2 CP01–CP02 — Website Knowledge & Navigation correction / 2026-10-29
+
+Trợ lý runtime tiếp tục dùng tên **Vui học cùng cô Quỳnh**; bổ sung mô tả và cách
+truy cập ba ứng dụng được xác nhận từ source, phân biệt hướng dẫn công khai với
+truy vấn điểm/danh sách học sinh riêng tư. Không hỗ trợ tên lịch sử KHTN8 như
+một khái niệm trong sản phẩm hoặc phản hồi chatbot. Bổ sung pure/Chromium
+regression cho app guidance và refusal. Đây là **correction trong roadmap V2
+CP01–CP02**, không thêm chức năng Gradebook hay CP mới.
+
+**Thực thi mã nguồn và tests đã commit; kiểm thử runtime trong phiên connector
+này NOT RUN** (không có worktree/dependencies). Trạng thái PASS cũ không được
+tính là bằng chứng mới. Cloudflare/Supabase hosted calls 0, không deploy/merge,
+AI public và hosted-quality gates vẫn BLOCKED.
+
+---
+
 # Docs-only — chuẩn hóa định danh và mô hình website / 2026-10-29
 
 Tên website **Vui học cùng cô Quỳnh** đã được xác nhận; **KHTN8 Board**
