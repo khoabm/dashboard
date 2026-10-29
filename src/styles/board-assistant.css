@@ -676,3 +676,15 @@
     padding-top: 4px;
   }
 }
+
+/* Generated text stays readable while preserving source paragraphs as plain text. */
+.assistant-learning-answer {
+  white-space: pre-wrap;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.assistant-answer-note {
+  color: #4e625a;
+  font-size: 13px;
+  line-height: 1.5;
+}

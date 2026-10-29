@@ -93,3 +93,30 @@ export function resolveAssistantAction(action, catalog) {
     return { type: 'topic', id: action.id };
   return null;
 }
+
+/** Validates the entire wire catalog rather than trusting arbitrary browser objects. */
+export function validateAssistantCatalog(value) {
+  if (!Array.isArray(value) || value.length > assistantLimits.posts) throw Error('catalog');
+  const seen = new Set();
+  return value.map((post) => {
+    if (!post || Object.keys(post).sort().join(',') !== 'body,id,sectionId,sectionTitle,title')
+      throw Error('catalog');
+    for (const [key, max] of Object.entries({
+      id: 100,
+      sectionId: 100,
+      sectionTitle: 160,
+      title: 200,
+      body: 1200,
+    })) {
+      if (
+        typeof post[key] !== 'string' ||
+        post[key].length > max ||
+        (key !== 'body' && !post[key].trim())
+      )
+        throw Error('catalog');
+    }
+    if (seen.has(post.id)) throw Error('catalog');
+    seen.add(post.id);
+    return { ...post };
+  });
+}

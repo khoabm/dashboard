@@ -22,10 +22,12 @@ window.calls = 0;
 window.assistant = BoardAssistant({
   snapshot: () => data,
   hosted: true,
-  request: async (q, c, { signal }) => {
+  request: async (q, c, { signal, context, version }) => {
+    window.lastRequest = { query: q, context, version };
     calls++;
     if (window.delay) await new Promise((r) => (window.release = r));
-    throw Error('synthetic');
+    if (window.mockReply) return structuredClone(window.mockReply);
+    throw Error(window.quota ? 'quota' : 'synthetic');
   },
   perform: (a) => {
     actions.push(a);

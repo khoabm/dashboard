@@ -9,6 +9,12 @@ import {
 } from '../utils/board-assistant.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
 
+import {
+  learningIntent,
+  websiteLearningAnswer,
+  validateLearningContext,
+} from '../utils/assistant-learning.js';
+
 const avatarPath = '/placeholders/assistant-avatar.png';
 
 /** Creates the consistent decorative assistant avatar without implying file or voice support. */
@@ -102,6 +108,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
   function open() {
     if (dialog?.open) return;
     const catalogAtOpen = assistantCatalog(snapshot());
+    let context = null;
     let cloudAvailable = hosted && catalogAtOpen.length <= assistantLimits.posts;
     const title = el('h2', { id: 'assistant-title' }, 'Cùng tìm học liệu');
     const close = button('×', () => dialog.close(), 'assistant-close', {
@@ -141,6 +148,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
     const stop = button(
       'Dừng tìm',
       () => {
+        context = null;
         generation++;
         controller?.abort();
         controller = null;
@@ -385,17 +393,33 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
           'strong',
           { class: 'assistant-result-mode' },
           result.mode === 'ai'
-            ? 'AI · Trích đoạn từ học liệu'
-            : 'Tìm bằng từ khóa · AI không được sử dụng',
+            ? 'AI · Giải thích từ học liệu được dẫn nguồn'
+            : result.mode === 'deterministic'
+              ? 'Thông tin website · Không dùng AI'
+              : 'Tìm bằng từ khóa · AI không được sử dụng',
         ),
         el(
           'p',
           { class: 'assistant-result-intro' },
-          result.sources.length
-            ? 'Mình tìm thấy một số nội dung có thể hữu ích. Bạn có thể mở nguồn để xem đầy đủ.'
-            : 'Chưa tìm thấy nội dung phù hợp trong tiêu đề và mô tả hiện có. Bạn thử từ khóa khác nhé.',
+          result.mode === 'deterministic'
+            ? 'Thông tin tính từ snapshot công khai hiện tại.'
+            : result.sources.length
+              ? 'Mình tìm thấy một số nội dung có thể hữu ích. Bạn có thể mở nguồn để xem đầy đủ.'
+              : 'Chưa tìm thấy nội dung phù hợp trong tiêu đề và mô tả hiện có. Bạn thử từ khóa khác nhé.',
         ),
       );
+      if (result.answer)
+        content
+          .querySelector('strong')
+          .after(el('p', { class: 'assistant-learning-answer' }, result.answer));
+      if (result.mode === 'ai')
+        content.append(
+          el(
+            'p',
+            { class: 'assistant-answer-note' },
+            'AI có thể diễn giải sai. Hãy đối chiếu nguồn; chỉ dùng tiêu đề và mô tả được cung cấp.',
+          ),
+        );
       for (const source of result.sources) {
         const post = catalog.find((p) => p.id === source.id);
         if (!post) continue;
@@ -488,23 +512,50 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
       messages.scrollTop = messages.scrollHeight;
       busy(true);
       try {
-        const result = cloud.checked
-          ? await request(question, catalog, { signal })
-          : { mode: 'keyword', sources: localAssistantResults(question, catalog) };
+        const deterministic = websiteLearningAnswer(question, catalog);
+        const followup = learningIntent(question, catalog).kind === 'followup';
+        const checkedContext = followup ? validateLearningContext(context, catalog) : null;
+        const result =
+          deterministic ||
+          (followup && !checkedContext
+            ? {
+                mode: 'deterministic',
+                status: 'insufficient',
+                sources: [],
+                answer: 'Bạn hãy chọn hoặc tìm một bài học trước khi yêu cầu giải thích tiếp.',
+                coverage: 'insufficient',
+              }
+            : cloud.checked
+              ? await request(question, catalog, { signal, version: 2, context: checkedContext })
+              : {
+                  mode: 'keyword',
+                  sources: localAssistantResults(
+                    checkedContext ? checkedContext.query : question,
+                    catalog,
+                  ),
+                });
         if (ticket !== generation || signal.aborted || !ownDialog.open) return;
         if (fingerprint !== JSON.stringify(assistantCatalog(snapshot()))) {
           invalidate();
           return;
         }
+        context = result.sources.length
+          ? {
+              query: checkedContext?.query || question,
+              ids: result.sources.map((source) => source.id),
+            }
+          : null;
         showResults(result, catalog, question, fingerprint);
         input.value = '';
-      } catch {
+      } catch (failure) {
         if (ticket !== generation || signal.aborted || !ownDialog.open) return;
+        context = null;
         // Failed requests never become fake AI answers or initiate implicit retries.
         cloud.checked = false;
         cloudAvailable = false;
         cloud.disabled = true;
         error.textContent =
+          (failure?.message === 'quota' ? 'Đã hết hạn mức AI. ' : '') +
           'AI chưa thể trả lời. Đã tắt AI trong phiên trang này; bạn có thể gửi lại để tìm bằng từ khóa.';
         hosted = false;
         updateCloudDisclosure();
