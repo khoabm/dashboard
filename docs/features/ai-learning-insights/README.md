@@ -36,3 +36,13 @@ Pure test, format and build checks require observed CI output to count as PASS. 
 ## Verification follow-up
 
 The contextual-feedback change is limited to a pure suggestion helper, student panel text, responsive styling, synthetic tests, and this handoff note. The original Board/Gradebook access boundaries remain untouched. Validation uses existing strict B1 score/capability projection; 3+ own-score samples are required before directional advice. This heuristic does not establish causation, study habits, ability, or a future score. Suggestions are optional and can be discussed with a teacher.
+
+## Weighted reference and opt-in class comparison (2026-10-29)
+
+- New user-approved **reference** formula per subject and semester: (TX1+TX2+TX3+TX4+2×1 tiết+2×Giữa kì+3×Cuối kì)/11 when all slots are recorded. Missing entries never count as zero: divide by the sum of weights for present entries; numeric 0 is included.
+- Uses *existing* capability-authenticated published-semester histogram operations. No additional endpoints, migrations, service changes or external ML are introduced.
+- The class reference is the weighted mean of the per-column histogram averages for **exactly the same scored columns as the selected student's formula**; histogram buckets are rounded tenths. This is not the distribution or exact class mean of per-student weighted averages when different students are missing different columns.
+- Comparison is opt-in **inside the existing subject-feedback panel**, with at most seven sequential aggregate reads for a single selected subject. No eager calls or automatic retry. On subject switch, semester switch, route exit or denial, the old request is aborted and its private result discarded.
+- Do not compare at all if any requested aggregate has fewer than ten students with scores. Unequal group sizes or incomplete personal coverage are disclosed. A small ±0.3 reference-point buffer is treated as similar. Never show rank/Top, percentile or claims about academic ability.
+- A descriptive observation and optional encouragement stay distinct from the class reference. A publication/auth/availability failure remains a neutral fail-closed UI result.
+- Offline regression includes full eleven-weight formula, zero, missing data, exact code/semester/column matching, cohort size, and malformed/privacy-rich responses. Live backend calls and actual browser QA are NOT RUN.
