@@ -997,6 +997,10 @@ export function GradebookScores({
               input.setAttribute('aria-invalid', String(!valid));
             };
             input.classList.toggle('grid-score-dirty', gridPending.has(key));
+            input.addEventListener('focus', () => {
+              selectedGridCell = { student, column };
+              updateGridActions();
+            });
             input.addEventListener('input', edit);
             return el('td', {}, input);
           }),
