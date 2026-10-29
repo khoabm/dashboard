@@ -47,3 +47,14 @@ MVP synthetic browser evidence as fresh UI acceptance for this branch.
 
 Keep the existing Worker and transport policy unchanged. No hosted test, deploy or merge is
 authorized by this change.
+
+## Execution evidence — 2026-10-29
+
+- Branch was created from the exact accepted AI MVP HEAD; original parent branch is unchanged.
+- Source edits and the owner-supplied PNG are committed directly on the feature branch.
+- PNG original SHA-256: `927cdd151837d4b1497a812402f3b020058382e5a2569812736af6d977c28656`; exact byte content matches remote Git blob SHA-1 `afce1bad81a99ddc5d83c891912131f3748e547b`. Native size 51×61 px.
+- Source static review: component parses in V8 after stripping module import/export declarations, CSS delimiter balance 0, fixed launcher, mobile fullscreen, existing cancellation and read-only source callbacks present. This is not the app build or runtime integration test.
+- CI statuses on inspected commit: none. Node unit tests, Prettier and Vite build **NOT RUN** in the available GitHub-only workspace (no checked-out npm installation).
+- Real browser interaction/responsive/accessibility QA **NOT RUN**. Consequently visual E2E acceptance is **PARTIAL**, not PASS; earlier MVP synthetic browser results predate this new UI.
+- Hosted Worker/Supabase requests: **0**. No deploy, merge, schema/API/Worker edits or new test fixtures committed.
+- Next acceptance: run scoped code format/check/build and an offline synthetic Chrome keyboard + 360/390/768/1024/1440/short-height matrix without hosted traffic; correct observed issues before final PASS.
