@@ -460,6 +460,7 @@ export function GradebookScores({
     const count = gridPending.size;
     const info = panel.querySelector('[data-grid-count]');
     if (info) info.textContent = count ? `${count} ô chưa lưu` : 'Mọi thay đổi đã lưu';
+    for (const action of panel.querySelectorAll('[data-grid-exclusive]')) action.disabled = count > 0 || busy;
     const save = panel.querySelector('[data-grid-save]');
     const discard = panel.querySelector('[data-grid-discard]');
     if (save) save.disabled = count === 0 || gridStale || busy;
@@ -784,8 +785,8 @@ export function GradebookScores({
       return;
     }
     const published = currentClass[`semester${semester}Published`];
-    const upload = button('Nhập CSV/XLSX điểm', importScores);
-    upload.disabled = published;
+    const upload = button('Nhập CSV/XLSX điểm', importScores, 'button', { 'data-grid-exclusive': '' });
+    upload.disabled = published || gridPending.size > 0;
     const subjectSelect = el(
       'select',
       { 'aria-label': 'Môn học' },
@@ -839,7 +840,7 @@ export function GradebookScores({
         subjectSelect,
         pupil,
         upload,
-        button(published ? 'Tạm ẩn học kỳ' : 'Công bố học kỳ', publication),
+        button(published ? 'Tạm ẩn học kỳ' : 'Công bố học kỳ', publication, 'button', { 'data-grid-exclusive': '', disabled: gridPending.size > 0 }),
         button('Tải lại điểm', reload),
       ),
       templates,
@@ -848,7 +849,7 @@ export function GradebookScores({
           gridPending.size ? `${gridPending.size} ô chưa lưu` : 'Mọi thay đổi đã lưu'),
         button('Lưu thay đổi', saveGrid, 'button primary', { 'data-grid-save': '', disabled: !gridPending.size || gridStale }),
         button('Bỏ thay đổi', async () => {
-          if (!await confirm('Bỏ các điểm chưa lưu?', 'Các điểm chưa lưu sẽ bị hủy; dữ liệu trên máy chủ không thay đổi.')) return;
+          if (!(await confirm('Bỏ các điểm chưa lưu?', 'Các điểm chưa lưu sẽ bị hủy; dữ liệu trên máy chủ không thay đổi.'))) return;
           gridPending.clear(); gridStale = false; dirty = false; render();
         }, 'button', { 'data-grid-discard': '', disabled: !gridPending.size }),
       ),
