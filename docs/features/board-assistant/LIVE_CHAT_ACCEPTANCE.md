@@ -47,8 +47,10 @@ Artifacts remain ignored under tests/local/chat-live.
 
 ## Deployment and ordered merges
 
-Pending: Free/current usage check, deploy live Worker, PR21 ->ai-learning-assistant,
-PR16 ->feature/ai-learning-assistant, integration PR ->develop with applicable checks.
+PR21 merged `ecc7300a0cf9fe39ed796e2b9c0df71bd80ffe76`; PR16 merged
+`6d30bafa1ff5ab6e242927eb3cdcf3e4a1cde85b`. PR16 conflict resolution changed docs only.
+Latest develop synchronization also had only STATUS conflict; both histories retained.
+Pending: Free/current usage, live Worker deploy and final develop PR/checks/acceptance.
 No bypass of protections, no main merge or production website deployment.
 Existing Pages project verified: student-dashboard-bcy.pages.dev, production branch
 main. CORS configured for this project and its branch previews plus localhost4173;

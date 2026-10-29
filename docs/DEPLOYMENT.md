@@ -1,6 +1,6 @@
 # Triển khai frontend tĩnh
 
-Nguồn: SPEC R03–04, R17–18, R24–28; quy trình chi tiết ở WORKFLOW. **Đã có build static dist; chưa có Site hoặc deployment.** Không tạo configuration nhà cung cấp khác.
+**2026-10-28 owner update:** chọn Cloudflare Pages Free, GitHub main auto-deploy và bật Personal Gradebook. [Cấu hình, receipt dọn synthetic, checks và gate còn thiếu](CLOUDFLARE_RELEASE_20261028.md) là hướng dẫn release hiện hành. Không dùng Sites cho lần phát hành này; phần Sites dưới đây giữ làm quy trình thay thế lịch sử. Nguồn SPEC R03–04, R17–18, R24–28; không thay backend Supabase hoặc tự merge main.
 
 ## Điều kiện
 
