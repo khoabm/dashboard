@@ -1,3 +1,13 @@
+## 2026-10-29 — AI-V2-OWNER-UAT-01 / P2: owner temporal response HTTP503; offline revision guard correction
+
+Owner asked “Xưởng mô hình giấy diễn ra khi nào? Có thay đổi lịch không?”. Hosted /chat returned503 with reported BGE1/Qwen1; local budget31/40, ownerReservations1, pilot blocked=true. No historical stage/raw response was retained; do not claim the original Qwen output or exact cause.
+
+Offline replay at checkpoint `ddd2a798` reproduced a confirmed validator false-negative: “Xưởng mô hình giấy diễn ra ngày22/11/2026; lịch đã được điều chỉnh” was rejected as revision-unacknowledged. Changed `src/utils/public-temporal.js` to accept “điều chỉnh” while retaining unsupported-date, unsupported-number, source and other fact guards. Added `src/utils/assistant-diagnostics.js`, Worker fixed reason/stop metadata, sanitized local-ledger diagnostics, `tests/assistant-owner-uat.test.js`, and a scripted Chrome temporal scenario. Codex reported108 offline tests + Chrome synthetic PASS; GitHub continuation did not rerun test runtime.
+
+**Disposition:** Confirmed offline defect FIXED IN SOURCE; historical HTTP503 ROOT CAUSE UNCONFIRMED; live retest BLOCKED by existing failure-stop and budget. No new hosted inference, DO reset, production deployment or authorization to revive blocked identity. Unrelated `.env.example` / `vite.config.js` changes in the testing checkpoint have been reverted on feature branch, without overwriting owner local files. Draft PR21 stays open.
+
+---
+
 # Nhật ký khắc phục lỗi
 
 ## 2026-10-29 — AI-V2-PILOT-01 / P2: self-disclosed DOB phrasing bypassed the cloud input guard
