@@ -9,7 +9,7 @@ import {
 } from '../utils/board-assistant.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
 
-const avatarPath = '/placeholders/assistant-avatar.svg';
+const avatarPath = '/placeholders/assistant-avatar.png';
 
 /** Creates the consistent decorative assistant avatar without implying file or voice support. */
 function assistantAvatar(className = 'assistant-avatar') {
