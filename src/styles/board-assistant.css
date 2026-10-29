@@ -358,6 +358,10 @@
 #assistant-error:empty {
   display: none;
 }
+/* Author-level button display rules must never override native hidden state. */
+.assistant-dialog [hidden] {
+  display: none !important;
+}
 /* A compact handset uses the full visual viewport and keeps the composer reachable. */
 @media (max-width: 700px) {
   .assistant-trigger {
