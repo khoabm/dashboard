@@ -81,6 +81,7 @@ export function GradebookScores({
   // Tabs remain available during reads; the private workspace and dialogs are inert during an operation.
   const heading = el('h2', { tabindex: '-1' }, 'Quản lý điểm');
   const progress = PulseIndicator(),
+    gridProgress = PulseIndicator(),
     status = el('p', { role: 'status', class: 'admin-feedback', 'aria-live': 'polite' });
   const tabs = el('div', { role: 'tablist', 'aria-label': 'Học kỳ' });
   const panel = el('div', { role: 'tabpanel', id: 'teacher-semester', class: 'score-panel' });
@@ -201,8 +202,10 @@ export function GradebookScores({
   }
   /** Mirrors operation feedback into the active modal outside inert content. */
   function pending(message = '') {
+    const gridOperation = lastOperation?.startsWith('scores.batch.');
     panel.setAttribute('aria-busy', String(!!message));
-    setPendingMessage(progress, dialogs.size ? '' : message);
+    setPendingMessage(progress, dialogs.size || gridOperation ? '' : message);
+    setPendingMessage(gridProgress, gridOperation ? message : '');
     for (const entry of dialogs) {
       entry.content.setAttribute('aria-busy', String(!!message));
       setPendingMessage(entry.progress, message);
@@ -214,6 +217,7 @@ export function GradebookScores({
     if (busy || disposed || owner.status !== 'admin') return;
     const ticket = ++generation;
     busy = true;
+    lastOperation = null;
     panel.inert = true;
     for (const d of dialogs) d.content.inert = true;
     status.textContent = '';
@@ -484,6 +488,7 @@ export function GradebookScores({
   /** Preview and apply use one committed state token, no per-cell HTTP writes. */
   function saveGrid() {
     if (!gridPending.size || gridStale || busy) return;
+    let applyDispatched = false;
     let payload;
     try {
       payload = gridBatch(currentClass, semester, [...gridPending.values()]);
@@ -498,12 +503,15 @@ export function GradebookScores({
         if (!current()) return;
         const counts = checked.counts;
         if (counts.error || !checked.previewToken) throw new AdminError(422);
+        // No API request remains in flight while the owner reviews this confirmation.
+        pending();
         const approved = await confirm(
           'Áp dụng các thay đổi điểm?',
           `Thêm ${counts.insert}, cập nhật ${counts.update}, không đổi ${counts.unchanged}. ` +
             'Toàn bộ sẽ được ghi trong một lần; không có cập nhật một phần.',
         );
         if (!current() || !approved) return;
+        applyDispatched = true;
         const applied = await gate.call({
           op: 'scores.batch.apply',
           ...payload,
@@ -518,8 +526,17 @@ export function GradebookScores({
         if (current()) status.textContent = 'Đã lưu toàn bộ ô điểm đã sửa.';
       },
       (error) => {
-        gridStale = true;
-        status.textContent = `${adminMessage(error)} Bản nháp chưa gửi lại; hãy kiểm tra và tải lại điểm.`;
+        // A rejected preview has not sent any writes; keep the draft editable and retryable.
+        // A sent apply has an uncertain outcome even if HTTP or timeout later reports failure.
+        gridStale = applyDispatched || error?.status === 409;
+        status.textContent =
+          !applyDispatched && error?.status === 400
+            ? 'API chưa chấp nhận yêu cầu nhập điểm hàng loạt (HTTP 400). Hãy kiểm tra phiên bản Edge Function grades-admin và migration batch. Các ô chưa lưu vẫn được giữ; chưa gửi lệnh ghi.'
+            : !applyDispatched && error?.status === 422
+              ? 'Bản xem trước không hợp lệ; hãy kiểm tra các ô điểm. Bản nháp vẫn còn và chưa gửi lệnh ghi.'
+              : gridStale
+                ? `${adminMessage(error)} Chưa xác định được kết quả ghi hoặc dữ liệu đã thay đổi. Giữ bản nháp nhưng cần tải lại để xác minh trước khi lưu tiếp.`
+                : `${adminMessage(error)} Chưa gửi lệnh ghi; bản nháp vẫn còn để thử lại sau.`;
         updateGridActions();
       },
     );
@@ -896,6 +913,7 @@ export function GradebookScores({
             'data-grid-save': '',
             disabled: !gridPending.size || gridStale,
           }),
+          gridProgress,
           button(
             'Bỏ thay đổi',
             async () => {
