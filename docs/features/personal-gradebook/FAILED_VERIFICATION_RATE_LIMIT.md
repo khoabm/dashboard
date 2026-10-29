@@ -13,7 +13,16 @@ Owner approved changing per-identity throttling from **five total verifications*
 - The new scope does not reinterpret historical `pair_identity_window` rows (which included successful lookups). The old scope remains in the schema solely until retention cleanup; no manual reset.
 - Identity keys are already a HMAC blind index; no raw CCCD or DOB is written to the limiter. The result wrapper exposes only allowed/retryAfter/pair, with neutral wrong-pair behavior and `Retry-After` on 429.
 - All privileged calls stay `SECURITY INVOKER` with empty search path and service-role-only EXECUTE.
-- Keep `gb_limit`'s original signature and `gb_pair_check`'s argument signature. The **result** of `gb_pair_check` changes to a status wrapper, so SQL migration and Edge release must be coordinated. Apply SQL migration first and deploy updated Edge immediately; note transient cross-version incompatibility.
+- Keep `gb_limit`'s original signature and `gb_pair_check`'s argument signature. The **result** of `gb_pair_check` changes to a status wrapper, so SQL migration and Edge release must be coordinated. Deploy compatible Edge v4 first, then apply the migration; validated migration version 20261029093144.
+
+## Applied Supabase release (2026-10-29)
+
+- Edge `student-lookup` **v4 ACTIVE**; only `supabase/functions/_shared/student.js` differs from prior v3 package.
+- Applied migration ledger: **`20261029093144_gradebook_failed_verification_only_limit`**. This filename matches the hosted-generated ledger version; no reset or replay needed.
+- Read-only checks: new SQL scope constraints present, atomic pair routine active, old per-identity pre-charge removed, anon/authenticated direct RPC EXECUTE denied; initial failure-row count 0.
+- Disposable PostgreSQL 17 SQL groups 14/14 PASS and Edge suite 46/46 PASS. No real credential verification, brute-force or hosted login-failure tests performed.
+- Advisory result contains the existing RLS-no-policy informational findings for private `gradebook` tables; no access policy was relaxed.
+- Deployment remains unmerged and Draft for owner code review. Rollback needs coordinated SQL and Edge handling, not a unilateral deployment.
 
 ## Verification / release checklist
 
