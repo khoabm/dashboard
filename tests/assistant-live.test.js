@@ -1,11 +1,20 @@
 /** Focused live-chat contracts with finite fault injection; no hosted HTTP, private backend or AI calls. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { liveFetch } from '../workers/board-assistant/live.js';
 import { validateChatPayload, publicChatText } from '../src/utils/assistant-chat.js';
 import { createLiveAssistantRequest } from '../src/services/board-assistant.js';
 
 const origin = 'http://localhost:4173';
+test('actual website CSP permits the configured Worker without allowing arbitrary Workers origins', () => {
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(
+    html,
+    /connect-src[^;]*https:\/\/khtn8-board-assistant-mvp\.joemckahn\.workers\.dev/,
+  );
+  assert.equal(html.includes('https://*.workers.dev'), false);
+});
 const posts = [
   {
     id: 'post1',
