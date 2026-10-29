@@ -1,0 +1,6 @@
+
+> khtn8-board@0.1.0 format:check
+> prettier --check "src/**/*.{js,mjs,css,html,json}" "supabase/functions/**/*.js" "tests/**/*.{js,mjs,html,json}" "scripts/**/*.{js,mjs,json}" "index.html" "vite.config.js"
+
+Checking formatting...
+All matched files use Prettier code style!

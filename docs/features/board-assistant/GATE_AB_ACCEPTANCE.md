@@ -204,17 +204,22 @@ Gate C hoặc Gate D, không yêu cầu owner chạy lại tests trong khi cloud
 ## Biên nhận kết thúc phần triển khai
 
 Source checkpoint cuối: `8400bbc` trên nhánh V2; baseline `01198f0`. Suite focused ổn định
-95/95 và curated CI 131/131 được giữ trong [log focused](evidence/universal-20261029/focused-95.log)
-và [log CI](evidence/universal-20261029/curated-131.log). Sau thay đổi copy cuối, chạy lại
-[52 tests affected](evidence/universal-20261029/affected-52.log), browser Gate B sáu viewport,
-check, [build](evidence/universal-20261029/build.log) và [format](evidence/universal-20261029/format.log): PASS.
+95/95 và curated CI 131/131 được giữ trong [log focused](evidence/universal-20261029/focused-95.txt)
+và [log CI](evidence/universal-20261029/curated-131.txt). Sau thay đổi copy cuối, chạy lại
+[52 tests affected](evidence/universal-20261029/affected-52.txt), browser Gate B sáu viewport,
+check, [build](evidence/universal-20261029/build.txt) và [format](evidence/universal-20261029/format.txt): PASS.
 Không chạy lặp curated suite không bị ảnh hưởng. Geometry và screenshots bên trên đã đồng bộ copy cuối.
 
 Sau khi tiếp tục phiên, server Vite cũ đã dừng nên lần chụp bổ sung đầu tiên gặp
 `ERR_CONNECTION_REFUSED` trước khi tải fixture. Khởi động lại Vite localhost và chụp lại thành công;
 đây không phải lỗi sản phẩm hoặc một request hosted. Ảnh được xem lại bằng công cụ đọc ảnh.
 
-Draft PR target `ai-learning-assistant`; nếu GitHub GraphQL Forbidden thì ghi BLOCKED, dùng
+Draft PR target `ai-learning-assistant`: **BLOCKED**. Lệnh `gh pr create --draft` thực thi
+trả `Post "https://api.github.com/graphql": Forbidden`; không retry, không yêu cầu token. Dùng
 [compare được chủ sở hữu cho phép](https://github.com/khoabm/dashboard/compare/ai-learning-assistant...feature/ai-learning-assistant-v2-e2e?expand=1).
 Push SHA, working-tree và kết quả tạo Draft PR phải được xác minh trong báo cáo bàn giao, không
 coi link compare là PR đã tạo. Các gate hosted C/D vẫn NOT RUN, không đề nghị owner chạy lại QA offline.
+
+Đã push checkpoint `72f2ea4` thành công; commit biên nhận này bổ sung raw test logs dưới dạng `.txt`
+(vì `.log` bị gitignore) và [nội dung Draft PR chuẩn bị sẵn](evidence/universal-20261029/PR_DRAFT.md).
+Source kiểm thử vẫn ở `8400bbc`; final SHA/remote/clean receipt được xác minh sau push cuối.

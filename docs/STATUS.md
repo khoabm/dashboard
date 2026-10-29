@@ -1,5 +1,8 @@
 # V2 Gate A/B — Universal Public Content Grounding / 2026-10-29
 
+**Bàn giao PARTIAL:** code/evidence đã push; tạo Draft PR bị GitHub GraphQL `Forbidden`.
+[Acceptance và compare fallback](features/board-assistant/GATE_AB_ACCEPTANCE.md); không có PR đã tạo.
+
 Baseline01198f0, đúng nhánh feature/ai-learning-assistant-v2-e2e. **Gate A PASS, Gate B PASS offline**
 trong [contract/ma trận/evidence](features/board-assistant/GATE_AB_ACCEPTANCE.md). Corpus full body,
 all published loaded posts, topic-agnostic chunk retrieval, V3 native citation mapping, bounded
