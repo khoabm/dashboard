@@ -1,0 +1,31 @@
+name: Temporary Gradebook Batch Formatting
+on:
+  push:
+    branches: [feature/gradebook-bulk-grid-20261029]
+    paths: [.github/workflows/gradebook-bulk-format-temp.yml]
+permissions:
+  contents: write
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/gradebook-bulk-grid-20261029
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Apply pinned formatting to changed files only
+        run: |
+          npx prettier --write src/components/gradebook-scores.js src/styles/gradebook.css src/utils/gradebook-scores.js supabase/functions/_shared/admin.js supabase/functions/_shared/grid-batch.js tests/gradebook-scores.test.js
+      - name: Commit formatted files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/gradebook-scores.js src/styles/gradebook.css src/utils/gradebook-scores.js supabase/functions/_shared/admin.js supabase/functions/_shared/grid-batch.js tests/gradebook-scores.test.js
+          if ! git diff --cached --quiet; then
+            git commit -m "style(gradebook): apply pinned Prettier to batch grid changes"
+            git push origin HEAD:feature/gradebook-bulk-grid-20261029
+          fi
