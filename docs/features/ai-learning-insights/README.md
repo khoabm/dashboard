@@ -32,3 +32,7 @@ Pure test, format and build checks require observed CI output to count as PASS. 
 - A rising pattern supports perseverance or developing existing habits; a falling pattern invites changing study technique and seeking help; a steady pattern suggests maintenance or concrete practice. Sparse/empty cases avoid direction claims. Advice is optional guidance, not an educational diagnosis.
 - Labels/messages are written in natural student-facing Vietnamese; no names or IDs are inferred, no peer data or remote model calls. Old Gradebook score-column labels remain unchanged.
 - Finite offline regression cases cover rising/falling/steady, no/one/two scores, exact zero, malformed profiles and source confidentiality.
+
+## Verification follow-up
+
+The contextual-feedback change is limited to a pure suggestion helper, student panel text, responsive styling, synthetic tests, and this handoff note. The original Board/Gradebook access boundaries remain untouched. Validation uses existing strict B1 score/capability projection; 3+ own-score samples are required before directional advice. This heuristic does not establish causation, study habits, ability, or a future score. Suggestions are optional and can be discussed with a teacher.
