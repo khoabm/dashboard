@@ -19,7 +19,7 @@ Branch: `feature/gradebook-bulk-grid-20261029`, based on develop `78f3c3208b2158
 - New draft state is scoped to a single page/subject/semester; navigating away requires discard confirmation.
 - Clearing an input is an invalid pending value, **not** score deletion. Published manual deletion is retained. A dedicated bulk-delete UI is out of scope.
 - Directly modifying database or claiming a working hosted save before the additive migration is applied would be misleading.
-- Backend/auth/RLS and browser results: **NOT RUN** as of this source-only checkpoint. Hosted operations: **0**.
+- Actual evidence at source head `348a5b48`: Offline CI **PASS** ([run 40850289491](https://github.com/khoabm/dashboard/actions/runs/40850289491)) including 132/132 curated tests, syntax, build and format; source-only specialist GRID-B02/B03 **2/2 PASS** ([run 40850218563](https://github.com/khoabm/dashboard/actions/runs/40850218563)). SQL execution, browser interactions and hosted Auth/RLS remain **NOT RUN**. Hosted operations: **0**.
 - Production release and owner acceptance: **BLOCKED** pending the above evidence.
 
 ## Review priority
