@@ -2,6 +2,22 @@
 
 Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dưới đây áp dụng cho implementation của branch đang đọc; nghiệm thu runtime xem STATUS/QA_REPORT.
 
+## Sơ đồ mô hình sản phẩm
+
+**Vui học cùng cô Quỳnh** là website tổng thể. **KHTN8 Board** chỉ là tên lịch sử của
+ứng dụng Bảng học liệu, không phải giới hạn môn/lớp của toàn website.
+[Mô hình, đối tượng và công dụng](PRODUCT_PROFILE.md).
+
+`src/app.js` và `src/components/site-navigation.js` điều hướng giữa Bảng học liệu
+(`/`), Bảng điểm cá nhân (`/personal-gradebook`) và Quản lý bảng điểm/lớp
+(`/personal-gradebook/admin`). Trợ lý học liệu được tích hợp trong Bảng học liệu,
+không phải một route quản trị.
+
+Bảng học liệu và Gradebook có nguồn dữ liệu, quyền và gate nghiệm thu riêng.
+Không coi menu/route là authorization. Catalog trợ lý được chiếu từ bài published
+phía client, **chưa thay thế xác minh provenance từ server**; Worker/AI mặc định tắt.
+SPEC R01–R28 gốc chủ yếu mô tả Board/hạ tầng; nghiệp vụ Gradebook xem brief riêng.
+
 ## Ranh giới
 
 - Frontend tĩnh render UI, xử lý tương tác, validate sớm, gọi Supabase SDK bằng publishable key.

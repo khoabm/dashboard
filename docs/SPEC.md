@@ -6,9 +6,9 @@ Full-stack Development Specification — Zero-Cost Architecture
 
 **Version:** 1.1 (chuẩn hóa từ brief người dùng; bỏ nhà cung cấp hosting cũ, bổ sung Work + Sites).
 
-**Project:** Vui học cùng cô Quỳnh — web quản lý lớp online với các ứng dụng đính kèm.
+**Website:** **Vui học cùng cô Quỳnh** — tên chính thức. Website có các ứng dụng hỗ trợ học tập, học liệu và quản lý lớp/điểm theo quyền, theo mô hình hiện có trong source. Đọc [PRODUCT_PROFILE](PRODUCT_PROFILE.md) để phân biệt thương hiệu, ứng dụng và ranh giới nghiệp vụ.
 
-**Chuẩn phạm vi hiện hành (chủ sở hữu, 2026-10-29):** [PRODUCT_PROFILE](PRODUCT_PROFILE.md).
+**Chuẩn định danh và mô hình hiện tại:** [PRODUCT_PROFILE](PRODUCT_PROFILE.md). Tên website đã được xác nhận; các chức năng/ứng dụng liệt kê là mô tả source, không tự chứng minh đã release.
 Các nhóm R01–R28 gốc mô tả ứng dụng Bảng học liệu (tên lịch sử KHTN8 Board), không giới hạn
 toàn web ở một môn/lớp. Gradebook và trợ lý có hợp đồng/gate riêng; không suy thêm tính năng hay
 quyền truy cập từ định hướng sản phẩm. Tài liệu/bằng chứng lịch sử vẫn giữ đúng scope đã thực hiện.

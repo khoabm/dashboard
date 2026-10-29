@@ -1,18 +1,25 @@
 # Vui học cùng cô Quỳnh
 
-Web quản lý lớp online với các ứng dụng đính kèm: **Bảng học liệu**, **Bảng điểm cá nhân** và
-**Quản lý bảng điểm/lớp**. Trợ lý học liệu hỗ trợ nội dung công khai trong web; không đại diện cho
-mọi chức năng quản lý. [Chuẩn sản phẩm và căn cứ source](docs/PRODUCT_PROFILE.md).
+**Vui học cùng cô Quỳnh** là tên chính thức của website. Source hiện có nhiều ứng dụng
+hỗ trợ học tập và quản lý lớp/điểm theo quyền; không mặc nhiên tuyên bố mọi luồng đã
+nghiệm thu hoặc triển khai công khai.
 
-HTML/CSS/Vanilla JavaScript ES Modules, Vite và Supabase theo kiến trúc hiện có. KHTN8 Board là
-ứng dụng học liệu/tên lịch sử và dữ liệu mẫu, không phải giới hạn môn học hoặc lớp học của toàn web.
-Khách chỉ đọc học liệu published; tra cứu cá nhân và quản lý lớp/điểm có quyền/xác minh riêng.
-Source chính: khoabm/dashboard; trạng thái nhánh, tích hợp và nghiệm thu theo [STATUS](docs/STATUS.md).
+- **Bảng học liệu** (`/`): xem, tìm và mở học liệu published; quản trị nội dung theo quyền.
+  **KHTN8 Board** là tên lịch sử/kỹ thuật của ứng dụng này, không phải toàn website.
+- **Bảng điểm cá nhân** (`/personal-gradebook`): tra cứu dữ liệu riêng sau xác minh.
+- **Quản lý bảng điểm và lớp** (`/personal-gradebook/admin`): nghiệp vụ dành cho người có quyền.
+- **Trợ lý học liệu**: giải thích phạm vi website và hỗ trợ văn bản học liệu công khai;
+  AI hosted mặc định tắt, không có quyền truy cập Gradebook/Auth.
 
-Có source quản lý học liệu, lớp/danh sách học sinh/điểm và trợ lý V2, nhưng không suy ra đã nghiệm thu
-hoặc phát hành mọi luồng. Backend/security/real-data/hosted AI vẫn có gate riêng; xem STATUS và
-[V2 acceptance](docs/features/board-assistant/V2_ACCEPTANCE.md). Không tạo admin hay gọi hosted để
-xác minh ngoài phạm vi được duyệt.
+**Đọc trước:** [Mục đích và mô hình sản phẩm](docs/PRODUCT_PROFILE.md) ·
+[OVERVIEW](docs/OVERVIEW.md) · [STATUS](docs/STATUS.md) ·
+[Đặc tả Bảng học liệu](docs/SPEC.md) ·
+[Gradebook](docs/features/personal-gradebook/README.md) ·
+[Trợ lý](docs/features/board-assistant/README.md).
+
+**Ràng buộc:** HTML/CSS/Vanilla JS, Vite, Supabase theo module và chi phí 0 USD.
+Không suy quyền từ giao diện/URL, không tự dùng dữ liệu học sinh thật,
+không tự kích hoạt AI hoặc triển khai website.
 
 ## Chạy độc lập
 

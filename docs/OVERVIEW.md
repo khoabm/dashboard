@@ -1,16 +1,22 @@
 # Tổng quan nhanh
 
-**Sản phẩm:** **Vui học cùng cô Quỳnh** — web quản lý lớp online với các ứng dụng đính kèm.
-[Chuẩn sản phẩm hiện hành](PRODUCT_PROFILE.md) được chủ sở hữu chốt; không suy phạm vi toàn web từ
-nội dung mẫu Khoa học tự nhiên lớp8. Người dùng kiểm soát source/dữ liệu; web độc lập ngoài ChatGPT.
+**Tên website:** **Vui học cùng cô Quỳnh** — không phải KHTN8 Board.
+Mô hình source là website tích hợp các ứng dụng phục vụ việc tiếp cận học liệu và
+quản lý lớp/điểm theo quyền. [PRODUCT_PROFILE](PRODUCT_PROFILE.md) là tài liệu chuẩn
+cho **mục đích, ý nghĩa, công dụng và phạm vi từng ứng dụng**; không dùng mô tả này
+để tuyên bố toàn sản phẩm đã production PASS.
 
-**Ứng dụng có trong source:** Bảng học liệu; Bảng điểm cá nhân; Quản lý bảng điểm và lớp.
-Trợ lý học liệu là chức năng hỗ trợ nguồn công khai, không phải toàn bộ web. Route lifecycle và menu
-trong app.js/site-navigation.js cho thấy các ứng dụng tách biệt.
+**Ứng dụng:** Bảng học liệu (`/`, tên lịch sử KHTN8 Board); Bảng điểm cá nhân
+(`/personal-gradebook`); Quản lý bảng điểm và lớp (`/personal-gradebook/admin`).
+Trợ lý học liệu là tính năng trong Board, chỉ xử lý profile và học liệu công khai.
+Khách xem bài published; học sinh tra cứu điểm riêng qua xác minh; người quản trị
+có công cụ theo quyền. Tên route/menu không cấp quyền.
 
-**Đối tượng và quyền:** giáo viên/người quản lý lớp và học sinh. Khách đọc Board published;
-tra cứu điểm cá nhân cần xác minh, quản lý lớp/bảng điểm cần quyền riêng. Một admin Board không
-đồng nghĩa mọi người dùng web có quyền quản trị; trợ lý không đọc dữ liệu lớp, điểm hay Auth.
+**Tài liệu nguồn:** [SPEC](SPEC.md) chủ yếu cho Bảng học liệu và hạ tầng;
+[Gradebook BRIEF](features/personal-gradebook/BRIEF.md) cho nghiệp vụ lớp/điểm;
+[Assistant](features/board-assistant/README.md) cho AI;
+[STATUS](STATUS.md) cho bằng chứng và gate còn thiếu; [DECISIONS](DECISIONS.md)
+cho quyết định đã xác nhận và mô tả source.
 
 **Stack:** HTML5/CSS3/Vanilla JavaScript ES Modules; Supabase Free cho PostgreSQL/Auth/Storage, Realtime theo quota; GitHub Free (`khoabm/dashboard`). ChatGPT Work + Sites hỗ trợ code, preview, QA và hosting có điều kiện. Không thêm framework/backend riêng nếu chưa có lý do theo SPEC. Không phụ thuộc Sites khi chạy sản phẩm.
 

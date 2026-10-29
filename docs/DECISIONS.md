@@ -62,7 +62,16 @@ Còn thiếu: ảnh wireframe quản trị để visual acceptance; tạo tài k
 
 ## Chuẩn phạm vi sản phẩm web — chủ sở hữu, 2026-10-29
 
-PRODUCT-D01: Vui học cùng cô Quỳnh là web quản lý lớp online với các ứng dụng đính kèm,
-không định nghĩa toàn web là KHTN8 Board hoặc hệ thống chỉ dành cho KHTN lớp8. Căn cứ và hệ quả
-[PRODUCT_PROFILE](PRODUCT_PROFILE.md). Profile trợ lý và tài liệu hiện hành dùng chuẩn này;
-không đổi technical IDs/lịch sử, không mở quyền Gradebook/Auth/Supabase hay tự phát hành.
+PRODUCT-D01 / **tên website được chủ sở hữu xác nhận**: **Vui học cùng cô Quỳnh**
+là tên toàn website; KHTN8 Board là tên lịch sử/kỹ thuật của **Bảng học liệu**,
+không thay tên repository, schema, module, brief hoặc bằng chứng cũ.
+
+PRODUCT-D02 / **mô hình được đối chiếu từ source**: các ứng dụng hiện có gồm Bảng học
+liệu, Bảng điểm cá nhân, Quản lý bảng điểm/lớp; Trợ lý học liệu là tính năng của Board.
+Đây là mô tả hiện trạng và công dụng, **không khẳng định chủ sở hữu đã duyệt mọi
+chi tiết định vị sản phẩm hoặc thêm nghiệp vụ mới**, không chứng minh đã public release.
+Xem [PRODUCT_PROFILE](PRODUCT_PROFILE.md).
+
+PRODUCT-D03 / **ranh giới tài liệu và quyền**: SPEC gốc chủ yếu cho Bảng học liệu
+và hạ tầng; Gradebook/AI giữ brief, quyền, acceptance gates riêng. Không tự mở
+Auth/Supabase, truy cập dữ liệu riêng, merge hoặc deploy do đổi tên/overview.

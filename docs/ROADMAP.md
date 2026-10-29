@@ -1,5 +1,16 @@
 # Roadmap
 
+## Roadmap theo cấp website và ứng dụng
+
+Website **Vui học cùng cô Quỳnh** có nhiều ứng dụng trong source: Bảng học liệu,
+Bảng điểm cá nhân, Quản lý bảng điểm/lớp và tính năng Trợ lý học liệu.
+[PRODUCT_PROFILE](PRODUCT_PROFILE.md) mô tả mục đích/công dụng toàn sản phẩm.
+
+**Phase 0–6 của SPEC là roadmap gốc của Bảng học liệu và hạ tầng liên quan**;
+không tự đánh dấu toàn website đã hoàn thành. Gradebook và Assistant có checkpoint,
+test, privacy và release gate riêng. Mở rộng ứng dụng khác chỉ là khả năng kiến
+trúc, không phải scope phát triển đã được giao.
+
 Extension 2026-10-29: [Board Assistant MVP](features/board-assistant/README.md) có source và
 E2E synthetic localhost/Worker được kiểm chứng; không chuyển website sang Phase6 hoặc cho
 phép public release. AI public-production/index/real-content acceptance còn là gate riêng.

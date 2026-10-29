@@ -1,11 +1,18 @@
-# Trợ lý học liệu trong web Vui học cùng cô Quỳnh
+# Trợ lý học liệu trong website Vui học cùng cô Quỳnh
 
-Web là sản phẩm quản lý lớp online với các ứng dụng đính kèm; trợ lý hỗ trợ học liệu công khai và
-mô tả chức năng web, không đọc dữ liệu riêng của các ứng dụng. [Chuẩn sản phẩm](../../PRODUCT_PROFILE.md).
-[Correction/acceptance hiện hành](V2_ACCEPTANCE.md), [ExecPlan](V2_EXECPLAN.md). Các hồ sơ KHTN8/MVP
-và ngân sách cũ bên dưới giữ lịch sử, không định nghĩa phạm vi toàn web hay cấp thêm quyền hosted.
+**Vai trò:** Trợ lý là tính năng của **Bảng học liệu** trong website **Vui học cùng
+cô Quỳnh**; KHTN8 Board chỉ là tên lịch sử của ứng dụng học liệu.
+[Mục đích và mô hình sản phẩm](../../PRODUCT_PROFILE.md).
+
+Trợ lý có thể giới thiệu các ứng dụng ở mức công khai và hỗ trợ thống kê,
+tìm, tóm tắt hoặc giải thích văn bản bài học published theo nguồn được phép.
+Không thể đọc bảng điểm, dữ liệu lớp/Auth, file bytes/ảnh/video hoặc thực hiện ghi.
+AI hosted mặc định tắt; đánh giá synthetic không tự cho phép dùng nội dung thật
+hoặc phát hành công khai. [Acceptance V2](V2_ACCEPTANCE.md) ·
+[ExecPlan](V2_EXECPLAN.md). Các log MVP bên dưới là lịch sử, không cấp thêm quyền.
 
 ---
+
 
 # V2 corrective extension — 2026-10-29
 

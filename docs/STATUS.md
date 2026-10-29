@@ -1,3 +1,18 @@
+# Docs-only — chuẩn hóa định danh và mô hình website / 2026-10-29
+
+Tên website **Vui học cùng cô Quỳnh** đã được xác nhận; **KHTN8 Board**
+là tên lịch sử của **ứng dụng Bảng học liệu**, không còn dùng cho toàn website.
+[PRODUCT_PROFILE](PRODUCT_PROFILE.md) được mở rộng để giải thích **ý nghĩa,
+mục đích, đối tượng, công dụng, mô hình nhiều ứng dụng và ranh giới quyền**.
+Đồng bộ README/OVERVIEW/SPEC/ARCHITECTURE/ROADMAP/REQUIREMENTS_MAP/DECISIONS/
+Assistant README. Phân biệt tên do chủ sở hữu chốt với mô hình được đối chiếu từ source.
+
+**Chỉ cập nhật tài liệu:** không sửa code runtime, Auth, Gradebook, Supabase, Worker,
+không merge/deploy/hosted call. Unit/build/browser **NOT RUN trong đợt tài liệu**;
+kết quả test bên dưới là bằng chứng lịch sử, không tự nâng thành nghiệm thu mới.
+
+---
+
 # Chuẩn web và scope correction V2 — cập nhật chủ sở hữu
 
 **Vui học cùng cô Quỳnh là web quản lý lớp online với các ứng dụng đính kèm**, không phải hệ thống

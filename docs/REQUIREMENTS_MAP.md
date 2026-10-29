@@ -1,6 +1,11 @@
 # Bản đồ yêu cầu
 
-SPEC.md là bản đầy đủ. Bảng này chỉ giúp chọn phần cần đọc, không thay SPEC hoặc loại bỏ tiêu chí.
+SPEC.md giữ brief đầy đủ của Bảng học liệu và hạ tầng ban đầu. Bảng này chỉ giúp
+chọn phần cần đọc, không thay SPEC hoặc loại bỏ tiêu chí.
+**Toàn website:** [PRODUCT_PROFILE](PRODUCT_PROFILE.md) (tên, mô hình, ý nghĩa, công dụng);
+**Gradebook:** [BRIEF](features/personal-gradebook/BRIEF.md);
+**Trợ lý:** [README](features/board-assistant/README.md).
+KHTN8 Board là tên lịch sử của ứng dụng Bảng học liệu, không phải tên toàn website.
 
 | ID | Nhóm yêu cầu | Đọc cùng khi làm việc |
 | --- | --- | --- |
