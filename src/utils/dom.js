@@ -45,7 +45,14 @@ export const button = (text, onClick, className = 'button', attrs = {}) =>
  * @returns {HTMLLabelElement} The containing label.
  */
 export function field(label, control) {
+  if (control?.matches?.('input[type="checkbox"]')) return checkboxField(label, control);
   return el('label', { class: 'field' }, el('span', {}, label), control);
+}
+
+/** Shared native checkbox row: label-click, keyboard semantics, and disabled state stay native. */
+export function checkboxField(label, control) {
+  return el('label', { class: 'field field-checkbox ui-checkbox' },
+    control, el('span', {}, label));
 }
 
 
