@@ -6,6 +6,7 @@ import {
   robustScoreSlope,
 } from '../src/utils/gradebook-learning-insights.js';
 import { fixtureContext } from './student-gradeboard-data.js';
+import { subjectLearningFeedback } from '../src/utils/gradebook-learning-feedback.js';
 
 const catalog = fixtureContext();
 const sample = (subject, column, rawScore) => ({
@@ -119,4 +120,42 @@ test('learning insights: score summaries never include gradebook identities or p
     'subjectCode',
     'trend',
   ]);
+});
+
+test('selected-subject advice follows its actual median and four-point trend', () => {
+  const rows = [
+    sample(0, 0, '4'), sample(0, 1, '5'), sample(0, 2, '6'), sample(0, 3, '7'),
+    sample(1, 0, '9'), sample(1, 1, '7'), sample(1, 2, '5'), sample(1, 3, '3'),
+    sample(2, 0, '8'), sample(2, 1, '8'), sample(2, 2, '8'),
+  ];
+  const report = analyzeLearningInsights(rows, catalog);
+  const up = subjectLearningFeedback(report.profiles[0]);
+  const down = subjectLearningFeedback(report.profiles[1]);
+  const steady = subjectLearningFeedback(report.profiles[2]);
+  assert.match(up.observation, /Thường xuyên 1 \(4\.0\)/);
+  assert.match(up.observation, /Trung vị.*5\.5/);
+  assert.match(up.advice, /ôn tập/);
+  assert.match(down.advice, /thay đổi cách ôn tập/);
+  assert.match(steady.advice, /duy trì/);
+  assert.match(up.heading, /Toán/);
+  assert.match(down.heading, /Văn/);
+});
+
+test('selected-subject feedback handles no scores, one score, two scores and zero', () => {
+  for (const rows of [[], [sample(0, 0, '0')], [sample(0, 0, '0'), sample(0, 3, '3')]]) {
+    const profile = analyzeLearningInsights(rows, catalog).profiles[0];
+    const feedback = subjectLearningFeedback(profile);
+    assert.match(feedback.observation, /chưa|Chưa|đủ|Hiện/);
+    assert.doesNotMatch(feedback.observation, /có chiều hướng tăng|có chiều hướng giảm/);
+    assert.ok(feedback.advice.length > 35);
+  }
+});
+
+test('selected-subject feedback does not leak identities and rejects malformed profiles', () => {
+  const profile = analyzeLearningInsights([sample(0, 0, '0')], catalog).profiles[0];
+  const feedback = subjectLearningFeedback(profile);
+  assert.deepEqual(Object.keys(feedback).sort(), ['advice', 'heading', 'observation']);
+  assert.doesNotMatch(JSON.stringify(feedback), /studentId|birthDate|CCCD/);
+  assert.throws(() => subjectLearningFeedback({ ...profile, samples: 4 }));
+  assert.throws(() => subjectLearningFeedback({ ...profile, trend: 'rising' }));
 });
