@@ -113,3 +113,12 @@ assistant pure/transport/Worker19/19 PASS. Build/exclusions/check/format PASS. P
 Cloudflare hosted pilot BLOCKED (unverifiable quota and insufficient lower hard cap), all
 hosted counters0. No Supabase activity. Native200% zoom, iOS/Safari and soft keyboard NOT RUN.
 This is partial acceptance, not FULLY E2E PASS; historical hosted evidence above is not replayed.
+
+## V2 learning extension — 2026-10-29
+
+Approved avatar/launcher/native desktop/mobile panel and F01–06 behavior retained. Natural answers
+are safe DOM text with deterministic/AI/keyword labels, supporting resource cards and an AI fallibility
+notice. [V2 acceptance](V2_ACCEPTANCE.md) records actual six-viewport Chromium and eight-viewport V1
+regressions, measured meaningful-text contrast and remaining native-device/zoom limits. No new
+visual system, framework, hosted content or public deployment. Synthetic acceptance does not prove
+live Qwen quality; hosted gate remains BLOCKED.

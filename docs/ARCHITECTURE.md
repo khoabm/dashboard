@@ -2,6 +2,22 @@
 
 Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dưới đây áp dụng cho implementation của branch đang đọc; nghiệm thu runtime xem STATUS/QA_REPORT.
 
+## Sơ đồ mô hình sản phẩm
+
+**Vui học cùng cô Quỳnh** là website tổng thể. **KHTN8 Board** chỉ là tên lịch sử của
+ứng dụng Bảng học liệu, không phải giới hạn môn/lớp của toàn website.
+[Mô hình, đối tượng và công dụng](PRODUCT_PROFILE.md).
+
+`src/app.js` và `src/components/site-navigation.js` điều hướng giữa Bảng học liệu
+(`/`), Bảng điểm cá nhân (`/personal-gradebook`) và Quản lý bảng điểm/lớp
+(`/personal-gradebook/admin`). Trợ lý học liệu được tích hợp trong Bảng học liệu,
+không phải một route quản trị.
+
+Bảng học liệu và Gradebook có nguồn dữ liệu, quyền và gate nghiệm thu riêng.
+Không coi menu/route là authorization. Catalog trợ lý được chiếu từ bài published
+phía client, **chưa thay thế xác minh provenance từ server**; Worker/AI mặc định tắt.
+SPEC R01–R28 gốc chủ yếu mô tả Board/hạ tầng; nghiệp vụ Gradebook xem brief riêng.
+
 ## Ranh giới
 
 - Frontend tĩnh render UI, xử lý tương tác, validate sớm, gọi Supabase SDK bằng publishable key.
@@ -21,10 +37,19 @@ Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dướ
 | src/app.js | Generation-owned route pulse; path-only History routing; lazy Board/SDK graph; shared navigation; disposes student state on exit/sign-out/page lifecycle |
 | src/utils/app-navigation.js | Pure indexed history/compensation and pending administrator-entry coordinator; no SDK/DOM/network; rejected traversals never push an entry |
 | src/main.js | Board bootstrap/render/Auth; shared restoration promise + direct openBoardAdmin for both headers; suspend route refresh; flush editor-owned drafts before route exit |
+| src/utils/public-retrieval.js | Full public corpus projection/index,1000/160 chunks, IDF/diverse shortlist, V3 offsets/native source mapping, local bounds/coverage and24KB prompt; no storage/network |
+| src/utils/public-temporal.js | Injected Asia/Ho_Chi_Minh clock, civil ranges, typed date evidence, conservative date/number/uncertainty guards; no event schema or publication inference |
+| src/utils/assistant-learning.js | V2 deterministic intent/site profile and exact published inventory, one-question/three-source context validation and strict generated status/answer/IDs/coverage contract; no network/storage |
+| src/utils/assistant-diagnostics.js | Fixed failure-stage/reason identifiers and sanitized receipt projection shared by Worker/controller; no raw prompts, model responses, credentials or network |
+| src/utils/assistant-chat.js; workers/board-assistant/live.js | Normal ongoing chat protocol, fresh anonymous published Board read, BGE/Qwen hybrid/general answers, short native rate limit and recoverable errors; no Pilot admission/DO calls |
 | src/components/board-assistant.js; src/styles/board-assistant.css | Native modal, memory-only bounded conversation, opt-in cloud disclosure, pending/cancel/error and explicit read-only action buttons; invalidated by Board refresh/route exit |
 | src/utils/board-assistant.js; src/services/board-assistant.js | Published-only public text projection, keyword fallback, exact-quote validation and action allowlist; disabled-by-default bounded no-retry transport, no Auth/Gradebook/history persistence |
-| workers/board-assistant/index.js; wrangler.jsonc | Separate BGE-M3/Qwen excerpt-selection preview Worker and SQLite Durable Object allowance/stop flag; loopback CORS, expiry and finite inference budget; no Supabase/D1/R2/content storage |
-| tests/board-assistant*.test.js | Pure projection/action tests and explicitly manual Worker/transport specialists, outside unchanged curated CI; actual app/Chrome fixtures and tooling remain ignored under tests/local/board-assistant |
+| workers/board-assistant/index.js; wrangler.jsonc | Separate BGE-M3/Qwen V1 excerpt/V2 grounded-answer preview Worker and SQLite Durable Object allowance/stop flag; loopback CORS, expiry and finite inference budget; no Supabase/D1/R2/content storage |
+| workers/board-assistant/preview.js; preview-fixture.js | Deployed admission entry: expiring hashed owner bearer, server-approved synthetic windows, fixed owner-approved DO identity, read-only status. Core inference uses Worker clock; client clock only ranks local candidates |
+| workers/board-assistant/budget-policy.js | Fixed legacy3, V2 pilot5 and separately owner-approved UAT3 identities/prefixes; same DO namespace/class, no reset or generated identities |
+| scripts/owner-preview-start.mjs; owner-preview-stop.mjs; owner-ai-hosted.mjs; tests/owner-ai-preview.* | Loopback synthetic owner demo and optional real hosted session; fresh Free receipt/live settings/status gates, memory-only bearer, fixed pilot40/UAT60 cumulative ledger profiles, expiry and verified disable/revoke. No new dependency/service installation |
+| scripts/owner-uat-setup.mjs; tests/assistant-owner-uat-flow.test.js | Exclusive one-time UAT ledger setup carrying34/60, immutable incident hash, QA1/owner2 and same-namespace UAT3 admission; --uat Start never initializes/replenishes allowance |
+| tests/board-assistant*.test.js | Pure projection/action tests and explicitly manual Worker/transport specialists, outside unchanged curated CI; V2 pure/specialist tests and explicit assistant-learning-browser.cjs/board-assistant-ui.html fixture; generated artifacts remain ignored under tests/local |
 | src/components/app-header.js, site-navigation.js | Shared branding/admin controls; accessible Board/lookup menu plus verified-admin entry; header-owned pulse awaits existing logout Promise |
 | src/components/gradebook-admin.js | CP03 class/student dialogs, paged list, reveal/import ownership and route/session disposal |
 | src/components/gradebook-scores.js | CP04 teacher-only semester/subject/student workspace, bounded score-page joins, cell CRUD, publication and score import; owned dialogs/previews/late-response disposal |
@@ -170,3 +195,43 @@ Tổ chức kiểm thử: mọi file frontend test/fixture nằm trong `tests/` 
 > Historical implementation snapshot at the referenced baseline. Current applied versions/deployed functions are recorded in DATABASE/STATUS; old unimplemented/unapplied labels below are not current state.
 
 B2 accepted baseline `d86627f`. New `20261026030000_gradebook_transactions.sql` adds 22 service-only invoker RPCs, private validation/planner/framing helpers, shared import preview/apply/state hash, class-scoped audit and atomic limiter. Five prior migrations unchanged, no tables added. [B3 inventory, DTO signatures, evidence and limits](features/personal-gradebook/B3_TRANSACTION_REVIEW.md). B3 READY FOR REVIEW; B4/B5 NOT STARTED, CP01-C and real-data gate NOT RUN. 14 B3/18 B2 disposable SQL groups and81 app tests PASS; native17, multi-connection locks, hosted API/security and browser NOT RUN. Draft not applied. Earlier B3 NOT STARTED entries are historical.
+
+## Correction V2 — routing, identity và chi phí / 2026-10-29
+
+websiteProfile trong assistant-learning.js giữ tên sản phẩm chính thức; regression so với index.html,
+không đổi technical identifiers. Intent routing nhóm tín hiệu website/inventory/follow-up, giữ
+content-specific query ở search/educational; fallback không giả metadata. Source actions chỉ có khi
+nguồn được validate và khác rỗng, resolver cũng từ chối IDs[].
+
+V2 Worker dùng cùng deterministic helper trước budget. Envelope deterministic được service tính
+lại và so sánh fields, không tin model hay thứ tự JSON keys. Query mới dùng BGE+Qwen; context
+follow-up hợp lệ chỉ Qwen. Output AI vẫn contract status/answer/IDs/coverage cũ. DO giữ nguyên
+count/stopped, cap3 bảo thủ; chỉ storage record undefined mới khởi tạo, corruption fail closed.
+Accounting/legacy-state evidence và giới hạn public admission tại [V2 acceptance](features/board-assistant/V2_ACCEPTANCE.md).
+
+## Chuẩn web và các ứng dụng đính kèm — cập nhật chủ sở hữu
+
+[PRODUCT_PROFILE](PRODUCT_PROFILE.md) chuẩn hóa web quản lý lớp online. app.js sở hữu route
+lifecycle giữa Board, tra cứu cá nhân và quản lý bảng điểm/lớp; không đồng nhất website với Board
+hay chatbot. websiteProfile chỉ mô tả chức năng tồn tại trong source và đối tượng sản phẩm.
+Inventory trợ lý chỉ dùng published Board snapshot; không suy tổng lớp/học sinh hay gọi Gradebook.
+Không thay business logic/quyền của các ứng dụng; trạng thái nghiệm thu từng module vẫn riêng.
+
+## V2 CP02–CP03 — universal public text grounding
+
+loadBoard/readAllRows chứng minh paging bằng count/id rồi gắn publicCoverage (non-transactional).
+Assistant không dùng preview1200 làm corpus: publicAssistantCorpus giữ full published body và safe
+metadata; index mọi passage trong2M local bound. Unknown/invalid/oversized => explicit coverage/clarify,
+không âm thầm lấy prefix. Không giới hạn topic names hay loại bài đăng bằng enum nghiệp vụ.
+
+Local rank -><=8 wire chunks ->BGE/Qwen<=5 (JSON<=24KB),<=3 refs ->native IDs/quotes checked against
+current full corpus. Follow-up prior source IDs -><=3 windows/Qwen only. V1/V2 contract giữ tương thích.
+Citation cards có thể hiển thị nhiều đoạn cùng post; native open/filter vẫn main Board sở hữu.
+Fingerprint full text/metadata/coverage, cancel/reset/route/revocation invalidate ownership; native
+cancel abort ngay trước queued close. Không đổi CSS/layout; copy/disclosure đúng selected text/context.
+
+Temporal evidence giữ creation/edit riêng, publication unknown, event/deadline/preparation riêng;
+không tự thêm năm hoặc coi start là end. Numeric/date guards chỉ chặn obvious unsupported claims,
+không phải semantic entailment proof. Metadata/topic/body source untrusted, không model tools/writes.
+[Bounds, schema, tests và limitations](features/board-assistant/GATE_AB_ACCEPTANCE.md). Không thay
+DO allowance/run ID hoặc hosted config trong Gate A/B.

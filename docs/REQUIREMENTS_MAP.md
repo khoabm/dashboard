@@ -1,16 +1,22 @@
 # Bản đồ yêu cầu
 
-SPEC.md là bản đầy đủ. Bảng này chỉ giúp chọn phần cần đọc, không thay SPEC hoặc loại bỏ tiêu chí.
+SPEC.md giữ brief đầy đủ của Bảng học liệu và hạ tầng ban đầu. Bảng này chỉ giúp
+chọn phần cần đọc, không thay SPEC hoặc loại bỏ tiêu chí.
+**Toàn website:** [PRODUCT_PROFILE](PRODUCT_PROFILE.md) (tên, mô hình, ý nghĩa, công dụng);
+**Gradebook:** [BRIEF](features/personal-gradebook/BRIEF.md);
+**Trợ lý:** [README](features/board-assistant/README.md).
+Contract live mới theo SPEC R07.1: [chat liên tục/hybrid, short cooldown và nghiệm thu](features/board-assistant/LIVE_CHAT_ACCEPTANCE.md); Pilot/UAT gates cũ không áp dụng luồng live.
+KHTN8 Board là tên lịch sử của ứng dụng Bảng học liệu, không phải tên toàn website.
 
 | ID | Nhóm yêu cầu | Đọc cùng khi làm việc |
 | --- | --- | --- |
-| [R01](SPEC.md#r01) | Vai trò, mục tiêu | OVERVIEW.md |
+| [R01](SPEC.md#r01) | Vai trò, mục tiêu và phạm vi ứng dụng Bảng học liệu | OVERVIEW.md; PRODUCT_PROFILE.md |
 | [R02](SPEC.md#r02) | 0 USD, quota | ZERO_COST.md |
 | [R03](SPEC.md#r03) | Tech stack | ARCHITECTURE.md |
 | [R04](SPEC.md#r04) | Work và plugins | WORKFLOW.md |
 | [R05](SPEC.md#r05) | UI, wireframe, placeholder; điều hướng overflow / reveal cột mới | TESTING.md |
 | [R06](SPEC.md#r06) | 20 component JS | ARCHITECTURE.md |
-| [R07](SPEC.md#r07) | Public, phạm vi loại trừ; [Board Assistant MVP](SPEC.md#board-assistant-mvp) | TESTING.md; features/board-assistant/README.md |
+| [R07](SPEC.md#r07) | Public, phạm vi loại trừ; [Board Assistant MVP](SPEC.md#board-assistant-mvp) | TESTING.md; features/board-assistant/README.md; features/board-assistant/V2_ACCEPTANCE.md; features/board-assistant/GATE_AB_ACCEPTANCE.md |
 | [R08](SPEC.md#r08) | Admin 8.1–8.9; phiên qua reload và xác minh quyền | SECURITY.md, ADMIN_SETUP.md |
 | [R09](SPEC.md#r09) | 6 bảng và trường dữ liệu | DATABASE.md |
 | [R10](SPEC.md#r10) | 20 yêu cầu bảo mật | SECURITY.md |

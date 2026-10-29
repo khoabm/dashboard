@@ -1,5 +1,16 @@
 # Roadmap
 
+## Roadmap theo cấp website và ứng dụng
+
+Website **Vui học cùng cô Quỳnh** có nhiều ứng dụng trong source: Bảng học liệu,
+Bảng điểm cá nhân, Quản lý bảng điểm/lớp và tính năng Trợ lý học liệu.
+[PRODUCT_PROFILE](PRODUCT_PROFILE.md) mô tả mục đích/công dụng toàn sản phẩm.
+
+**Phase 0–6 của SPEC là roadmap gốc của Bảng học liệu và hạ tầng liên quan**;
+không tự đánh dấu toàn website đã hoàn thành. Gradebook và Assistant có checkpoint,
+test, privacy và release gate riêng. Mở rộng ứng dụng khác chỉ là khả năng kiến
+trúc, không phải scope phát triển đã được giao.
+
 Extension 2026-10-29: [Board Assistant MVP](features/board-assistant/README.md) có source và
 E2E synthetic localhost/Worker được kiểm chứng; không chuyển website sang Phase6 hoặc cho
 phép public release. AI public-production/index/real-content acceptance còn là gate riêng.
@@ -25,3 +36,26 @@ Sau mỗi phase cập nhật STATUS và bằng chứng; không chép roadmap th�
 ## Extension riêng — Personal Gradebook (offline implementation; backend gates pending)
 
 Module Bảng điểm cá nhân có [implementation checkpoints CP00–CP07](features/personal-gradebook/CHECKPOINTS.md) và [brief nghiệp vụ](features/personal-gradebook/BRIEF.md). CP02–CP05 đã OFFLINE ACCEPTED; CP06-A chuẩn bị tích hợp bằng projection/QA offline. CP01 backend vẫn là draft chưa triển khai; CP01-C và real-data gate NOT RUN. Trạng thái extension không có nghĩa Phase 0–6 hiện tại đã hoàn tất hoặc thay đổi thứ tự roadmap học liệu. Mọi migration và thao tác dữ liệu thật cần ủy quyền riêng.
+
+## Board Learning Assistant V2 — 2026-10-29
+
+Deterministic website knowledge, bounded source-grounded generation and memory-only follow-ups
+implemented on a dedicated branch; [acceptance and release blockers](features/board-assistant/V2_ACCEPTANCE.md).
+Offline/browser synthetic scope PASS; actual Qwen/provenance/public-release gates BLOCKED. No change
+to the main product phase, Gradebook gates or deployment authority.
+
+## V2 Gate A/B — cập nhật CP hiện có, 2026-10-29
+
+Không tạo milestone mới. Universal Public Content Grounding là mục tiêu chính; temporal là năng lực con.
+
+| CP hiện tại | Phạm vi Gate A/B và bằng chứng |
+| --- | --- |
+| CP01 | Gate A website identity/public app guidance runtime PASS; không private data/inference |
+| CP02 | Index full loaded published corpus, topic-agnostic shortlist, chunking/coverage; U01–U20 offline PASS |
+| CP03 | Grounded answer/multi-source contract, temporal T01–T10, conservative fact guards; scripted tests PASS |
+| CP04 | Bounded context, native citations/open/filter, pending cancellation/revocation; Chromium PASS |
+| CP05 | Bounds/no-retry/projection/provenance limits, zero hosted/deploy, allowance unchanged |
+| CP06 |95 focused/131 curated/check/build/format, browser/evidence, commit/push/review handoff |
+
+[Acceptance chi tiết](features/board-assistant/GATE_AB_ACCEPTANCE.md). Gate C hosted/model quality và
+Gate D final review/merge/release nằm ngoài nhiệm vụ; không suy offline PASS thành production-ready.

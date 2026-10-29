@@ -5,6 +5,7 @@ import '/src/styles/board-assistant.css';
 import { BoardAssistant } from '/src/components/board-assistant.js';
 import { PostPreviewModal } from '/src/components/board.js';
 window.data = {
+  publicCoverage: { complete: true },
   sections: [{ id: 's', title: 'Chủ đề mẫu' }],
   posts: [
     {
@@ -12,7 +13,7 @@ window.data = {
       section_id: 's',
       status: 'published',
       title: 'Khí mẫu',
-      body: 'Khí mẫu bọt khí',
+      body: 'Phản ứng tạo khí làm xuất hiện bọt khí. Đây là mô tả giả lập.',
       attachments: [],
     },
   ],
@@ -22,10 +23,12 @@ window.calls = 0;
 window.assistant = BoardAssistant({
   snapshot: () => data,
   hosted: true,
-  request: async (q, c, { signal }) => {
+  request: async (q, c, { signal, context, version }) => {
+    window.lastRequest = { query: q, context, version };
     calls++;
     if (window.delay) await new Promise((r) => (window.release = r));
-    throw Error('synthetic');
+    if (window.mockReply) return structuredClone(window.mockReply);
+    throw Error(window.quota ? 'quota' : 'synthetic');
   },
   perform: (a) => {
     actions.push(a);

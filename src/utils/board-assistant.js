@@ -17,7 +17,14 @@ export function validAssistantQuery(value) {
     typeof value === 'string' &&
     value.trim().length > 0 &&
     value.length <= assistantLimits.query &&
-    !/\d{9,}|\b\d{1,2}[/-]\d{1,2}[/-]\d{4}\b|\S+@\S+/.test(value)
+    !/\d{9,}|\S+@\S+/.test(value) &&
+    // Dates alone are public query data, not evidence of a private-record request.
+    !/\b(?:\d[ .-]?){9,}\b/.test(
+      value.replace(/\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[/-]\d{1,2}(?:[/-]\d{4})?)\b/g, ''),
+    ) &&
+    !/(?:ngay sinh|sinh ngay|\bdob\b)[\s\S]*\d|(?:cccd|cmnd)[\s\S]*\d|\b(?:em|toi|minh|con|chau)\s+(?:duoc\s+)?sinh\s+(?:vao\s+|ngay\s+)?\d/.test(
+      normalizeAssistantText(value),
+    )
   );
 }
 
@@ -83,6 +90,7 @@ export function resolveAssistantAction(action, catalog) {
   if (
     action?.type === 'filter' &&
     Array.isArray(action.ids) &&
+    action.ids.length > 0 &&
     action.ids.length <= 3 &&
     action.ids.every((id) => catalog.some((post) => post.id === id))
   )
@@ -92,4 +100,31 @@ export function resolveAssistantAction(action, catalog) {
   if (action?.type === 'topic' && catalog.some((p) => p.sectionId === action.id))
     return { type: 'topic', id: action.id };
   return null;
+}
+
+/** Validates the entire wire catalog rather than trusting arbitrary browser objects. */
+export function validateAssistantCatalog(value) {
+  if (!Array.isArray(value) || value.length > assistantLimits.posts) throw Error('catalog');
+  const seen = new Set();
+  return value.map((post) => {
+    if (!post || Object.keys(post).sort().join(',') !== 'body,id,sectionId,sectionTitle,title')
+      throw Error('catalog');
+    for (const [key, max] of Object.entries({
+      id: 100,
+      sectionId: 100,
+      sectionTitle: 160,
+      title: 200,
+      body: 1200,
+    })) {
+      if (
+        typeof post[key] !== 'string' ||
+        post[key].length > max ||
+        (key !== 'body' && !post[key].trim())
+      )
+        throw Error('catalog');
+    }
+    if (seen.has(post.id)) throw Error('catalog');
+    seen.add(post.id);
+    return { ...post };
+  });
 }

@@ -92,9 +92,43 @@ test('Vietnamese accent-insensitive fallback does not claim results for unrelate
 });
 
 test('obvious identifiers and unbounded queries are rejected before transport', () => {
-  for (const value of ['', ' ', 'a'.repeat(401), '012345678901', '01/01/2010', 'a@example.test'])
+  for (const value of [
+    '',
+    ' ',
+    'a'.repeat(401),
+    '012345678901',
+    'Ngày sinh 01/01/2010',
+    'a@example.test',
+  ])
     assert.equal(validAssistantQuery(value), false);
   assert.equal(validAssistantQuery('Tìm tài liệu CO2'), true);
+});
+
+test('V2-REV-01/02 accepts public dates regardless of topic or year, blocks explicit identifiers', () => {
+  for (const query of [
+    '20/11 có hoạt động gì?',
+    '20/11/2026 có hoạt động gì?',
+    '20/11/2026 có phong trào gì?',
+    'Ngày 20/11/2026 có phong trào gì?',
+    'Tháng 11/2026 có thông báo gì?',
+    'Ngày 20/11/2026 có thông báo gì?',
+    'Những sự kiện từ 15/11/2026 đến 20/11/2026 là gì?',
+    'Giải thích bài lịch sử ngày 02/09/1945',
+    '01/01/2010',
+    'So sánh các ngày 2026-11-15 2026-11-20',
+    'Ngày sinh là gì trong hướng dẫn xác minh công khai?',
+  ])
+    assert.equal(validAssistantQuery(query), true, query);
+  for (const query of [
+    'CMND: 012 345 678',
+    'Ngày sinh của tôi là 01/01/2010',
+    'DOB 2010-01-01',
+    'sinh ngày 1 tháng 1 năm 2010',
+    'a@example.test',
+    'Em sinh 20/11/2010, có hoạt động nào phù hợp?',
+    'Ngày sinh của tôi là 20/11/2010.',
+  ])
+    assert.equal(validAssistantQuery(query), false, query);
 });
 
 test('model output must cite an existing source with exact text and no duplicate citations', () => {
@@ -146,10 +180,7 @@ test('source filters use validated IDs, never raw paraphrases, and fail closed a
       ids,
     });
   }
-  assert.deepEqual(resolveAssistantAction({ type: 'filter', ids: [] }, catalog), {
-    type: 'filter',
-    ids: [],
-  });
+  assert.equal(resolveAssistantAction({ type: 'filter', ids: [] }, catalog), null);
   assert.equal(resolveAssistantAction({ type: 'filter', query: 'raw question' }, catalog), null);
   assert.equal(resolveAssistantAction({ type: 'filter', ids: ['hidden'] }, catalog), null);
   assert.equal(resolveAssistantAction({ type: 'filter', ids: ['gas'] }, catalog.slice(1)), null);

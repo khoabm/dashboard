@@ -1,3 +1,65 @@
+# Desktop correction và owner preview — 2026-10-29
+
+**Luồng hiện hành:** [Live chatbot](LIVE_CHAT_ACCEPTANCE.md), Worker entry live.js,
+general knowledge +published Board thật, history trong memory, rate-limit3/10 giây.
+Không owner token, expiry, lifetime reservation hoặc permanent failure-stop trong
+live path. Main dùng createLiveAssistantRequest; các mục Pilot/UAT dưới đây là lịch
+sử, không phải hướng dẫn bật chatbot hay quota hiện hành.
+
+**Current: [V2 explicit pilot](V2_PILOT_ACCEPTANCE.md) Hosted Pilot PASS trên hai
+mẫu thật; [Owner hosted Start/Stop](OWNER_AI_PREVIEW.md) đã kiểm chứng.** Còn3/5
+reservations,23/40 operations; ưu tiên2 lượt owner, Free receipt có hạn30 phút.
+Final Worker disabled; không production-ready. Legacy blocked snapshot dưới
+không thay cho authorization/receipt pilot mới và vẫn được giữ nguyên.
+
+[Gate C Desktop](GATE_C_DESKTOP.md): date/privacy/server-clock corrections và
+Chrome scripted QA hoàn tất. Hosted model/owner live BLOCKED do existing allowance
+stopped/remaining0, không reset hoặc cấp mới. [Owner demo Start/Stop](OWNER_AI_PREVIEW.md)
+chạy local, ghi rõ scripted offline. Worker cuối disabled/access cleared; không
+merge/website deploy. Bằng chứng Gate A/B phía dưới giữ nguyên lịch sử.
+
+---
+
+# Gate A/B hiện hành — public content theo mọi topic
+
+[Acceptance/ma trận U01–U20,T01–T10](GATE_AB_ACCEPTANCE.md), [ExecPlan](V2_EXECPLAN.md).
+Không dùng preview1200/first24 làm corpus; full local text index + bounded passages + native citations.
+Website guidance deterministic; temporal subcapability, partial coverage/file boundaries minh bạch.
+Gate C/D không thực hiện; hosted/deploy0, không đổi PRODUCT_PROFILE/allowance/run ID. Hồ sơ cũ bên dưới
+là lịch sử và không cấp quyền tự thực hiện hosted trong Gate A/B.
+
+---
+
+# Trợ lý học liệu trong website Vui học cùng cô Quỳnh
+
+**Vai trò:** Trợ lý là tính năng của **Bảng học liệu** trong website **Vui học cùng
+cô Quỳnh**; KHTN8 Board chỉ là tên lịch sử của ứng dụng học liệu.
+[Mục đích và mô hình sản phẩm](../../PRODUCT_PROFILE.md).
+
+Trợ lý có thể giới thiệu các ứng dụng ở mức công khai và hỗ trợ thống kê,
+tìm, tóm tắt hoặc giải thích văn bản bài học published theo nguồn được phép.
+Không thể đọc bảng điểm, dữ liệu lớp/Auth, file bytes/ảnh/video hoặc thực hiện ghi.
+AI hosted mặc định tắt; đánh giá synthetic không tự cho phép dùng nội dung thật
+hoặc phát hành công khai. [Acceptance V2](V2_ACCEPTANCE.md) ·
+[ExecPlan](V2_EXECPLAN.md). Các log MVP bên dưới là lịch sử, không cấp thêm quyền.
+
+**Website Knowledge / Navigation correction:** runtime profile được mở rộng
+với công dụng và hướng dẫn mở các ứng dụng đã có; câu hỏi công khai về Bảng
+điểm cá nhân không còn bị chặn bởi mỗi từ khóa "bảng điểm". Yêu cầu đọc/sửa
+dữ liệu riêng vẫn bị từ chối. Nhãn lịch sử KHTN8 chỉ nằm trong documentation,
+không có chatbot intent cho tên cũ. Đây là refinement CP01–CP02, không mở
+AI public hay thay đổi roadmap và quyền truy cập.
+
+
+---
+
+
+# V2 corrective extension — 2026-10-29
+
+[Implemented scope, tests, browser evidence and hosted ledger](V2_ACCEPTANCE.md).
+[ExecPlan and pre-implementation decisions](V2_EXECPLAN.md). V1 evidence below remains historical;
+V2 model quality is not inferred from earlier V1 hosted tests. No hosted V2 calls or deployments.
+
 # Board Assistant MVP — execution contract
 
 Baseline: `develop` / `4f254961e9fa3604e8e843e3c5f63a15f2e9edc7`, 2026-10-29.

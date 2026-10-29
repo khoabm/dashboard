@@ -33,7 +33,8 @@ import { PulseIndicator, setPendingMessage } from './components/pending.js';
 import { BoardNavigation } from './components/board-navigation.js';
 import { createAdminEntry } from './utils/app-navigation.js';
 import { BoardAssistant } from './components/board-assistant.js';
-import { createBoardAssistantRequest } from './services/board-assistant.js';
+import { createLiveAssistantRequest } from './services/board-assistant.js';
+import { config } from './config/public.js';
 import { assistantCatalog, resolveAssistantAction } from './utils/board-assistant.js';
 import './styles/board-assistant.css';
 const managedRoot = document.querySelector('#board-app');
@@ -87,11 +88,12 @@ const navigation = BoardNavigation();
 // The assistant receives only an explicit public projection, never the Auth or Gradebook state.
 const assistant = BoardAssistant({
   snapshot: () => data,
-  request: createBoardAssistantRequest({
-    enabled: import.meta.env?.VITE_BOARD_ASSISTANT_AI === 'true',
-    endpoint: import.meta.env?.VITE_BOARD_ASSISTANT_ENDPOINT || '',
+  request: createLiveAssistantRequest({
+    enabled: import.meta.env?.VITE_BOARD_ASSISTANT_AI !== 'false',
+    endpoint: config.assistantEndpoint,
   }),
-  hosted: import.meta.env?.VITE_BOARD_ASSISTANT_AI === 'true',
+  hosted: import.meta.env?.VITE_BOARD_ASSISTANT_AI !== 'false',
+  live: true,
   perform: performAssistantAction,
 });
 const countText = el('span');

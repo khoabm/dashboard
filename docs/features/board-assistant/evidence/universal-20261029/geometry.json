@@ -1,0 +1,53 @@
+{
+  "evidence": [
+    {
+      "width": 360,
+      "height": 640,
+      "docWidth": 360,
+      "bottom": 640,
+      "transcript": 148,
+      "scroll": 2594
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "docWidth": 390,
+      "bottom": 844,
+      "transcript": 368,
+      "scroll": 2488
+    },
+    {
+      "width": 667,
+      "height": 375,
+      "docWidth": 667,
+      "bottom": 375,
+      "transcript": 145,
+      "scroll": 1954
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "docWidth": 768,
+      "bottom": 1011,
+      "transcript": 663,
+      "scroll": 2228
+    },
+    {
+      "width": 1024,
+      "height": 768,
+      "docWidth": 1024,
+      "bottom": 755,
+      "transcript": 407,
+      "scroll": 2228
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "docWidth": 1440,
+      "bottom": 887,
+      "transcript": 539,
+      "scroll": 2228
+    }
+  ],
+  "external": 0
+}

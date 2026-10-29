@@ -230,3 +230,15 @@ Logs/ảnh local tại `tests/local/`, không đưa vào Git/ZIP nguồn. CI kh�
 Baseline741ee3d; `tests/student-gradeboard.test.js` is an explicit curated pure-unit addition, with no HTTP/SDK/SQL/browser integration. DTO projection/catalog ordering, exact B1 half-up bucketing, zero/absence, scope mismatch/peer-field rejection, terminal errors, latest-generation ownership, capability revocation/disposal and pre-cancelled reads are finite offline cases. Existing CP02 tests remain in CI. Actual Chrome UI QA uses ignored tests/local/cp05 adapters; never a production synthetic fallback.
 
 Browser evidence: same-origin iframe CSS widths360/390/768/1024/1440; table horizontal containment,101-bucket chart, selected raw score/highlight, dropdowns, Escape/focus, unavailable semester/other-semester continuity, empty/429/503, held-response selection/close/route cancellation, server401 and sign-out cleanup. Browser fixtures block external fetch and mock Board client; no real credentials or student information. Physical devices/Safari, real Auth/RLS/DB/Edge/limiter/publication and CP01-C NOT RUN. No specialist assets removed or additional dependencies.
+
+## Board Learning Assistant V2 — explicit offline acceptance
+
+Pure: `node --test tests/assistant-learning.test.js tests/board-assistant.test.js`.
+Specialist (outside test:ci): `node --test tests/assistant-learning-worker.test.js tests/board-assistant-transport.test.js tests/board-assistant-worker.test.js`.
+Actual synthetic browser: start Vite, then `PLAYWRIGHT_MODULE=/path/to/playwright-core node tests/assistant-learning-browser.cjs`.
+Environment Chromium/Playwright only; no production dependency added. The browser driver blocks
+non-loopback HTTP and uses the maintained tests/board-assistant-ui.html synthetic entry.
+[V2 evidence](features/board-assistant/V2_ACCEPTANCE.md) distinguishes mock contract/quality from
+actual Qwen integration. Current task-specific hosted authorization allows at most2 conditional
+activities of20 combined operations each, not a reusable future permission; neither was executed.
+No Supabase hosted calls; do not open the production Board for synthetic QA.

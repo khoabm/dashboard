@@ -10,6 +10,9 @@ export const config = {
     'sb_publishable_A0kgJlsUnLFL_wrtJpkvtQ_GyBAf0UY',
   bucket: 'learning-resources',
   signedUrlSeconds: 60,
+  assistantEndpoint:
+    import.meta.env?.VITE_BOARD_ASSISTANT_ENDPOINT ||
+    'https://khtn8-board-assistant-mvp.joemckahn.workers.dev/chat',
 };
 export const configured =
   config.url.startsWith('https://') && config.key.startsWith('sb_publishable_');

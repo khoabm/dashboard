@@ -2,12 +2,23 @@
 import { el, button } from '../utils/dom.js';
 import {
   assistantLimits,
-  assistantCatalog,
-  localAssistantResults,
   validAssistantQuery,
   resolveAssistantAction,
+  validateAssistantSources,
 } from '../utils/board-assistant.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
+
+import {
+  learningIntent,
+  websiteLearningAnswer,
+  validateLearningContext,
+} from '../utils/assistant-learning.js';
+
+import {
+  publicAssistantCorpus,
+  retrievePublicContent,
+  publicLocalResult,
+} from '../utils/public-retrieval.js';
 
 const avatarPath = '/placeholders/assistant-avatar.png';
 
@@ -73,7 +84,7 @@ function messageTime() {
  * Builds a Board-owned assistant and floating entry point.
  * The caller invalidates its memory-only conversation on snapshot or route changes.
  */
-export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
+export function BoardAssistant({ snapshot, request, perform, hosted = false, live = false }) {
   let dialog = null,
     controller = null,
     generation = 0;
@@ -101,13 +112,24 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
   /** Opens a native modal; the chat transcript alone scrolls above its composer. */
   function open() {
     if (dialog?.open) return;
-    const catalogAtOpen = assistantCatalog(snapshot());
-    let cloudAvailable = hosted && catalogAtOpen.length <= assistantLimits.posts;
+    const corpusAtOpen = publicAssistantCorpus(snapshot());
+    const catalogAtOpen = corpusAtOpen.posts;
+    let context = null;
+    let chatHistory = [];
+    let cloudAvailable = hosted;
     const title = el('h2', { id: 'assistant-title' }, 'Cùng tìm học liệu');
-    const close = button('×', () => dialog.close(), 'assistant-close', {
-      'aria-label': 'Đóng trợ lý học liệu',
-      title: 'Đóng trợ lý',
-    });
+    const close = button(
+      '×',
+      () => {
+        invalidate();
+        trigger.focus();
+      },
+      'assistant-close',
+      {
+        'aria-label': 'Đóng trợ lý học liệu',
+        title: 'Đóng trợ lý',
+      },
+    );
     const clear = assistantTool('Cuộc trò chuyện mới', 'Bắt đầu lại', 'new', () => {
       invalidate();
       open();
@@ -135,12 +157,13 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
       rows: 2,
       maxlength: assistantLimits.query,
       'aria-describedby': 'assistant-privacy assistant-error assistant-input-help',
-      placeholder: 'Bạn muốn tìm học liệu nào?',
+      placeholder: live ? 'Bạn muốn hỏi điều gì?' : 'Bạn muốn hỏi về website hoặc bài đăng nào?',
     });
     const send = el('button', { type: 'submit', class: 'assistant-send' }, 'Gửi');
     const stop = button(
       'Dừng tìm',
       () => {
+        context = null;
         generation++;
         controller?.abort();
         controller = null;
@@ -152,6 +175,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
       { hidden: true },
     );
     const cloud = el('input', { type: 'checkbox', disabled: !cloudAvailable });
+    cloud.checked = live && hosted;
     const form = el(
       'form',
       { class: 'assistant-form' },
@@ -251,7 +275,13 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
           { class: 'assistant-heading-copy' },
           el('span', { class: 'assistant-kicker' }, 'TRỢ LÝ HỌC LIỆU'),
           title,
-          el('p', { id: 'assistant-subtitle' }, 'Tìm trong tiêu đề và mô tả học liệu đã xuất bản.'),
+          el(
+            'p',
+            { id: 'assistant-subtitle' },
+            live
+              ? 'Hỏi kiến thức chung hoặc nội dung bài đăng công khai.'
+              : 'Tìm và đối chiếu văn bản bài đăng công khai.',
+          ),
         ),
         close,
       ),
@@ -263,15 +293,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
         'div',
         { class: 'assistant-composer' },
         form,
-        el(
-          'p',
-          { id: 'assistant-privacy', class: 'assistant-disclosure' },
-          hosted
-            ? cloudAvailable
-              ? 'AI là tùy chọn: khi bật, câu hỏi cùng tiêu đề/mô tả học liệu công khai được gửi đến Cloudflare. Không nhập thông tin cá nhân. Trợ lý không đọc tệp, ảnh, video hay bảng điểm.'
-              : 'Kho học liệu vượt giới hạn AI bản thử. Bạn vẫn có thể tìm bằng từ khóa; không gửi nội dung đến Cloudflare.'
-            : 'Đang tìm theo từ khóa trên trang. AI chưa bật; không đọc tệp, ảnh, video hoặc bảng điểm.',
-        ),
+        el('p', { id: 'assistant-privacy', class: 'assistant-disclosure' }, ''),
       ),
     );
     const disclosure = ownDialog.querySelector('#assistant-privacy');
@@ -282,7 +304,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
         ? 'Dùng AI Cloudflare cho câu hỏi này'
         : 'AI không khả dụng · Chỉ tìm từ khóa';
       disclosure.textContent = cloudAvailable
-        ? 'AI là tùy chọn: khi bật, câu hỏi cùng tiêu đề/mô tả công khai được gửi đến Cloudflare. Không nhập thông tin cá nhân. Không đọc tệp hoặc bảng điểm.'
+        ? 'AI là tùy chọn: khi bật, câu hỏi, ngữ cảnh nguồn của phiên và các đoạn văn bản công khai được chọn sẽ gửi đến Cloudflare. Không nhập thông tin cá nhân. Không đọc nội dung tệp hoặc bảng điểm.'
         : hosted
           ? 'AI không khả dụng cho kho học liệu này. Chỉ tìm từ khóa; không gửi đến Cloudflare.'
           : 'AI đang tắt. Chỉ tìm từ khóa trên trang; không gửi đến Cloudflare, không đọc tệp hoặc bảng điểm.';
@@ -308,6 +330,14 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
         first?.focus();
       }
     });
+    // Native cancel precedes the queued close event: abort before a late embedding can start Qwen.
+    ownDialog.addEventListener('cancel', () => {
+      if (dialog !== ownDialog) return;
+      generation++;
+      context = null;
+      controller?.abort();
+      controller = null;
+    });
     ownDialog.showModal();
     trigger.setAttribute('aria-expanded', 'true');
     input.focus();
@@ -326,7 +356,9 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
     }
 
     assistantMessage(
-      'Xin chào! Mình giúp bạn tìm học liệu theo chủ đề hoặc câu hỏi. Mình sẽ gợi ý những bài học phù hợp từ nội dung đã xuất bản.',
+      live
+        ? 'Xin chào! Bạn có thể hỏi kiến thức chung, hỏi tiếp trong hội thoại hoặc tìm hiểu các bài đăng công khai trên Vui học cùng cô Quỳnh.'
+        : 'Xin chào! Mình có thể giới thiệu Vui học cùng cô Quỳnh, hướng dẫn ứng dụng, tìm và đối chiếu nội dung các bài đăng công khai.',
       'assistant-welcome',
     );
     ownDialog.addEventListener(
@@ -359,7 +391,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
 
     /** Rechecks current published sources before any user-confirmed Board action. */
     function act(value) {
-      const action = resolveAssistantAction(value, assistantCatalog(snapshot()));
+      const action = resolveAssistantAction(value, publicAssistantCorpus(snapshot()).posts);
       if (!action) {
         error.textContent = 'Học liệu đã thay đổi. Hãy tìm lại.';
         return;
@@ -378,6 +410,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
 
     /** Shows exact cited excerpts in compact resource cards with explicit read-only actions. */
     function showResults(result, catalog, question, fingerprint) {
+      result = { ...result, sources: validateAssistantSources(result.sources, catalog) };
       const content = el(
         'div',
         {},
@@ -385,22 +418,51 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
           'strong',
           { class: 'assistant-result-mode' },
           result.mode === 'ai'
-            ? 'AI · Trích đoạn từ học liệu'
-            : 'Tìm bằng từ khóa · AI không được sử dụng',
+            ? result.status === 'insufficient'
+              ? 'AI · Chưa đủ nguồn để trả lời'
+              : live && !result.sources.length
+                ? 'AI · Kiến thức chung'
+                : 'AI · Trả lời từ nội dung công khai có nguồn'
+            : result.mode === 'deterministic'
+              ? result.status === 'insufficient'
+                ? 'Cần làm rõ câu hỏi · Không dùng AI'
+                : 'Thông tin website · Không dùng AI'
+              : 'Tìm bằng từ khóa · AI không được sử dụng',
         ),
         el(
           'p',
           { class: 'assistant-result-intro' },
-          result.sources.length
-            ? 'Mình tìm thấy một số nội dung có thể hữu ích. Bạn có thể mở nguồn để xem đầy đủ.'
-            : 'Chưa tìm thấy nội dung phù hợp trong tiêu đề và mô tả hiện có. Bạn thử từ khóa khác nhé.',
+          result.mode === 'deterministic'
+            ? result.status === 'insufficient'
+              ? 'Bạn hãy nêu tên bài học hoặc chọn nguồn để trợ lý hỗ trợ đúng nội dung.'
+              : 'Thông tin tính từ snapshot công khai hiện tại.'
+            : result.sources.length
+              ? 'Mình tìm thấy một số nội dung có thể hữu ích. Bạn có thể mở nguồn để xem đầy đủ.'
+              : live && result.mode === 'ai'
+                ? 'Câu trả lời này dùng kiến thức của AI, không phải trích dẫn từ Board.'
+                : 'Chưa tìm thấy nội dung phù hợp trong văn bản đã tải. Bạn thử chi tiết hoặc tên bài đăng, hoặc hỏi “Web có những gì?” nhé.',
         ),
       );
+      if (result.note) content.append(el('p', { class: 'assistant-answer-note' }, result.note));
+      if (result.answer)
+        content
+          .querySelector('strong')
+          .after(el('p', { class: 'assistant-learning-answer' }, result.answer));
+      if (result.mode === 'ai')
+        content.append(
+          el(
+            'p',
+            { class: 'assistant-answer-note' },
+            live
+              ? 'AI có thể trả lời sai. Hãy đối chiếu thông tin quan trọng và các nguồn được dẫn.'
+              : 'AI có thể diễn giải sai. Hãy đối chiếu nguồn; chỉ dùng văn bản công khai được cung cấp.',
+          ),
+        );
       for (const source of result.sources) {
         const post = catalog.find((p) => p.id === source.id);
         if (!post) continue;
         const checkedAct = (action) => {
-          if (JSON.stringify(assistantCatalog(snapshot())) !== fingerprint) {
+          if (JSON.stringify(publicAssistantCorpus(snapshot())) !== fingerprint) {
             invalidate();
             return;
           }
@@ -413,6 +475,16 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
             el('span', { class: 'assistant-source-category' }, post.sectionTitle),
             el('h3', {}, post.title),
             el('blockquote', {}, source.quote),
+            ...(result.evidence || [])
+              .filter(
+                (ref) =>
+                  ref.postId === post.id &&
+                  ref.quote !== source.quote &&
+                  typeof ref.quote === 'string' &&
+                  ref.quote.length <= assistantLimits.body &&
+                  (post.body.includes(ref.quote) || post.title.includes(ref.quote)),
+              )
+              .map((ref) => el('blockquote', {}, ref.quote)),
             el(
               'div',
               { class: 'assistant-source-actions' },
@@ -430,19 +502,21 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
           ),
         );
       }
-      content.append(
-        button(
-          'Lọc trang theo nguồn đã chọn',
-          () => {
-            if (JSON.stringify(assistantCatalog(snapshot())) !== fingerprint) {
-              invalidate();
-              return;
-            }
-            act({ type: 'filter', ids: result.sources.map((source) => source.id) });
-          },
-          'button subtle assistant-filter-button',
-        ),
-      );
+      if (result.sources.length) {
+        content.append(
+          button(
+            'Lọc trang theo nguồn đã chọn',
+            () => {
+              if (JSON.stringify(publicAssistantCorpus(snapshot())) !== fingerprint) {
+                invalidate();
+                return;
+              }
+              act({ type: 'filter', ids: result.sources.map((source) => source.id) });
+            },
+            'button subtle assistant-filter-button',
+          ),
+        );
+      }
       assistantMessage(content, 'assistant-result');
       while (messages.children.length > 9) messages.firstElementChild.remove();
       messages.scrollTop = messages.scrollHeight;
@@ -459,17 +533,26 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
       event.preventDefault();
       if (controller) return;
       const question = input.value.trim();
-      if (!validAssistantQuery(question)) {
+      if (
+        !(live
+          ? question.length > 0 && question.length <= assistantLimits.query
+          : validAssistantQuery(question))
+      ) {
         error.textContent =
-          'Nhập câu hỏi từ 1–400 ký tự, không kèm email, số định danh hoặc ngày sinh.';
+          'Nhập câu hỏi từ 1–400 ký tự. Hãy bỏ email, số định danh và ngày sinh cá nhân; ngày sự kiện được phép.';
         input.setAttribute('aria-invalid', 'true');
         input.focus();
         return;
       }
       input.removeAttribute('aria-invalid');
       error.textContent = '';
-      const catalog = assistantCatalog(snapshot());
-      const fingerprint = JSON.stringify(catalog);
+      const corpus = publicAssistantCorpus(snapshot());
+      const catalog = corpus.posts;
+      const fingerprint = JSON.stringify(corpus);
+      if (fingerprint !== JSON.stringify(corpusAtOpen)) {
+        invalidate();
+        return;
+      }
       const ticket = ++generation;
       controller = new AbortController();
       const signal = controller.signal;
@@ -488,23 +571,78 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
       messages.scrollTop = messages.scrollHeight;
       busy(true);
       try {
-        const result = cloud.checked
-          ? await request(question, catalog, { signal })
-          : { mode: 'keyword', sources: localAssistantResults(question, catalog) };
+        const deterministic = live ? null : websiteLearningAnswer(question, catalog);
+        const followup = learningIntent(question, catalog).kind === 'followup';
+        const checkedContext = followup ? validateLearningContext(context, catalog) : null;
+        const result =
+          (live && cloud.checked
+            ? await request(question, catalog, { signal, history: chatHistory })
+            : null) ||
+          deterministic ||
+          (followup && !checkedContext
+            ? {
+                mode: 'deterministic',
+                status: 'insufficient',
+                sources: [],
+                answer:
+                  'Bạn hãy chọn hoặc tìm một bài đăng công khai trước khi yêu cầu giải thích tiếp.',
+                coverage: 'insufficient',
+              }
+            : cloud.checked
+              ? await request(question, catalog, {
+                  signal,
+                  version: 3,
+                  context: checkedContext,
+                  snapshotCoverage: corpus.coverage,
+                })
+              : publicLocalResult(
+                  retrievePublicContent(question, corpus, { context: checkedContext }),
+                  corpus,
+                  { keyword: true },
+                ));
         if (ticket !== generation || signal.aborted || !ownDialog.open) return;
-        if (fingerprint !== JSON.stringify(assistantCatalog(snapshot()))) {
+        if (fingerprint !== JSON.stringify(publicAssistantCorpus(snapshot()))) {
           invalidate();
           return;
         }
+        if (!result.note)
+          result.note = `Thông tin dựa trên dữ liệu công khai đã tải. ${corpus.coverage === 'complete' ? 'Bảng có thể thay đổi sau khi tải.' : 'Chưa xác minh đã tải đủ dữ liệu.'} Không truy cập dữ liệu riêng hoặc nội dung tệp.`;
+        context = result.sources.length
+          ? {
+              query: checkedContext?.query || question,
+              ids: result.sources.map((source) => source.id),
+            }
+          : null;
+        if (live && result.mode === 'ai')
+          chatHistory = [
+            ...chatHistory,
+            { role: 'user', content: question },
+            {
+              role: 'assistant',
+              content: result.answer,
+              sourceIds: result.sources.map((s) => s.id),
+            },
+          ].slice(-12);
         showResults(result, catalog, question, fingerprint);
         input.value = '';
-      } catch {
+      } catch (failure) {
         if (ticket !== generation || signal.aborted || !ownDialog.open) return;
+        if (live) {
+          error.textContent =
+            failure?.message === 'rate_limit'
+              ? 'Bạn gửi hơi nhanh. Chờ khoảng 10 giây rồi gửi tiếp nhé.'
+              : failure?.message === 'provider_quota'
+                ? 'Cloudflare tạm hết hạn mức miễn phí. Hãy thử lại sau; tìm bằng từ khóa vẫn dùng được.'
+                : 'AI tạm thời chưa trả lời được. Bạn có thể gửi lại sau hoặc bỏ chọn AI để tìm bằng từ khóa.';
+          return;
+        }
+        context = null;
         // Failed requests never become fake AI answers or initiate implicit retries.
         cloud.checked = false;
         cloudAvailable = false;
         cloud.disabled = true;
         error.textContent =
+          (failure?.message === 'quota' ? 'Đã hết hạn mức AI. ' : '') +
           'AI chưa thể trả lời. Đã tắt AI trong phiên trang này; bạn có thể gửi lại để tìm bằng từ khóa.';
         hosted = false;
         updateCloudDisclosure();
