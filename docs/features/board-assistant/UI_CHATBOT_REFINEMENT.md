@@ -68,3 +68,23 @@ authorized by this change.
 - Static JavaScript parse in V8 after removing module declarations **PASS**, CSS bracket-balance **PASS**, source-focused control/invariant checks **PASS**. This is *not* browser E2E or npm build verification.
 - New Chrome browser viewport/keyboard QA, npm/Prettier/production build and exact-SHA CI: **NOT RUN** in this GitHub editing session. No authorization to call hosted Worker/Supabase; requests **0**. UI/E2E gate remains **PARTIAL**, not PASS.
 - Changes are committed on the UI feature branch only. PRs are requested in sequence; no merge/deploy is authorized.
+
+## Desktop reading-area refinement — 2026-10-29
+
+Owner screenshot revealed that the desktop dialog reserved excessive vertical space for the toolbar,
+optional topic chips and bottom launcher clearance. This is a presentation-only update:
+
+- Desktop dialog now uses almost all viewport height (`100dvh - 24px`) with a 12px top/bottom
+  inset and maximum 520px panel width; the scrolling transcript remains flex-owned.
+- Nonessential **Công cụ & chủ đề** controls are collapsed by default on desktop and expandable
+  with an explicit button (`aria-expanded` / `aria-controls`). Reset, new-chat and topic
+  actions remain available without being altered. The toggle retains keyboard operation.
+- Mobile at widths up to 700px continues to display the original toolbar and topic chips in
+  its full-screen layout. Short desktop heights retain the existing compact viewport override.
+- The composer, cited-source cards, cloud opt-in, avatar, read-only actions, request ownership,
+  backend integrations and public content rules are untouched.
+- Changed only `src/components/board-assistant.js`, `src/styles/board-assistant.css` and this document.
+- Verified V8 JavaScript syntax after stripping module imports/exports **PASS**; CSS brace balance **PASS**;
+  source assertions for expanded desktop and visible mobile tools **PASS**.
+- Browser viewport/keyboard E2E and npm build/format/unit remain **NOT RUN** in this GitHub-only edit.
+  Overall UI acceptance remains **PARTIAL** until runtime QA; hosted Supabase/Worker calls **0**.
