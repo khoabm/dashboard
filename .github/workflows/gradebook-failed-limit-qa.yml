@@ -1,0 +1,60 @@
+name: Gradebook failure-only limiter disposable QA
+on:
+  push:
+    branches: [fix/gradebook-failed-verification-limit]
+    paths:
+      - .github/workflows/gradebook-failed-limit-qa.yml
+      - supabase/functions/_shared/student.js
+      - supabase/migrations/20261029093000_gradebook_failed_verification_only_limit.sql
+      - tests/gradebook-edge.test.js
+      - tests/gradebook-b3-sql.mjs
+permissions:
+  contents: read
+jobs:
+  scoped-qa:
+    if: github.repository == 'khoabm/dashboard' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Scoped JS source checks and Edge unit tests (network denied in fixtures)
+        run: |
+          npm run check
+          node --test tests/gradebook-edge.test.js
+          ./node_modules/.bin/prettier --check supabase/functions/_shared/student.js tests/gradebook-edge.test.js tests/gradebook-b3-sql.mjs
+      - name: Start disposable PostgreSQL 17
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          test "$(gh api repos/khoabm/dashboard --jq .visibility)" = public
+          export PGHOST=127.0.0.1 PGPORT=15432 PGUSER=postgres
+          export PGPASSWORD="$(openssl rand -hex 24)"
+          echo "::add-mask::$PGPASSWORD"
+          echo "PGPASSWORD=$PGPASSWORD" >> "$GITHUB_ENV"
+          echo "PGHOST=127.0.0.1" >> "$GITHUB_ENV"
+          echo "PGPORT=15432" >> "$GITHUB_ENV"
+          echo "PGUSER=postgres" >> "$GITHUB_ENV"
+          echo "GB_QA_DEPENDENCIES=$RUNNER_TEMP/gb-dependencies" >> "$GITHUB_ENV"
+          echo "PGLITE_MODULE_PATH=$GITHUB_WORKSPACE/tests/cloud/native-adapter.mjs" >> "$GITHUB_ENV"
+          docker run -d --name gb-postgres --memory=2g --cpus=2 -p 127.0.0.1:15432:5432 -e POSTGRES_PASSWORD="$PGPASSWORD" postgres:17.6-bookworm
+          for n in {1..20}; do
+            if docker exec gb-postgres pg_isready -h 127.0.0.1 -U postgres >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          docker exec gb-postgres pg_isready -h 127.0.0.1 -U postgres
+          npm install --prefix "$RUNNER_TEMP/gb-dependencies" --ignore-scripts --no-audit --no-fund pg@8.16.3
+      - name: Native transactional SQL migration + failed-limit test
+        env:
+          GB_QA_DATABASE: gbqa_failed_limit
+        run: node tests/gradebook-b3-sql.mjs
+      - name: Dispose all runner resources
+        if: always()
+        run: docker rm -fv gb-postgres >/dev/null 2>&1 || true
