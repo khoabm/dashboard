@@ -572,3 +572,122 @@ test('CP06-A3 a normalized late verification cannot resurrect a reset or dispose
     state.dispose();
   }
 });
+
+import {
+  analyzeLearningInsights,
+  robustScoreSlope,
+  learningInsightRemark,
+} from '../src/utils/gradebook-learning-insights.js';
+
+const insightsRows = (entries) =>
+  entries.map(([subject, column, rawScore]) => ({
+    subjectCode: `s_${subject}`,
+    columnCode: `c_${column}`,
+    rawScore,
+  }));
+
+test('Learning Insights: no network, empty semester and 0 distinguish missing cells', () => {
+  const blank = analyzeLearningInsights([], catalog);
+  assert.deepEqual([blank.recorded, blank.slots, blank.analyzed, blank.rising], [0, 56, 0, 0]);
+  assert.equal(blank.profiles[0].medianLabel, '—');
+  assert.equal(blank.profiles[0].trend, 'insufficient');
+  assert.match(learningInsightRemark(blank), /Chưa có môn học/);
+  const one = analyzeLearningInsights(insightsRows([[0, 0, '0.00000']]), catalog);
+  assert.equal(one.recorded, 1);
+  assert.equal(one.profiles[0].medianLabel, '0.0');
+  assert.equal(one.profiles[0].points[0].display, '0.0');
+  assert.equal(one.profiles[0].points[1].value, null);
+});
+
+test('Learning Insights: median uses all recorded TX scores while trend needs >=3 distinct slots', () => {
+  const result = analyzeLearningInsights(
+    insightsRows([
+      [0, 0, '5'],
+      [0, 1, '6'],
+      [0, 2, '7'],
+      [0, 3, '8'],
+      [1, 0, '9'],
+      [1, 1, '8'],
+      [1, 2, '7'],
+      [1, 3, '6'],
+      [2, 0, '3'],
+      [2, 2, '3'],
+      [2, 3, '3'],
+      [3, 0, '8.12500'],
+      [3, 2, '8.87500'],
+    ]),
+    catalog,
+  );
+  assert.equal(result.analyzed, 3);
+  assert.equal(result.rising, 1);
+  assert.equal(result.falling, 1);
+  assert.equal(result.profiles[0].medianLabel, '6.5');
+  assert.equal(result.profiles[0].trend, 'rising');
+  assert.equal(result.profiles[1].trend, 'falling');
+  assert.equal(result.profiles[2].trend, 'steady');
+  assert.equal(result.profiles[3].medianLabel, '8.5');
+  assert.equal(result.profiles[3].trend, 'insufficient');
+  assert.match(learningInsightRemark(result), /1 môn tăng, 1 môn giảm và 1 môn ổn định/);
+});
+
+test('Learning Insights: independent 1 tiết/Giữa kì/Cuối kì never change trend', () => {
+  const rows = insightsRows([
+    [0, 0, '4'],
+    [0, 1, '5'],
+    [0, 2, '6'],
+  ]);
+  const first = analyzeLearningInsights(rows, catalog).profiles[0];
+  const second = analyzeLearningInsights(
+    [
+      ...rows,
+      ...insightsRows([
+        [0, 4, '0'],
+        [0, 5, '10'],
+        [0, 6, '5'],
+      ]),
+    ],
+    catalog,
+  ).profiles[0];
+  assert.equal(first.trend, 'rising');
+  assert.equal(second.trend, 'rising');
+  assert.equal(first.medianLabel, second.medianLabel);
+  assert.deepEqual(
+    second.assessments.map((a) => a.display),
+    ['0.0', '10.0', '5.0'],
+  );
+});
+
+test('Learning Insights: bounded robust slope is not dominated by a single spike', () => {
+  assert.equal(
+    robustScoreSlope([
+      { index: 0, value: 4 },
+      { index: 1, value: 5 },
+      { index: 2, value: 6 },
+      { index: 3, value: 10 },
+    ]),
+    1.5,
+  );
+  assert.throws(() => robustScoreSlope([{ index: 0, value: 4 }]));
+  assert.throws(() =>
+    robustScoreSlope([
+      { index: 1, value: 2 },
+      { index: 0, value: 3 },
+      { index: 2, value: 4 },
+    ]),
+  );
+});
+
+test('Learning Insights: reject unknown fields, duplicate coordinates and invalid decimals', () => {
+  const valid = insightsRows([[0, 0, '8.12345']]);
+  for (const rows of [
+    [...valid, ...valid],
+    [{ ...valid[0], studentId: 'private' }],
+    insightsRows([[0, 0, '8.123456']]),
+    insightsRows([[0, 0, '8.123450']]),
+    insightsRows([[0, 0, '-1']]),
+    insightsRows([[0, 0, 'NaN']]),
+    insightsRows([[9, 0, '8']]),
+    insightsRows([[0, 7, '8']]),
+  ])
+    assert.throws(() => analyzeLearningInsights(rows, catalog));
+});
