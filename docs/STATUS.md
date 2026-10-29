@@ -1,3 +1,216 @@
+# Live chatbot integration — in progress / 2026-10-30
+
+PR21 merged ecc7300; PR16 merged6d30baf. Live implementation/offline8 cases and Chrome error recovery PASS; PR16 conflicts were docs-only, both historical records retained. Final develop merge/real AI acceptance pending. [Live contract/evidence](features/board-assistant/LIVE_CHAT_ACCEPTANCE.md). Old Pilot incidents below are historical, not live admission.
+
+---
+
+# V2 owner follow-up — FAILED / hosted BLOCKED / 2026-10-29
+
+Owner follow-up “Vậy em cần chuẩn bị những gì và hoạt động dành cho ai?” trả503.
+Ledger xác nhận stage=validation, reason=revision, model calls2 (BGE1/Qwen1),
+reserved=true/failureStop=confirmed; banner0 do proxy bỏ failure headers, không
+phải bằng chứng chưa gọi model. Ledger55/60, QA1/owner2, blocked=true, không reset.
+READY trước đó được thu hồi; một exact-case PASS không đủ nghiệm thu owner flow.
+
+Offline tái hiện câu trả lời đúng về vật dụng/đối tượng vẫn bị revision guard chặn.
+Guard nay chỉ yêu cầu nhắc đổi lịch với câu hỏi/claim thời gian; numeric/date,
+citation/cancellation giữ nguyên. Proxy chuyển tiếp bounded diagnostics/call counts;
+thiếu counter hiển thị “không xác định”.44 affected offline cases PASS. Chưa deploy
+hoặc inference/retest thật trong correction này; không khẳng định completion cũ
+sai hay bịa response không được lưu. [Incident](features/board-assistant/V2_PILOT_ACCEPTANCE.md#owner-follow-up-failure--2026-10-29).
+
+---
+
+## Historical exact-question retest (before owner follow-up)
+
+# V2 UAT retest — PASS theo một mẫu thật / 2026-10-29
+
+Nhánh feature/ai-learning-assistant-v2-e2e, Draft PR21. Owner duyệt UAT identity
+`approved-synthetic-v2-owner-uat-v1`, cap3 (QA1/owner2), cumulative60 gồm34 đã dùng.
+Câu Xưởng mô hình giấy được replay đúng một lần trên Chrome: real BGE1/Qwen1,
+HTTP200; lịch mới22/11/2026, lịch cũ20/11/2026 và hai citations đúng, không bịa facts.
+62 affected offline tests +10 local workerd invocations +2 local CLI guards PASS;
+check/build/scoped format/diff PASS. Chrome source-open và390×844 không tràn ngang.
+
+Ledger mới43/60, QA1/owner0; DO1/3 stopped=false, remaining2 verified. Worker cuối
+`05fe5539-13fa-411a-bd26-503474ac4980` disabled, expiry/hash/access rỗng; bearer403.
+Pilot cũ3/stopped/remaining0 verified; ledger31/40 blocked giữ nguyên SHA256.
+READY FOR OWNER LIVE TEST chỉ khi Free receipt30 phút còn hiệu lực và allowance
+không đổi; Start/Stop theo [owner guide](features/board-assistant/OWNER_AI_PREVIEW.md).
+[Ledger/rubric/giới hạn](features/board-assistant/V2_PILOT_ACCEPTANCE.md#owner-authorized-uat-retest--2026-10-29).
+Historical failure root cause vẫn UNCONFIRMED; không suy một retest PASS thành chất
+lượng tổng quát, real-content/production PASS. Không merge, web deploy, Supabase,
+PII hoặc paid change. Các phần dưới là lịch sử.
+
+---
+
+# V2 Desktop correction — PARTIAL / hosted BLOCKED / 2026-10-29
+
+Baseline `b5dc070`, đúng branch `feature/ai-learning-assistant-v2-e2e`.
+V2-REV-01/02 và server-clock trust đã sửa;103 focused và131 curated PASS,
+check/build/production exclusions/scoped format/diff PASS. Full format chuẩn
+FAIL do130 file CRLF checkout (indexLF/core.autocrlf=true); full end-of-line-auto
+diagnostic PASS, không format lan repo. Chrome thật desktop/mobile/landscape
+scripted PASS; sửa thêm modal100vw cắt nút Gửi khi có scrollbar.
+
+**Hosted model/owner live BLOCKED:** status thật của DO cũ count1/stopped=true/
+remaining0; không reset/đổi ID/cấp allowance. V2 ledger3/40 (2 Worker GET +1 DO read),
+BGE/Qwen0, Supabase0. Final Worker version `2f91bc6a-f686-4398-aa2c-54a8dd898928`,
+AI=false, hai expiry/hash rỗng, namespace giữ nguyên; settings live verified,
+bearer tạm đã revoke403 trước DO/model. Không trả phí, website deploy hoặc merge.
+
+[Gate C report/ledger/evidence](features/board-assistant/GATE_C_DESKTOP.md),
+[Start/Stop demo owner local](features/board-assistant/OWNER_AI_PREVIEW.md).
+**NOT READY FOR OWNER LIVE TEST**; demo mặc định ghi rõ SCRIPTED OFFLINE.
+Source/tests checkpoint `85cc659` đã push, remote khớp;
+[Draft PR21](https://github.com/khoabm/dashboard/pull/21) về ai-learning-assistant
+đã tạo/attach, chưa merge. Commit biên nhận docs-only sau checkpoint không đổi
+bằng chứng code/tests. Các bản ghi dưới đây là lịch sử.
+
+---
+
+# V2 Gate A/B — Universal Public Content Grounding / 2026-10-29
+
+**Bàn giao PARTIAL:** code/evidence đã push; tạo Draft PR bị GitHub GraphQL `Forbidden`.
+[Acceptance và compare fallback](features/board-assistant/GATE_AB_ACCEPTANCE.md); không có PR đã tạo.
+
+Baseline01198f0, đúng nhánh feature/ai-learning-assistant-v2-e2e. **Gate A PASS, Gate B PASS offline**
+trong [contract/ma trận/evidence](features/board-assistant/GATE_AB_ACCEPTANCE.md). Corpus full body,
+all published loaded posts, topic-agnostic chunk retrieval, V3 native citation mapping, bounded
+multi-source synthesis và temporal evidence Asia/Ho_Chi_Minh đã implement. Snapshot/paging/partial
+coverage và file boundaries được nêu rõ; không claim full semantic search hoặc Qwen quality.
+
+Gate A43/43/runtime6 viewport trước B; final95 focused +131 curated tại checkpoint PASS,
+check/build/exclusions/format/diff PASS. Actual Chromium B6, legacyV2 6/V1 8, main Board filter/reset/
+refresh persistence PASS. Queued Escape abort race đã sửa và kiểm chứng không phát sinh Qwen sau đóng.
+
+Gate C/D NOT RUN — ngoài scope. Hosted Worker/OPTIONS/BGE/Qwen/DO/Supabase/control-plane/deployment0;
+lifetime V2 vẫn0/40, không đổi allowance/run ID/default-disabled config. PRODUCT_PROFILE và
+Gradebook/Auth/RLS/schema/CI/dependencies không đổi. Không merge hoặc release; GitHub API có thể chặn
+Draft PR, dùng remote SHA/compare link nếu cần. Hồ sơ bên dưới giữ lịch sử, không phải test mới.
+
+---
+
+# V2 CP01–CP02 — Website Knowledge & Navigation correction / 2026-10-29
+
+Trợ lý runtime tiếp tục dùng tên **Vui học cùng cô Quỳnh**; bổ sung mô tả và cách
+truy cập ba ứng dụng được xác nhận từ source, phân biệt hướng dẫn công khai với
+truy vấn điểm/danh sách học sinh riêng tư. Không hỗ trợ tên lịch sử KHTN8 như
+một khái niệm trong sản phẩm hoặc phản hồi chatbot. Bổ sung pure/Chromium
+regression cho app guidance và refusal. Đây là **correction trong roadmap V2
+CP01–CP02**, không thêm chức năng Gradebook hay CP mới.
+
+**Thực thi mã nguồn và tests đã commit; kiểm thử runtime trong phiên connector
+này NOT RUN** (không có worktree/dependencies). Trạng thái PASS cũ không được
+tính là bằng chứng mới. Cloudflare/Supabase hosted calls 0, không deploy/merge,
+AI public và hosted-quality gates vẫn BLOCKED.
+
+---
+
+# Docs-only — chuẩn hóa định danh và mô hình website / 2026-10-29
+
+Tên website **Vui học cùng cô Quỳnh** đã được xác nhận; **KHTN8 Board**
+là tên lịch sử của **ứng dụng Bảng học liệu**, không còn dùng cho toàn website.
+[PRODUCT_PROFILE](PRODUCT_PROFILE.md) được mở rộng để giải thích **ý nghĩa,
+mục đích, đối tượng, công dụng, mô hình nhiều ứng dụng và ranh giới quyền**.
+Đồng bộ README/OVERVIEW/SPEC/ARCHITECTURE/ROADMAP/REQUIREMENTS_MAP/DECISIONS/
+Assistant README. Phân biệt tên do chủ sở hữu chốt với mô hình được đối chiếu từ source.
+
+**Chỉ cập nhật tài liệu:** không sửa code runtime, Auth, Gradebook, Supabase, Worker,
+không merge/deploy/hosted call. Unit/build/browser **NOT RUN trong đợt tài liệu**;
+kết quả test bên dưới là bằng chứng lịch sử, không tự nâng thành nghiệm thu mới.
+
+---
+
+# Chuẩn web và scope correction V2 — cập nhật chủ sở hữu
+
+**Vui học cùng cô Quỳnh là web quản lý lớp online với các ứng dụng đính kèm**, không phải hệ thống
+chỉ dành cho KHTN8. [PRODUCT_PROFILE](PRODUCT_PROFILE.md) ghi căn cứ từ source và ranh giới ứng dụng.
+Profile trợ lý/README/OVERVIEW/SPEC đã chuẩn hóa; inventory chỉ đếm Board published, không suy số lớp,
+học sinh hoặc quyền riêng. Pure regression purpose/audience/apps/privacy được bổ sung; assistant
+suite hiện41/41 PASS sau chuẩn hóa profile; browser6 viewport/check/build/format được kiểm lại PASS. Không thay business logic Gradebook/Auth/Supabase; không deploy/merge.
+Các số40/131 và mô tả KHTN8 bên dưới là bằng chứng tại checkpoint trước; acceptance correction
+hiện hành nằm tại [V2_ACCEPTANCE](features/board-assistant/V2_ACCEPTANCE.md).
+
+---
+
+# V2 correction/refinement — 2026-10-29
+
+Baseline cee8e1d, nhánh feature/ai-learning-assistant-v2-e2e. V2-F01–F05 đã sửa: không filter
+nguồn rỗng, routing câu hỏi Việt thông thường, tên Vui học cùng cô Quỳnh, follow-up chỉ Qwen
+và cap server3 reservations giữ nguyên legacy state. Deterministic metadata cũng không inference
+ở Worker V2; transport kiểm chứng profile. Final131 curated +40 assistant PASS;22 Worker tests
+bị tác động rerun PASS sau siết corrupted allowance; check/build/format/diff PASS. Chromium6 V2/8 V1
+và actual-main Board persistence PASS. [Evidence/ledger](features/board-assistant/V2_ACCEPTANCE.md).
+**Offline READY FOR OWNER REVIEW; tổng thể PARTIAL.** Cloudflare hosted BLOCKED vì thiếu access/
+quota verification; lifetime V2 vẫn0/40, không deploy/activate hay Supabase calls. Native device/
+Safari/screen reader chưa test. Không tự merge; GitHub API có thể chặn Draft PR. Hồ sơ cũ bên dưới
+giữ lịch sử, không coi là test vừa chạy lại.
+
+---
+
+# Learning Assistant V2 — local acceptance / 2026-10-29
+
+Baseline50ea1cb (PR18 included), dedicated feature/ai-learning-assistant-v2-e2e. Implemented
+deterministic website facts/inventory, generated-answer contract, bounded follow-up source context,
+state ownership/privacy validation and readable answer rendering. Curated131/131 + assistant33/33,
+check/build/exclusions/format PASS; actual Chromium6 V2 +8 V1 viewport regressions and synthetic
+actual-main filter persistence PASS. [Acceptance/evidence](features/board-assistant/V2_ACCEPTANCE.md).
+Overall PARTIAL: live Cloudflare access/quota/model quality BLOCKED, all hosted counters0; no
+Worker/website deployment, Supabase call or Gradebook/Auth/schema change. Public provenance/abuse
+gates remain blocked; GitHub API Forbidden may prevent Draft PR. Historical records follow.
+
+---
+
+# Board Assistant F01–F06 corrective QA — 2026-10-29
+
+Source989ec35; task fix/board-assistant-ui-e2e-20261029. Focus, short-height layout,
+readability, cloud disclosure, source-ID filters and persistence corrected.
+Offline131 curated +19 assistant PASS; actual Chromium synthetic viewport/interaction and
+main.js filter persistence PASS. [Evidence and limitations](features/board-assistant/UI_FIX_EXECPLAN.md).
+Cloudflare pilot BLOCKED (quota/cap prerequisites); hosted Cloudflare/Supabase requests0.
+No Worker/Gradebook changes or deploy. Native zoom/mobile/Safari NOT RUN. GitHub API Forbidden;
+Draft PR creation depends on access. Overall PARTIAL, not full E2E acceptance. Older results below
+remain historical and do not establish current hosted acceptance.
+
+---
+
+# Board Assistant MVP — synthetic E2E accepted / 2026-10-29
+
+Delivery branch `ai-learning-assistant`, baseline `develop` / `4f254961e9fa3604e8e843e3c5f63a15f2e9edc7`.
+Owner authorized commit/push to this branch only after E2E; publication SHA/remote receipt belongs
+to the delivery report. Commit prefix `[CF-Pages-Skip]` prevents Pages deployment; no merge/main change.
+Chat UI, hybrid BGE-M3 retrieval, Qwen source-ID selection with server-derived
+excerpts and explicit read-only Board actions implemented. Final approved hosted run3 **4/4
+HTTP200**; prior run1/run2 failures and per-activity budgets retained in [evidence](features/board-assistant/README.md).
+Offline pure/Worker/transport latest results18/18; actual local workerd/SQLite allowance PASS;
+curated131/131, syntax/scoped format/build/exclusions PASS. Chrome desktop/mobile synthetic QA
+PASS within recorded scope; physical devices/Safari, broad retrieval benchmark and real-content
+acceptance NOT RUN. Worker final disabled version `2fe4ac69-1355-452d-906b-9c1ebec9e0c8`;
+frontend AI default off. No website deployment, main/AGENTS change, paid plan/card/trial/credits,
+Supabase test calls or Gradebook changes. Existing owner tabs/background traffic not measured.
+Prior project/Gradebook release gates remain unchanged. Earlier records below are historical.
+
+
+## Historical design record retained from target branch
+
+# AI-P01 bounded model PoC — 2026-10-28
+
+[Actual synthetic test evidence](features/ai-learning-assistant/POC_EVALUATION.md#actual-ai-p01-bounded-run--2026-10-28-supersedes-not-run-above): `feature/ai-learning-assistant`, run [40727956898](https://github.com/khoabm/dashboard/actions/runs/40727956898) SUCCESS for running a real q8 multilingual E5 embedding on 30 synthetic Vietnamese questions. **Precision@3 67.78%** vs substring baseline 12.22%; target 80% missed, 135 MB model + tokenizer measured in runner; mobile/browser inference and actual zero-cost delivery NOT VERIFIED. **AI-P01 PARTIAL / CHANGES REQUIRED**, AI-G01 not approved, AI-P02 not started. No app/Gradebook source change, Supabase, deployment or merge.
+
+---
+
+# AI Learning Assistant V1 — Design-only extension / 2026-10-28
+
+Branch `feature/ai-learning-assistant` created from `develop` baseline `78f3c3208b21583545ff9ec0c58d875db2a688f4`. Owner agreed Option A: bounded conversational **pretrained semantic retrieval + deterministic Board actions**, zero paid inference and no Gradebook access. [Design entry](features/ai-learning-assistant/README.md), [PoC acceptance](features/ai-learning-assistant/POC_EVALUATION.md), [checkpoints](features/ai-learning-assistant/CHECKPOINTS.md). **Docs only**: AI-P01 NOT RUN, AI-P02 NOT STARTED, no model/dependencies, source/UI edits, hosted API, QA, PR/merge or deploy. Existing G07/G08 evidence/status is unaffected. Older entries below are historical.
+
+---
+
+# G07-3 — Synthetic offline tooling accepted / 2026-10-28
+
+
+## Historical develop release record
+
 # Cloudflare deployed / Gradebook acceptance partial — 2026-10-28
 
 **DEPLOYED:** [student-dashboard](https://student-dashboard-bcy.pages.dev), GitHub main `cda0ad8cdcbd6bfc3b9803ed25f082f9c270c8bc`, owner-authorized PR13 merge; [post-merge CI40719153983](https://github.com/khoabm/dashboard/actions/runs/40719153983) SUCCESS. Cloudflare production main auto-deploy ON, preview branches OFF; Node24, npm run build → dist, Gradebook build flag true. Exact Supabase production origin saved/verified; crypto keys unchanged. Both temporary khtn8 projects deleted with owner approval.

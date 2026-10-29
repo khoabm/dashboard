@@ -4,6 +4,13 @@
 
 ## Điều kiện
 
+Ngoại lệ riêng 2026-10-29: người dùng cho phép deploy Worker AI tách biệt phục vụ localhost
+cho [Board Assistant MVP](features/board-assistant/README.md), cấm merge/main/web deployment.
+Đây không phải phát hành frontend hoặc bằng chứng production. Worker đã kết thúc E2E ở
+trạng thái `AI_ENABLED=false`; bản frontend/config source vẫn mặc định tắt AI. Các mô tả
+chưa-deploy bên dưới là baseline frontend cũ, không đại diện danh mục dịch vụ hiện có trong
+tài khoản Cloudflare của chủ repo.
+
 - Người dùng đã yêu cầu triển khai trong phạm vi/audience cụ thể; nếu chỉ code/docs/QA thì không deploy. Sites mặc định private; không đổi audience để né lỗi deploy.
 
 - Xác minh 0 USD theo ZERO_COST; không giả định hosting miễn phí chỉ vì tool có sẵn. Nếu không đạt, bàn giao source và blocker; không thay ràng buộc chi phí.

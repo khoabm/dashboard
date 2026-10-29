@@ -1,0 +1,77 @@
+{
+  "evidence": [
+    {
+      "width": 360,
+      "height": 640,
+      "docWidth": 360,
+      "dialogRight": 360,
+      "composerBottom": 640,
+      "transcript": 167,
+      "scrollable": true
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "docWidth": 390,
+      "dialogRight": 390,
+      "composerBottom": 844,
+      "transcript": 388,
+      "scrollable": true
+    },
+    {
+      "width": 667,
+      "height": 375,
+      "docWidth": 667,
+      "dialogRight": 667,
+      "composerBottom": 375,
+      "transcript": 133,
+      "scrollable": true
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "docWidth": 768,
+      "dialogRight": 748,
+      "composerBottom": 1011,
+      "transcript": 682,
+      "scrollable": false
+    },
+    {
+      "width": 1024,
+      "height": 768,
+      "docWidth": 1024,
+      "dialogRight": 1004,
+      "composerBottom": 755,
+      "transcript": 426,
+      "scrollable": true
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "docWidth": 1440,
+      "dialogRight": 1420,
+      "composerBottom": 887,
+      "transcript": 558,
+      "scrollable": true
+    },
+    {
+      "width": 1024,
+      "height": 375,
+      "docWidth": 1024,
+      "dialogRight": 1010,
+      "composerBottom": 366,
+      "transcript": 115,
+      "scrollable": true
+    },
+    {
+      "width": 720,
+      "height": 450,
+      "docWidth": 720,
+      "dialogRight": 706,
+      "composerBottom": 441,
+      "transcript": 190,
+      "scrollable": true
+    }
+  ],
+  "external": 0
+}

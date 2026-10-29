@@ -1,0 +1,27 @@
+{
+  "samples": [
+    {
+      "selector": ".assistant-learning-answer",
+      "color": "rgb(36, 61, 54)",
+      "background": "rgb(240, 245, 243)",
+      "ratio": 10.613903669719878,
+      "font": "14px"
+    },
+    {
+      "selector": ".assistant-disclosure",
+      "color": "rgb(88, 110, 99)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.489501399635874,
+      "font": "13px"
+    },
+    {
+      "selector": ".assistant-consent",
+      "color": "rgb(68, 94, 82)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 7.073780982420505,
+      "font": "13px"
+    }
+  ],
+  "nativeZoom": "NOT RUN; 720x450 reflow proxy",
+  "snapshotChange": "PASS"
+}
