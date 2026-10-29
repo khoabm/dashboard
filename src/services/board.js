@@ -49,7 +49,12 @@ export async function loadBoard(db = requireClient()) {
       /* Board text remains available when thumbnail signing fails. */
     }
   }
-  return { board: boards[0], sections, posts: enriched };
+  return {
+    board: boards[0],
+    sections,
+    posts: enriched,
+    publicCoverage: { complete: true, method: 'exact-count-pages', transactional: false },
+  };
 }
 
 /**

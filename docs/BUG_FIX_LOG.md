@@ -1,5 +1,185 @@
 # Nhật ký khắc phục lỗi
 
+## 2026-10-29 — AI-LIVE-01: replace Pilot admission and permanent error lock in normal chat
+
+Baselineedc5f31. Owner replaces Pilot requirements with continuous Free-only hybrid
+chat. New live Worker/transport never call legacy reservation/stop or temporal/
+numeric/revision guards. Real anonymous published Board projection and optional
+citations, general knowledge, rolling history and3/10-second native spam limit.
+Existing component retains design/source actions; temporary errors keep AI and
+history available.8 focused offline contracts and actual Chrome offline recovery/
+mobile PASS; actual AI/develop integration evidence pending in [live acceptance](features/board-assistant/LIVE_CHAT_ACCEPTANCE.md).
+No private backend access, new framework, paid service or legacy ledger mutation.
+
+## 2026-10-29 — AI-V2-UAT-FOLLOWUP-01 / P2: non-temporal facts rejected and503 model counter hidden
+
+Baselinea893526, same feature branch. Owner preparation/audience question503 has
+confirmed validation/revision receipt, two model calls and failureStop confirmed.
+Raw completion unavailable. Offline supported answer reproduced rejection because
+revision guard applied to every revised source, regardless of question/claim.
+Scope revision acknowledgement to temporal questions/claims; keep date/number,
+citations and cancellation checks. Controller forwards bounded failure headers;
+preview displays unknown counters honestly instead of0 when absent.44 affected
+offline cases PASS, including original negative guards. No hosted test/deploy,
+reset or ledger mutation. Current55/60 blocked, owner2 consumed; READY withdrawn.
+[Evidence and limits](features/board-assistant/V2_PILOT_ACCEPTANCE.md#owner-follow-up-failure--2026-10-29).
+
+## 2026-10-29 — AI-V2-UAT-FLOW-01 / P2: occupied localhost could activate hosted before failing UI startup
+
+Baseline30251bd, same V2 feature branch. Static review during owner-approved UAT
+setup found hosted Start ran before Vite discovered an occupied4173, consuming
+status/shutdown operations without a usable UI. Added an early loopback port
+availability check in owner-preview-start; local occupied-port CLI regression
+proves EADDRINUSE before ledger charge, no hosted probe. No port change/process kill.
+
+New fixed UAT3 policy and profile separate the explicitly approved recovery from
+blocked pilot state; setup uses exclusive creation, repeated Setup EEXIST preserves
+ledger, and Start never initializes/resets.62 affected fake-binding cases and10
+actual local workerd calls PASS. Real Chrome exact-question retest HTTP200 with
+BGE1/Qwen1 and supported revised date, two citations; owner2 preserved, final
+Worker disabled/access cleared/bearer403. [UAT acceptance](features/board-assistant/V2_PILOT_ACCEPTANCE.md#owner-authorized-uat-retest--2026-10-29).
+Original incident remains ROOT CAUSE UNCONFIRMED, not retrospectively fixed by a
+successful new completion. No automatic retry, merge, web deploy or paid resource.
+
+## 2026-10-29 — AI-V2-OWNER-UAT-01 / P2: supported revision wording rejected; historical cause unconfirmed
+
+Incident baseline `8ed8c1965424ca86805ad98958930e6cd2df9ed0`, branch
+`feature/ai-learning-assistant-v2-e2e`. Owner committed in-progress correction as
+`ddd2a798b8f0d4010acd5880bd4d3939fc275f28`; retained without reset. Remote follow-up through fb763e1 restored the
+default-disabled Gradebook example and removed unrelated tunnel changes; preserved
+by fast-forward. Documentation conflict reconciled with this fuller Desktop evidence.
+Exact owner question returned503 with two model calls started. Local ledger did
+not retain stage/reason/completion; ROOT CAUSE UNCONFIRMED for that real request.
+Offline replay independently reproduced503 for a supported22/11/2026 answer
+saying “lịch đã được điều chỉnh”. `public-temporal.js` now recognizes this
+revision acknowledgement; date/number/citation/cancellation guards remain strict.
+Source revision detection was not broadened to unrelated uses of “điều chỉnh”.
+
+`assistant-diagnostics.js`, Worker and owner controller preserve allowlisted
+stage/reason, reservation and confirmed/rejected/unconfirmed failure-stop fields.
+Missing envelope, malformed JSON, invalid contract and unknown citation remain
+rejected with distinct codes. Stop HTTP failure is no longer implied successful.
+Future default receipts omit complete answers/source bodies; old evidence untouched.
+19 focused UAT cases PASS; 91 other affected cases PASS; check/build/scoped format
+and actual Chrome scripted QA recorded in [incident acceptance](features/board-assistant/V2_PILOT_ACCEPTANCE.md#owner-uat-incident--offline-correction--2026-10-29).
+Cloudflare requests/deployments/inferences0. Ledger unchanged31/40, blocked=true;
+real owner scenario remains FAILED, corrected hosted retest NOT RUN.
+
+## 2026-10-29 — AI-V2-PILOT-01 / P2: self-disclosed DOB phrasing bypassed the cloud input guard
+
+Baseline9bd7bf5, feature/ai-learning-assistant-v2-e2e. “Em sinh20/11/2010...”
+lacked the old explicit ngày-sinh/sinh-ngày cues. Added a small first-person birth
+cue, retaining event/month/year and biology questions; pure + zero-fetch transport
+regression PASS, actual Chrome offline rejects before adding a turn. No real PII
+or private backend access. [Pilot acceptance](features/board-assistant/V2_PILOT_ACCEPTANCE.md).
+
+## 2026-10-29 — AI-V2-PILOT-02 / P2: Stop client deadline was shorter than hosted disable
+
+Same baseline/branch. Original Stop used3s local timeout, while hosted shutdown
+requires a control-plane deployment/readback. First local Stop caller timed out;
+server continued and successfully disabled/revoked, no inference retry. Increased
+deadline to60s; separate owner Start/Stop rehearsal PASS with same remaining
+allowance, zero additional model calls. Stop acknowledges only after disabled
+settings + old-bearer403; shutdown status errors do not skip disable. Local
+failure/uncertain ledger latches prevent later silent continuation. Worker expiry
+still fail-closes after a process crash; no global CI/Gradebook changes.
+
+## 2026-10-29 — AI-V2-REV-01/02 / P2: legitimate public dates rejected by PII keyword allowlist
+
+Baselineb5dc070, branch feature/ai-learning-assistant-v2-e2e. Validator rejected
+full dates unless a narrow event keyword occurred, including ordinary phong-trào/
+history/range questions. Removed topic-dependent allowlist; explicit personal DOB
+values, emails/obvious contiguous or separated identifiers still reject before
+fetch. Date spans do not become long numeric IDs. Utility/component copy + pure/
+manual privacy regressions; no backend private fields or Auth/Gradebook access.
+Correction PASS offline and Chrome date-query acceptance; regex is not a complete
+PII classifier. [Evidence and hosted limits](features/board-assistant/GATE_C_DESKTOP.md).
+
+## 2026-10-29 — AI-V2-REV-03 / P2: client clock could anchor hosted temporal conclusions
+
+Same baseline/branch. Worker previously used browser-supplied grounding.clock for
+prompt/fact validation. Core now overrides with server instant; transport rechecks
+using X-Assistant-Clock, rejects missing clock. Frozen pure tests/local ranking
+remain injectable; timezone Asia/Ho_Chi_Minh. Fake1999 clock cannot authorize an
+upcoming2000 event; boundary/unknown-year/end-date tests PASS. Deployed disabled
+behind short-lived owner admission and server fixture provenance; hosted inference
+NOT RUN because old allowance is stopped. No schema/service/Auth/RLS change.
+
+## 2026-10-29 — AI-V2-REV-04 / P2: fullscreen chat clips Send beside a classic scrollbar
+
+Same baseline/branch; discovered on actual Chrome390×844. Mobile100vw panel
+included scrollbar width (dialog390.4/client375), clipping the send control.
+board-assistant.css now uses width/max-width100%; mobile sendRight363.2<client375,
+landscape sendRight640<client652. Chrome desktop/mobile/landscape PASS with real
+components/synthetic data. Physical devices/Safari NOT RUN; no new UI dependency.
+
+## 2026-10-29 — AI-V2-006 / P2: public app-help questions were rejected as private grade requests
+
+Baseline `1429789`, branch `feature/ai-learning-assistant-v2-e2e`. V2 profile exposed
+only application names while the broad `bang diem` guard rejected ordinary questions such
+as "Bảng điểm cá nhân dùng để làm gì?". The website's official name also was not
+recognized as a website reference in intent routing. Extended deterministic public
+application guidance with descriptions, documented routes and explicit authorization
+boundaries; separated help/navigation intent from requests to inspect or modify private
+grade/student data. No runtime answer or prompt offers the obsolete KHTN8 product name.
+Pure and synthetic Chromium regression cases were added for app purpose, route help,
+official-name paraphrases and private-data denial. **Automated runtime tests NOT RUN in
+this connector-only update**; static diff verified. No Cloudflare/Supabase hosted calls,
+deploy, Auth/Gradebook/schema change or new feature beyond V2 CP01–CP02 correction.
+
+
+## 2026-10-29 — AI-MVP-001 / P2: canceled dialog close events could invalidate a new conversation
+
+Baseline `develop` / `4f254961e9fa3604e8e843e3c5f63a15f2e9edc7`, new Board Assistant
+implementation. Native close events are queued; the old dialog could abort a newly opened
+conversation or steal focus from an opened source. `src/components/board-assistant.js` now
+removes invalidated dialogs synchronously and checks dialog ownership before cleanup/focus.
+Actual Chrome synthetic delayed-response cancellation, new-conversation-during-pending and
+normal source modal focus PASS; transport cancellation specialist PASS. FIXED within local
+synthetic scope; no Auth/backend/Gradebook behavior changed.
+
+## 2026-10-29 — AI-MVP-002 / P2: Vietnamese accent folding produced unrelated keyword fallback
+
+Same baseline/branch. `đẩy` and `đây` fold to the same token; a single incidental body hit
+could add an irrelevant source for `lực đẩy`. `src/utils/board-assistant.js` now requires
+at least half the maximum weighted token score for local fallback. Pure regression asserts
+only the physics source; actual Chrome mobile result confirms one relevant source. FIXED;
+not a claim of semantic search quality or a general Vietnamese linguistic benchmark.
+
+## 2026-10-29 — AI-MVP-003 / P2: first hosted AI run returned 503; envelope handling hardened
+
+Same baseline/branch. First approved synthetic Worker request returned503 and testing stopped
+without retry; its exact failing stage was not retained, so root cause remains UNCONFIRMED.
+Worker decoding now accepts JSON-mode object and string/choices envelopes while enforcing
+source-only output/exact quotations. Added safe stage/call-count headers, AbortSignal and
+40-second model deadline (45-second client); no raw model/user diagnostics. Finite offline
+regressions PASS; separately approved hosted run2 first query HTTP200 with two model calls
+and correct excerpt. Do not attribute run1 failure conclusively to envelope or latency.
+Final finite-run accounting and remaining gates: [evidence](features/board-assistant/README.md).
+
+Run2: two HTTP200 responses then one HTTP503 at `validation` with two model calls; stopped
+immediately. Exact failing output was deliberately not logged. Final correction changes the
+model contract to existing IDs only, derives excerpts from original text, and discards the
+documented leading Qwen think wrapper without exposing it. Strict ID-only JSON, membership,
+duplicates and exact returned source text remain enforced. This avoids model transcription;
+it does not claim which validation subcase caused the old503. Offline8/8 Worker cases PASS;
+run3 is separately authorized and recorded in the evidence document.
+
+## 2026-10-29 — AI-MVP-004 / P2: chat composer fell below the desktop viewport
+
+Same baseline/branch. Actual Chrome710px-height capture showed the submit row below an outer
+dialog scrollbar. `src/styles/board-assistant.css` now uses a bounded flex modal with a
+shrinking message scroller and fixed composer; short viewports retain outer-scroll recovery.
+Final desktop/mobile measurements and browser recheck are recorded with assistant evidence.
+
+## 2026-10-29 — AI-MVP-005 / P2: mobile assistant filter could keep an unrelated default column
+
+Same baseline/branch. Mobile shows one section: selecting all for a physics keyword could
+leave the first chemistry column visible. `src/main.js` now reveals the first actual
+published match for the explicit assistant filter action, guarding orphaned sections. Board
+search semantics are reused; no private posts or other search behavior changed. Final actual
+Chrome mobile filter check is recorded with assistant evidence.
+
 Bắt đầu 2026-10-24 theo yêu cầu chủ repo. Đây là trace thay đổi source, không phải logging hoạt động người dùng hoặc dịch vụ telemetry. Mỗi bug dùng một ID cố định; khi tái mở, bổ sung nguyên nhân và bằng chứng vào đúng entry. Commit chứa entry là mốc sửa, tra bằng `git log -- docs/BUG_FIX_LOG.md`; không đoán hoặc tự điền SHA của commit chưa tạo.
 
 ## 2026-10-28 — UI-QA-001 / P2: workspace fixture reports unsupported save success and a nonexistent next page
@@ -384,3 +564,94 @@ Baseline `13292a3c37c3a1c237c584fd0251db992596ba06`, branch feature/personal-gra
 | GB-B3-REV-005 / P3 test compatibility | Broad B3 runner compared board snapshot before B3 against end-of-chain after intentional board hotfix | tests/gradebook-b3-sql.mjs compares immediately before/after original B3 only; later correction changes Gradebook bodies, not board. Tighten stale code predicates to PT409 | FIXED source; targeted syntax/format/static review only, full B3 runner NOT RUN. Focused runner proves corrected chain and unchanged board conflict definitions |
 
 Testing policy GB-OPS-REV-003 already RESOLVED in13292a3, unchanged. One focused SQL run on existing PGlite0.5.11/PostgreSQL18.6 with synthetic fixture; one DOM test run. No new dependency/runtime, full suite/build, stress/load/soak/stretch, hosted RPC/log/metadata/DDL, deploy, merge/rebase or B4. Hosted requests0 / migration applyNO. Native17/multi-connection/hosted security and real-data gate NOT RUN. The original custom40001 text remains in immutable history; final corrected function bodies contain none. Exact behavior against PostgREST is not claimed from PGlite.
+
+## 2026-10-29 — AI-UI-001–006 / F01–F06
+
+Baseline ai-learning-assistant989ec35e552310f8131906782a6d3b70927a1366. AI-UI-001/P2:
+preview captured a removed source button; Chromium returned BODY focus. Synchronous assistant
+removal and launcher focus before callback correct the target; explicit modal boundary wrapping
+fixes observed Tab escape. AI-UI-002/P2: always-expanded mobile controls pushed composer beyond
+375px viewport; compact/collapsible CSS restores reachable composer and transcript scroll.
+AI-UI-003/P2: meaningful secondary copy10–11px; scoped13px copy,44px actions and visible focus.
+AI-UI-004/P2: captured disclosure survived cloud failure; live status and consent text now follow
+availability. AI-UI-005/P1: lexical results passed raw query to substring search; validated public
+source IDs now form a memory-only filter. AI-UI-006/P2: assistant state left stale persisted keys;
+clear query/topic on temporary actions, ignore stale input debounce and retain manual persistence.
+Files: component, stylesheet, main and assistant utils; pure tests updated. Chromium baseline/
+after and eight viewport tests, synthetic main persistence, cloud failure/cancel/revocation and
+offline131+19 checks PASS. Details/remaining gates: [execution record](features/board-assistant/UI_FIX_EXECPLAN.md).
+No Worker/Gradebook/Supabase/schema changes; hosted requests0. Live AI and native mobile NOT RUN.
+
+## 2026-10-29 — AI-V2-001 / P2: stale source context after same-ID content change
+
+V2 baseline50ea1cb, feature checkpointbf99afb. Context IDs alone could remain valid after a body
+change in the same open synthetic modal. Compare the full public projection against catalogAtOpen
+before sending; invalidate the modal/context when changed. Main Board already invalidates on refresh.
+Additional Chromium probe changed body with the same ID then submitted follow-up: dialog removed,
+no follow-up transmitted (PASS). Source-action and post-response fingerprint checks retained.
+Related correction: stale canceled-request catch must check ownership before clearing newer context.
+No hosted calls; [V2 acceptance](features/board-assistant/V2_ACCEPTANCE.md).
+
+## 2026-10-29 — AI-V2-002–006 / correction V2-F01–F05
+
+Baseline cee8e1dffd8fccfe94d8f9b7becae34ee9226806, cùng nhánh V2; dữ liệu synthetic.
+
+- AI-V2-002/P2: showResults luôn tạo filter với sources[]; component chỉ render sau source validation
+  và khác rỗng, resolver cũng từ chối empty IDs. Browser metadata/insufficient/keyword-zero/invalid
+  không có filter; source hợp lệ vẫn mở/lọc và trả focus (PASS).
+- AI-V2-003/P2: routing bỏ sót website inventory và có thể nhầm câu hỏi nội dung. Nhóm tín hiệu
+  website/inventory/listing/specific/follow-up, normalize dấu câu/space; bảng positive/negative
+  và6 viewport câu hỏi tự nhiên PASS, không thêm classifier/model call.
+- AI-V2-004/P3: profile dùng KHTN8 Board thay tên sản phẩm. websiteProfile.name dùng Vui học cùng
+  cô Quỳnh; pure test đối chiếu index.html đã đúng, browser xác nhận; giữ technical IDs/lịch sử.
+- AI-V2-005/P2: Worker gọi BGE rồi bỏ vectors ở follow-up. Context hợp lệ cấp candidates trực tiếp
+  rồi chỉ Qwen; test model list/header/candidate scope xác nhận1 call, query mới2 calls.
+- AI-V2-006/P2: cap4 V1 thiếu accounting dự phòng. Cap3 bảo thủ, count/stopped không migration/reset;
+  state3/4/stopped/corrupt/null đều không mở allowance. Serialized last-slot/restart/failure/abort/
+  deadline PASS;22 specialist bị tác động PASS sau lần siết corrupt-state cuối.
+
+Cải tiến trực tiếp: API V2 xử lý metadata deterministic trước budget; transport xác minh lại profile
+không phụ thuộc thứ tự JSON keys. Regression bắt lỗi key-order39/40 rồi được sửa; không bỏ assertion.
+[Acceptance hiện tại](features/board-assistant/V2_ACCEPTANCE.md): final131+40 PASS, Chromium6 V2/8 V1,
+actual-main persistence PASS; hosted0/40/BLOCKED, không Supabase/deploy/merge.
+
+### AI-V2-004 — bổ sung chuẩn phạm vi web theo chỉ đạo chủ sở hữu
+
+Không suy sản phẩm là web KHTN8 từ seed/brief cũ. websiteProfile giờ mô tả web quản lý lớp online,
+đối tượng giáo viên/người quản lý lớp/học sinh và các ứng dụng thấy trong app.js/site-navigation/
+Gradebook UI. Không sửa logic Gradebook/Auth; inventory chỉ đếm Board published, không private
+counts. PRODUCT_PROFILE/README/OVERVIEW/SPEC chuẩn hóa cùng hợp đồng; evidence lịch sử giữ nguyên.
+Regression purpose/audience/apps/privacy và browser identity kiểm chứng lại; current assistant41.
+
+## 2026-10-29 — AI-V2-007–012 / Gate A/B public content grounding
+
+Baseline01198f0b8e1b298101d1ee8405ec988b507db109, cùng nhánh V2. Tất cả evidence synthetic/offline.
+
+- AI-V2-007/P2: corpus dùng preview1200 và cloud availability dựa cap24 nên không truy xuất đúng
+  văn bản sâu/bài ngoài cap. Corpus full published + local chunks/coverage, wire V3 bounded và native
+  citation mapping thay luồng này; U08/U09 quote7 đơn vị sau1200 và bài sau30 filler PASS. Consent/copy
+  được cập nhật đúng selected public text + prior source context, không chỉ title/description.
+- AI-V2-008/P2: app/inventory deterministic có thể nuốt câu hỏi nội dung hoặc “bao nhiêu” trong bài.
+  Routing chỉ định guidance/count/listing rõ; câu hỏi arbitrary post/topic/quantities dùng retrieval.
+  Gate A43/43 và routing regression PASS, không thêm topic whitelist.
+- AI-V2-009/P2: lexical overlap ngẫu nhiên loại paraphrase trước semantic; keyword fallback lại đưa
+  nguồn chỉ trùng âm tiết vào filter. Corpus nhỏ giữ semantic candidates, keyword yêu cầu match đủ
+  tín hiệu; IDF/diversity hỗ trợ corpus lớn, no-anchor clarify. Browser assertion đúng filter deep ID
+  được giữ và PASS sau sửa; không tuyên bố full semantic coverage.
+- AI-V2-010/P2: marker “hủy” không có word boundary có thể khớp “chuyến”, làm lọt answer bỏ cảnh báo.
+  Bổ sung exact boundary và typed date/numeric guards: missing-year, creation-vs-event, deadline-vs-event,
+  cancellation/revision, unknown end/latest scope. T01–T10/integration PASS; không coi guard là entailment proof.
+- AI-V2-011/P2: chunk UTF-16 có thể cắt surrogate pair, metadata cap có thể cắt im lặng. Giữ exact
+  Unicode quotes/body codepoints và offsets, metadata oversized giữ local nguyên vẹn rồi báo partial;
+  không prefix-index corpus quá bound. Unicode/oversized regressions PASS. Prompt bỏ duplicated body,
+  có24KB byte cap và bounded temporal annotations, giữ raw passage; boundary regression PASS.
+- AI-V2-012/P2: native Escape đóng modal trước queued close callback; embedding release có thể bắt
+  đầu Qwen khi chưa abort. Abort đồng bộ trên native cancel và nút đóng; không preventDefault Escape.
+  Browser release ngay sau Escape xác nhận1 embedding/0 Qwen, không resurrect DOM; callback ownership
+  và preview return-focus giữ nguyên. Đây là regression cost/reliability đã được runtime tái hiện/sửa.
+
+Gate A43/43 trước B; final95/95 focused,131/131 curated checkpoint, check/build/format/exclusion/diff
+PASS; actual Chromium B6, V2 guidance6, V1 8 và actual-main Board persistence PASS. Các lần FAIL đều
+được sửa và rerun affected tests, không bỏ assertion. Format test baseline được commit riêng9ed2082.
+[Ma trận/evidence/limitations](features/board-assistant/GATE_AB_ACCEPTANCE.md). Hosted/DO/deploy/
+Supabase0, allowance/run ID/PRODUCT_PROFILE/Auth/Gradebook/schema không đổi. Gate C/D chưa thực hiện.

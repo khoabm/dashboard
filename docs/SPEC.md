@@ -1,4 +1,4 @@
-# MASTER PROMPT — KHTN8 BOARD
+# ĐẶC TẢ — VUI HỌC CÙNG CÔ QUỲNH
 
 > Nguồn yêu cầu chuẩn, không phải báo cáo tính năng đã hoàn thành. Chuyển từ “Pasted text(1).txt” do người dùng cung cấp ngày 2026-10-23. Giữ đủ 28 nhóm yêu cầu; thay phần hosting cũ theo yêu cầu mới. Mọi chỉ dẫn “bắt đầu triển khai” bên dưới chỉ áp dụng khi nhiệm vụ hiện tại cho phép xây ứng dụng, không tự mở rộng một lượt chỉ sửa tài liệu. Xem [bản đồ truy vết](REQUIREMENTS_MAP.md), [trạng thái](STATUS.md) và [quy trình Work](WORKFLOW.md).
 
@@ -6,9 +6,14 @@ Full-stack Development Specification — Zero-Cost Architecture
 
 **Version:** 1.1 (chuẩn hóa từ brief người dùng; bỏ nhà cung cấp hosting cũ, bổ sung Work + Sites).
 
-**Project:** KHTN8 Board – Không gian học liệu Khoa học tự nhiên lớp 8
+**Website:** **Vui học cùng cô Quỳnh** — tên chính thức. Website có các ứng dụng hỗ trợ học tập, học liệu và quản lý lớp/điểm theo quyền, theo mô hình hiện có trong source. Đọc [PRODUCT_PROFILE](PRODUCT_PROFILE.md) để phân biệt thương hiệu, ứng dụng và ranh giới nghiệp vụ.
 
-**Reference UI:** https://padlet.com/nguyquynh01/khoa-hoc-tu-nhien-k8-kdv5ggxf7schpqyb
+**Chuẩn định danh và mô hình hiện tại:** [PRODUCT_PROFILE](PRODUCT_PROFILE.md). Tên website đã được xác nhận; các chức năng/ứng dụng liệt kê là mô tả source, không tự chứng minh đã release.
+Các nhóm R01–R28 gốc mô tả ứng dụng Bảng học liệu (tên lịch sử KHTN8 Board), không giới hạn
+toàn web ở một môn/lớp. Gradebook và trợ lý có hợp đồng/gate riêng; không suy thêm tính năng hay
+quyền truy cập từ định hướng sản phẩm. Tài liệu/bằng chứng lịch sử vẫn giữ đúng scope đã thực hiện.
+
+**Reference UI của ứng dụng Bảng học liệu (gốc):** https://padlet.com/nguyquynh01/khoa-hoc-tu-nhien-k8-kdv5ggxf7schpqyb
 
 ---
 
@@ -18,9 +23,9 @@ Full-stack Development Specification — Zero-Cost Architecture
 
 Bạn đóng vai trò là Senior Full-stack Engineer, UI/UX Designer, Software Architect, QA Engineer và DevOps Engineer.
 
-Nhiệm vụ là thiết kế, phát triển, kiểm thử và hỗ trợ triển khai một website học liệu số mang tên **KHTN8 Board**, dựa trên cấu trúc bảng học liệu kiểu Padlet.
+Trong web **Vui học cùng cô Quỳnh**, phần yêu cầu gốc dưới đây áp dụng cho ứng dụng **Bảng học liệu**, dựa trên cấu trúc bảng kiểu Padlet. KHTN8 Board là tên kỹ thuật/lịch sử của phần này, không phải định nghĩa toàn sản phẩm.
 
-Website có một người quản trị duy nhất và cho phép người xem truy cập công khai mà không đăng nhập.
+Ứng dụng Bảng học liệu có một người quản trị được chỉ định và cho phép khách đọc published không đăng nhập. Quyền quản lý lớp/bảng điểm và xác minh cá nhân thuộc hợp đồng riêng, không mở rộng quyền của trợ lý.
 
 Yêu cầu trọng tâm:
 
@@ -63,6 +68,8 @@ Không sao chép toàn bộ tính năng Padlet. Chỉ triển khai các chức n
 - CDN miễn phí nếu không yêu cầu thanh toán và không ảnh hưởng đáng kể đến độ ổn định.
 
 - Công cụ kiểm thử miễn phí.
+
+- Cloudflare Workers/Workers AI Free cho Board Assistant theo R07.1, chỉ sau xác minh không phát sinh phí; không dùng Workers Paid hoặc prepaid credits.
 
 - localStorage và IndexedDB của trình duyệt.
 
@@ -472,13 +479,96 @@ Không có:
 
 - Thống kê cá nhân học sinh.
 
-- Chat.
+- Chat ngoài phạm vi Board Assistant MVP tại R07.1.
 
-- AI assistant.
+- AI assistant ngoài phạm vi Board Assistant MVP tại R07.1.
 
 - Thanh toán.
 
 Các tính năng trên chỉ là khả năng mở rộng trong tương lai.
+
+<a id="board-assistant-mvp"></a>
+
+### 7.1. Board Assistant MVP — extension được yêu cầu 2026-10-29
+
+**Contract hiện hành — yêu cầu end-to-end live chat 2026-10-29:** chatbot hỏi đáp
+kiến thức chung và nội dung Board published thật, hội thoại tiếng Việt/follow-up;
+nguồn Board phù hợp có citation và mở/lọc bài, kiến thức chung không bắt buộc nguồn.
+Worker chỉ đọc public posts bằng publishable key, không nhận private catalog/Auth/
+Gradebook từ client. Lịch sử chỉ giữ trong memory với cửa sổ ngữ cảnh hữu hạn,
+không phải giới hạn số tin nhắn. Không hard reject nội dung theo ngày/số/từ revision.
+Không token owner, synthetic provenance, expiry, lifetime cap, manual reservation,
+permanent failure-stop hoặc khóa AI sau lỗi thường trong live path. Rate-limit spam
+ban đầu3 requests/10 giây/client bằng binding Cloudflare, tự phục hồi; Free quota
+thực là trần dịch vụ, không paid fallback/upgrade. Không retry inference tự động.
+Mọi giới hạn/gate Pilot bên dưới chỉ là lịch sử, không điều khiển live chatbot.
+[Implementation và nghiệm thu live](features/board-assistant/LIVE_CHAT_ACCEPTANCE.md).
+
+**Cập nhật Gate A/B:** trợ lý có thể tìm/đối chiếu/giải thích/tóm tắt nội dung văn bản mọi bài published
+đủ điều kiện trong snapshot Board đã tải, không giới hạn môn học, topic hoặc loại thông báo. Thông tin
+website/app xác định bằng code; nội dung cần diễn giải dùng retrieval + grounded generation với
+coverage minh bạch. Không lấy vị trí24 hay preview1200 làm search corpus; payload/model vẫn bounded.
+Temporal dùng Asia/Ho_Chi_Minh và evidence nguồn, không đổi ngày tạo/sửa thành event hoặc tự thêm năm.
+Không file extraction, Gradebook/Auth/write access; không hosted/deploy trong Gate A/B.
+[Contract và nghiệm thu](features/board-assistant/GATE_AB_ACCEPTANCE.md).
+
+**Correction/Gate C Desktop 2026-10-29:** ngày tháng học tập/sự kiện được phép độc lập
+từ khóa hoặc có/không có năm. Chỉ chặn email/chuỗi định danh rõ ràng và DOB cá nhân
+có dữ liệu cụ thể trước transport; regex không thay provenance/privacy boundaries.
+Không đưa trường riêng của backend/Gradebook/Auth vào corpus. Hosted temporal dùng
+clock Worker (Asia/Ho_Chi_Minh), giữ frozen clock cho tests và clock client cho local
+ranking; không suy created/updated thành event hoặc thêm năm/end date.
+Preview hosted bắt buộc admission owner có hạn + server-approved synthetic corpus,
+giữ MVP cũ/cap3/stopped bất biến. Owner đã phê duyệt riêng một identity
+`approved-synthetic-v2-pilot-v1`, cap5 trọn đời (Codex<=3, ưu tiên giữ2 lượt owner),
+cùng namespace/class; không reset/replenish hoặc tự sinh identity tiếp theo.
+Tổng V2 vẫn40 operations, đã carry3 từ task trước. Khi stopped/chưa xác minh
+Free/usage/allowance thì BLOCKED; Worker time authoritative và chỉ synthetic corpus.
+[Pilot evidence và owner workflow](features/board-assistant/V2_PILOT_ACCEPTANCE.md).
+Chỉ task Desktop này được owner miễn ngưỡng safe-close55%; zero-cost và quyền task
+sau/AGENTS giữ nguyên. Không mở website production hoặc tự merge.
+
+
+V2 được chủ sở hữu yêu cầu: trả lời thông tin website và kiểm kê published bằng dữ liệu xác định,
+tách tổng quan metadata khỏi tóm tắt nội dung. Cho phép giải thích/tóm tắt tiếng Việt từ title/body
+công khai với nguồn hợp lệ; câu trả lời AI không phải trích dẫn nguyên văn và không được coi là
+đã chứng minh mọi mệnh đề. JSON phải giới hạn status/answer/IDs/coverage, từ chối khi thiếu nguồn.
+Theo dõi tiếp hội thoại bằng tối đa một câu hỏi trước và ba ID nguồn hiện hành trong memory;
+hủy/đóng/reset/đổi snapshot phải xóa context. Không đọc attachment, thêm quyền hoặc lưu lịch sử.
+Hợp đồng/kiểm chứng: [V2 acceptance](features/board-assistant/V2_ACCEPTANCE.md).
+
+
+Chatbot hỗ trợ tìm học liệu theo ý nghĩa kết hợp từ khóa, trả lời bằng trích đoạn có nguồn
+và các nút thao tác chỉ đọc: mở bài published, xem chủ đề, lọc trang, bỏ bộ lọc. Mỗi thao tác
+do người dùng bấm; model không được thực thi mã, điều khiển DOM tùy ý hoặc thay đổi dữ liệu.
+Không cho quyền quản trị hoặc truy cập Bảng điểm. Đây là ngoại lệ cụ thể cho mục loại trừ
+chat/AI ở R07, không tự mở rộng các tính năng tương lai khác.
+
+Chỉ dùng ID, tiêu đề, mô tả và tên chủ đề của snapshot published hiện có; không đọc tệp/ảnh/
+video, attachment URL, signed URL, nháp, trường riêng tư hoặc Auth token. Trích đoạn AI phải
+khớp nguyên văn nguồn được trích dẫn; không có nguồn phù hợp thì nói rõ. Nội dung cắt theo
+giới hạn phải được nêu là tìm trong tiêu đề/mô tả, không giả định đã đọc toàn bộ tài nguyên.
+Thay đổi snapshot/hủy/đóng/chuyển route phải chặn kết quả muộn và xóa lịch sử chỉ lưu memory.
+Recheck public snapshot tại thời điểm bấm mở nguồn; không coi snapshot là bằng chứng backend
+quyền truy cập tức thời giữa hai lần refresh. Quyền thật tiếp tục do RLS/Storage quyết định.
+
+Giao diện dùng skill ui-ux-pro-max với tokens hiện tại, modal có label/focus/keyboard, trạng thái
+chờ/lỗi/hủy và không tràn mobile. Người dùng chủ động bật AI với thông báo câu hỏi + public
+text được gửi Cloudflare. AI tắt/lỗi/hết quota không làm hỏng tìm từ khóa, không giả AI thành công.
+Không lưu hội thoại hoặc câu hỏi vào localStorage, URL, database hoặc application log.
+
+Frontend AI mặc định tắt. Worker riêng có thể deploy cho task hiện tại sau xác minh Free/0 USD;
+không deploy website hoặc merge main. Không thêm tài nguyên trả phí, thẻ, trial, add-on hoặc
+Codex credits; gặp yêu cầu trả phí phải dừng và report. Quyền tự động hóa và ngân sách hosted
+chỉ có hiệu lực cho task này; AGENTS và quyền của các task sau giữ nguyên.
+
+MVP hosted preview chỉ cho loopback origins, có hạn dùng, giới hạn request/body/catalog/model
+output, không retry và có bộ đếm inference dùng chung. CORS không phải authentication; preview
+không được coi là public production API. Trước mở rộng public cần thiết kế abuse/privacy/index
+riêng. Bộ dữ liệu giả/finite run được duyệt tối đa 20 Worker/model requests, điều kiện dừng theo
+TESTING; tính cả preflight và subrequest liên quan, không gọi Supabase hoặc dùng dữ liệu thật.
+Theo dõi quota Codex tuần tại checkpoint: dưới 55% còn lại thì safe close và ghi bàn giao; không
+hứa giám sát thời gian thực hoặc tự tiếp tục nền.
 
 <a id="r08"></a>
 
@@ -1583,5 +1673,5 @@ Khi mọi điều kiện tiền đề đã đáp ứng và người dùng đã c
 
 Ưu tiên tính đúng đắn, khả năng sử dụng thực tế, bảo mật và chi phí 0 USD hơn việc bổ sung tính năng ngoài phạm vi.
 
-**Nguyên tắc cuối: KHTN8 Board phải là một sản phẩm web độc lập, do người dùng kiểm soát mã nguồn và dữ liệu, không phải một bản demo chỉ chạy được trong giao diện ChatGPT.**
+**Nguyên tắc cuối: Vui học cùng cô Quỳnh phải là một sản phẩm web độc lập, do người dùng kiểm soát mã nguồn và dữ liệu, không phải một bản demo chỉ chạy được trong giao diện ChatGPT.**
 
