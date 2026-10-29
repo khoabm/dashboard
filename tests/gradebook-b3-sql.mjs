@@ -317,27 +317,20 @@ try {
     }
   });
   await check(
-    'rate-limit denied decisions persist and global quota bounds identity allocation',
+    'global limiter remains bounded; identity verification uses only failed-pair counters',
     async () => {
       for (let i = 0; i < 5; i++)
         assert.equal((await scalar('SELECT public.gb_limit(false,$1)', [lookup])).allowed, true);
-      assert.equal((await scalar('SELECT public.gb_limit(false,$1)', [lookup])).allowed, false);
-      assert.equal(
-        await scalar(
-          "SELECT attempts FROM gradebook.lookup_attempts WHERE scope='pair_identity_window'",
-        ),
-        6,
-      );
-      for (let i = 0; i < 60; i++) await scalar('SELECT public.gb_limit(false,NULL)');
-      assert.equal(
-        (await scalar('SELECT public.gb_limit(false,$1)', ['02'.repeat(32)])).allowed,
-        false,
-      );
       assert.equal(
         await scalar(
           "SELECT count(*)::int FROM gradebook.lookup_attempts WHERE scope='pair_identity_window'",
         ),
-        1,
+        0,
+      );
+      for (let i = 0; i < 55; i++) await scalar('SELECT public.gb_limit(false,NULL)');
+      assert.equal(
+        (await scalar('SELECT public.gb_limit(false,$1)', ['02'.repeat(32)])).allowed,
+        false,
       );
       await db.exec(
         "INSERT INTO gradebook.lookup_attempts(scope,key,window_start,expires_at) SELECT 'pair_identity_window',decode(lpad(to_hex(n),64,'0'),'hex'),now()-interval '2 days',now()-interval '1 day' FROM generate_series(1,501)n",
@@ -447,20 +440,57 @@ try {
       1,
     );
   });
-  await check('pair lookup binds class/key/DOB and inactive identities are neutral', async () => {
-    assert.equal(
-      await scalar('SELECT public.gb_pair_check($1,$2,$3,1)', [cid, lookup, '2012-04-12']),
-      null,
-    );
-    assert.equal(
-      await scalar('SELECT public.gb_pair_check($1,$2,$3,1)', [cid, lookup, '2012-04-13']),
-      null,
-    );
-    const context = await scalar('SELECT public.gb_lookup_context()');
-    assert.equal(context.classId, cid);
-    assert.equal(context.subjects.length, 8);
-    assert.equal(context.scoreColumns.length, 7);
-  });
+  await check(
+    'atomic failed verification: ten wrong, block eleventh, successes do not count',
+    async () => {
+      const second = '05'.repeat(32);
+      const active = '06'.repeat(32);
+      // Same class, synthetic identity; direct insert only in disposable PGlite.
+      await db.exec('RESET ROLE');
+      await db.query(
+        "INSERT INTO gradebook.students(class_id,birth_date,identity_ciphertext,identity_nonce,identity_enc_kid,identity_lookup,lookup_key_version) VALUES($1,'2012-04-12',decode($2,'hex'),decode($3,'hex'),'synthetic',decode($4,'hex'),1)",
+        [cid, '00'.repeat(25), '00'.repeat(12), active],
+      );
+      await db.exec('SET ROLE service_role');
+      const correct = async () =>
+        scalar('SELECT public.gb_pair_check($1,$2,$3,1)', [cid, active, '2012-04-12']);
+      const wrong = async () =>
+        scalar('SELECT public.gb_pair_check($1,$2,$3,1)', [cid, active, '2012-04-13']);
+      for (let i = 0; i < 12; i++) {
+        const result = await correct();
+        assert.equal(result.allowed, true);
+        assert(result.pair);
+      }
+      assert.equal(
+        await scalar(
+          "SELECT coalesce(max(attempts),0)::int FROM gradebook.lookup_attempts WHERE scope='pair_identity_failed_window'",
+        ),
+        0,
+      );
+      for (let i = 0; i < 10; i++) {
+        const result = await wrong();
+        assert.equal(result.allowed, true);
+        assert.equal(result.pair, null);
+      }
+      assert.equal((await wrong()).allowed, false);
+      assert.equal((await correct()).allowed, false);
+      assert.equal(
+        await scalar(
+          "SELECT max(attempts)::int FROM gradebook.lookup_attempts WHERE scope='pair_identity_failed_window'",
+        ),
+        10,
+      );
+      const other = await scalar('SELECT public.gb_pair_check($1,$2,$3,1)', [
+        cid,
+        second,
+        '2012-04-13',
+      ]);
+      assert.equal(other.allowed, true);
+      assert.equal(other.pair, null);
+      const context = await scalar('SELECT public.gb_lookup_context()');
+      assert.equal(context.classId, cid);
+    },
+  );
   console.log('B3 SQL groups', checks);
 } catch (e) {
   console.error('FAIL', e.code, e.message);

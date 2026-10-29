@@ -816,7 +816,7 @@ test('capability TTL/audience/project/version/tampering and BIGINT epochs are ch
 
 test('verify commits limiter first, issues no grades, and sends only protected matching state to SQL', async () => {
   const pair = { classId: cid, studentId: sid, classEpoch: '2', studentEpoch: '3', class: clazz };
-  const f = fixture('student', { gb_pair_check: pair });
+  const f = fixture('student', { gb_pair_check: { allowed: true, retryAfter: 0, pair } });
   const result = await f.send({ op: 'verify', documentNumber: digits, birthDate: dob });
   assert.equal(result.status, 200);
   assert.deepEqual(
@@ -848,7 +848,7 @@ test('verify commits limiter first, issues no grades, and sends only protected m
 });
 
 test('unknown/mismatched identities are neutral; malformed verify still consumes global quota', async () => {
-  const f = fixture('student', { gb_pair_check: null });
+  const f = fixture('student', { gb_pair_check: { allowed: true, retryAfter: 0, pair: null } });
   const first = await f.send({ op: 'verify', documentNumber: digits, birthDate: dob });
   const second = await f.send({
     op: 'verify',
@@ -1528,4 +1528,38 @@ test('CON-004 static chain guard verifies eight reviewed replacements and unchan
   assert.match(reveal, /identityLookup.*,encode\(s\.identity_lookup/);
   assert.match(reveal, /lookupKeyVersion.*,s\.lookup_key_version/);
   assert.doesNotMatch(reveal, /ERRCODE.*40[0-9A-Z]{3}/);
+});
+
+test('failed-pair RPC decision denies after ten failures with 429 and Retry-After', async () => {
+  const f = fixture('student', {
+    gb_pair_check: { allowed: false, retryAfter: 42, pair: null },
+  });
+  const result = await f.send({ op: 'verify', documentNumber: digits, birthDate: dob });
+  assert.equal(result.status, 429);
+  assert.equal(result.body.error.code, 'limited');
+  assert.equal(result.headers.get('retry-after'), '42');
+  assert.deepEqual(
+    f.calls.map(({ name }) => name),
+    ['gb_lookup_context', 'gb_limit', 'gb_pair_check'],
+  );
+});
+
+test('correct pair response is explicitly unwrapped without leaking limiter fields', async () => {
+  const pair = { classId: cid, studentId: sid, classEpoch: '2', studentEpoch: '3', class: clazz };
+  const f = fixture('student', { gb_pair_check: { allowed: true, retryAfter: 0, pair } });
+  const result = await f.send({ op: 'verify', documentNumber: digits, birthDate: dob });
+  assert.equal(result.status, 200);
+  assert.equal(Object.hasOwn(result.body, 'allowed'), false);
+  assert.equal(Object.hasOwn(result.body, 'pair'), false);
+});
+
+test('transitional release accepts old direct pair/null before migration', async () => {
+  const pair = { classId: cid, studentId: sid, classEpoch: '2', studentEpoch: '3', class: clazz };
+  const good = fixture('student', { gb_pair_check: pair });
+  const ok = await good.send({ op: 'verify', documentNumber: digits, birthDate: dob });
+  assert.equal(ok.status, 200);
+  const bad = fixture('student', { gb_pair_check: null });
+  const denied = await bad.send({ op: 'verify', documentNumber: digits, birthDate: dob });
+  assert.equal(denied.status, 401);
+  assert.equal(denied.body.error.code, 'verification');
 });
