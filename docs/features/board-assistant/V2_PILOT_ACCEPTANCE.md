@@ -197,3 +197,17 @@ website deployment; CF-Pages-Skip. Existing dirty env/Vite and AGENTS unchanged.
 Production needs real-content provenance/privacy, public admission/abuse/cost,
 broader quality including temporal/abstention/follow-up and physical device/Safari
 acceptance. This pilot does not replace these gates.
+
+## Final handoff receipt
+
+Source/tests/docs checkpoint `0c08325c5349e393a4dbc88e92b734a1e1e1d278` đã push,
+remote khớp local; giữ [Draft PR21](https://github.com/khoabm/dashboard/pull/21)
+target ai-learning-assistant, không merge. Biên nhận cuối này docs-only, không
+đổi source, test/model calls hoặc ledger. Env/Vite dirty có sẵn giữ ngoài commit.
+
+Fresh Chrome read sau QA: Free/$0/Current plan; **16.72/10k neurons hôm nay**.
+Không quy chính xác telemetry account thành mức tiêu thụ của từng câu.
+Local preflight refreshed2026-10-29T14:21:15.049Z, conservative remaining9000,
+valid đến2026-10-29T14:51:15.049Z (**21:51:15 Việt Nam,29/10/2026**).
+Không bật lại AI trong bước renew; final Worker43f75f32 vẫn disabled, ledger23/40,
+pilot còn3/5. Ngoài cửa sổ này hosted Start phải BLOCKED đến khi reverify Free/usage.
