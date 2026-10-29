@@ -12,6 +12,7 @@ import {
   teacherCatalog,
   teacherPage,
   scoreMutation,
+  gridBatch,
   publicationMutation,
   compareScoreCells,
   SCORE_HEADERS,
@@ -43,6 +44,8 @@ export function GradebookScores({
     loaded = false,
     busy = false,
     dirty = false,
+    gridPending = new Map(),
+    gridStale = false,
     disposed = false,
     generation = 0,
     lastOperation = null;
@@ -59,6 +62,8 @@ export function GradebookScores({
           'score.delete': 'Đang xóa ô điểm…',
           'scores.preview': 'Đang kiểm tra bản xem trước điểm…',
           'scores.apply': 'Đang áp dụng bảng điểm…',
+          'scores.batch.preview': 'Đang kiểm tra các ô đã sửa…',
+          'scores.batch.apply': 'Đang lưu các ô đã sửa…',
           'semester.publish': 'Đang công bố học kỳ…',
           'semester.unpublish': 'Đang tạm ẩn học kỳ…',
         };
@@ -107,6 +112,7 @@ export function GradebookScores({
         'score.put',
         'score.delete',
         'scores.apply',
+        'scores.batch.apply',
         'semester.publish',
         'semester.unpublish',
       ].includes(lastOperation)
@@ -137,7 +143,7 @@ export function GradebookScores({
     entry.stop?.();
     wipe(entry.content);
     dialogs.delete(entry);
-    dirty = false;
+    dirty = gridPending.size > 0;
     entry.dialog.close();
   }
   /** Cancels both editor and confirmation lifetimes. */
@@ -146,7 +152,7 @@ export function GradebookScores({
     confirmations = new AbortController();
     for (const d of [...dialogs]) closeDialog(d);
     preview.clear();
-    dirty = false;
+    dirty = gridPending.size > 0;
   }
   /** Binds shared confirmation primitives to this workspace. */
   function confirm(title, description) {
@@ -267,8 +273,12 @@ export function GradebookScores({
     loaded = true;
     render();
   }
-  /** Refreshes only this workspace's class and selected page. */
-  function reload() {
+  /** Never overwrite a draft with a stale read or silent page navigation. */
+  async function reload() {
+    if (!(await prepareExit())) return;
+    gridPending.clear();
+    gridStale = false;
+    dirty = false;
     return run((current) => readPage(current));
   }
 
@@ -277,6 +287,9 @@ export function GradebookScores({
     if (value === semester || !(await prepareExit())) return;
     cancel();
     clearDialogs();
+    gridPending.clear();
+    gridStale = false;
+    dirty = false;
     students = [];
     loaded = false;
     cursors = [null];
@@ -425,6 +438,70 @@ export function GradebookScores({
     });
     entry.content.append(form);
     input.focus();
+  }
+
+  /** Every grid draft is scoped to one displayed subject, semester and page. */
+  function gridEdit(student, column, value) {
+    const key = `${student.id}|${subject}|${column.code}`;
+    const existing = student.cells.get(`${subject}|${column.code}`);
+    const baseline = existing?.rawScore ?? '';
+    if (value === baseline) gridPending.delete(key);
+    else gridPending.set(key, {
+      studentId: student.id, subjectCode: subject, columnCode: column.code,
+      expectedRevision: existing?.revision ?? null, score: value,
+    });
+    gridStale = false;
+    dirty = gridPending.size > 0;
+    updateGridActions();
+  }
+
+  /** Updates the save/discard toolbar without rebuilding focused text inputs. */
+  function updateGridActions() {
+    const count = gridPending.size;
+    const info = panel.querySelector('[data-grid-count]');
+    if (info) info.textContent = count ? `${count} ô chưa lưu` : 'Mọi thay đổi đã lưu';
+    const save = panel.querySelector('[data-grid-save]');
+    const discard = panel.querySelector('[data-grid-discard]');
+    if (save) save.disabled = count === 0 || gridStale || busy;
+    if (discard) discard.disabled = count === 0 || busy;
+  }
+
+  /** Preview and apply use one committed state token, no per-cell HTTP writes. */
+  function saveGrid() {
+    if (!gridPending.size || gridStale || busy) return;
+    let payload;
+    try {
+      payload = gridBatch(currentClass, semester, [...gridPending.values()]);
+    } catch {
+      status.textContent = 'Có ô chưa hợp lệ. Điểm phải từ 0–10, tối đa 5 chữ số thập phân; ô trống không dùng để xóa.';
+      return;
+    }
+    void run(async (current) => {
+      const checked = await gate.call({ op: 'scores.batch.preview', ...payload });
+      if (!current()) return;
+      const counts = checked.counts;
+      if (counts.error || !checked.previewToken) throw new AdminError(422);
+      const approved = await confirm(
+        'Áp dụng các thay đổi điểm?',
+        `Thêm ${counts.insert}, cập nhật ${counts.update}, không đổi ${counts.unchanged}. ` +
+          'Toàn bộ sẽ được ghi trong một lần; không có cập nhật một phần.',
+      );
+      if (!current() || !approved) return;
+      const applied = await gate.call({
+        op: 'scores.batch.apply', ...payload, previewToken: checked.previewToken,
+      });
+      if (!current()) return;
+      if (applied.committed !== true) throw new AdminError();
+      gridPending.clear();
+      dirty = false;
+      gridStale = false;
+      await readPage(current);
+      if (current()) status.textContent = 'Đã lưu toàn bộ ô điểm đã sửa.';
+    }, (error) => {
+      gridStale = true;
+      status.textContent = `${adminMessage(error)} Bản nháp chưa gửi lại; hãy kiểm tra và tải lại điểm.`;
+      updateGridActions();
+    });
   }
 
   /** Warns conservatively about missing data because current B4 does not expose a publication preflight count. */
@@ -716,8 +793,14 @@ export function GradebookScores({
         el('option', { value: s.code, selected: subject === s.code }, s.displayName),
       ),
     );
-    subjectSelect.addEventListener('change', () => {
-      subject = subjectSelect.value;
+    subjectSelect.addEventListener('change', async () => {
+      const next = subjectSelect.value;
+      if (next === subject) return;
+      if (!(await prepareExit())) { subjectSelect.value = subject; return; }
+      gridPending.clear();
+      gridStale = false;
+      dirty = false;
+      subject = next;
       sorting = null;
       render();
       panel.querySelector('[aria-label="Môn học"]')?.focus();
@@ -760,11 +843,20 @@ export function GradebookScores({
         button('Tải lại điểm', reload),
       ),
       templates,
-      el(
-        'p',
-        { class: 'muted' },
-        'Nhấn ô để thêm/sửa điểm. Nhấn tên cột để sắp xếp điểm gốc trong trang hiện tại; ô thiếu luôn ở cuối.',
+      !published && el('div', { class: 'admin-actions grid-edit-toolbar' },
+        el('span', { 'data-grid-count': '', role: 'status', 'aria-live': 'polite' },
+          gridPending.size ? `${gridPending.size} ô chưa lưu` : 'Mọi thay đổi đã lưu'),
+        button('Lưu thay đổi', saveGrid, 'button primary', { 'data-grid-save': '', disabled: !gridPending.size || gridStale }),
+        button('Bỏ thay đổi', async () => {
+          if (!await confirm('Bỏ các điểm chưa lưu?', 'Các điểm chưa lưu sẽ bị hủy; dữ liệu trên máy chủ không thay đổi.')) return;
+          gridPending.clear(); gridStale = false; dirty = false; render();
+        }, 'button', { 'data-grid-discard': '', disabled: !gridPending.size }),
       ),
+      el('p', { class: 'muted' },
+        published
+          ? 'Học kỳ đã công bố: nhấn ô để sửa/xóa điểm với xác nhận.'
+          : 'Nhập trực tiếp vào nhiều ô, rồi chọn Lưu thay đổi. Ô trống không phải lệnh xóa. Nhấn tên cột để sắp xếp trang hiện tại.'),
+
     );
     const list = students.filter((s) => !selected || s.id === selected);
     if (sorting)
@@ -818,13 +910,32 @@ export function GradebookScores({
           ...catalog.scoreColumns.map((column) => {
             const score = student.cells.get(`${subject}|${column.code}`),
               display = score ? displayScore(score.rawScore) : '—';
-            return el(
-              'td',
-              {},
-              button(display, () => editScore(student, column), 'button score-cell', {
+            const key = `${student.id}|${subject}|${column.code}`;
+            if (published)
+              return el('td', {}, button(display, () => editScore(student, column), 'button score-cell', {
                 'aria-label': `${student.fullName || 'Chưa có tên'} · ${column.displayName}: ${display}`,
-              }),
-            );
+              }));
+            const input = el('input', {
+              type: 'text', inputmode: 'decimal', autocomplete: 'off', maxlength: 32,
+              value: gridPending.get(key)?.score ?? score?.rawScore ?? '',
+              class: 'grid-score-input',
+              'aria-label': `${student.fullName || 'Chưa có tên'} · ${column.displayName} · điểm gốc`,
+              'aria-invalid': 'false',
+            });
+            const edit = () => {
+              gridEdit(student, column, input.value);
+              const changed = gridPending.has(key);
+              input.classList.toggle('grid-score-dirty', changed);
+              let valid = true;
+              if (changed) {
+                try { gridBatch(currentClass, semester, [gridPending.get(key)]); }
+                catch { valid = false; }
+              }
+              input.setAttribute('aria-invalid', String(!valid));
+            };
+            input.classList.toggle('grid-score-dirty', gridPending.has(key));
+            input.addEventListener('input', edit);
+            return el('td', {}, input);
           }),
         ),
       );
@@ -833,12 +944,20 @@ export function GradebookScores({
     table.append(el('thead', {}, head), rows);
     const prev = button(
       'Trang điểm trước',
-      () => void run((current) => readPage(current, cursors.at(-2), cursors.slice(0, -1))),
+      async () => {
+        if (!(await prepareExit())) return;
+        gridPending.clear(); gridStale = false; dirty = false;
+        void run((current) => readPage(current, cursors.at(-2), cursors.slice(0, -1)));
+      },
     );
     prev.disabled = cursors.length <= 1;
     const next = button(
       'Trang điểm sau',
-      () => void run((current) => readPage(current, nextCursor, [...cursors, nextCursor])),
+      async () => {
+        if (!(await prepareExit())) return;
+        gridPending.clear(); gridStale = false; dirty = false;
+        void run((current) => readPage(current, nextCursor, [...cursors, nextCursor]));
+      },
     );
     next.disabled = !nextCursor;
     panel.append(
@@ -874,7 +993,7 @@ export function GradebookScores({
     );
   }
   const unload = (event) => {
-    if (dirty) {
+    if (dirty || gridPending.size) {
       event.preventDefault();
       event.returnValue = '';
     }
@@ -895,6 +1014,7 @@ export function GradebookScores({
       disposed = true;
       owner = { status: 'anonymous', generation: owner.generation + 1 };
       students = [];
+      gridPending.clear();
       catalog = null;
       currentClass = null;
       wipe(element);
