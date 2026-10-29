@@ -1,5 +1,12 @@
 # Desktop correction/Gate C — PARTIAL / 2026-10-29
 
+Current bounded retest: [owner UAT](V2_PILOT_ACCEPTANCE.md#owner-authorized-uat-retest--2026-10-29)
+PASS on one actual temporal completion, two supported citations; UAT1/3 used,
+remaining2, cumulative43/60, Worker disabled and bearer403. Owner live readiness
+is limited by fresh Free proof/allowance. Historical failed response root cause
+UNCONFIRMED; broad AI quality/real-content/production remain PARTIAL/BLOCKED.
+Earlier allowances and final-state snapshots below are historical.
+
 Current hosted gate is [explicit pilot](V2_PILOT_ACCEPTANCE.md): Hosted Pilot
 PASS on two small real samples; owner workflow verified/time-bounded Free proof,
 pilot2/5 remaining3, cumulative23/40. Final Worker disabled. Historical blocked

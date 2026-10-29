@@ -42,7 +42,7 @@ function binding() {
     },
   };
 }
-test('only two fixed identities exist; pilot5 never changes legacy3/stopped storage', async () => {
+test('legacy and pilot fixed policies preserve limits and stopped storage', async () => {
   assert.deepEqual(assistantBudgetPolicy(pilotBudgetName), {
     name: pilotBudgetName,
     limit: 5,

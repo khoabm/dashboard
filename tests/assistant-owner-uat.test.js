@@ -89,6 +89,16 @@ test('natural adjusted wording alone acknowledges the supported revision', async
   });
   assert.equal((await h.run()).status, 200);
 });
+
+test('captured successful Qwen UAT wording passes without weakening dates or citations', async () => {
+  // Captured from the newly authorized successful retest, never the lost historical completion.
+  const h = replay({
+    answer:
+      'Xưởng mô hình giấy được điều chỉnh diễn ra vào ngày 22/11/2026 tại sân mô phỏng. Trước đó, hoạt động dự kiến diễn ra ngày 20/11/2026. Vật dụng cần mang vẫn là giấy tái chế và bút màu.',
+  });
+  assert.equal((await h.run()).status, 200);
+  assert.equal(h.calls.length, 2);
+});
 for (const [name, options, reason] of [
   [
     'missing necessary update citation',

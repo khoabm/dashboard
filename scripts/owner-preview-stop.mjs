@@ -1,6 +1,8 @@
 /** Stops the named local preview, which disables its hosted session before acknowledging success. */
 if (process.argv.includes('--recover')) {
-  await (await import('./owner-ai-hosted.mjs')).disablePilot();
+  await (
+    await import('./owner-ai-hosted.mjs')
+  ).disablePilot({ uat: process.argv.includes('--uat') });
   process.exit(0);
 }
 const res = await fetch('http://127.0.0.1:4173/__owner/stop', {

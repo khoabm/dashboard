@@ -1,5 +1,22 @@
 # Nhật ký khắc phục lỗi
 
+## 2026-10-29 — AI-V2-UAT-FLOW-01 / P2: occupied localhost could activate hosted before failing UI startup
+
+Baseline30251bd, same V2 feature branch. Static review during owner-approved UAT
+setup found hosted Start ran before Vite discovered an occupied4173, consuming
+status/shutdown operations without a usable UI. Added an early loopback port
+availability check in owner-preview-start; local occupied-port CLI regression
+proves EADDRINUSE before ledger charge, no hosted probe. No port change/process kill.
+
+New fixed UAT3 policy and profile separate the explicitly approved recovery from
+blocked pilot state; setup uses exclusive creation, repeated Setup EEXIST preserves
+ledger, and Start never initializes/resets.62 affected fake-binding cases and10
+actual local workerd calls PASS. Real Chrome exact-question retest HTTP200 with
+BGE1/Qwen1 and supported revised date, two citations; owner2 preserved, final
+Worker disabled/access cleared/bearer403. [UAT acceptance](features/board-assistant/V2_PILOT_ACCEPTANCE.md#owner-authorized-uat-retest--2026-10-29).
+Original incident remains ROOT CAUSE UNCONFIRMED, not retrospectively fixed by a
+successful new completion. No automatic retry, merge, web deploy or paid resource.
+
 ## 2026-10-29 — AI-V2-OWNER-UAT-01 / P2: supported revision wording rejected; historical cause unconfirmed
 
 Incident baseline `8ed8c1965424ca86805ad98958930e6cd2df9ed0`, branch

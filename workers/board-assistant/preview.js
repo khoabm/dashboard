@@ -1,6 +1,6 @@
 /** Admits only an expiring owner bearer and server-approved synthetic passages to hosted inference. */
 import { assistantFetch } from './index.js';
-import { pilotBudgetName, pilotReservationLimit, legacyBudgetName } from './budget-policy.js';
+import { pilotBudgetName, legacyBudgetName, assistantBudgetPolicy } from './budget-policy.js';
 import { previewFixture } from './preview-fixture.js';
 import { publicAssistantCorpus, retrievePublicContent } from '../../src/utils/public-retrieval.js';
 import { validAssistantQuery } from '../../src/utils/board-assistant.js';
@@ -93,15 +93,16 @@ export async function previewFetch(request, env) {
   const json = (status, value) =>
     Response.json(value, { status, headers: { 'Cache-Control': 'no-store' } });
   if (!(await authorized(request, env))) return json(403, { error: 'preview_access' });
-  if (env.BUDGET_RUN_ID !== previewBudgetName) return json(503, { error: 'identity' });
+  const policy = assistantBudgetPolicy(env.BUDGET_RUN_ID);
+  if (!policy || policy.name === legacyBudgetName) return json(503, { error: 'identity' });
   const path = new URL(request.url).pathname;
   if (['/preview/status', '/preview/legacy-status'].includes(path) && request.method === 'GET') {
     if (!env.BUDGET) return json(503, { error: 'budget' });
     try {
       const legacy = path === '/preview/legacy-status';
-      const identity = legacy ? legacyBudgetName : previewBudgetName;
+      const identity = legacy ? legacyBudgetName : policy.name;
       const res = await env.BUDGET.get(env.BUDGET.idFromName(identity)).fetch(
-        legacy ? 'https://budget/status' : 'https://budget/pilot/status',
+        `https://budget${legacy ? '' : policy.prefix}/status`,
         { method: 'POST' },
       );
       if (!res.ok) return json(503, { error: 'budget' });
@@ -109,7 +110,7 @@ export async function previewFetch(request, env) {
         budget: await res.json(),
         enabled: env.AI_ENABLED === 'true',
         identity,
-        limit: legacy ? 3 : pilotReservationLimit,
+        limit: legacy ? 3 : policy.limit,
       });
     } catch {
       return json(503, { error: 'budget' });
@@ -126,7 +127,7 @@ export async function previewFetch(request, env) {
       body: JSON.stringify(payload),
       signal: request.signal,
     });
-    return assistantFetch(checked, { ...env, BUDGET_RUN_ID: previewBudgetName });
+    return assistantFetch(checked, env);
   } catch {
     return json(422, { error: 'input' });
   }

@@ -1,12 +1,22 @@
 /** Starts a finite loopback-only synthetic preview; hosted activation requires a verified available allowance. */
 import { createServer, mergeConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
+import { createServer as createPortProbe } from 'node:net';
 import base from '../vite.config.js';
 const hosted = process.argv.includes('--hosted');
+// Refuse occupied localhost before activation can consume hosted status/shutdown operations.
+const portProbe = createPortProbe();
+await new Promise((resolve, reject) => {
+  portProbe.once('error', reject);
+  portProbe.listen(4173, '127.0.0.1', resolve);
+});
+await new Promise((resolve, reject) =>
+  portProbe.close((error) => (error ? reject(error) : resolve())),
+);
 const session = hosted
   ? await (
       await import('./owner-ai-hosted.mjs')
-    ).startHostedPilot({ qa: process.argv.includes('--qa') })
+    ).startHostedPilot({ qa: process.argv.includes('--qa'), uat: process.argv.includes('--uat') })
   : null;
 const root = fileURLToPath(new URL('../', import.meta.url));
 let server;

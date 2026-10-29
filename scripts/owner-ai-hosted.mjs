@@ -3,7 +3,11 @@ import { spawnSync } from 'node:child_process';
 import { randomBytes, createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, existsSync, openSync, closeSync, unlinkSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { pilotBudgetName } from '../workers/board-assistant/budget-policy.js';
+import {
+  pilotBudgetName,
+  ownerUatBudgetName,
+  assistantBudgetPolicy,
+} from '../workers/board-assistant/budget-policy.js';
 import { validAssistantQuery } from '../src/utils/board-assistant.js';
 import { publicAssistantCorpus, retrievePublicContent } from '../src/utils/public-retrieval.js';
 import { previewFixture } from '../workers/board-assistant/preview-fixture.js';
@@ -14,8 +18,22 @@ const worker = 'khtn8-board-assistant-mvp';
 const origin = 'https://khtn8-board-assistant-mvp.joemckahn.workers.dev';
 const namespace = 'a6b907897eef4f41a630b2920645e8c3';
 const cli = resolve('tests/local/ai-tools/node_modules/wrangler/bin/wrangler.js');
-const ledgerPath = resolve(pilotDirectory, 'ledger.json');
-const lockPath = resolve(pilotDirectory, 'active.lock');
+const pilotProfile = Object.freeze({
+  directory: pilotDirectory,
+  identity: pilotBudgetName,
+  limit: 40,
+  qa: 3,
+  owner: 2,
+});
+export const ownerUatProfile = Object.freeze({
+  directory: resolve('tests/local/owner-ai-uat'),
+  identity: ownerUatBudgetName,
+  limit: 60,
+  qa: 1,
+  owner: 2,
+  carry: 34,
+  incidentHash: 'd416ba759f74953cde3f2dfc92c39d2a3a1cc35bebe86e8e44275f8a9f080d1b',
+});
 
 /** Rechecks query privacy and server-owned synthetic windows before any bytes leave localhost. */
 export function assertPilotPayload(payload) {
@@ -54,10 +72,16 @@ export function assertPilotPayload(payload) {
 }
 
 /** Validates a bounded Free receipt and remaining task budget before any network or activation. */
-export function assertPilotCanStart(ledger, proof, { qa = false, now = Date.now() } = {}) {
+export function assertPilotCanStart(
+  ledger,
+  proof,
+  { qa = false, now = Date.now(), profile = pilotProfile } = {},
+) {
   if (ledger.blocked || ledger.receipts.some((r) => r.state !== 'observed'))
     throw Error('BLOCKED: previous uncertain/failed operation; no automatic continuation');
-  if ((ledger[qa ? 'qaReservations' : 'ownerReservations'] || 0) >= (qa ? 3 : 2))
+  if (
+    (ledger[qa ? 'qaReservations' : 'ownerReservations'] || 0) >= (qa ? profile.qa : profile.owner)
+  )
     throw Error('BLOCKED: role allowance used');
   if (
     proof.account !== account ||
@@ -71,49 +95,55 @@ export function assertPilotCanStart(ledger, proof, { qa = false, now = Date.now(
     throw Error(
       'BLOCKED: Free/usage proof expired or insufficient; reverify Cloudflare before hosted Start',
     );
-  if (40 - ledger.operations < 12)
+  if (profile.limit - ledger.operations < 12)
     throw Error('BLOCKED: insufficient operations including shutdown margin');
 }
 
 /** Latches a failed/uncertain model activity locally; a later Start cannot silently resume it. */
-function blockPilot() {
-  const value = readPilotLedger();
+function blockPilot(profile = pilotProfile) {
+  const value = readPilotLedger(profile);
+  const ledgerPath = resolve(profile.directory, 'ledger.json');
   value.blocked = true;
   writeFileSync(ledgerPath, JSON.stringify(value, null, 2));
 }
 
 /** Loads the existing pilot ledger; missing/corrupt state never creates a fresh budget. */
-export function readPilotLedger() {
+export function readPilotLedger(profile = pilotProfile) {
+  const ledgerPath = resolve(profile.directory, 'ledger.json');
   const value = JSON.parse(readFileSync(ledgerPath, 'utf8'));
   if (
-    value.identity !== pilotBudgetName ||
-    value.limit !== 40 ||
+    value.identity !== profile.identity ||
+    value.limit !== profile.limit ||
     !Number.isSafeInteger(value.operations) ||
-    value.operations < 3 ||
-    value.operations > 40 ||
+    value.operations < (profile.carry || 3) ||
+    value.operations > profile.limit ||
     !Number.isSafeInteger(value.qaReservations) ||
     value.qaReservations < 0 ||
-    value.qaReservations > 3 ||
+    value.qaReservations > profile.qa ||
     !Number.isSafeInteger(value.ownerReservations) ||
     value.ownerReservations < 0 ||
-    value.ownerReservations > 2 ||
-    !Array.isArray(value.receipts)
+    value.ownerReservations > profile.owner ||
+    !Array.isArray(value.receipts) ||
+    (profile.incidentHash && value.incidentHash !== profile.incidentHash)
   )
     throw Error('BLOCKED: invalid/missing pilot ledger');
   return value;
 }
 /** Persists conservative precharges before network; unknown completion never restores a charge. */
-function charge(operations, activity) {
-  const value = readPilotLedger();
-  if (value.operations + operations > 40) throw Error('BLOCKED: V2 operations exhausted');
+function charge(operations, activity, profile = pilotProfile) {
+  const value = readPilotLedger(profile);
+  const ledgerPath = resolve(profile.directory, 'ledger.json');
+  if (value.operations + operations > profile.limit)
+    throw Error('BLOCKED: V2 operations exhausted');
   value.operations += operations;
   value.receipts.push({ at: new Date().toISOString(), activity, operations, state: 'reserved' });
   writeFileSync(ledgerPath, JSON.stringify(value, null, 2));
   return value.receipts.length - 1;
 }
 /** Records observed counts without retaining prompts, tokens or model reasoning. */
-function settle(index, actual, detail) {
-  const value = readPilotLedger(),
+function settle(index, actual, detail, profile = pilotProfile) {
+  const ledgerPath = resolve(profile.directory, 'ledger.json');
+  const value = readPilotLedger(profile),
     item = value.receipts[index];
   if (actual > item.operations) throw Error('accounting');
   value.operations -= item.operations - actual;
@@ -121,27 +151,27 @@ function settle(index, actual, detail) {
   writeFileSync(ledgerPath, JSON.stringify(value, null, 2));
 }
 /** Runs only the existing CLI, hiding credential output and keeping deployment logs local. */
-function wrangler(args, auth = false) {
+function wrangler(args, auth = false, profile = pilotProfile) {
   const result = spawnSync(process.execPath, [cli, ...args], {
     encoding: 'utf8',
     windowsHide: true,
     env: {
       ...process.env,
       WRANGLER_SEND_METRICS: 'false',
-      WRANGLER_LOG_PATH: resolve(pilotDirectory, 'wrangler.log'),
+      WRANGLER_LOG_PATH: resolve(profile.directory, 'wrangler.log'),
     },
   });
   if (result.status !== 0) throw Error('BLOCKED: Wrangler operation failed; no automatic retry');
   if (!auth)
     writeFileSync(
-      resolve(pilotDirectory, `deploy-${Date.now()}.txt`),
+      resolve(profile.directory, `deploy-${Date.now()}.txt`),
       result.stdout + '\n' + result.stderr,
     );
   return result.stdout;
 }
 /** Reads live settings with a memory-only credential returned by the official Wrangler command. */
-async function settings() {
-  const auth = JSON.parse(wrangler(['auth', 'token', '--json'], true));
+async function settings(profile = pilotProfile) {
+  const auth = JSON.parse(wrangler(['auth', 'token', '--json'], true, profile));
   if (!auth.token) throw Error('auth');
   const response = await fetch(
     `https://api.cloudflare.com/client/v4/accounts/${account}/workers/scripts/${worker}/settings`,
@@ -165,7 +195,7 @@ async function settings() {
   );
 }
 /** Builds a deployment without creating classes, migrations, namespaces, identities or paid resources. */
-function deploy(vars) {
+function deploy(vars, profile = pilotProfile) {
   const config = {
     name: worker,
     account_id: account,
@@ -178,7 +208,7 @@ function deploy(vars) {
     migrations: [{ tag: 'v1', new_sqlite_classes: ['AssistantBudget'] }],
     observability: { enabled: false },
     vars: {
-      BUDGET_RUN_ID: pilotBudgetName,
+      BUDGET_RUN_ID: profile.identity,
       AI_ENABLED: 'false',
       PREVIEW_EXPIRES: '',
       PREVIEW_ACCESS_EXPIRES: '',
@@ -186,22 +216,27 @@ function deploy(vars) {
       ...vars,
     },
   };
-  const path = resolve(pilotDirectory, 'deployment.json');
+  const path = resolve(profile.directory, 'deployment.json');
   writeFileSync(path, JSON.stringify(config, null, 2));
-  const output = wrangler([
-    'deploy',
-    '--config',
-    path,
-    '--no-autoconfig',
-    '--message',
-    'V2 explicit pilot; same namespace; finite owner preview',
-  ]);
+  const output = wrangler(
+    [
+      'deploy',
+      '--config',
+      path,
+      '--no-autoconfig',
+      '--message',
+      'V2 explicit pilot; same namespace; finite owner preview',
+    ],
+    false,
+    profile,
+  );
   console.log(output.match(/Current Version ID: .+/)?.[0] || 'Worker settings updated');
 }
 /** Disables inference and access, then verifies settings; it never resets an allowance. */
-export async function disablePilot() {
-  deploy({});
-  const value = await settings();
+export async function disablePilot({ uat = false } = {}) {
+  const profile = uat ? ownerUatProfile : pilotProfile;
+  deploy({}, profile);
+  const value = await settings(profile);
   if (
     value.AI_ENABLED !== 'false' ||
     value.PREVIEW_EXPIRES ||
@@ -213,10 +248,20 @@ export async function disablePilot() {
 }
 
 /** Starts a short authenticated session only after fresh Free evidence, live bindings and allowance checks. */
-export async function startHostedPilot({ qa = false } = {}) {
-  const ledger = readPilotLedger();
-  const proof = JSON.parse(readFileSync(resolve(pilotDirectory, 'free-preflight.json'), 'utf8'));
-  assertPilotCanStart(ledger, proof, { qa });
+export async function startHostedPilot({ qa = false, uat = false } = {}) {
+  const profile = uat ? ownerUatProfile : pilotProfile;
+  const ledgerPath = resolve(profile.directory, 'ledger.json');
+  const lockPath = resolve(profile.directory, 'active.lock');
+  const ledger = readPilotLedger(profile);
+  if (
+    uat &&
+    createHash('sha256')
+      .update(readFileSync(resolve(pilotDirectory, 'ledger.json')))
+      .digest('hex') !== profile.incidentHash
+  )
+    throw Error('BLOCKED: immutable incident ledger changed');
+  const proof = JSON.parse(readFileSync(resolve(profile.directory, 'free-preflight.json'), 'utf8'));
+  assertPilotCanStart(ledger, proof, { qa, profile });
   const lock = openSync(lockPath, 'wx');
   writeFileSync(lock, String(process.pid));
   closeSync(lock);
@@ -236,7 +281,7 @@ export async function startHostedPilot({ qa = false } = {}) {
   };
   /** Makes one bounded data-plane call with a conservative local precharge; never retries. */
   async function call(path, options, cost) {
-    const index = charge(cost, path);
+    const index = charge(cost, path, profile);
     const response = await fetch(origin + path, {
       ...options,
       headers: { ...options.headers, Authorization: `Bearer ${bearer}` },
@@ -281,16 +326,21 @@ export async function startHostedPilot({ qa = false } = {}) {
         ? 1
         : 0;
     const actual = 1 + durableObject + models;
-    settle(index, actual, {
-      status: response.status,
-      models,
-      worker: 1,
-      durableObject,
-      bge: models && !context ? 1 : 0,
-      qwen: context ? models : Math.max(0, models - 1),
-      ...(!chat ? { accounting: result } : {}),
-      ...(chat ? { diagnostics: assistantResponseDiagnostics(response.headers) } : {}),
-    });
+    settle(
+      index,
+      actual,
+      {
+        status: response.status,
+        models,
+        worker: 1,
+        durableObject,
+        bge: models && !context ? 1 : 0,
+        qwen: context ? models : Math.max(0, models - 1),
+        ...(!chat ? { accounting: result } : {}),
+        ...(chat ? { diagnostics: assistantResponseDiagnostics(response.headers) } : {}),
+      },
+      profile,
+    );
     return { response, result, bytes };
   }
   /** Restores disabled settings even after a failed request; old access is tested only once. */
@@ -310,7 +360,7 @@ export async function startHostedPilot({ qa = false } = {}) {
               failedStatus = error;
             }
           }
-          await disablePilot();
+          await disablePilot({ uat });
           if (failedStatus)
             throw Error('Hosted stopped; final status unavailable; Worker disabled verified');
           const r = await call('/preview/status', { method: 'GET' }, 1);
@@ -323,31 +373,31 @@ export async function startHostedPilot({ qa = false } = {}) {
     return stopping;
   }
   try {
-    const pre = await settings();
+    const pre = await settings(profile);
     if (pre.AI_ENABLED !== 'false') throw Error('BLOCKED: Worker already enabled');
-    deploy(access);
     deployed = true;
+    deploy(access, profile);
     const status = await call('/preview/status', { method: 'GET' }, 2);
     lastStatus = status.result;
     if (
       !status.response.ok ||
-      lastStatus.identity !== pilotBudgetName ||
-      lastStatus.budget.limit !== 5 ||
+      lastStatus.identity !== profile.identity ||
+      lastStatus.budget.limit !== assistantBudgetPolicy(profile.identity).limit ||
       lastStatus.budget.stopped ||
-      lastStatus.budget.remaining < (qa ? 3 : 1)
+      lastStatus.budget.remaining < (qa ? profile.qa : 1)
     )
       throw Error('BLOCKED: pilot allowance unavailable');
-    if (qa) {
+    if (qa && !uat) {
       const legacy = await call('/preview/legacy-status', { method: 'GET' }, 2);
       if (legacy.result.budget.count !== 1 || !legacy.result.budget.stopped)
         throw Error('BLOCKED: legacy state mismatch');
     }
-    deploy({ ...access, AI_ENABLED: 'true', PREVIEW_EXPIRES: expires });
-    const post = await settings();
-    if (post.AI_ENABLED !== 'true' || post.BUDGET_RUN_ID !== pilotBudgetName)
+    deploy({ ...access, AI_ENABLED: 'true', PREVIEW_EXPIRES: expires }, profile);
+    const post = await settings(profile);
+    if (post.AI_ENABLED !== 'true' || post.BUDGET_RUN_ID !== profile.identity)
       throw Error('activation');
     console.log(
-      `HOSTED synthetic pilot until ${expires}; remaining=${lastStatus.budget.remaining}; operations=${readPilotLedger().operations}/40`,
+      `HOSTED synthetic pilot until ${expires}; remaining=${lastStatus.budget.remaining}; operations=${readPilotLedger(profile).operations}/${profile.limit}`,
     );
     return {
       expires,
@@ -357,24 +407,26 @@ export async function startHostedPilot({ qa = false } = {}) {
           mode: 'hosted',
           expires,
           used,
-          sessionRemaining: closed ? 0 : Math.max(0, (qa ? 3 : 2) - used),
+          sessionRemaining: closed ? 0 : Math.max(0, (qa ? profile.qa : profile.owner) - used),
           pilotRemainingEstimate: lastStatus
             ? Math.max(0, lastStatus.budget.remaining - used)
             : null,
           lastStatus,
-          operations: readPilotLedger().operations,
+          operations: readPilotLedger(profile).operations,
+          limit: profile.limit,
+          identity: profile.identity,
         };
       },
       async chat(req, res) {
-        const ledger = readPilotLedger(),
+        const ledger = readPilotLedger(profile),
           role = qa ? 'qaReservations' : 'ownerReservations';
         if (
           closed ||
           busy ||
           Date.now() >= Date.parse(expires) ||
-          used >= Math.min(qa ? 3 : 2, lastStatus.budget.remaining) ||
-          (ledger[role] || 0) >= (qa ? 3 : 2) ||
-          40 - ledger.operations < 8
+          used >= Math.min(qa ? profile.qa : profile.owner, lastStatus.budget.remaining) ||
+          (ledger[role] || 0) >= (qa ? profile.qa : profile.owner) ||
+          profile.limit - ledger.operations < 8
         ) {
           res.writeHead(429).end('{"error":"local_budget"}');
           return;
@@ -402,7 +454,7 @@ export async function startHostedPilot({ qa = false } = {}) {
             5,
           );
           if (!result.response.ok) {
-            blockPilot();
+            blockPilot(profile);
             res
               .writeHead(result.response.status, { 'Content-Type': 'application/json' })
               .end(result.bytes);
@@ -419,7 +471,7 @@ export async function startHostedPilot({ qa = false } = {}) {
             })
             .end(result.bytes);
         } catch {
-          blockPilot();
+          blockPilot(profile);
           if (!res.headersSent) res.writeHead(503).end('{"error":"unavailable"}');
           lastStatus = null;
           await stop();

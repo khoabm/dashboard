@@ -1,5 +1,146 @@
 # V2 pilot — explicit allowance / 2026-10-29
 
+## Owner-authorized UAT retest — 2026-10-29
+
+**Hosted retest PASS on the exact owner question; READY FOR OWNER LIVE TEST only
+within fresh Free proof/available allowance.** Original failed completion remains
+ROOT CAUSE UNCONFIRMED; previous incident below is preserved, not rewritten.
+
+### Authorization, baseline and concern matrix
+
+Baseline30251bd, feature/ai-learning-assistant-v2-e2e/PR21. Owner explicitly approved
+`approved-synthetic-v2-owner-uat-v1`, lifetime3 reservations (Codex1/owner2), total
+combined operations60 including34 already spent. No additional60 budget. Old pilot
+and legacy storage must not reset; same Worker/namespace/class, no new service.
+
+| Concern | Evidence |
+| --- | --- |
+| Old allowance unusable | Authenticated status confirmed pilot count3/5, stopped=true, remaining0; old ledger remains blocked31/40 |
+| Fixed UAT3 and isolation | Same existing DO default3 path, new explicitly approved fixed identity; finite fake-binding and10 actual local workerd/SQLite calls |
+| No replenishment | Exclusive Setup EEXIST preserves ledger; Start only reads, role QA1/owner2 persists across restart; unknown identities rejected |
+| Lifecycle/cost | Fresh Free proof, server bearer/expiry, local40/60 profiles, precharge/failure latch, disable/readback/revoked403; no retry |
+| Busy localhost | Early port check before any hosted activation; occupied-port CLI regression leaves ledger untouched |
+| Exact UAT quality | One actual Chrome request, BGE1 +Qwen1, correct revised/original dates and two source citations |
+| Privacy/provenance/clock | Existing affected offline admission, synthetic-only windows, authoritative clock, PII and revocation specialists PASS |
+
+Inventory: fixed budget-policy whitelist, preview policy routing, owner controller
+fixed profiles, one-time owner-uat-setup, Start/Stop --uat plus early port check;
+owner-flow tests/captured completion regression; current owner guide, architecture,
+STATUS, BUG_FIX_LOG and acceptance/plan cross-references. No changes to DO class,
+storage schema/migrations, retrieval architecture, Auth/Gradebook/RLS, dependencies,
+AGENTS, CI scope, merge or website deployment.
+
+### Free preflight and deployment
+
+Cloudflare connector used first. OAuth cannot read subscriptions (403, no Billing
+scope); no new billing permission requested. Dashboard Chrome confirmed Workers
+**Free/$0/Current plan**, Workers AI **33.13/10k neurons today** at preflight.
+Official [pricing](https://developers.cloudflare.com/workers-ai/platform/pricing/)
+states Free allocation10k/day and Paid required beyond Free. Conservative headroom
+9900 stored locally, receipt30min. No upgrade, credits, card, AI Gateway or paid API.
+Dashboard telemetry is account-level, not exact per-question attribution.
+
+Before any inference, live settings confirmed AI=false/access empty, AI/BUDGET
+bindings and namespace `a6b907897eef4f41a630b2920645e8c3`. Temporary authenticated
+status access kept AI=false, read old pilot once and restored original settings;
+bearer403 verified. Immutable old-ledger SHA256 unchanged:
+`d416ba759f74953cde3f2dfc92c39d2a3a1cc35bebe86e8e44275f8a9f080d1b`.
+
+UAT uses same Worker `khtn8-board-assistant-mvp`, same namespace/class/migration,
+fixed UAT identity, exact server synthetic corpus, memory-only raw bearer, hashed
+server access and<=15min expiry. No unrestricted endpoint, no Supabase/private data.
+Deploy receipts: disabled/status `3945f99a-8439-4d7e-a8a9-ab485327befa`, enabled QA
+`51441f67-056a-4c8a-a196-8edc1ea52552`, final disabled
+`05fe5539-13fa-411a-bd26-503474ac4980`. Disable/readback succeeded; expiry/hash/access
+cleared, old bearer403. New diagnostics are deployed with this version.
+
+### Actual Qwen result and quality
+
+Question, sent exactly once via real BoardAssistant consent/transport in installed
+Chrome at localhost4173: “Xưởng mô hình giấy diễn ra khi nào? Có thay đổi lịch không?”
+
+Actual response: “Xưởng mô hình giấy được điều chỉnh diễn ra vào ngày 22/11/2026 tại
+sân mô phỏng. Trước đó, hoạt động dự kiến diễn ra ngày 20/11/2026. Vật dụng cần mang
+vẫn là giấy tái chế và bút màu.” Citations: update and original notice, validated
+wire IDs mapped to native Board posts. No invented historical completion/reasoning.
+
+| Rubric | Observed disposition |
+| --- | --- |
+| Relevance/completeness | Answers when and whether changed; extra preparation detail supported |
+| Factual grounding | New22/11, old20/11, sân mô phỏng, paper/color pens match supplied sources |
+| Citations | Both update and original notice present, native opening update verified |
+| Temporal correctness | Explicitly marks old date as prior plan; no metadata/event confusion or invented year |
+| Vietnamese clarity | Natural, concise and understandable |
+| Abstention | NOT TESTED live in this one case; offline rejection/abstention retained |
+
+HTTP200 is accompanied by a useful fact-checked answer, not alone a quality PASS.
+Newly captured completion was additionally replayed offline against baseline8ed8c19
+temporal guard: rejects `revision`; corrected guard passes. This establishes the
+fix's relevance to the NEW completion, not the missing historical503 response.
+
+### Raw combined-operation ledger (UTC)
+
+| Time | Activity | Worker | DO | BGE | Qwen | Delta | Cumulative |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| carry | immutable incident | — | — | — | — |31|31|
+|15:53:49 start|old pilot status200:3/stopped/remaining0|1|1|0|0|2|33|
+|same preflight|revoked bearer403 after restore|1|0|0|0|1|34|
+|16:01 QA start|UAT status200:0/3, stopped=false|1|1|0|0|2|36|
+|16:02:23.598|exact question HTTP200|1|1 reserve|1|1|4|40|
+|16:04:01.918|final UAT status200:1/3, remaining2|1|1|0|0|2|42|
+|16:04:26.750|revoked bearer403 after disable|1|0|0|0|1|43|
+
+This task delta12 =Worker6 +DO4 +BGE1 +Qwen1; OPTIONS0, model retries0.
+UAT QA1/owner0 used; real DO count1, stopped=false, remaining2 verified. Remaining
+operations17/60. One owner Start +2 fresh questions +Stop costs<=13 => total<=56;
+do not consume margin on zero-inference Start/Stop rehearsals or model screenshots.
+Old pilot ledger is NOT changed to43: current combined ledger is separate
+`tests/local/owner-ai-uat/ledger.json`, carrying old31 +preflight3 exactly once.
+
+Control plane separate from this combined data-plane contract: connector batch4
+attempted reads (subscriptions403; other three results lost when batch rejected),
+one subsequent settingsGET200 and one independent final settingsGET200;
+authenticated local preflight4 REST actions
+(GET/PATCH/PATCH/GET); controller3 settingsGET and3 Wrangler deploy actions.
+Internal Wrangler/dashboard HTTP is not fully instrumented, so no exact total
+control-plane HTTP count is claimed. No subscription/billing mutation occurred.
+
+### Tests, browser and delivery limits
+
+62 affected offline fake-binding cases PASS in one batch; captured-completion
+addition made final UAT suite20/20 (63 unique affected cases across runs).10 finite
+local workerd/SQLite calls PASS.2 actual local CLI guards PASS: occupied port and
+exclusive repeated Setup. Initial sandbox workerd EACCES was a local environment
+failure; rerun with loopback permission passed, no hosted retry. check/build,
+production exclusions, scoped Prettier and diff checks PASS; no broad CRLF format,
+curated CI/stress/load rerun. Source changes after the hosted test are test/docs only.
+
+Actual Chrome desktop1536×720: hosted banner, consent, one send, answer/two citations,
+opening exact update source and query focus PASS.390×844: client/scroll widths375,
+no horizontal clipping; viewport reset. No extra model call for screenshots/open.
+Filter/cancel/error/revocation remain earlier scripted regressions, not re-run using
+owner quota. Opening a source clears panel context; no second QA question to recover
+it. Evidence new under ignored `tests/local/uat-retest/`: live-answer.png,
+live-mobile.png, free-plan.png, usage-before.png, status-receipt.json, offline.txt,
+captured-tests.txt, captured-replay.mjs; controller deploy logs/new ledger under
+owner-ai-uat. Raw prompts/model reasoning/bearers never written to Git/default logs.
+
+Automatic approval review rejected the first Stop lacking --uat; no command ran.
+Explicit --uat Stop was approved and completed disable/readback/revoked403. Normal
+Stop dispatches to the existing UAT session; recover also selects UAT explicitly.
+No remaining blocker from that rejection.
+
+[Owner commands](OWNER_AI_PREVIEW.md): Start `--hosted --uat`, Stop `--uat`,
+emergency disable `--recover --uat`. No owner inference or additional hosted
+Start/Stop rehearsal was performed, preserving two owner slots and enough operations.
+The common Start/Stop lifecycle is validated live by QA; owner role caps offline.
+Final state is disabled. READY is time-bound by Free receipt30min and unchanged
+allowance; expired/blocked/missing receipt must fail closed. No merge, no public
+website deployment. Real published-content provenance/privacy, broader AI quality,
+public admission/abuse/cost and production release remain separate gates.
+
+---
+
 ## Owner UAT incident — offline correction / 2026-10-29
 
 **Correction PASS offline; overall PARTIAL; failed owner hosted scenario FAILED;

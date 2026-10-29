@@ -1,5 +1,12 @@
 # Desktop correction/Gate C — 2026-10-29
 
+Current execution: [owner-approved UAT retest](V2_PILOT_ACCEPTANCE.md#owner-authorized-uat-retest--2026-10-29)
+PASS for the exact temporal question, BGE1/Qwen1, final disabled. Fixed UAT3
+(QA1/owner2), cumulative43/60, two owner slots remain. Immutable failed pilot31/40
+stays blocked/stopped. Start --hosted --uat /Stop --uat; Free proof30min applies.
+No merge, web deploy or real-content acceptance. Earlier pilot snapshots below
+are historical, not current allowances or owner-ready guarantees.
+
 Latest explicit pilot authority/result: [V2 pilot](V2_PILOT_ACCEPTANCE.md).
 One fixed identity5, same namespace/class, legacy unchanged;2 QA reservations,
 3 remaining,23/40 cumulative; owner hosted Start/Stop verified, final disabled.

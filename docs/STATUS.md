@@ -1,25 +1,21 @@
-# V2 owner UAT — correction PASS offline; overall PARTIAL / 2026-10-29
+# V2 UAT retest — PASS theo một mẫu thật / 2026-10-29
 
-Nhánh feature/ai-learning-assistant-v2-e2e, Draft PR21. Owner question về lịch Xưởng
-mô hình giấy trả503 sau BGE1/Qwen1 started. Không lưu stage/model output lịch sử:
-**ROOT CAUSE UNCONFIRMED**, không gọi owner scenario Hosted PASS. Baseline8ed8c19;
-owner commit phần source/tests thànhddd2a79, được giữ nguyên.
-Đã fast-forward các commit tới fb763e1, giữ correction env/tunnel của GitHub reviewer.
+Nhánh feature/ai-learning-assistant-v2-e2e, Draft PR21. Owner duyệt UAT identity
+`approved-synthetic-v2-owner-uat-v1`, cap3 (QA1/owner2), cumulative60 gồm34 đã dùng.
+Câu Xưởng mô hình giấy được replay đúng một lần trên Chrome: real BGE1/Qwen1,
+HTTP200; lịch mới22/11/2026, lịch cũ20/11/2026 và hai citations đúng, không bịa facts.
+62 affected offline tests +10 local workerd invocations +2 local CLI guards PASS;
+check/build/scoped format/diff PASS. Chrome source-open và390×844 không tràn ngang.
 
-Offline xác nhận validator từ chối câu đúng có “lịch đã được điều chỉnh”; đã sửa
-acknowledgement, giữ date/number/citation/security checks. Diagnostics safe stage/
-reason/reservation/failure-stop và controller receipt, bỏ log full answer/source
-mặc định.19 UAT +91 affected cases PASS; check/build/scoped format/diff PASS.
-Chrome SCRIPTED OFFLINE: exact question/citations/open/filter/error/cancel/revoke,
-viewport390×844 PASS; không suy thành real model hoặc thiết bị mobile thực.
-
-Ledger giữ nguyên **31/40**, qa2/owner1, blocked=true; bearer cũ403 có receipt.
-Không xác minh lại remote DO/Worker; không reset/deploy/re-enable/hosted calls.
-**NOT READY FOR OWNER LIVE TEST**. Retest thật hữu ích sau incident recovery và
-Free/allowance/deployment gates; không xóa ledger hoặc tự cấp quota để thử lại.
-[Pilot evidence/ledger](features/board-assistant/V2_PILOT_ACCEPTANCE.md),
-[Owner commands và cửa sổ preflight](features/board-assistant/OWNER_AI_PREVIEW.md).
-Giữ Draft PR21 target ai-learning-assistant. Các phần dưới là lịch sử.
+Ledger mới43/60, QA1/owner0; DO1/3 stopped=false, remaining2 verified. Worker cuối
+`05fe5539-13fa-411a-bd26-503474ac4980` disabled, expiry/hash/access rỗng; bearer403.
+Pilot cũ3/stopped/remaining0 verified; ledger31/40 blocked giữ nguyên SHA256.
+READY FOR OWNER LIVE TEST chỉ khi Free receipt30 phút còn hiệu lực và allowance
+không đổi; Start/Stop theo [owner guide](features/board-assistant/OWNER_AI_PREVIEW.md).
+[Ledger/rubric/giới hạn](features/board-assistant/V2_PILOT_ACCEPTANCE.md#owner-authorized-uat-retest--2026-10-29).
+Historical failure root cause vẫn UNCONFIRMED; không suy một retest PASS thành chất
+lượng tổng quát, real-content/production PASS. Không merge, web deploy, Supabase,
+PII hoặc paid change. Các phần dưới là lịch sử.
 
 ---
 
