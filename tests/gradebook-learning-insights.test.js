@@ -7,6 +7,7 @@ import {
 } from '../src/utils/gradebook-learning-insights.js';
 import { fixtureContext } from './student-gradeboard-data.js';
 import { subjectLearningFeedback } from '../src/utils/gradebook-learning-feedback.js';
+import { weightedComparisonPlan, compareWeightedClass, weightedClassFeedback } from '../src/utils/gradebook-learning-comparison.js';
 
 const catalog = fixtureContext();
 const sample = (subject, column, rawScore) => ({
@@ -166,4 +167,65 @@ test('selected-subject feedback does not leak identities and rejects malformed p
   assert.doesNotMatch(JSON.stringify(feedback), /studentId|birthDate|CCCD/);
   assert.throws(() => subjectLearningFeedback({ ...profile, samples: 4 }));
   assert.throws(() => subjectLearningFeedback({ ...profile, trend: 'rising' }));
+});
+
+/** Synthetic class counts use the accepted 101 buckets, never peer score lists. */
+const classHistogram = (column, score, count = 20) => ({
+  semester: 1,
+  subjectCode: catalog.subjects[0].code,
+  columnCode: column.columnCode,
+  grouping: 'display_tenth_half_up',
+  buckets: Array.from({ length: 101 }, (_, index) => ({
+    scoreBucket: `${Math.floor(index / 10)}.${index % 10}`,
+    studentCount: index === score * 10 ? count : 0,
+  })),
+});
+
+test('weighted Gradebook reference: 4 TX x1, 1 tiết/GK x2, CK x3 divided by 11', () => {
+  const rows = [5, 6, 7, 8, 8, 9, 10].map((score, index) => sample(0, index, String(score)));
+  const plan = weightedComparisonPlan(rows, catalog, catalog.subjects[0].code);
+  const expected = (5 + 6 + 7 + 8 + 2 * 8 + 2 * 9 + 3 * 10) / 11;
+  assert.equal(plan.weightSum, 11);
+  assert.ok(Math.abs(plan.ownAverage - expected) < 1e-12);
+  assert.equal(plan.columns.length, 7);
+  const result = compareWeightedClass(plan, plan.columns.map((col) => classHistogram(col, 7)), 1);
+  assert.equal(result.status, 'ready');
+  assert.equal(result.classLabel, '7.0');
+  assert.equal(result.relation, 'above');
+  assert.equal(result.incomplete, false);
+});
+
+test('weighted reference excludes missing columns, includes exact zero, and compares matching subset', () => {
+  const plan = weightedComparisonPlan([sample(0, 0, '0'), sample(0, 6, '10')], catalog, catalog.subjects[0].code);
+  assert.equal(plan.weightSum, 4);
+  assert.equal(plan.ownAverage, 7.5);
+  const summary = compareWeightedClass(plan, [classHistogram(plan.columns[0], 5), classHistogram(plan.columns[1], 5)], 1);
+  assert.equal(summary.classLabel, '5.0');
+  assert.equal(summary.usedColumns, 2);
+  assert.equal(summary.incomplete, true);
+  assert.match(weightedClassFeedback(summary), /cao hơn/);
+  const empty = weightedComparisonPlan([], catalog, catalog.subjects[0].code);
+  assert.deepEqual(compareWeightedClass(empty, [], 1), { status: 'no-scores' });
+});
+
+test('class comparison requires ten aggregated students per selected column and never assigns top rank', () => {
+  const plan = weightedComparisonPlan([sample(0, 0, '4')], catalog, catalog.subjects[0].code);
+  assert.deepEqual(compareWeightedClass(plan, [classHistogram(plan.columns[0], 5, 9)], 1), { status: 'insufficient-class' });
+  assert.match(weightedClassFeedback({ status: 'insufficient-class' }), /Chưa có đủ/);
+  const equal = compareWeightedClass(plan, [classHistogram(plan.columns[0], 4)], 1);
+  assert.equal(equal.relation, 'similar');
+  assert.doesNotMatch(weightedClassFeedback(equal), /top|xếp hạng|hạng nhất/i);
+});
+
+test('class comparison fails closed on wrong scope, peer data and malformed buckets', () => {
+  const plan = weightedComparisonPlan([sample(0, 0, '8')], catalog, catalog.subjects[0].code);
+  const valid = classHistogram(plan.columns[0], 8);
+  for (const payload of [
+    { ...valid, semester: 2 },
+    { ...valid, subjectCode: 'wrong' },
+    { ...valid, studentId: 'private' },
+    { ...valid, buckets: valid.buckets.slice(1) },
+  ]) assert.throws(() => compareWeightedClass(plan, [payload], 1));
+  assert.throws(() => weightedComparisonPlan([{ ...sample(0, 0, '8'), fullName: 'Private' }], catalog, catalog.subjects[0].code));
+  assert.throws(() => compareWeightedClass(plan, [], 1));
 });
