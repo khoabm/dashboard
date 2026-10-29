@@ -1552,3 +1552,14 @@ test('correct pair response is explicitly unwrapped without leaking limiter fiel
   assert.equal(Object.hasOwn(result.body, 'allowed'), false);
   assert.equal(Object.hasOwn(result.body, 'pair'), false);
 });
+
+test('transitional release accepts old direct pair/null before migration', async () => {
+  const pair = { classId: cid, studentId: sid, classEpoch: '2', studentEpoch: '3', class: clazz };
+  const good = fixture('student', { gb_pair_check: pair });
+  const ok = await good.send({ op: 'verify', documentNumber: digits, birthDate: dob });
+  assert.equal(ok.status, 200);
+  const bad = fixture('student', { gb_pair_check: null });
+  const denied = await bad.send({ op: 'verify', documentNumber: digits, birthDate: dob });
+  assert.equal(denied.status, 401);
+  assert.equal(denied.body.error.code, 'verification');
+});
