@@ -19,7 +19,7 @@ Base: `ai-learning-assistant` at `34ce44eaf4109f2d0b943b4920b8b25b9df75e07`.
 UI only: no changes to retrieval ranking, Cloudflare Worker, hosted activation, source quote validation,
 authorization, Supabase, Gradebook, data persistence or pricing. The current public snapshot still
 owns all content. The source-derived excerpt cards must never suggest that PDF/image/video bytes
-were inspected. The avatar is the owner-supplied PNG stored unchanged; checksum SHA-256 `927cdd151837d4b1497a812402f3b020058382e5a2569812736af6d977c28656`. CSS only scales its rendering.
+were inspected. The original cropped avatar was replaced by an approved robot illustration from the UI design preview. The image is a 96×96 circular PNG with SHA-256 `be5c939488dd6cec8e010c769ff255b14849d4e139e43ac38311f0a0ad14166d`. It is not the 51×61 user screenshot.
 
 ## Verification matrix
 
@@ -43,7 +43,7 @@ MVP synthetic browser evidence as fresh UI acceptance for this branch.
 
 - `src/components/board-assistant.js` — chatbot structure and UI interactions.
 - `src/styles/board-assistant.css` — floating launcher, desktop panel, chat bubbles and mobile layout.
-- `public/placeholders/assistant-avatar.png` — original owner-supplied 51×61 RGBA avatar (byte-for-byte).
+- `public/placeholders/assistant-avatar.png` — optimized 96×96 avatar derived from the approved illustration.
 
 Keep the existing Worker and transport policy unchanged. No hosted test, deploy or merge is
 authorized by this change.
@@ -52,9 +52,19 @@ authorized by this change.
 
 - Branch was created from the exact accepted AI MVP HEAD; original parent branch is unchanged.
 - Source edits and the owner-supplied PNG are committed directly on the feature branch.
-- PNG original SHA-256: `927cdd151837d4b1497a812402f3b020058382e5a2569812736af6d977c28656`; exact byte content matches remote Git blob SHA-1 `afce1bad81a99ddc5d83c891912131f3748e547b`. Native size 51×61 px.
+- Earlier original-cropped-image evidence is superseded by the approved 96×96 design-avatar replacement above.
 - Source static review: component parses in V8 after stripping module import/export declarations, CSS delimiter balance 0, fixed launcher, mobile fullscreen, existing cancellation and read-only source callbacks present. This is not the app build or runtime integration test.
 - CI statuses on inspected commit: none. Node unit tests, Prettier and Vite build **NOT RUN** in the available GitHub-only workspace (no checked-out npm installation).
 - Real browser interaction/responsive/accessibility QA **NOT RUN**. Consequently visual E2E acceptance is **PARTIAL**, not PASS; earlier MVP synthetic browser results predate this new UI.
 - Hosted Worker/Supabase requests: **0**. No deploy, merge, schema/API/Worker edits or new test fixtures committed.
 - Next acceptance: run scoped code format/check/build and an offline synthetic Chrome keyboard + 360/390/768/1024/1440/short-height matrix without hosted traffic; correct observed issues before final PASS.
+
+## Follow-up — toolbar and avatar refinement (2026-10-29)
+
+- **Focused UI implementation:** circular avatar replaces rectangular screenshot crop; the floating launcher integrates a round badge with the green pill instead of a separate square background.
+- Three responsive shortcut cards with inline SVG icons and descriptive labels: **Cuộc trò chuyện mới** (resets memory-only chat), **Bộ lọc trang** (existing read-only reset) and **Gợi ý chủ đề** (focuses published-topic suggestions). No new packages.
+- Suggestions now use distinct `sectionTitle` entries from the published-only assistant catalog, up to three; clicking fills the editor but does not send a request. This replaces the previous first-three-post-titles behavior.
+- Existing chat transcript, exact citation source cards, cloud opt-in, cancellation and route cleanup remain unchanged except the avatar and toolbar presentation.
+- Static JavaScript parse in V8 after removing module declarations **PASS**, CSS bracket-balance **PASS**, source-focused control/invariant checks **PASS**. This is *not* browser E2E or npm build verification.
+- New Chrome browser viewport/keyboard QA, npm/Prettier/production build and exact-SHA CI: **NOT RUN** in this GitHub editing session. No authorization to call hosted Worker/Supabase; requests **0**. UI/E2E gate remains **PARTIAL**, not PASS.
+- Changes are committed on the UI feature branch only. PRs are requested in sequence; no merge/deploy is authorized.
