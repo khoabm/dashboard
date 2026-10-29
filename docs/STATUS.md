@@ -1,6 +1,10 @@
-# G07-3 — Synthetic offline tooling accepted / 2026-10-28
+# Cloudflare deployed / Gradebook acceptance partial — 2026-10-28
 
-`develop` starting HEAD `8cbe298` (PR #5 merged at `6a0daf3`). Staged production exporter/authenticator/verifier implemented: actual age1.3.2 + local PG17.11 source snapshot/archive decode, 36 core cases +4 final focused cases PASS; actual restore NOT RUN. [Contract, exact commands, failed attempts, limits and finite G07-4 handoff](features/personal-gradebook/G07_PRODUCTION_TOOLING.md). Build/exclusion PASS; no runtime/frontend/migration/dependency/CI-policy changes. **G07 Technical PASS retained; G07 Operational/Overall PARTIAL; G07-4 NOT STARTED; G08 BLOCKED; deployment NOT RUN.** A–F and accepted owner Drive PASS retained, no repeated Drive/UI/recovery suite. Production secure key acquisition, paper/replacement-device custody, independently authorized isolated restore and managed-service evidence remain open. Hosted Supabase/Drive requests0; no production keys/PII/rotation/main merge/deploy. The dated records below are historical.
+**DEPLOYED:** [student-dashboard](https://student-dashboard-bcy.pages.dev), GitHub main `cda0ad8cdcbd6bfc3b9803ed25f082f9c270c8bc`, owner-authorized PR13 merge; [post-merge CI40719153983](https://github.com/khoabm/dashboard/actions/runs/40719153983) SUCCESS. Cloudflare production main auto-deploy ON, preview branches OFF; Node24, npm run build → dist, Gradebook build flag true. Exact Supabase production origin saved/verified; crypto keys unchanged. Both temporary khtn8 projects deleted with owner approval.
+
+[Canonical deployment, cleanup receipt, bounded smoke and limitations](CLOUDFLARE_RELEASE_20261028.md). Only5 synthetic scores/2 students/1 test class removed; Board/Auth/admin/catalog/audit/limiter/keyrings not cleanup targets. Fresh CORS/unauthenticated smoke4/4 PASS in separately approved activity after initial transport stop; no retry. **Production student-route browser/deep-link QA PASS after the approval-review limit reset:** one load + one reload and menu open/close, no input or submit. Valid admin/student/import/publish/chart UAT NOT RUN. Full managed recovery DEFERRED; no product-done or real-data acceptance claim.
+
+2 successful SQL calls,1 origin replacement, API1 stopped attempt +4 completed requests; UI control-plane/owner traffic totals UNKNOWN. No real import, new migration/Edge code deploy/key rotation or paid resources. This follow-up changes docs only; deployed main remains unchanged. Earlier snapshots below retain historical context.
 
 ---
 
