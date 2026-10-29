@@ -1538,9 +1538,10 @@ test('failed-pair RPC decision denies after ten failures with 429 and Retry-Afte
   assert.equal(result.status, 429);
   assert.equal(result.body.error.code, 'limited');
   assert.equal(result.headers.get('retry-after'), '42');
-  assert.deepEqual(f.calls.map(({ name }) => name), [
-    'gb_lookup_context', 'gb_limit', 'gb_pair_check',
-  ]);
+  assert.deepEqual(
+    f.calls.map(({ name }) => name),
+    ['gb_lookup_context', 'gb_limit', 'gb_pair_check'],
+  );
 });
 
 test('correct pair response is explicitly unwrapped without leaking limiter fields', async () => {
