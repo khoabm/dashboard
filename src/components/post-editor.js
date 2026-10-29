@@ -1,7 +1,7 @@
 /** Builds the post editor, validates attachments, and preserves recoverable local drafts. */
 
 import { newId } from '../utils/id.js';
-import { el, button, field, errorMessage } from '../utils/dom.js';
+import { el, button, field, errorMessage, restrictNumericInput } from '../utils/dom.js';
 import {
   safeUrl,
   youtubeId,
@@ -285,7 +285,7 @@ export async function PostEditorDrawer({
       el('option', { value: s.id, selected: s.id === model.section_id }, s.title),
     ),
   );
-  const order = el('input', { type: 'number', step: 1, required: true, value: model.sort_order });
+  const order = restrictNumericInput(el('input', { type: 'number', step: 1, required: true, value: model.sort_order }));
   const status = el(
     'select',
     {},
