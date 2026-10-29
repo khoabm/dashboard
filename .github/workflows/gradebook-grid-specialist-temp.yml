@@ -1,4 +1,4 @@
-name: Temporary Gradebook Grid Specialist Recheck
+name: Temporary Gradebook Grid Specialist Final
 on:
   push:
     branches: [feature/gradebook-bulk-grid-20261029]
