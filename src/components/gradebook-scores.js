@@ -1,5 +1,5 @@
 /** Renders CP04 teacher scores/import/publication with injected adapters and memory-only ownership. */
-import { el, button, field } from '../utils/dom.js';
+import { el, button, field, restrictNumericInput } from '../utils/dom.js';
 import { openDialog, ConfirmDialog } from './primitives.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
 import {
@@ -345,7 +345,7 @@ export function GradebookScores({
       selectedSubject = catalog.subjects.find((s) => s.code === subject);
     const published = currentClass[`semester${semester}Published`];
     const entry = dialog('Chỉnh sửa điểm');
-    const input = el('input', {
+    const input = restrictNumericInput(el('input', {
       type: 'text',
       inputmode: 'decimal',
       autocomplete: 'off',
@@ -353,7 +353,7 @@ export function GradebookScores({
       value: existing?.rawScore ?? '',
       required: true,
       'aria-label': 'Điểm gốc',
-    });
+    }), { decimal: true });
     const ack = el('input', { type: 'checkbox' }),
       error = el('p', { role: 'alert', class: 'form-error' });
     const save = el('button', { type: 'submit', class: 'button primary' }, 'Lưu điểm');
@@ -1028,6 +1028,7 @@ export function GradebookScores({
               }
               input.setAttribute('aria-invalid', String(!valid));
             };
+            restrictNumericInput(input, { decimal: true });
             input.classList.toggle('grid-score-dirty', gridPending.has(key));
             input.addEventListener('focus', () => {
               selectedGridCell = { student, column };
