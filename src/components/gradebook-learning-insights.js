@@ -1,9 +1,7 @@
 /** A collapsible, session-only student learning insights view with an accessible SVG trend chart. */
 import { el, button } from '../utils/dom.js';
-import {
-  analyzeLearningInsights,
-  learningInsightRemark,
-} from '../utils/gradebook-learning-insights.js';
+import { analyzeLearningInsights } from '../utils/gradebook-learning-insights.js';
+import { subjectLearningFeedback } from '../utils/gradebook-learning-feedback.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const trendLabels = {
@@ -154,6 +152,7 @@ function scoreChart(profile) {
 /** Builds one personal subject detail without requesting more grades or class peer data. */
 function subjectDetail(profile) {
   const hasEnough = profile.trend !== 'insufficient';
+  const feedback = subjectLearningFeedback(profile);
   return el(
     'section',
     { class: 'learning-detail', 'aria-label': `Chi tiết môn ${profile.name}` },
@@ -181,7 +180,7 @@ function subjectDetail(profile) {
         ? 'Đường nối chỉ thể hiện các lần Thường xuyên liền kề có điểm; chưa có đủ thông tin thời gian để suy ra tốc độ tiến bộ.'
         : 'Cần tối thiểu ba điểm Thường xuyên để xác định xu hướng. Mốc chưa có điểm không được nối hoặc ước lượng.',
     ),
-    el('h5', {}, 'Những cột điểm còn lại'),
+    el('h5', {}, 'Các lần kiểm tra khác'),
     el(
       'div',
       { class: 'learning-other-grid' },
@@ -212,7 +211,7 @@ function subjectDetail(profile) {
  */
 export function LearningInsights(scores, catalog) {
   const summary = analyzeLearningInsights(scores, catalog);
-  const root = el('section', { class: 'learning-insights', 'aria-label': 'AI Learning Insights' });
+  const root = el('section', { class: 'learning-insights', 'aria-label': 'Góc nhìn học tập' });
   const titleId = 'student-learning-insights-heading';
   const detailsId = 'student-learning-insights-content';
   const toggle = button('', () => setExpanded(!expanded), 'learning-insights-toggle', {
@@ -228,14 +227,14 @@ export function LearningInsights(scores, catalog) {
     el(
       'span',
       { class: 'learning-insights-subtitle' },
-      'Thống kê từ điểm của bạn · Chưa dùng AI tạo sinh',
+      'Cùng nhìn lại điểm số và tìm cách học phù hợp',
     ),
   );
   toggle.append(heading, el('span', { class: 'learning-chevron' }, icon('chevron')));
   const stats = [
-    { iconName: 'scores', label: 'Ô đã có điểm', value: `${summary.recorded}/${summary.slots}` },
-    { iconName: 'chart', label: 'Môn đủ dữ liệu', value: `${summary.analyzed}/8` },
-    { iconName: 'rising', label: 'Môn có xu hướng tăng', value: String(summary.rising) },
+    { iconName: 'scores', label: 'Điểm đã được ghi nhận', value: `${summary.recorded}/${summary.slots}` },
+    { iconName: 'chart', label: 'Môn có thể xem xu hướng', value: `${summary.analyzed}/8` },
+    { iconName: 'rising', label: 'Môn đang tiến bộ', value: String(summary.rising) },
   ];
   const statGrid = el(
     'div',
@@ -255,6 +254,9 @@ export function LearningInsights(scores, catalog) {
     'aria-label': 'Chọn môn học để xem chi tiết',
   });
   const detail = el('div', { class: 'learning-detail-slot', 'aria-live': 'off' });
+  const feedbackHeading = el('h4', { class: 'learning-feedback-heading' });
+  const feedbackObservation = el('p', { class: 'learning-feedback-observation' });
+  const feedbackAdvice = el('p', { class: 'learning-feedback-advice' });
   let activeSubject = summary.profiles[0].subjectCode;
   const selectSubject = (code) => {
     activeSubject = code;
@@ -262,6 +264,10 @@ export function LearningInsights(scores, catalog) {
     for (const item of profileGrid.children)
       item.setAttribute('aria-pressed', String(item.dataset.subject === code));
     detail.replaceChildren(subjectDetail(profile));
+    const feedback = subjectLearningFeedback(profile);
+    feedbackHeading.textContent = feedback.heading;
+    feedbackObservation.textContent = feedback.observation;
+    feedbackAdvice.textContent = feedback.advice;
   };
   for (const profile of summary.profiles) {
     const subjectButton = button(
@@ -284,7 +290,7 @@ export function LearningInsights(scores, catalog) {
       el(
         'span',
         { class: 'learning-subject-median' },
-        'Trung vị TX',
+        'Điểm giữa các lần',
         el('strong', {}, profile.medianLabel),
       ),
       el(
@@ -300,14 +306,20 @@ export function LearningInsights(scores, catalog) {
     'div',
     { class: 'learning-insights-body' },
     statGrid,
-    el('p', { class: 'learning-section-title' }, 'Xem theo môn học'),
+    el('p', { class: 'learning-section-title' }, 'Bạn muốn xem môn nào?'),
     profileGrid,
     detail,
-    el('p', { class: 'learning-remark' }, icon('sparkle'), learningInsightRemark(summary)),
+    el(
+      'section',
+      { class: 'learning-feedback-panel', 'aria-label': 'Nhận xét và gợi ý cho môn đã chọn' },
+      el('div', { class: 'learning-feedback-title' }, icon('sparkle'), feedbackHeading),
+      feedbackObservation,
+      el('div', { class: 'learning-feedback-tip' }, el('strong', {}, 'Bạn có thể thử'), feedbackAdvice),
+    ),
     el(
       'p',
       { class: 'learning-disclaimer' },
-      'Nhận xét dựa trên tối thiểu 3/4 cột Thường xuyên, dùng ước lượng xu hướng trung vị cặp điểm (Theil–Sen) và ngưỡng ±0,25 điểm/mốc. Không dự đoán điểm, xếp loại hay đưa ra đánh giá năng lực.',
+      'Góc nhìn này chỉ dựa trên điểm Thường xuyên đã có, không đánh giá năng lực hay dự đoán kết quả. Hãy trao đổi với giáo viên nếu bạn cần hỗ trợ thêm.',
     ),
   );
   const animation = el(
