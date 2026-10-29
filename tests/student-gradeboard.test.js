@@ -642,7 +642,7 @@ test('Learning Insights: bounded robust slope is not dominated by a single spike
       { index: 2, value: 6 },
       { index: 3, value: 10 },
     ]),
-    1.5,
+    2,
   );
   assert.throws(() => robustScoreSlope([{ index: 0, value: 4 }]));
   assert.throws(() => robustScoreSlope([{ index: 1, value: 2 }, { index: 0, value: 3 }, { index: 2, value: 4 }]));
