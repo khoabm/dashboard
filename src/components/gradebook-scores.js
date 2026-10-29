@@ -238,6 +238,7 @@ export function GradebookScores({
         panel.inert = false;
         for (const d of dialogs) d.content.inert = false;
         pending();
+        updateGridActions();
       }
     }
   }
@@ -467,7 +468,9 @@ export function GradebookScores({
     const info = panel.querySelector('[data-grid-count]');
     if (info) info.textContent = count ? `${count} ô chưa lưu` : 'Mọi thay đổi đã lưu';
     for (const action of panel.querySelectorAll('[data-grid-exclusive]'))
-      action.disabled = count > 0 || busy;
+      action.disabled = count > 0 || busy ||
+        (action.getAttribute('data-grid-exclusive') === 'upload' &&
+          currentClass[`semester${semester}Published`]);
     const remove = panel.querySelector('[data-grid-remove]');
     if (remove) remove.disabled = count > 0 || busy || !selectedGridCell;
     const save = panel.querySelector('[data-grid-save]');
@@ -803,7 +806,7 @@ export function GradebookScores({
     }
     const published = currentClass[`semester${semester}Published`];
     const upload = button('Nhập CSV/XLSX điểm', importScores, 'button', {
-      'data-grid-exclusive': '',
+      'data-grid-exclusive': 'upload',
     });
     upload.disabled = published || gridPending.size > 0;
     const subjectSelect = el(
@@ -863,7 +866,7 @@ export function GradebookScores({
         pupil,
         upload,
         button(published ? 'Tạm ẩn học kỳ' : 'Công bố học kỳ', publication, 'button', {
-          'data-grid-exclusive': '',
+          'data-grid-exclusive': 'publication',
           disabled: gridPending.size > 0,
         }),
         button('Tải lại điểm', reload),
