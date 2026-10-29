@@ -81,7 +81,7 @@ export async function executeStudent(body, request, context) {
     );
     checkpoint();
     await charge(backend, false, lookup);
-    const pair = await backend.rpc(
+    const decision = await backend.rpc(
       'gb_pair_check',
       {
         cid: active.classId,
@@ -91,6 +91,19 @@ export async function executeStudent(body, request, context) {
       },
       true,
     );
+    checked(() =>
+      requireContract(
+        typeof decision?.allowed === 'boolean' &&
+          Number.isInteger(decision.retryAfter) &&
+          decision.retryAfter >= 0 &&
+          decision.retryAfter <= 900 &&
+          Object.hasOwn(decision, 'pair'),
+        'limiter',
+      ),
+    );
+    if (!decision.allowed)
+      throw new Failure(429, 'limited', null, Math.max(1, decision.retryAfter));
+    const pair = decision.pair;
     if (!pair) throw new Failure(401, 'verification');
     checked(() => {
       requireContract(
