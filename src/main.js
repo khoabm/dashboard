@@ -2,7 +2,7 @@
 
 import './styles/main.css';
 import { el, button, errorMessage } from './utils/dom.js';
-import { debounce, canRestore, moveItem, matches } from './utils/validation.js';
+import { debounce, canRestore, moveItem } from './utils/validation.js';
 import { client } from './services/client.js';
 import { loadBoard, savePost, exportMetadata, reorderPosts } from './services/board.js';
 import { verifyAdminSession } from './services/auth-session.js';
@@ -62,8 +62,11 @@ try {
   /* Preferences are optional. */
 }
 // The header search debounces board filtering and attempts to persist the query locally.
+let assistantIds = null;
 const search = SearchBar(
   debounce((value) => {
+    if (search.querySelector('input').value !== value) return;
+    assistantIds = null;
     query = value;
     try {
       localStorage.setItem('khtn8:query', query);
@@ -204,23 +207,18 @@ function performAssistantAction(value) {
     );
     return true;
   }
-  if (action.type === 'topic') {
-    selected = action.id;
-    query = '';
-  } else if (action.type === 'filter') {
-    selected = 'all';
-    query = action.query;
-    // Mobile displays one column: reveal the first actual match instead of an unrelated default.
-    if (matchMedia('(max-width:700px)').matches) {
-      const match = data.posts.find((post) => {
-        const section = data.sections.find((item) => item.id === post.section_id);
-        return post.status === 'published' && section && matches(post, section, query);
-      });
-      selected = match?.section_id || 'all';
-    }
-  } else {
-    selected = 'all';
-    query = '';
+  // Assistant navigation is temporary; never retain a question or resurrect older filters.
+  assistantIds = action.type === 'filter' ? action.ids : null;
+  selected = action.type === 'topic' ? action.id : 'all';
+  query = '';
+  try {
+    localStorage.removeItem('khtn8:query');
+    localStorage.removeItem('khtn8:selected');
+  } catch {}
+  if (assistantIds && matchMedia('(max-width:700px)').matches) {
+    selected =
+      data.posts.find((post) => assistantIds.includes(post.id) && post.status === 'published')
+        ?.section_id || 'all';
   }
   filter = 'all';
   search.querySelector('input').value = query;
@@ -243,6 +241,11 @@ function renderControls() {
    * @param {string} id - The selected section identifier.
    */
   const select = (id) => {
+    if (assistantIds !== null) {
+      assistantIds = null;
+      query = '';
+      search.querySelector('input').value = '';
+    }
     selected = id;
     try {
       localStorage.setItem('khtn8:selected', id);
@@ -321,7 +324,24 @@ function actions() {
  */
 function renderBoard({ resetPosition = false } = {}) {
   const position = resetPosition ? null : navigation.capture();
-  const board = BoardContainer(data, actions());
+  const visibleData =
+    assistantIds === null
+      ? data
+      : {
+          ...data,
+          posts: data.posts.filter(
+            (post) => post.status === 'published' && assistantIds.includes(post.id),
+          ),
+        };
+  const board = BoardContainer(visibleData, actions());
+  if (assistantIds !== null)
+    board.prepend(
+      el(
+        'p',
+        { role: 'status' },
+        'Đang lọc theo nguồn trợ lý đã chọn. Dùng tìm kiếm hoặc chọn chủ đề để bỏ bộ lọc.',
+      ),
+    );
   boardRegion.replaceChildren(board);
   navigation.attach(board, { all: selected === 'all', position });
   updatePendingUI();

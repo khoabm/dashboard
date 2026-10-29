@@ -436,3 +436,20 @@ Baseline `13292a3c37c3a1c237c584fd0251db992596ba06`, branch feature/personal-gra
 | GB-B3-REV-005 / P3 test compatibility | Broad B3 runner compared board snapshot before B3 against end-of-chain after intentional board hotfix | tests/gradebook-b3-sql.mjs compares immediately before/after original B3 only; later correction changes Gradebook bodies, not board. Tighten stale code predicates to PT409 | FIXED source; targeted syntax/format/static review only, full B3 runner NOT RUN. Focused runner proves corrected chain and unchanged board conflict definitions |
 
 Testing policy GB-OPS-REV-003 already RESOLVED in13292a3, unchanged. One focused SQL run on existing PGlite0.5.11/PostgreSQL18.6 with synthetic fixture; one DOM test run. No new dependency/runtime, full suite/build, stress/load/soak/stretch, hosted RPC/log/metadata/DDL, deploy, merge/rebase or B4. Hosted requests0 / migration applyNO. Native17/multi-connection/hosted security and real-data gate NOT RUN. The original custom40001 text remains in immutable history; final corrected function bodies contain none. Exact behavior against PostgREST is not claimed from PGlite.
+
+## 2026-10-29 — AI-UI-001–006 / F01–F06
+
+Baseline ai-learning-assistant989ec35e552310f8131906782a6d3b70927a1366. AI-UI-001/P2:
+preview captured a removed source button; Chromium returned BODY focus. Synchronous assistant
+removal and launcher focus before callback correct the target; explicit modal boundary wrapping
+fixes observed Tab escape. AI-UI-002/P2: always-expanded mobile controls pushed composer beyond
+375px viewport; compact/collapsible CSS restores reachable composer and transcript scroll.
+AI-UI-003/P2: meaningful secondary copy10–11px; scoped13px copy,44px actions and visible focus.
+AI-UI-004/P2: captured disclosure survived cloud failure; live status and consent text now follow
+availability. AI-UI-005/P1: lexical results passed raw query to substring search; validated public
+source IDs now form a memory-only filter. AI-UI-006/P2: assistant state left stale persisted keys;
+clear query/topic on temporary actions, ignore stale input debounce and retain manual persistence.
+Files: component, stylesheet, main and assistant utils; pure tests updated. Chromium baseline/
+after and eight viewport tests, synthetic main persistence, cloud failure/cancel/revocation and
+offline131+19 checks PASS. Details/remaining gates: [execution record](features/board-assistant/UI_FIX_EXECPLAN.md).
+No Worker/Gradebook/Supabase/schema changes; hosted requests0. Live AI and native mobile NOT RUN.

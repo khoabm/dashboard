@@ -135,3 +135,22 @@ test('actions reject writes, JavaScript, missing IDs and revoked published statu
     null,
   );
 });
+
+test('source filters use validated IDs, never raw paraphrases, and fail closed after revocation', () => {
+  const catalog = assistantCatalog(assistantFixture);
+  for (const query of ['lực trong chất lỏng', 'khí tạo bọt']) {
+    const ids = localAssistantResults(query, catalog).map((source) => source.id);
+    assert.ok(ids.length);
+    assert.deepEqual(resolveAssistantAction({ type: 'filter', ids }, catalog), {
+      type: 'filter',
+      ids,
+    });
+  }
+  assert.deepEqual(resolveAssistantAction({ type: 'filter', ids: [] }, catalog), {
+    type: 'filter',
+    ids: [],
+  });
+  assert.equal(resolveAssistantAction({ type: 'filter', query: 'raw question' }, catalog), null);
+  assert.equal(resolveAssistantAction({ type: 'filter', ids: ['hidden'] }, catalog), null);
+  assert.equal(resolveAssistantAction({ type: 'filter', ids: ['gas'] }, catalog.slice(1)), null);
+});

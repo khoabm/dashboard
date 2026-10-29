@@ -43,14 +43,15 @@ function assistantToolIcon(kind) {
 
 /** Creates a labelled shortcut with a distinct accessible action and supporting description. */
 function assistantTool(label, detail, icon, callback) {
-  const control = button(
-    '',
-    callback,
-    'assistant-tool-card',
-    { 'aria-label': `${label} — ${detail}` },
-  );
+  const control = button('', callback, 'assistant-tool-card', {
+    'aria-label': `${label} — ${detail}`,
+  });
   control.append(
-    el('span', { class: `assistant-tool-icon assistant-tool-icon--${icon}` }, assistantToolIcon(icon)),
+    el(
+      'span',
+      { class: `assistant-tool-icon assistant-tool-icon--${icon}` },
+      assistantToolIcon(icon),
+    ),
     el(
       'span',
       { class: 'assistant-tool-copy' },
@@ -107,30 +108,17 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
       'aria-label': 'Đóng trợ lý học liệu',
       title: 'Đóng trợ lý',
     });
-    const clear = assistantTool(
-      'Cuộc trò chuyện mới',
-      'Bắt đầu lại',
-      'new',
-      () => {
-        invalidate();
-        open();
-      },
+    const clear = assistantTool('Cuộc trò chuyện mới', 'Bắt đầu lại', 'new', () => {
+      invalidate();
+      open();
+    });
+    const reset = assistantTool('Bộ lọc trang', 'Đặt lại bộ lọc', 'filter', () =>
+      act({ type: 'reset' }),
     );
-    const reset = assistantTool(
-      'Bộ lọc trang',
-      'Đặt lại bộ lọc',
-      'filter',
-      () => act({ type: 'reset' }),
-    );
-    const topicTool = assistantTool(
-      'Gợi ý chủ đề',
-      'Từ học liệu hiện có',
-      'topic',
-      () => {
-        suggestions.scrollIntoView({ block: 'nearest' });
-        suggestionRow.querySelector('button')?.focus({ preventScroll: true });
-      },
-    );
+    const topicTool = assistantTool('Gợi ý chủ đề', 'Từ học liệu hiện có', 'topic', () => {
+      suggestions.scrollIntoView({ block: 'nearest' });
+      suggestionRow.querySelector('button')?.focus({ preventScroll: true });
+    });
     const messages = el('div', {
       id: 'assistant-messages',
       class: 'assistant-messages',
@@ -211,13 +199,18 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
     topicTool.disabled = suggestions.hidden;
 
     // Desktop keeps nonessential tools available without taking space from the transcript.
-    const utilityToggle = button('Công cụ & chủ đề', () => {
-      const expanded = utilities.classList.toggle('assistant-utilities-expanded');
-      utilityToggle.setAttribute('aria-expanded', String(expanded));
-    }, 'assistant-utilities-toggle', {
-      'aria-controls': 'assistant-utilities-content',
-      'aria-expanded': 'false',
-    });
+    const utilityToggle = button(
+      'Công cụ & chủ đề',
+      () => {
+        const expanded = utilities.classList.toggle('assistant-utilities-expanded');
+        utilityToggle.setAttribute('aria-expanded', String(expanded));
+      },
+      'assistant-utilities-toggle',
+      {
+        'aria-controls': 'assistant-utilities-content',
+        'aria-expanded': 'false',
+      },
+    );
     utilityToggle.append(
       el('span', { class: 'assistant-utilities-hint' }, 'Mở thao tác và gợi ý'),
       el('span', { class: 'assistant-utilities-chevron', 'aria-hidden': 'true' }),
@@ -258,11 +251,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
           { class: 'assistant-heading-copy' },
           el('span', { class: 'assistant-kicker' }, 'TRỢ LÝ HỌC LIỆU'),
           title,
-          el(
-            'p',
-            { id: 'assistant-subtitle' },
-            'Tìm trong tiêu đề và mô tả học liệu đã xuất bản.',
-          ),
+          el('p', { id: 'assistant-subtitle' }, 'Tìm trong tiêu đề và mô tả học liệu đã xuất bản.'),
         ),
         close,
       ),
@@ -285,8 +274,40 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
         ),
       ),
     );
+    const disclosure = ownDialog.querySelector('#assistant-privacy');
+    disclosure.setAttribute('role', 'status');
+    /** Keeps privacy and availability text synchronized, including after failure. */
+    function updateCloudDisclosure() {
+      ownDialog.querySelector('.assistant-consent span').textContent = cloudAvailable
+        ? 'Dùng AI Cloudflare cho câu hỏi này'
+        : 'AI không khả dụng · Chỉ tìm từ khóa';
+      disclosure.textContent = cloudAvailable
+        ? 'AI là tùy chọn: khi bật, câu hỏi cùng tiêu đề/mô tả công khai được gửi đến Cloudflare. Không nhập thông tin cá nhân. Không đọc tệp hoặc bảng điểm.'
+        : hosted
+          ? 'AI không khả dụng cho kho học liệu này. Chỉ tìm từ khóa; không gửi đến Cloudflare.'
+          : 'AI đang tắt. Chỉ tìm từ khóa trên trang; không gửi đến Cloudflare, không đọc tệp hoặc bảng điểm.';
+    }
+    updateCloudDisclosure();
     dialog = ownDialog;
     document.body.append(ownDialog);
+    // Explicit boundary wrapping avoids Chromium's document-focus stop at modal edges.
+    ownDialog.addEventListener('keydown', (event) => {
+      if (event.key !== 'Tab') return;
+      const controls = [
+        ...ownDialog.querySelectorAll('button, input, textarea, [tabindex]'),
+      ].filter(
+        (control) => !control.disabled && control.tabIndex >= 0 && control.getClientRects().length,
+      );
+      const first = controls[0],
+        last = controls.at(-1);
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    });
     ownDialog.showModal();
     trigger.setAttribute('aria-expanded', 'true');
     input.focus();
@@ -339,8 +360,16 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
     /** Rechecks current published sources before any user-confirmed Board action. */
     function act(value) {
       const action = resolveAssistantAction(value, assistantCatalog(snapshot()));
-      if (!action || !perform(action)) {
-        error.textContent =
+      if (!action) {
+        error.textContent = 'Học liệu đã thay đổi. Hãy tìm lại.';
+        return;
+      }
+      // Remove the old focus owner before the preview captures its return target.
+      invalidate();
+      trigger.focus({ preventScroll: true });
+      if (!perform(action)) {
+        open();
+        dialog.querySelector('#assistant-error').textContent =
           'Học liệu đã thay đổi hoặc trang đang bận. Hãy đóng trợ lý và tải lại học liệu.';
         return;
       }
@@ -387,7 +416,11 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
             el(
               'div',
               { class: 'assistant-source-actions' },
-              button('Mở học liệu', () => checkedAct({ type: 'open', id: post.id }), 'button primary'),
+              button(
+                'Mở học liệu',
+                () => checkedAct({ type: 'open', id: post.id }),
+                'button primary',
+              ),
               button(
                 'Xem chủ đề',
                 () => checkedAct({ type: 'topic', id: post.sectionId }),
@@ -399,8 +432,14 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
       }
       content.append(
         button(
-          'Lọc trang theo câu hỏi',
-          () => act({ type: 'filter', query: question }),
+          'Lọc trang theo nguồn đã chọn',
+          () => {
+            if (JSON.stringify(assistantCatalog(snapshot())) !== fingerprint) {
+              invalidate();
+              return;
+            }
+            act({ type: 'filter', ids: result.sources.map((source) => source.id) });
+          },
           'button subtle assistant-filter-button',
         ),
       );
@@ -468,6 +507,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
         error.textContent =
           'AI chưa thể trả lời. Đã tắt AI trong phiên trang này; bạn có thể gửi lại để tìm bằng từ khóa.';
         hosted = false;
+        updateCloudDisclosure();
       } finally {
         if (ticket === generation && ownDialog.open) {
           controller = null;

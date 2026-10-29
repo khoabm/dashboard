@@ -80,8 +80,13 @@ export function validateAssistantSources(value, catalog) {
 /** Resolves only explicit read-only actions against a fresh public catalog. */
 export function resolveAssistantAction(action, catalog) {
   if (action?.type === 'reset') return { type: 'reset' };
-  if (action?.type === 'filter' && validAssistantQuery(action.query))
-    return { type: 'filter', query: action.query.trim() };
+  if (
+    action?.type === 'filter' &&
+    Array.isArray(action.ids) &&
+    action.ids.length <= 3 &&
+    action.ids.every((id) => catalog.some((post) => post.id === id))
+  )
+    return { type: 'filter', ids: [...new Set(action.ids)] };
   if (action?.type === 'open' && catalog.some((p) => p.id === action.id))
     return { type: 'open', id: action.id };
   if (action?.type === 'topic' && catalog.some((p) => p.sectionId === action.id))
