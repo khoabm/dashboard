@@ -212,7 +212,10 @@ test('website identity and public app guidance follow the documented routes with
   }
   const apps = websiteLearningAnswer('Vui học cùng cô Quỳnh có những ứng dụng gì?', catalog);
   assert.equal(apps.mode, 'deterministic');
-  assert.equal(learningIntent('Vui học cùng cô Quỳnh có những ứng dụng gì?', catalog).kind, 'applications');
+  assert.equal(
+    learningIntent('Vui học cùng cô Quỳnh có những ứng dụng gì?', catalog).kind,
+    'applications',
+  );
   for (const guide of Object.values(applicationGuides)) assert.ok(apps.answer.includes(guide.name));
 });
 
