@@ -243,8 +243,7 @@ export function createWeightedComparisonRead(read, changed) {
           // Reject invalid scope or private peer rows before issuing another request.
           const buckets = histogram(value, selection);
           const count = buckets.reduce((sum, bucket) => sum + bucket.studentCount, 0);
-          if (!Number.isSafeInteger(count) || count > 10000)
-            throw Error('Invalid aggregate size');
+          if (!Number.isSafeInteger(count) || count > 10000) throw Error('Invalid aggregate size');
           if (count < 10) {
             changed({ status: 'insufficient-class' });
             return;
