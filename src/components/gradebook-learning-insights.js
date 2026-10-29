@@ -232,7 +232,11 @@ export function LearningInsights(scores, catalog) {
   );
   toggle.append(heading, el('span', { class: 'learning-chevron' }, icon('chevron')));
   const stats = [
-    { iconName: 'scores', label: 'Điểm đã được ghi nhận', value: `${summary.recorded}/${summary.slots}` },
+    {
+      iconName: 'scores',
+      label: 'Điểm đã được ghi nhận',
+      value: `${summary.recorded}/${summary.slots}`,
+    },
     { iconName: 'chart', label: 'Môn có thể xem xu hướng', value: `${summary.analyzed}/8` },
     { iconName: 'rising', label: 'Môn đang tiến bộ', value: String(summary.rising) },
   ];
@@ -314,7 +318,12 @@ export function LearningInsights(scores, catalog) {
       { class: 'learning-feedback-panel', 'aria-label': 'Nhận xét và gợi ý cho môn đã chọn' },
       el('div', { class: 'learning-feedback-title' }, icon('sparkle'), feedbackHeading),
       feedbackObservation,
-      el('div', { class: 'learning-feedback-tip' }, el('strong', {}, 'Bạn có thể thử'), feedbackAdvice),
+      el(
+        'div',
+        { class: 'learning-feedback-tip' },
+        el('strong', {}, 'Bạn có thể thử'),
+        feedbackAdvice,
+      ),
     ),
     el(
       'p',

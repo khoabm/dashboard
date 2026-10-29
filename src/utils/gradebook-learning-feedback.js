@@ -50,7 +50,7 @@ export function subjectLearningFeedback(profile) {
       ? profile.median === null && profile.medianLabel === '—'
       : profile.median !== null && profile.medianLabel !== '—',
   );
-  check((observed.length < 3) === (profile.trend === 'insufficient'));
+  check(observed.length < 3 === (profile.trend === 'insufficient'));
 
   const heading = `Nhìn lại môn ${profile.name}`;
   if (observed.length === 0) {

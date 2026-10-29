@@ -124,9 +124,17 @@ test('learning insights: score summaries never include gradebook identities or p
 
 test('selected-subject advice follows its actual median and four-point trend', () => {
   const rows = [
-    sample(0, 0, '4'), sample(0, 1, '5'), sample(0, 2, '6'), sample(0, 3, '7'),
-    sample(1, 0, '9'), sample(1, 1, '7'), sample(1, 2, '5'), sample(1, 3, '3'),
-    sample(2, 0, '8'), sample(2, 1, '8'), sample(2, 2, '8'),
+    sample(0, 0, '4'),
+    sample(0, 1, '5'),
+    sample(0, 2, '6'),
+    sample(0, 3, '7'),
+    sample(1, 0, '9'),
+    sample(1, 1, '7'),
+    sample(1, 2, '5'),
+    sample(1, 3, '3'),
+    sample(2, 0, '8'),
+    sample(2, 1, '8'),
+    sample(2, 2, '8'),
   ];
   const report = analyzeLearningInsights(rows, catalog);
   const up = subjectLearningFeedback(report.profiles[0]);
