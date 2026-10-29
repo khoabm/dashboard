@@ -101,14 +101,18 @@ test('learning insights: score summaries never include gradebook identities or p
   const report = analyzeLearningInsights([sample(0, 0, '9')], catalog);
   assert.deepEqual(Object.keys(report).sort(), [
     'analyzed',
+    'falling',
     'profiles',
     'recorded',
     'rising',
     'slots',
   ]);
   assert.deepEqual(Object.keys(report.profiles[0]).sort(), [
+    'assessments',
     'median',
+    'medianLabel',
     'name',
+    'points',
     'samples',
     'subjectCode',
     'trend',
