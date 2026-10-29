@@ -26,7 +26,8 @@ export function StudentGradeboard({ context, read, onReset }) {
   let semester = context.class?.semester1Published ? 1 : 2,
     scores = [],
     disposed = false,
-    modal = null;
+    modal = null,
+    insightsGeneration = 0;
   const element = el('section', { class: 'student-gradeboard', 'aria-label': 'Bảng điểm của bạn' });
   const tabs = el('div', { class: 'student-semesters', role: 'tablist', 'aria-label': 'Học kỳ' });
   const panel = el('div', {
@@ -97,6 +98,7 @@ export function StudentGradeboard({ context, read, onReset }) {
     insightsRegion.replaceChildren();
     if (disposed) return;
     scores = [];
+    insightsGeneration++;
     panel.replaceChildren();
     panel.setAttribute('aria-busy', String(snapshot.status === 'loading'));
     if (snapshot.status !== 'ready') {
@@ -112,6 +114,21 @@ export function StudentGradeboard({ context, read, onReset }) {
     }
     scores = snapshot.value;
     insightsRegion.replaceChildren(StudentLearningInsights(scores, catalog));
+    // An already verified, published own-grade response drives session-only insights.
+    const insightHost = el('div', { class: 'learning-insights-host', 'aria-busy': 'true' });
+    panel.append(insightHost);
+    const insightTicket = ++insightsGeneration;
+    void import('./gradebook-learning-insights.js')
+      .then(({ LearningInsights }) => {
+        if (disposed || insightTicket !== insightsGeneration) return;
+        insightHost.setAttribute('aria-busy', 'false');
+        insightHost.replaceChildren(LearningInsights(scores, catalog));
+      })
+      .catch(() => {
+        if (disposed || insightTicket !== insightsGeneration) return;
+        insightHost.setAttribute('aria-busy', 'false');
+        insightHost.replaceChildren(el('p', { role: 'status' }, 'Chưa mở được phần góc nhìn học tập. Bảng điểm vẫn có thể sử dụng.'));
+      });
     const table = el(
       'table',
       { class: 'student-score-table' },
@@ -176,6 +193,7 @@ export function StudentGradeboard({ context, read, onReset }) {
     modal?.dispose();
     semester = value;
     scores = [];
+    insightsGeneration++;
     insightsRegion.replaceChildren();
     controls.forEach((control, index) => {
       control.setAttribute('aria-selected', String(index + 1 === semester));
