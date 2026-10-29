@@ -342,3 +342,15 @@ test('generator prompt has a hard byte cap and does not duplicate source bodies 
   const payload = JSON.parse(result.content.split('\n/no_think')[0]);
   assert.ok(payload.grounding.sources.every((p) => !('body' in p)));
 });
+
+test('oversized wire metadata is retained locally and explicitly partial, never silently truncated', () => {
+  const title = '🟢'.repeat(150) + ' quan trọng';
+  const c = publicAssistantCorpus({
+    publicCoverage: { complete: true },
+    sections: [{ id: 's', title: 'Topic' }],
+    posts: [{ id: 'p', section_id: 's', title, body: 'Văn bản', status: 'published' }],
+  });
+  assert.equal(c.posts[0].title, title);
+  assert.equal(c.coverage, 'partial');
+  assert.equal(retrievePublicContent('quan trọng', c, { now: frozenClock }).reason, 'limit');
+});

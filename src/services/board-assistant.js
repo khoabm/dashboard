@@ -141,8 +141,13 @@ export function createBoardAssistantRequest({
       posts: catalog,
       coverage: options.snapshotCoverage || 'unknown',
       invalid:
-        catalog.some((p) => typeof p.body !== 'string' || Array.from(p.body).length > 20000) ||
-        new Set(catalog.map((p) => p.id)).size !== catalog.length,
+        catalog.some(
+          (p) =>
+            typeof p.body !== 'string' ||
+            Array.from(p.body).length > 20000 ||
+            p.title.length > 200 ||
+            p.sectionTitle.length > 160,
+        ) || new Set(catalog.map((p) => p.id)).size !== catalog.length,
     };
     const context = validateLearningContext(options.context, catalog);
     const plan = retrievePublicContent(query, corpus, { context, now: options.now || new Date() });

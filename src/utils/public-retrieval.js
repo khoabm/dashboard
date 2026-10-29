@@ -35,16 +35,18 @@ export function publicAssistantCorpus(snapshot) {
     .map((p) => ({
       id: String(p.id),
       sectionId: String(p.section_id),
-      sectionTitle: String(sections.get(p.section_id)).slice(0, 160),
-      title: String(p.title || '').slice(0, 200),
+      sectionTitle: String(sections.get(p.section_id)),
+      title: String(p.title || ''),
       body: String(p.body || ''),
       createdAt: timestamp(p.created_at),
       updatedAt: timestamp(p.updated_at),
       hasAttachments: Array.isArray(p.attachments) && p.attachments.length > 0,
     }));
   const invalid =
-    posts.some((p) => Array.from(p.body).length > 20000) ||
-    new Set(posts.map((p) => p.id)).size !== posts.length;
+    posts.some(
+      (p) =>
+        Array.from(p.body).length > 20000 || p.title.length > 200 || p.sectionTitle.length > 160,
+    ) || new Set(posts.map((p) => p.id)).size !== posts.length;
   return {
     posts,
     coverage: invalid
