@@ -128,6 +128,7 @@ export function GradebookScores({
     catalogGate.cancel();
     busy = false;
     panel.inert = false;
+    lastOperation = null;
     pending();
     for (const d of dialogs) d.content.inert = false;
     if (uncertain) {
@@ -241,6 +242,7 @@ export function GradebookScores({
         busy = false;
         panel.inert = false;
         for (const d of dialogs) d.content.inert = false;
+        lastOperation = null;
         pending();
         updateGridActions();
       }
