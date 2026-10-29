@@ -60,7 +60,7 @@ Còn thiếu: ảnh wireframe quản trị để visual acceptance; tạo tài k
 - **GB-OPS-D01 / owner-approved:** only four unapplied Gradebook filenames follow actual MCP-assigned versions; exact SQL/guards and five applied Board ledger entries stay unchanged. Current mapping/evidence: [DATABASE](DATABASE.md#gradebook-migration-rollout-gate--gb-ops-rev-002). No general timestamp-renumbering or ledger-repair authority.
 - **GB-OPS-D02 / owner-approved synthetic scope:** four separate256-bit keyrings and local Windows DPAPI backup; origin allowlist is environment configuration, CP01-C localhost:4173 only. Origin changes do not rotate keys or mutate DB. DPAPI is not sufficient for real-data backup; independent recovery/production custody remains gated in [DATA §H](features/personal-gradebook/DATA_AND_SECURITY.md#h-real-personal-data-gate).
 
-## Chuẩn phạm vi sản phẩm web — chủ sở hữu, 2026-10-29
+## Tên website do chủ sở hữu xác nhận; mô hình ứng dụng đối chiếu từ source — 2026-10-29
 
 PRODUCT-D01 / **tên website được chủ sở hữu xác nhận**: **Vui học cùng cô Quỳnh**
 là tên toàn website; KHTN8 Board là tên lịch sử/kỹ thuật của **Bảng học liệu**,
