@@ -25,3 +25,10 @@ Sau mỗi phase cập nhật STATUS và bằng chứng; không chép roadmap th�
 ## Extension riêng — Personal Gradebook (offline implementation; backend gates pending)
 
 Module Bảng điểm cá nhân có [implementation checkpoints CP00–CP07](features/personal-gradebook/CHECKPOINTS.md) và [brief nghiệp vụ](features/personal-gradebook/BRIEF.md). CP02–CP05 đã OFFLINE ACCEPTED; CP06-A chuẩn bị tích hợp bằng projection/QA offline. CP01 backend vẫn là draft chưa triển khai; CP01-C và real-data gate NOT RUN. Trạng thái extension không có nghĩa Phase 0–6 hiện tại đã hoàn tất hoặc thay đổi thứ tự roadmap học liệu. Mọi migration và thao tác dữ liệu thật cần ủy quyền riêng.
+
+## Board Learning Assistant V2 — 2026-10-29
+
+Deterministic website knowledge, bounded source-grounded generation and memory-only follow-ups
+implemented on a dedicated branch; [acceptance and release blockers](features/board-assistant/V2_ACCEPTANCE.md).
+Offline/browser synthetic scope PASS; actual Qwen/provenance/public-release gates BLOCKED. No change
+to the main product phase, Gradebook gates or deployment authority.

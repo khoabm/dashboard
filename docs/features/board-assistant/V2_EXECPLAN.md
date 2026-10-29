@@ -67,3 +67,11 @@ Without credentials/quota/safe access evidence: hosted BLOCKED, zero calls, no a
 Final gates distinguish PASS/FAIL/PARTIAL/BLOCKED/NOT RUN. Source scope locally reviewable even when
 hosted and GitHub API access blocked. Use [CF-Pages-Skip], push without force, Draft target integration
 only; exact compare URL if API Forbidden. No permission checkpoint needed for authorized work.
+
+## Execution receipt
+
+CP01–05 implemented and validated offline; CP06 synthetic Chromium/checks PASS, hosted BLOCKED.
+[Final acceptance record](V2_ACCEPTANCE.md) includes commands, counts, quality limits, contrast,
+artifacts, zero-usage ledger and owner trial. Final owner report records the final pushed SHA/PR.
+No Cloudflare identity in environment_status or identity manifest, no CLI/connector: activation
+not attempted. GitHub API remains unavailable; use verified Git push plus compare URL if needed.

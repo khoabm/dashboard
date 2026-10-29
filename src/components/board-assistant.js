@@ -494,6 +494,10 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false }) {
       error.textContent = '';
       const catalog = assistantCatalog(snapshot());
       const fingerprint = JSON.stringify(catalog);
+      if (fingerprint !== JSON.stringify(catalogAtOpen)) {
+        invalidate();
+        return;
+      }
       const ticket = ++generation;
       controller = new AbortController();
       const signal = controller.signal;

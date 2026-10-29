@@ -12,7 +12,7 @@ window.data = {
       section_id: 's',
       status: 'published',
       title: 'Khí mẫu',
-      body: 'Khí mẫu bọt khí',
+      body: 'Phản ứng tạo khí làm xuất hiện bọt khí. Đây là mô tả giả lập.',
       attachments: [],
     },
   ],

@@ -1,3 +1,16 @@
+# Learning Assistant V2 — local acceptance / 2026-10-29
+
+Baseline50ea1cb (PR18 included), dedicated feature/ai-learning-assistant-v2-e2e. Implemented
+deterministic website facts/inventory, generated-answer contract, bounded follow-up source context,
+state ownership/privacy validation and readable answer rendering. Curated131/131 + assistant33/33,
+check/build/exclusions/format PASS; actual Chromium6 V2 +8 V1 viewport regressions and synthetic
+actual-main filter persistence PASS. [Acceptance/evidence](features/board-assistant/V2_ACCEPTANCE.md).
+Overall PARTIAL: live Cloudflare access/quota/model quality BLOCKED, all hosted counters0; no
+Worker/website deployment, Supabase call or Gradebook/Auth/schema change. Public provenance/abuse
+gates remain blocked; GitHub API Forbidden may prevent Draft PR. Historical records follow.
+
+---
+
 # Board Assistant F01–F06 corrective QA — 2026-10-29
 
 Source989ec35; task fix/board-assistant-ui-e2e-20261029. Focus, short-height layout,

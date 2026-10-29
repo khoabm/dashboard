@@ -1,3 +1,9 @@
+# V2 corrective extension — 2026-10-29
+
+[Implemented scope, tests, browser evidence and hosted ledger](V2_ACCEPTANCE.md).
+[ExecPlan and pre-implementation decisions](V2_EXECPLAN.md). V1 evidence below remains historical;
+V2 model quality is not inferred from earlier V1 hosted tests. No hosted V2 calls or deployments.
+
 # Board Assistant MVP — execution contract
 
 Baseline: `develop` / `4f254961e9fa3604e8e843e3c5f63a15f2e9edc7`, 2026-10-29.

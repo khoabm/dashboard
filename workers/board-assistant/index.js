@@ -1,6 +1,5 @@
 /** Hosts bounded public-text retrieval; no Supabase, file access, model tools or content persistence. */
 import {
-  assistantLimits,
   validateAssistantCatalog as validateCatalog,
   validAssistantQuery,
   lexicalAssistantScore,

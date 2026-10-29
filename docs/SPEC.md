@@ -486,6 +486,15 @@ Các tính năng trên chỉ là khả năng mở rộng trong tương lai.
 
 ### 7.1. Board Assistant MVP — extension được yêu cầu 2026-10-29
 
+V2 được chủ sở hữu yêu cầu: trả lời thông tin website và kiểm kê published bằng dữ liệu xác định,
+tách tổng quan metadata khỏi tóm tắt nội dung. Cho phép giải thích/tóm tắt tiếng Việt từ title/body
+công khai với nguồn hợp lệ; câu trả lời AI không phải trích dẫn nguyên văn và không được coi là
+đã chứng minh mọi mệnh đề. JSON phải giới hạn status/answer/IDs/coverage, từ chối khi thiếu nguồn.
+Theo dõi tiếp hội thoại bằng tối đa một câu hỏi trước và ba ID nguồn hiện hành trong memory;
+hủy/đóng/reset/đổi snapshot phải xóa context. Không đọc attachment, thêm quyền hoặc lưu lịch sử.
+Hợp đồng/kiểm chứng: [V2 acceptance](features/board-assistant/V2_ACCEPTANCE.md).
+
+
 Chatbot hỗ trợ tìm học liệu theo ý nghĩa kết hợp từ khóa, trả lời bằng trích đoạn có nguồn
 và các nút thao tác chỉ đọc: mở bài published, xem chủ đề, lọc trang, bỏ bộ lọc. Mỗi thao tác
 do người dùng bấm; model không được thực thi mã, điều khiển DOM tùy ý hoặc thay đổi dữ liệu.

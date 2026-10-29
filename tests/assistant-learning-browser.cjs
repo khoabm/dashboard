@@ -51,15 +51,18 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
         (window.mockReply = {
           mode: 'ai',
           status: 'answered',
-          answer: 'Khí mẫu làm xuất hiện bọt khí. <img src=x onerror=alert(1)>',
+          answer: 'Phản ứng tạo khí làm xuất hiện bọt khí. <img src=x onerror=alert(1)>',
           coverage: 'provided_text',
-          sources: [{ id: 'p', quote: 'Khí mẫu bọt khí' }],
+          sources: [{ id: 'p', quote: data.posts[0].body }],
         }),
     );
     await page.locator('.assistant-consent input').check();
     await ask('Giải thích bọt khí');
     await page.locator('.assistant-source').last().waitFor();
     assert.equal(await page.locator('.assistant-learning-answer img').count(), 0);
+    await page.evaluate(
+      () => (window.mockReply.answer = 'Phản ứng tạo ra khí nên bạn quan sát được bọt khí.'),
+    );
     await ask('Giải thích dễ hiểu hơn');
     await page.waitForFunction(() => calls === 2);
     assert.deepEqual(await page.evaluate(() => lastRequest.context), {

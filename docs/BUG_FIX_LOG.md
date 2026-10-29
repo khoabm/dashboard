@@ -453,3 +453,13 @@ Files: component, stylesheet, main and assistant utils; pure tests updated. Chro
 after and eight viewport tests, synthetic main persistence, cloud failure/cancel/revocation and
 offline131+19 checks PASS. Details/remaining gates: [execution record](features/board-assistant/UI_FIX_EXECPLAN.md).
 No Worker/Gradebook/Supabase/schema changes; hosted requests0. Live AI and native mobile NOT RUN.
+
+## 2026-10-29 — AI-V2-001 / P2: stale source context after same-ID content change
+
+V2 baseline50ea1cb, feature checkpointbf99afb. Context IDs alone could remain valid after a body
+change in the same open synthetic modal. Compare the full public projection against catalogAtOpen
+before sending; invalidate the modal/context when changed. Main Board already invalidates on refresh.
+Additional Chromium probe changed body with the same ID then submitted follow-up: dialog removed,
+no follow-up transmitted (PASS). Source-action and post-response fingerprint checks retained.
+Related correction: stale canceled-request catch must check ownership before clearing newer context.
+No hosted calls; [V2 acceptance](features/board-assistant/V2_ACCEPTANCE.md).
