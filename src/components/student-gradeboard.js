@@ -3,7 +3,6 @@ import { el, button } from '../utils/dom.js';
 import { PulseIndicator } from './pending.js';
 import { openDialog } from './primitives.js';
 import { displayScore } from '../utils/gradebook/decimal.js';
-import { StudentLearningInsights } from './student-learning-insights.js';
 import {
   studentContext,
   ownGrades,
@@ -91,11 +90,7 @@ export function StudentGradeboard({ context, read, onReset }) {
     ),
     panel,
   );
-  // Insights are strictly derived from already authorized semester scores; no additional reads.
-  const insightsRegion = el('div', { class: 'student-learning-region' });
-  element.append(insightsRegion);
   const grades = createStudentRead(read, (snapshot) => {
-    insightsRegion.replaceChildren();
     if (disposed) return;
     scores = [];
     insightsGeneration++;
@@ -113,7 +108,6 @@ export function StudentGradeboard({ context, read, onReset }) {
       return;
     }
     scores = snapshot.value;
-    insightsRegion.replaceChildren(StudentLearningInsights(scores, catalog));
     // An already verified, published own-grade response drives session-only insights.
     const insightHost = el('div', { class: 'learning-insights-host', 'aria-busy': 'true' });
     panel.append(insightHost);
@@ -194,7 +188,6 @@ export function StudentGradeboard({ context, read, onReset }) {
     semester = value;
     scores = [];
     insightsGeneration++;
-    insightsRegion.replaceChildren();
     controls.forEach((control, index) => {
       control.setAttribute('aria-selected', String(index + 1 === semester));
       control.tabIndex = index + 1 === semester ? 0 : -1;
@@ -283,8 +276,7 @@ export function StudentGradeboard({ context, read, onReset }) {
         );
         if (snapshot.status === 'denied') {
           scores = [];
-          insightsRegion.replaceChildren();
-          panel.replaceChildren(el('p', { role: 'status' }, messages.denied));
+                panel.replaceChildren(el('p', { role: 'status' }, messages.denied));
         }
         if (['limited', 'unavailable'].includes(snapshot.status))
           chart.append(button('Thử lại', () => load(), 'button'));
@@ -377,8 +369,7 @@ export function StudentGradeboard({ context, read, onReset }) {
       grades.dispose();
       modal?.dispose();
       scores = [];
-      insightsRegion.replaceChildren();
-      element.replaceChildren();
+        element.replaceChildren();
     },
   };
 }
