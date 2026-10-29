@@ -1,6 +1,6 @@
 /** Opens the section editor and delegates persistence to board services. */
 
-import { el, button, field, errorMessage } from '../utils/dom.js';
+import { el, button, field, errorMessage, restrictNumericInput } from '../utils/dom.js';
 import { saveSection, deleteSection } from '../services/board.js';
 import { openDialog, ConfirmDialog, ToastNotification } from './primitives.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
