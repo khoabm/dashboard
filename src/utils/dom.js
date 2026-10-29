@@ -48,6 +48,63 @@ export function field(label, control) {
   return el('label', { class: 'field' }, el('span', {}, label), control);
 }
 
+
+/**
+ * Keeps numeric-looking controls free of text without changing value precision or submit rules.
+ * Text mode is required for identifiers with leading zeros and exact decimal score strings.
+ * Browsers vary in beforeinput support, so input fallback also rejects invalid paste/drop data.
+ *
+ * @param {HTMLInputElement} input - An existing input with its original type and listeners.
+ * @param {{decimal?: boolean, date?: boolean}} options - Decimal point or DD/MM/YYYY separators.
+ * @returns {HTMLInputElement} The unchanged control for fluent UI construction.
+ */
+export function restrictNumericInput(input, { decimal = false, date = false } = {}) {
+  const accepted = decimal
+    ? /^[0-9]*(?:\\.[0-9]*)?$/
+    : date
+      ? /^[0-9/]*$/
+      : /^[0-9]*$/;
+  let lastValue = accepted.test(input.value) ? input.value : '';
+  let lastCaret = null;
+  const caret = () => {
+    // Native number inputs do not expose selection; text inputs do.
+    try {
+      return input.selectionStart;
+    } catch {
+      return null;
+    }
+  };
+  const restore = () => {
+    if (accepted.test(input.value)) {
+      lastValue = input.value;
+      lastCaret = caret();
+      return;
+    }
+    input.value = lastValue;
+    if (lastCaret !== null && typeof input.setSelectionRange === 'function')
+      input.setSelectionRange(lastCaret, lastCaret);
+  };
+  input.addEventListener(
+    'beforeinput',
+    (event) => {
+      if (event.isComposing || event.data === null || event.data === undefined) return;
+      if (event.inputType?.startsWith('delete')) return;
+      const start = caret();
+      const end = input.selectionEnd;
+      const next = start === null
+        ? event.data
+        : input.value.slice(0, start) + event.data + input.value.slice(end ?? start);
+      if (!accepted.test(next)) event.preventDefault();
+    },
+    { capture: true },
+  );
+  input.addEventListener('input', (event) => {
+    if (!event.isComposing) restore();
+  }, { capture: true });
+  input.addEventListener('compositionend', restore);
+  return input;
+}
+
 // Only explicitly reviewed app messages may reach the UI verbatim.
 // Backend messages can contain internal table names, request details, or English diagnostics.
 const userFacingErrors = new Set([
