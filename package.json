@@ -12,7 +12,7 @@
     "format": "prettier --write \"src/**/*.{js,mjs,css,html,json}\" \"supabase/functions/**/*.js\" \"tests/**/*.{js,mjs,html,json}\" \"scripts/**/*.{js,mjs,json}\" \"index.html\" \"vite.config.js\"",
     "format:check": "prettier --check \"src/**/*.{js,mjs,css,html,json}\" \"supabase/functions/**/*.js\" \"tests/**/*.{js,mjs,html,json}\" \"scripts/**/*.{js,mjs,json}\" \"index.html\" \"vite.config.js\"",
     "format:check:all": "npm run format:check",
-    "test:ci": "node --test tests/board-navigation.test.js tests/dom.test.js tests/drafts.test.js tests/pending-task.test.js tests/validation.test.js tests/gradebook-contracts.test.js tests/gradebook-ui.test.js tests/gradebook-admin.test.js tests/roster.test.js tests/gradebook-scores.test.js tests/student-gradeboard.test.js",
+    "test:ci": "node --test tests/board-navigation.test.js tests/dom.test.js tests/drafts.test.js tests/pending-task.test.js tests/validation.test.js tests/gradebook-contracts.test.js tests/gradebook-ui.test.js tests/gradebook-admin.test.js tests/roster.test.js tests/gradebook-scores.test.js tests/student-gradeboard.test.js tests/gradebook-learning-insights.test.js",
     "test:specialist": "node --test tests/auth-session.test.js tests/reliability.test.js tests/gradebook-edge.test.js tests/gradebook-runtime.test.js"
   },
   "dependencies": {
