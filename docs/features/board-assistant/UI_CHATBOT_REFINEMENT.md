@@ -9,7 +9,7 @@ Base: `ai-learning-assistant` at `34ce44eaf4109f2d0b943b4920b8b25b9df75e07`.
 - Friendly lightweight robot avatar in the launcher, heading and assistant turns.
 - Right-side desktop conversation panel, full-viewport mobile native dialog.
 - Separated user/bot message bubbles, local time labels, scrollable conversation, compact cited resource cards.
-- Published-title suggestion chips as input shortcuts (never fabricated questions or posts).
+- Published-topic suggestion chips as input shortcuts (never fabricated questions or posts).
 - Text-only composer with a dedicated send button. No microphone, attachment or file upload controls.
 - Explicit cloud opt-in retains the existing disabled-by-default policy; keyword search still works without AI.
 - User-driven open post, view topic, filter, reset and start-new-conversation actions.
@@ -35,7 +35,7 @@ were inspected. The original cropped avatar was replaced by an approved robot il
 | CI | Syntax, existing curated tests, build/exclusion, scoped Prettier |
 | Hosted calls | Not authorized for UI-only task; must remain 0 |
 
-No permanent browser harness or new CI dependency is required for a presentation-only update.
+The existing GitHub Offline CI workflow is scoped to PRs targeting develop/main, so this feature PR does not trigger it automatically. No CI success should be inferred from its absence. A separate exact-commit verification is required before merge.
 Any unexecuted test must be reported NOT RUN rather than passed. Do not interpret the previous
 MVP synthetic browser evidence as fresh UI acceptance for this branch.
 
@@ -45,13 +45,12 @@ MVP synthetic browser evidence as fresh UI acceptance for this branch.
 - `src/styles/board-assistant.css` — floating launcher, desktop panel, chat bubbles and mobile layout.
 - `public/placeholders/assistant-avatar.png` — optimized 96×96 avatar derived from the approved illustration.
 
-Keep the existing Worker and transport policy unchanged. No hosted test, deploy or merge is
-authorized by this change.
+Keep the existing Worker and transport policy unchanged. Hosted tests and deploy are out of scope; merge is permitted only after the requested current-commit CI gate passes.
 
 ## Execution evidence — 2026-10-29
 
 - Branch was created from the exact accepted AI MVP HEAD; original parent branch is unchanged.
-- Source edits and the owner-supplied PNG are committed directly on the feature branch.
+- Source edits and the approved, preview-derived robot avatar are committed directly on the feature branch.
 - Earlier original-cropped-image evidence is superseded by the approved 96×96 design-avatar replacement above.
 - Source static review: component parses in V8 after stripping module import/export declarations, CSS delimiter balance 0, fixed launcher, mobile fullscreen, existing cancellation and read-only source callbacks present. This is not the app build or runtime integration test.
 - CI statuses on inspected commit: none. Node unit tests, Prettier and Vite build **NOT RUN** in the available GitHub-only workspace (no checked-out npm installation).
@@ -67,7 +66,7 @@ authorized by this change.
 - Existing chat transcript, exact citation source cards, cloud opt-in, cancellation and route cleanup remain unchanged except the avatar and toolbar presentation.
 - Static JavaScript parse in V8 after removing module declarations **PASS**, CSS bracket-balance **PASS**, source-focused control/invariant checks **PASS**. This is *not* browser E2E or npm build verification.
 - New Chrome browser viewport/keyboard QA, npm/Prettier/production build and exact-SHA CI: **NOT RUN** in this GitHub editing session. No authorization to call hosted Worker/Supabase; requests **0**. UI/E2E gate remains **PARTIAL**, not PASS.
-- Changes are committed on the UI feature branch only. PRs are requested in sequence; no merge/deploy is authorized.
+- Changes are committed on the UI feature branch. PR #15 targets ai-learning-assistant; PR #16 is a separate downstream integration and is not included in this merge.
 
 ## Desktop reading-area refinement — 2026-10-29
 
@@ -88,3 +87,12 @@ optional topic chips and bottom launcher clearance. This is a presentation-only 
   source assertions for expanded desktop and visible mobile tools **PASS**.
 - Browser viewport/keyboard E2E and npm build/format/unit remain **NOT RUN** in this GitHub-only edit.
   Overall UI acceptance remains **PARTIAL** until runtime QA; hosted Supabase/Worker calls **0**.
+
+## Final diff/CI gate review — 2026-10-29
+
+- Compared `feature/board-assistant-chatbot-ui` against `ai-learning-assistant` at `34ce44eaf4109f2d0b943b4920b8b25b9df75e07`: 20 commits ahead, 0 behind; only the component, its stylesheet, the robot PNG, and this document differ.
+- Verified no changes to Worker, Board service, Supabase, Gradebook, auth, migrations, package/lockfile or CI workflow.
+- Reviewed the public-only projection and read-only action contracts as existing helpers, unchanged by this branch; the suggested topic labels now come from published `sectionTitle` values, not post titles or AI generation.
+- Previous synthetic Board Assistant MVP acceptance belongs to the base and must not be misrepresented as runtime QA of this UI refinement.
+- On reviewed HEAD `96d7a3b8241ac1c3db2b99d2cea9630a585d466c`, GitHub reported zero check runs. `.github/workflows/ci.yml` runs on PRs to develop/main, not to ai-learning-assistant. Exact-HEAD npm test/build/Prettier and browser E2E **NOT RUN** in this review.
+- Gate: **NOT PASS — CI evidence missing**. Do not merge PR #15 until the requested CI gate is demonstrably successful on the final UI commit.
