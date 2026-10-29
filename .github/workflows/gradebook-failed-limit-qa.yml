@@ -1,4 +1,5 @@
 name: Gradebook failure-only limiter disposable QA
+# Re-run after pinned Prettier normalization of scoped tests.
 on:
   push:
     branches: [fix/gradebook-failed-verification-limit]
