@@ -1194,3 +1194,123 @@ kbd {
     font-size: max(16px, 1em) !important;
   }
 }
+
+
+/* 2026-10-30 — restrained visual polish for public Board; no state or layout contracts changed. */
+:root {
+  --ui-shadow-soft: 0 10px 32px rgba(32, 65, 49, 0.07);
+  --ui-shadow-hover: 0 16px 38px rgba(32, 65, 49, 0.12);
+  --ui-accent-soft: #edf5ef;
+}
+.hero {
+  isolation: isolate;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 14px 14px 12px;
+  z-index: -1;
+  border: 1px solid rgba(180, 207, 187, 0.55);
+  border-radius: 28px;
+  background: radial-gradient(circle at 85% 15%, rgba(208, 228, 208, 0.52), transparent 37%),
+    linear-gradient(122deg, rgba(255, 255, 255, 0.86), rgba(244, 249, 244, 0.65));
+  pointer-events: none;
+}
+.hero-copy {
+  padding: 12px 18px;
+}
+.hero h1 {
+  text-wrap: balance;
+}
+.hero p {
+  color: #526b5d;
+}
+.search-bar {
+  background: #fff;
+  border-color: #cddfd2;
+  box-shadow: 0 2px 8px rgba(39, 83, 59, 0.035);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.search-bar:focus-within {
+  border-color: #367c58;
+  box-shadow: 0 0 0 3px rgba(54, 124, 88, 0.16);
+}
+.search-bar input:focus-visible {
+  outline: none;
+}
+.board-controls {
+  border-top-color: #d2e2d5;
+}
+.tab {
+  border: 1px solid transparent;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+.tab.active {
+  border-color: #c5ddcc;
+  background: #e4f0e7;
+  color: #235e4a;
+}
+.tab:hover:not(.active) {
+  background: #f6faf7;
+  border-color: #d7e5db;
+}
+.post-card {
+  border-color: #d8e6dc;
+  box-shadow: var(--ui-shadow-soft);
+  transition: box-shadow 170ms ease, border-color 170ms ease, transform 170ms ease;
+}
+.post-card:hover {
+  border-color: #b6d3bf;
+  box-shadow: var(--ui-shadow-hover);
+}
+.post-card:focus-within {
+  border-color: #619c77;
+  box-shadow: 0 0 0 3px rgba(54, 124, 88, 0.13);
+}
+.card-body h3 {
+  letter-spacing: -0.015em;
+  text-wrap: pretty;
+}
+.card-body p {
+  line-height: 1.7;
+}
+.section-heading {
+  box-shadow: 0 4px 14px rgba(32, 65, 49, 0.04);
+}
+.site-navigation-panel {
+  box-shadow: 0 18px 42px rgba(32, 65, 49, 0.15);
+}
+.site-navigation-panel a {
+  transition: background 150ms ease, color 150ms ease;
+}
+.button:not(:disabled) {
+  transition: background 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+.button:not(:disabled):hover {
+  border-color: #b6cfc0;
+}
+.button.primary:not(:disabled):hover {
+  border-color: #164936;
+  box-shadow: 0 6px 18px rgba(35, 94, 74, 0.16);
+}
+@media (max-width: 700px) {
+  .hero::before {
+    inset: 7px 7px 5px;
+    border-radius: 20px;
+  }
+  .hero-copy {
+    padding: 8px 4px;
+  }
+  .post-card {
+    box-shadow: 0 5px 18px rgba(32, 65, 49, 0.06);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .post-card,
+  .search-bar,
+  .tab,
+  .site-navigation-panel a,
+  .button:not(:disabled) {
+    transition: none;
+  }
+}
