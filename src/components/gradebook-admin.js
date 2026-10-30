@@ -444,35 +444,6 @@ export function GradebookAdmin({
     name.focus();
   }
 
-  /** Native SVG namespace keeps the copy glyph sharp in Chrome, Firefox and Safari. */
-  function copyIcon() {
-    const namespace = 'http://www.w3.org/2000/svg';
-    const svg = document.createElementNS(namespace, 'svg');
-    for (const [name, value] of Object.entries({
-      viewBox: '0 0 24 24',
-      width: '20',
-      height: '20',
-      fill: 'none',
-      stroke: 'currentColor',
-      'stroke-width': '1.8',
-      'stroke-linecap': 'round',
-      'stroke-linejoin': 'round',
-      'aria-hidden': 'true',
-      focusable: 'false',
-    }))
-      svg.setAttribute(name, value);
-    const rectangle = document.createElementNS(namespace, 'rect');
-    for (const [name, value] of Object.entries({ x: 8, y: 8, width: 12, height: 12, rx: 2 }))
-      rectangle.setAttribute(name, String(value));
-    const path = document.createElementNS(namespace, 'path');
-    path.setAttribute(
-      'd',
-      'M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2',
-    );
-    svg.append(rectangle, path);
-    return svg;
-  }
-
   /** Explicit, time-limited reveal in the read-only profile; nothing is persisted or logged. */
   function studentIdentityControls(entry, student) {
     let revealed = false;
@@ -508,7 +479,7 @@ export function GradebookAdmin({
           }
         },
       },
-      copyIcon(),
+      '⧉',
     );
     const toggle = button(
       'Hiện CMND/CCCD',
