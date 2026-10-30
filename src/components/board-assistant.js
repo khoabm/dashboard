@@ -86,7 +86,11 @@ function messageTime() {
 export function BoardAssistant({ snapshot, request, perform, hosted = false, live = false }) {
   let dialog = null,
     controller = null,
-    generation = 0;
+    generation = 0,
+    context = null,
+    chatHistory = [],
+    transcript = [],
+    cloudChoice = null;
   const trigger = button('', open, 'assistant-trigger', {
     'aria-haspopup': 'dialog',
     'aria-controls': 'assistant-dialog',
@@ -97,8 +101,8 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     el('span', { class: 'assistant-trigger-label' }, 'Hỏi trợ lý'),
   );
 
-  /** Closes pending work and removes retained public conversation text. */
-  function invalidate() {
+  /** Closes the panel without erasing this page's completed conversation. */
+  function dismiss() {
     generation++;
     controller?.abort();
     controller = null;
@@ -108,19 +112,26 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     trigger.setAttribute('aria-expanded', 'false');
   }
 
+  /** New chat, Board refresh, route exit and sign-out invalidate old context. */
+  function invalidate() {
+    dismiss();
+    context = null;
+    chatHistory = [];
+    transcript = [];
+    cloudChoice = null;
+  }
+
   /** Opens a native modal; the chat transcript alone scrolls above its composer. */
   function open() {
     if (dialog?.open) return;
     const corpusAtOpen = publicAssistantCorpus(snapshot());
     const catalogAtOpen = corpusAtOpen.posts;
-    let context = null;
-    let chatHistory = [];
     let cloudAvailable = hosted;
     const title = el('h2', { id: 'assistant-title' }, 'Trợ lý học liệu');
     const close = button(
       '×',
       () => {
-        invalidate();
+        dismiss();
         trigger.focus();
       },
       'assistant-close',
@@ -188,7 +199,10 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
       { hidden: true },
     );
     const cloud = el('input', { type: 'checkbox', disabled: !cloudAvailable });
-    cloud.checked = live && hosted;
+    cloud.checked = cloudChoice ?? (live && hosted);
+    cloud.addEventListener('change', () => {
+      cloudChoice = cloud.checked;
+    });
     const form = el(
       'form',
       { class: 'assistant-form' },
@@ -346,7 +360,6 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     ownDialog.addEventListener('cancel', () => {
       if (dialog !== ownDialog) return;
       generation++;
-      context = null;
       controller?.abort();
       controller = null;
     });
@@ -425,7 +438,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     }
 
     /** Shows exact cited excerpts in compact resource cards with explicit read-only actions. */
-    function showResults(result, catalog, question, fingerprint) {
+    function showResults(result, catalog, question, fingerprint, remember = true) {
       result = { ...result, sources: validateAssistantSources(result.sources, catalog) };
       // AI answers should read as messages, not diagnostic reports.
       const content = el('div');
@@ -504,9 +517,49 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
         );
       }
       assistantMessage(content, 'assistant-result');
+      if (remember) {
+        transcript.push({
+          kind: 'result',
+          question,
+          result: {
+            mode: result.mode,
+            status: result.status,
+            answer: result.answer,
+            note: result.note,
+            sources: result.sources.map(({ id, quote }) => ({ id, quote })),
+          },
+        });
+        transcript = transcript.slice(-8);
+      }
       while (messages.querySelectorAll('.assistant-message:not(.assistant-typing)').length > 9)
         messages.querySelector('.assistant-message:not(.assistant-typing)')?.remove();
       messages.scrollTop = messages.scrollHeight;
+    }
+
+    /** Recreates transcript with fresh source handlers after a panel reopen. */
+    function userMessage(question, remember = true) {
+      messages.append(
+        el(
+          'div',
+          { class: 'assistant-message assistant-message-user' },
+          el('div', { class: 'assistant-message-content' },
+            el('p', { class: 'assistant-bubble assistant-question' }, question),
+            el('time', {}, messageTime())),
+        ),
+      );
+      if (remember) {
+        transcript.push({ kind: 'user', text: question });
+        transcript = transcript.slice(-8);
+      }
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    // Do not restore pending work; only completed bubbles survive dismiss.
+    const fingerprintAtOpen = JSON.stringify(corpusAtOpen);
+    for (const entry of transcript) {
+      if (entry.kind === 'user') userMessage(entry.text, false);
+      else if (entry.kind === 'result')
+        showResults(entry.result, catalogAtOpen, entry.question, fingerprintAtOpen, false);
     }
 
     input.addEventListener('keydown', (event) => {
@@ -543,19 +596,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
       const ticket = ++generation;
       controller = new AbortController();
       const signal = controller.signal;
-      messages.append(
-        el(
-          'div',
-          { class: 'assistant-message assistant-message-user' },
-          el(
-            'div',
-            { class: 'assistant-message-content' },
-            el('p', { class: 'assistant-bubble assistant-question' }, question),
-            el('time', {}, messageTime()),
-          ),
-        ),
-      );
-      messages.scrollTop = messages.scrollHeight;
+      userMessage(question);
       busy(true);
       try {
         const deterministic = live ? null : websiteLearningAnswer(question, catalog);
