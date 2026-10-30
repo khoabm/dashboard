@@ -137,10 +137,12 @@ test('real Supabase SDK restores remembered login in another tab and clears it a
   try {
     const first = make();
     assert.equal(
-      (await first.client.auth.signInWithPassword({
-        email: 'qa@example.invalid',
-        password: 'synthetic-only',
-      })).error,
+      (
+        await first.client.auth.signInWithPassword({
+          email: 'qa@example.invalid',
+          password: 'synthetic-only',
+        })
+      ).error,
       null,
     );
     assert.equal(first.options.select(true), true);

@@ -48,11 +48,5 @@ jobs:
       - name: Verify static production build
         run: npm run build
 
-      - name: Inspect new test formatting and run specialist Auth tests
-        run: |
-          ./node_modules/.bin/prettier --write tests/remember-admin.test.js
-          git diff -- tests/remember-admin.test.js
-          npm run test:specialist
-
       - name: Check pinned Prettier format including Edge source
         run: npm run format:check
