@@ -60,13 +60,18 @@ const keyFor = (namespace) => `khtn8:remember-token:${namespace}`;
 
 export function createRememberedAuthOptions(
   namespace,
-  { local = () => globalThis.localStorage, tab = () => globalThis.sessionStorage, now = () => Date.now() } = {},
+  {
+    local = () => globalThis.localStorage,
+    tab = () => globalThis.sessionStorage,
+    now = () => Date.now(),
+  } = {},
 ) {
   const fallback = createTabAuthOptions(namespace, tab);
   let persistent;
   try {
     persistent = local();
-    if (!persistent) return { options: fallback, remember: () => false, renew: () => false, select: () => false };
+    if (!persistent)
+      return { options: fallback, remember: () => false, renew: () => false, select: () => false };
     const probe = `khtn8:storage-probe:${namespace}`;
     persistent.setItem(probe, '1');
     persistent.removeItem(probe);
@@ -78,7 +83,12 @@ export function createRememberedAuthOptions(
   const read = () => {
     try {
       const value = JSON.parse(persistent.getItem(marker) || 'null');
-      if (!value || !Number.isFinite(value.lastVerified) || value.lastVerified > now() + 60000 || now() - value.lastVerified >= REMEMBER_MS) {
+      if (
+        !value ||
+        !Number.isFinite(value.lastVerified) ||
+        value.lastVerified > now() + 60000 ||
+        now() - value.lastVerified >= REMEMBER_MS
+      ) {
         persistent.removeItem(marker);
         persistent.removeItem(tokenKey);
         return null;
@@ -112,13 +122,14 @@ export function createRememberedAuthOptions(
         if (existing) persistent.setItem(tokenKey, existing);
       } else {
         const previous = read() ? persistent.getItem(tokenKey) : null;
-        if (previous && fallback.storage)
-          fallback.storage.setItem(fallback.storageKey, previous);
+        if (previous && fallback.storage) fallback.storage.setItem(fallback.storageKey, previous);
         persistent.removeItem(marker);
         persistent.removeItem(tokenKey);
       }
       return true;
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   };
   const renew = () => {
     const state = read();
@@ -127,7 +138,9 @@ export function createRememberedAuthOptions(
     try {
       persistent.setItem(marker, JSON.stringify({ lastVerified: now() }));
       return true;
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   };
   return {
     options: {

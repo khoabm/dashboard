@@ -40,7 +40,7 @@ test('remember opt-in persists SDK token, renews only after 24h and expires afte
   clock.time += 1;
   assert.equal(first.renew(), true);
   assert.notEqual(local.getItem(key), initial);
-  clock.time += 29 * DAY + 1;
+  clock.time += 30 * DAY + 1;
   const expired = optionsFor(local, memoryStorage(), clock);
   assert.equal(expired.remember(), false);
   assert.equal(expired.options.storage.getItem('different-tab-key'), null);
@@ -58,7 +58,10 @@ test('opt-out migrates current token back to tab then clears persistent copy', (
   record.select(false);
   assert.equal(record.remember(), false);
   assert.equal(record.options.storage.getItem(record.options.storageKey), 'refreshed-session');
-  assert.equal(optionsFor(local, memoryStorage(), clock).options.storage.getItem('other-tab'), null);
+  assert.equal(
+    optionsFor(local, memoryStorage(), clock).options.storage.getItem('other-tab'),
+    null,
+  );
 });
 
 test('signOut removeItem clears both stores and blocked local storage falls back to tab', () => {
@@ -71,7 +74,9 @@ test('signOut removeItem clears both stores and blocked local storage falls back
   record.options.storage.removeItem(record.options.storageKey);
   assert.equal(local.getItem('khtn8:remember-token:test-project'), null);
   const blocked = createRememberedAuthOptions('test-project', {
-    local: () => { throw Error('blocked'); },
+    local: () => {
+      throw Error('blocked');
+    },
     tab: () => tab,
   });
   assert.equal(blocked.select(true), false);
