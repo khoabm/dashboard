@@ -712,6 +712,8 @@ let gradebookAuthSession = null;
 client?.auth.onAuthStateChange((event, session) => {
   gradebookAuthSession = session;
   if (event === 'SIGNED_OUT') {
+    // Unlike routine refresh, sign-out ends the current user's conversation.
+    assistant.invalidate();
     clearSession();
     schedulePublicRefresh();
   }
