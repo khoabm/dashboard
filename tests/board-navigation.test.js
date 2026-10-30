@@ -2,7 +2,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { captureBoardPosition, restoredBoardLeft } from '../src/components/board-navigation.js';
+import { captureBoardPosition, restoredBoardLeft, stickyHeadingVisible } from '../src/components/board-navigation.js';
 
 /**
  * Models real layout coordinates without requiring a DOM library or network.
@@ -56,4 +56,20 @@ test('resize recomputes position from section identity and clamps after columns 
   assert.equal(restoredBoardLeft(boardGeometry({ ids: ['a'], viewport: 900 }), anchor), 0);
   assert.equal(restoredBoardLeft(boardGeometry(), null), 0);
   assert.equal(captureBoardPosition(null), null);
+});
+
+test('sticky topic mirrors appear only after the original header exits and stay within Board', () => {
+  const position = {
+    desktop: true,
+    stickyTop: 0,
+    stickyBottom: 90,
+    originalBottom: 160,
+    boardBottom: 1300,
+    headingHeight: 80,
+  };
+  assert.equal(stickyHeadingVisible(position), false, 'idle original header remains visible');
+  assert.equal(stickyHeadingVisible({ ...position, originalBottom: 90 }), true);
+  assert.equal(stickyHeadingVisible({ ...position, stickyTop: 25, originalBottom: 60 }), false);
+  assert.equal(stickyHeadingVisible({ ...position, originalBottom: 60, boardBottom: 170 }), false);
+  assert.equal(stickyHeadingVisible({ ...position, desktop: false, originalBottom: 60 }), false);
 });
