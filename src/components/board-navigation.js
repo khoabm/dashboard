@@ -142,11 +142,8 @@ export function BoardNavigation() {
     const columns = [...board.querySelectorAll('[data-section-id]')];
     element.hidden =
       !enabled || !matchMedia('(min-width:701px)').matches || max <= 1 || columns.length < 2;
-    if (element.hidden) {
-      headings.hidden = true;
-      return;
-    }
     refreshMirrors();
+    if (element.hidden) return;
     fill.style.width = `${track.clientWidth + max}px`;
     const left = (board.scrollLeft / max) * (track.scrollWidth - track.clientWidth);
     if (Math.abs(track.scrollLeft - left) > 1) {
@@ -224,12 +221,12 @@ export function BoardNavigation() {
         const original = column.querySelector('.section-heading');
         const clone = original.cloneNode(true);
         clone.classList.add('board-heading-mirror');
-        clone.setAttribute('aria-hidden', 'true');
+        // Keep the mirrored topic action keyboard accessible while it is visible.
         // Forward admin's topic action to its canonical control; no duplicate handler.
         for (const button of clone.querySelectorAll('button')) {
           const originalButton = original.querySelector('button');
           button.addEventListener('click', () => originalButton?.click());
-          button.tabIndex = -1;
+
         }
         clone.style.backgroundColor = getComputedStyle(original).backgroundColor;
         headingTrack.append(clone);
