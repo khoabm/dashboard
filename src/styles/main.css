@@ -404,8 +404,7 @@ kbd {
   height: 80px;
   overflow: hidden;
   background: #eff4f1;
-  border-bottom: 1px solid var(--line);
-  box-shadow: 0 9px 16px #243d3612;
+  border-radius: 12px;
 }
 .board-sticky-headings[hidden] {
   display: none;
@@ -420,6 +419,7 @@ kbd {
   height: 80px;
   box-sizing: border-box;
   overflow: hidden;
+  border-radius: 12px;
 }
 .board-heading-mirror .icon-button {
   pointer-events: auto;
@@ -1053,8 +1053,11 @@ kbd {
   .section-heading {
     min-height: 77px;
     position: sticky;
-    top: var(--board-sticky-height, 0px);
+    top: calc(var(--board-sticky-height, 0px) + 8px);
     z-index: 5;
+    border-radius: 12px;
+    background-clip: padding-box;
+    overflow: hidden;
   }
   .board-sticky-headings {
     display: none;
