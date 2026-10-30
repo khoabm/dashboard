@@ -1,6 +1,6 @@
 /** Renders CP03 administration against an injected B4-shaped adapter; no synthetic or hosted data source. */
 import { el, button, field, checkboxField, restrictNumericInput } from '../utils/dom.js';
-import { openDialog, ConfirmDialog } from './primitives.js';
+import { openDialog, ConfirmDialog, ToastNotification } from './primitives.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
 import { BirthDatePicker } from './birth-date-picker.js';
 import { GradebookScores } from './gradebook-scores.js';
@@ -13,6 +13,7 @@ import {
   classInput,
   studentInput,
   studentAction,
+  studentScoresClearAction,
   studentRecord,
   createAdminGate,
   createRosterPreview,
@@ -57,6 +58,8 @@ export function GradebookAdmin({
         'student.deactivate': 'Đang ngừng sử dụng hồ sơ…',
         'student.reactivate': 'Đang kích hoạt lại hồ sơ…',
         'student.delete': 'Đang xóa hồ sơ học sinh…',
+        'student.scores.summary': 'Đang kiểm tra toàn bộ điểm của học sinh…',
+        'student.scores.clear': 'Đang xóa toàn bộ điểm của học sinh…',
         'roster.preview': 'Đang kiểm tra bản xem trước danh sách…',
         'roster.apply': 'Đang áp dụng danh sách học sinh…',
       };
@@ -69,6 +72,8 @@ export function GradebookAdmin({
           'student.deactivate',
           'student.reactivate',
           'student.delete',
+          'student.scores.summary',
+          'student.scores.clear',
         ].includes(payload.op),
       );
       pending(labels[payload.op] || 'Đang cập nhật hồ sơ học sinh…');
@@ -78,16 +83,8 @@ export function GradebookAdmin({
   );
   const heading = el('h1', { tabindex: '-1' }, 'Quản lý bảng điểm');
   const progress = PulseIndicator();
-  const status = el('p', { role: 'status', 'aria-live': 'polite', class: 'admin-feedback' });
   const body = el('div', { class: 'gradebook-admin-body' });
-  const element = el(
-    'main',
-    { id: 'main', class: 'gradebook-admin' },
-    heading,
-    progress,
-    status,
-    body,
-  );
+  const element = el('main', { id: 'main', class: 'gradebook-admin' }, heading, progress, body);
 
   /** Cancels waits without claiming a previously sent mutation was rolled back. */
   function cancel() {
@@ -140,7 +137,6 @@ export function GradebookAdmin({
       node.value = '';
     });
     body.replaceChildren();
-    status.textContent = '';
   }
 
   /** Cancels unresolved decisions on route/session exit, before their callbacks can retain private state. */
@@ -205,7 +201,6 @@ export function GradebookAdmin({
     busy = true;
     body.inert = true;
     for (const entry of dialogs) entry.content.inert = true;
-    status.textContent = '';
     pending('Đang tải dữ liệu lớp…');
     try {
       await task(() => !disposed && ticket === operation && session.status === 'admin');
@@ -214,7 +209,7 @@ export function GradebookAdmin({
         if ([401, 403].includes(error?.status))
           setSession({ status: 'anonymous', generation: session.generation + 1 });
         else {
-          status.textContent = adminMessage(error);
+          ToastNotification(adminMessage(error), true);
           failed(error);
         }
       }
@@ -318,7 +313,7 @@ export function GradebookAdmin({
           body.replaceChildren();
           if (mode === 'scores') render();
           else await list(isCurrent);
-          status.textContent = 'Đã cập nhật lớp.';
+          ToastNotification('Đã cập nhật lớp.');
         },
         (e) => {
           error.textContent = adminMessage(e);
@@ -428,7 +423,7 @@ export function GradebookAdmin({
           clearDialog(entry);
           entry.dialog.close();
           await list(isCurrent);
-          status.textContent = 'Đã lưu học sinh.';
+          ToastNotification('Đã lưu học sinh.');
         },
         (e) => {
           error.textContent = adminMessage(e);
@@ -620,7 +615,52 @@ export function GradebookAdmin({
       await gate.call(studentAction(student, currentClass.id, kind, true));
       if (!isCurrent()) return;
       await list(isCurrent);
-      status.textContent = 'Đã cập nhật hồ sơ.';
+      ToastNotification('Đã cập nhật hồ sơ.');
+    });
+  }
+
+  /** Uses the existing shared confirmation and an atomic, server-verified two-semester snapshot. */
+  function clearStudentScores(student) {
+    void run(async (isCurrent) => {
+      const summary = await gate.call({
+        op: 'student.scores.summary',
+        classId: currentClass.id,
+        studentId: student.id,
+        expectedRevision: student.revision,
+      });
+      if (!isCurrent()) return;
+      if (summary.totalCount === 0) {
+        ToastNotification('Học sinh này không có điểm để xóa ở cả hai học kỳ.');
+        return;
+      }
+      const published = [
+        summary.semester1Published ? 'I' : null,
+        summary.semester2Published ? 'II' : null,
+      ].filter(Boolean);
+      const warning = [
+        `Học sinh: ${student.fullName || 'Chưa có tên'}.`,
+        `Sẽ xóa vĩnh viễn ${summary.totalCount} ô điểm.`,
+        `Học kỳ I: ${summary.semester1Count}; học kỳ II: ${summary.semester2Count}.`,
+        'Hồ sơ học sinh vẫn được giữ lại.',
+        published.length
+          ? `Học kỳ ${published.join(' và ')} đã công bố: học sinh sẽ thấy điểm biến mất ngay và thống kê lớp thay đổi.`
+          : 'Điểm chưa công bố cũng sẽ mất khỏi bảng quản trị.',
+        'Không thể hoàn tác thao tác này. Chỉ tiếp tục nếu đã kiểm tra và có bản sao lưu cần thiết.',
+      ].join(' ');
+      const accepted = await confirm('Xóa toàn bộ điểm của học sinh?', warning);
+      if (!accepted || !isCurrent()) return;
+      const result = await gate.call(
+        studentScoresClearAction(
+          student,
+          currentClass.id,
+          summary.fingerprint,
+          published.length > 0,
+        ),
+      );
+      if (!isCurrent()) return;
+      if (result.deletedCount !== summary.totalCount) throw new AdminError(503);
+      await list(isCurrent);
+      if (isCurrent()) ToastNotification('Đã xóa ' + result.deletedCount + ' ô điểm của học sinh.');
     });
   }
 
@@ -692,8 +732,9 @@ export function GradebookAdmin({
             file.value = '';
             dirty = false;
             inspect.disabled = true;
-            status.textContent =
-              'Đã áp dụng danh sách. Đóng hộp thoại và tải lại danh sách học sinh.';
+            ToastNotification(
+              'Đã áp dụng danh sách. Đóng hộp thoại và tải lại danh sách học sinh.',
+            );
           },
           (e) => {
             preview.clear();
@@ -969,6 +1010,9 @@ export function GradebookAdmin({
                   student.active ? 'Ngừng sử dụng' : 'Sử dụng lại',
                   () => void changeStudent(student, student.active ? 'deactivate' : 'reactivate'),
                 ),
+                button('Xóa toàn bộ điểm', () => clearStudentScores(student), 'button danger', {
+                  'aria-label': `Xóa toàn bộ điểm của ${student.fullName || 'học sinh chưa có tên'}`,
+                }),
                 button('Xóa', () => void changeStudent(student, 'delete'), 'button danger'),
               ),
             ),

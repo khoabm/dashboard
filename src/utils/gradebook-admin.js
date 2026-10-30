@@ -235,6 +235,23 @@ export function createRosterPreview(clock = Date.now, kind = 'roster') {
   };
 }
 
+/** Binds a bulk clear to one student and a verified snapshot, never an inferred browser score count. */
+export function studentScoresClearAction(student, classId, fingerprint, acknowledged = false) {
+  requireContract(
+    typeof fingerprint === 'string' && /^[0-9a-f]{64}$/.test(fingerprint),
+    'fingerprint',
+  );
+  return {
+    op: 'student.scores.clear',
+    classId,
+    studentId: bigintId(student.id),
+    expectedRevision: bigintId(student.revision),
+    expectedFingerprint: fingerprint,
+    confirmed: true,
+    acknowledged: acknowledged === true,
+  };
+}
+
 /** Projects ordinary DTOs so crypto/identity fields cannot accidentally enter a list or form cache. */
 export function studentRecord(value, classId) {
   requireContract(value?.classId === classId && typeof value.active === 'boolean', 'response');
