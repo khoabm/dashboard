@@ -111,6 +111,9 @@ export function createRememberedAuthOptions(
         persistent.setItem(marker, JSON.stringify({ lastVerified: now() }));
         if (existing) persistent.setItem(tokenKey, existing);
       } else {
+        const previous = read() ? persistent.getItem(tokenKey) : null;
+        if (previous && fallback.storage)
+          fallback.storage.setItem(fallback.storageKey, previous);
         persistent.removeItem(marker);
         persistent.removeItem(tokenKey);
       }
