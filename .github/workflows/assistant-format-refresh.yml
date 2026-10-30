@@ -1,0 +1,35 @@
+name: Temporary assistant refresh formatter
+on:
+  push:
+    branches: [feature/assistant-chat-experience]
+    paths: [.github/workflows/assistant-format-refresh.yml]
+permissions:
+  contents: write
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feature/assistant-chat-experience
+          persist-credentials: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm ci
+      - name: Format only scoped files with pinned Prettier
+        run: |
+          test "$(node -p "require('prettier/package.json').version")" = "3.6.2"
+          ./node_modules/.bin/prettier --write src/main.js src/components/board-assistant.js
+          ./node_modules/.bin/prettier --check src/main.js src/components/board-assistant.js
+          git diff --check
+          if git diff --name-only | grep -v -E '^(src/main\.js|src/components/board-assistant\.js)$'; then exit 1; fi
+      - name: Publish formatting only
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- src/main.js src/components/board-assistant.js
+          git commit -m "[CF-Pages-Skip] Format assistant refresh correction"
+          git push origin HEAD:refs/heads/feature/assistant-chat-experience
