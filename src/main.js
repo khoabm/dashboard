@@ -351,7 +351,8 @@ function renderBoard({ resetPosition = false } = {}) {
 
 /** Updates counts, admin controls, quota, filters, and board after state changes. */
 function render(options = {}) {
-  assistant.reconcile();
+  // An auth reset temporarily clears Board data; only reconcile a committed snapshot.
+  if (options.reconcileAssistant !== false) assistant.reconcile();
   if (!data.sections.some((s) => s.id === selected)) selected = 'all';
   countText.textContent = `${data.sections.length} chủ đề · ${data.posts.filter((p) => p.status === 'published').length} học liệu`;
   // Clear the previous admin-only toolbar and quota before rebuilding this region.
@@ -642,7 +643,7 @@ function clearSession() {
   data = { sections: [], posts: [] };
   lastSync = null;
   window.dispatchEvent(new Event('app:sign-out'));
-  render();
+  render({ reconcileAssistant: false });
 }
 
 /** Defers SDK reads until the Auth event callback has released its internal lock. */
