@@ -647,26 +647,31 @@ export function GradebookAdmin({
         summary.semester1Published ? 'I' : null,
         summary.semester2Published ? 'II' : null,
       ].filter(Boolean);
-      const warning =
-        'Học sinh: ' + (student.fullName || 'Chưa có tên') +
-        '. Sẽ xóa vĩnh viễn ' + summary.totalCount +
-        ' ô điểm (học kỳ I: ' + summary.semester1Count +
-        '; học kỳ II: ' + summary.semester2Count +
-        '). Hồ sơ học sinh vẫn được giữ lại. ' +
-        (published.length
-          ? 'Học kỳ ' + published.join(' và ') +
-            ' đã công bố: học sinh sẽ thấy điểm biến mất ngay và thống kê lớp thay đổi. '
-          : 'Điểm chưa công bố cũng sẽ mất khỏi bảng quản trị. ') +
-        'Không thể hoàn tác thao tác này. Chỉ tiếp tục nếu đã kiểm tra và có bản sao lưu cần thiết.';
+      const warning = [
+        `Học sinh: ${student.fullName || 'Chưa có tên'}.`,
+        `Sẽ xóa vĩnh viễn ${summary.totalCount} ô điểm.`,
+        `Học kỳ I: ${summary.semester1Count}; học kỳ II: ${summary.semester2Count}.`,
+        'Hồ sơ học sinh vẫn được giữ lại.',
+        published.length
+          ? `Học kỳ ${published.join(' và ')} đã công bố: học sinh sẽ thấy điểm biến mất ngay và thống kê lớp thay đổi.`
+          : 'Điểm chưa công bố cũng sẽ mất khỏi bảng quản trị.',
+        'Không thể hoàn tác thao tác này. Chỉ tiếp tục nếu đã kiểm tra và có bản sao lưu cần thiết.',
+      ].join(' ');
       const accepted = await confirm('Xóa toàn bộ điểm của học sinh?', warning);
       if (!accepted || !isCurrent()) return;
       const result = await gate.call(
-        studentScoresClearAction(student, currentClass.id, summary.fingerprint, published.length > 0),
+        studentScoresClearAction(
+          student,
+          currentClass.id,
+          summary.fingerprint,
+          published.length > 0,
+        ),
       );
       if (!isCurrent()) return;
       if (result.deletedCount !== summary.totalCount) throw new AdminError(503);
       await list(isCurrent);
-      if (isCurrent()) status.textContent = 'Đã xóa ' + result.deletedCount + ' ô điểm của học sinh.';
+      if (isCurrent())
+        status.textContent = 'Đã xóa ' + result.deletedCount + ' ô điểm của học sinh.';
     });
   }
 
@@ -1019,6 +1024,9 @@ export function GradebookAdmin({
                   'Xóa toàn bộ điểm',
                   () => clearStudentScores(student),
                   'button danger',
+                  {
+                    'aria-label': `Xóa toàn bộ điểm của ${student.fullName || 'học sinh chưa có tên'}`,
+                  },
                 ),
                 button('Xóa', () => void changeStudent(student, 'delete'), 'button danger'),
               ),

@@ -379,7 +379,10 @@ export async function executeAdmin(body, identity, context) {
             ? ['deletedCount']
             : ['semester1Count', 'semester2Count', 'totalCount'];
           for (const key of keys)
-            requireContract(Number.isInteger(data?.[key]) && data[key] >= 0 && data[key] <= 112, 'backend');
+            requireContract(
+              Number.isInteger(data?.[key]) && data[key] >= 0 && data[key] <= 112,
+              'backend',
+            );
           if (clearing) return { deletedCount: data.deletedCount };
           requireContract(
             data.totalCount === data.semester1Count + data.semester2Count &&
