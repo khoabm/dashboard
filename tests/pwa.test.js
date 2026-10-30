@@ -38,6 +38,6 @@ test('offline page is anonymous and SW only caches a static fallback', async () 
   assert.match(worker, /fetch\(event\.request\)\.catch/);
   assert.match(worker, /cache\.match\(OFFLINE_URL\)/);
   assert.doesNotMatch(worker, /cache\.put\(|caches\.match\(event\.request\)|skipWaiting\(/);
-  assert.match(client, /serviceWorker\.register\('\/sw\.js'/);
+  assert.match(client, /serviceWorker\s*\.register\('\/sw\.js'/);
   assert.doesNotMatch(client, /location\.reload\(|skipWaiting\(/);
 });
