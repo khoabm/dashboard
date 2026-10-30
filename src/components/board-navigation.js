@@ -49,7 +49,8 @@ export function BoardNavigation() {
   let board = null,
     enabled = false,
     frame = 0,
-    trackTarget = null;
+    trackTarget = null,
+    mirrors = [];
   const position = el('span', { class: 'board-navigation-position' });
   const previous = button('←', () => step(-1), 'icon-button', {
     'aria-label': 'Cuộn chủ đề sang trái',
@@ -85,7 +86,38 @@ export function BoardNavigation() {
     ),
     track,
   );
+  const headings = el('div', { class: 'board-sticky-headings', hidden: true });
+  const headingTrack = el('div', { class: 'board-sticky-heading-track' });
+  headings.append(headingTrack);
   const observer = new ResizeObserver(update);
+  // Sticky controls are outside the scrollable Board; mirrors follow its native scrollLeft.
+  const refreshMirrors = () => {
+    if (!board?.isConnected || !mirrors.length) {
+      headings.hidden = true;
+      return;
+    }
+    const original = board.querySelector('.section-heading');
+    const sticky = headings.parentElement;
+    const stickyTop = sticky?.getBoundingClientRect().top ?? 0;
+    const controlsHeight = sticky
+      ? [...sticky.children].filter((n) => n !== headings && !n.hidden)
+          .reduce((sum, n) => sum + n.getBoundingClientRect().height, 0)
+      : 0;
+    const rect = board.getBoundingClientRect();
+    const visible = matchMedia('(min-width:701px)').matches &&
+      !!original && original.getBoundingClientRect().top <= Math.max(0, stickyTop) + controlsHeight;
+    headings.hidden = !visible;
+    if (!visible) return;
+    headingTrack.style.width = `${rect.width}px`;
+    for (let i = 0; i < mirrors.length; i++) {
+      const column = board.querySelectorAll('.section-column')[i];
+      if (!column) continue;
+      const bounds = column.getBoundingClientRect();
+      mirrors[i].style.width = `${bounds.width}px`;
+      mirrors[i].style.left = `${bounds.left - rect.left}px`;
+    }
+  };
+  window.addEventListener('scroll', refreshMirrors, { passive: true });
   track.addEventListener(
     'scroll',
     () => {
@@ -110,7 +142,11 @@ export function BoardNavigation() {
     const columns = [...board.querySelectorAll('[data-section-id]')];
     element.hidden =
       !enabled || !matchMedia('(min-width:701px)').matches || max <= 1 || columns.length < 2;
-    if (element.hidden) return;
+    if (element.hidden) {
+      headings.hidden = true;
+      return;
+    }
+    refreshMirrors();
     fill.style.width = `${track.clientWidth + max}px`;
     const left = (board.scrollLeft / max) * (track.scrollWidth - track.clientWidth);
     if (Math.abs(track.scrollLeft - left) > 1) {
@@ -162,11 +198,15 @@ export function BoardNavigation() {
     board?.removeEventListener('scroll', scheduleUpdate);
     board = null;
     trackTarget = null;
+    mirrors = [];
+    headingTrack.replaceChildren();
+    headings.hidden = true;
     element.hidden = true;
   }
 
   return {
     element,
+    headings,
     capture: () => captureBoardPosition(board),
     reset,
     /**
@@ -180,6 +220,21 @@ export function BoardNavigation() {
       enabled = all;
       board.scrollLeft = restoredBoardLeft(board, savedPosition);
       board.addEventListener('scroll', scheduleUpdate, { passive: true });
+      mirrors = [...board.querySelectorAll('.section-column')].map((column) => {
+        const original = column.querySelector('.section-heading');
+        const clone = original.cloneNode(true);
+        clone.classList.add('board-heading-mirror');
+        clone.setAttribute('aria-hidden', 'true');
+        // Forward admin's topic action to its canonical control; no duplicate handler.
+        for (const button of clone.querySelectorAll('button')) {
+          const originalButton = original.querySelector('button');
+          button.addEventListener('click', () => originalButton?.click());
+          button.tabIndex = -1;
+        }
+        clone.style.backgroundColor = getComputedStyle(original).backgroundColor;
+        headingTrack.append(clone);
+        return clone;
+      });
       observer.observe(board);
       for (const column of board.querySelectorAll('[data-section-id]')) observer.observe(column);
       update();
