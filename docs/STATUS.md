@@ -1,3 +1,9 @@
+## 2026-10-30 — PWA installability (feature branch, not merged)
+
+`feature/pwa-installable-app-shell` starts from `feature/gradebook-clear-student-scores` at `aa04ac6`. This adds install metadata/icons and a privacy-safe offline navigation fallback. No business logic, DB, API or existing UI modifications. Offline reads/writes and authentication remain unavailable by design. CI/QA evidence and delivery state are recorded in [PWA guide](PWA.md); browser/device QA is NOT RUN until verified. No website or Supabase deployment.
+
+---
+
 # Live AI chatbot — real-data acceptance PASS / 2026-10-30
 
 Normal Free-only chatbot integrated into develop via ordered PR21(ecc7300),

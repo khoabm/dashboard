@@ -12,15 +12,18 @@ async function checkDirectory(directory = 'dist', relative = '') {
     assert(!entry.isSymbolicLink(), `Unexpected production symlink: ${name}`);
     if (entry.isDirectory()) {
       assert(
-        /^(assets|placeholders)(\/|$)/.test(name) || name === 'templates',
+        /^(assets|placeholders|icons)(\/|$)/.test(name) || name === 'templates',
         `Unexpected output directory: ${name}`,
       );
       await checkDirectory(file, name);
-    } else if (name.startsWith('placeholders/')) {
+    } else if (name.startsWith('placeholders/') || name.startsWith('icons/')) {
       assert.deepEqual(await readFile(file), await readFile(path.join('public', name)));
     } else if (
       [
         'third-party-notices.txt',
+        'manifest.webmanifest',
+        'offline.html',
+        'sw.js',
         'templates/score-template.csv',
         'templates/score-template.xlsx',
       ].includes(name)
@@ -37,4 +40,13 @@ async function checkDirectory(directory = 'dist', relative = '') {
 
 await checkDirectory();
 await readFile('dist/index.html');
+for (const file of [
+  'manifest.webmanifest',
+  'sw.js',
+  'offline.html',
+  'icons/icon-192.png',
+  'icons/icon-512.png',
+  'icons/icon-maskable-512.png',
+])
+  await readFile(path.join('dist', file));
 console.log('Production output: application assets only; no test/source directories: PASS');
