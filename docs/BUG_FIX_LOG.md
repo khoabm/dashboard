@@ -1,5 +1,16 @@
 # Nhật ký khắc phục lỗi
 
+## 2026-10-30 — UI-MOBILE-HEADER-01: mobile header title and account actions wrap awkwardly
+
+Screenshot at approximately 395px: header brand limited to 105px in the legacy
+`max-width: 600px` rule, combined with flex-wrap, causes the app name to break
+into three lines and makes the action row visually detached. Added a narrowly
+scoped mobile CSS Grid override in `src/styles/main.css`: brand on first row
+with navigation, actions on a second row, search on a third row, balanced title
+wrapping and full-width-safe text. No changes to HTML/JS, authentication,
+routing, PWA, DB or API. Branch `feature/pwa-installable-app-shell`.
+Browser device QA NOT RUN at initial implementation; CI pending.
+
 ## 2026-10-30 — AI-LIVE-04: singular neuron quota errors classified as temporary errors
 
 Final delivery based on develop27b9fb9. Match singular neuron as well as plural
