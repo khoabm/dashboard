@@ -9,6 +9,7 @@ import { routeFor, routes } from './utils/gradebook-ui.js';
 import { createRouteNavigation } from './utils/app-navigation.js';
 import { newId } from './utils/id.js';
 import { PulseIndicator, setPendingMessage } from './components/pending.js';
+import { registerPwa } from './utils/pwa.js';
 
 const root = document.querySelector('#app');
 const boardRoot = el('div', { id: 'board-app', hidden: true });
@@ -207,3 +208,6 @@ window.addEventListener('pageshow', (event) => {
   if (event.persisted && current !== 'board') void showRoute(location.pathname, false);
 });
 void showRoute(location.pathname, false);
+
+// Installability is independent of navigation, Auth and the application data lifecycle.
+registerPwa();

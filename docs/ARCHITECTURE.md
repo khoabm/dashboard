@@ -236,3 +236,7 @@ không tự thêm năm hoặc coi start là end. Numeric/date guards chỉ chặ
 không phải semantic entailment proof. Metadata/topic/body source untrusted, không model tools/writes.
 [Bounds, schema, tests và limitations](features/board-assistant/GATE_AB_ACCEPTANCE.md). Không thay
 DO allowance/run ID hoặc hosted config trong Gate A/B.
+
+## PWA app shell (2026-10-30)
+
+PWA is independent of the Board/Auth/Gradebook data flow: `public/manifest.webmanifest` contains install metadata, `public/icons/` holds branded PNG icons, `public/offline.html` is the only pre-cached response, and `public/sw.js` handles **same-origin navigation only** using network-first fallback on connection failure. `src/utils/pwa.js` registers without forcing an update or reloading a page. `src/app.js` keeps ownership of all three routes. No app HTML, JS, API response, authenticated data, tokens or drafts are cached in the service worker. See [PWA guide](PWA.md) for limits and checks.
