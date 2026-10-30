@@ -897,47 +897,49 @@ export function GradebookScores({
       ),
       templates,
       ...(!published
-        ? [el(
-            'div',
-            { class: 'admin-actions grid-edit-toolbar' },
-          el(
-            'span',
-            { 'data-grid-count': '', role: 'status', 'aria-live': 'polite' },
-            gridPending.size ? `${gridPending.size} ô chưa lưu` : 'Mọi thay đổi đã lưu',
-          ),
-          button(
-            'Xóa ô đang chọn',
-            () => {
-              if (gridPending.size || !selectedGridCell) return;
-              editScore(selectedGridCell.student, selectedGridCell.column);
-            },
-            'button',
-            { 'data-grid-remove': '', disabled: gridPending.size > 0 || !selectedGridCell },
-          ),
-          button('Lưu thay đổi', saveGrid, 'button primary', {
-            'data-grid-save': '',
-            disabled: !gridPending.size || gridStale,
-          }),
-          gridProgress,
-          button(
-            'Bỏ thay đổi',
-            async () => {
-              if (
-                !(await confirm(
-                  'Bỏ các điểm chưa lưu?',
-                  'Các điểm chưa lưu sẽ bị hủy; dữ liệu trên máy chủ không thay đổi.',
-                ))
-              )
-                return;
-              gridPending.clear();
-              gridStale = false;
-              dirty = false;
-              render();
-            },
-            'button',
-            { 'data-grid-discard': '', disabled: !gridPending.size },
-          ),
-        )]
+        ? [
+            el(
+              'div',
+              { class: 'admin-actions grid-edit-toolbar' },
+              el(
+                'span',
+                { 'data-grid-count': '', role: 'status', 'aria-live': 'polite' },
+                gridPending.size ? `${gridPending.size} ô chưa lưu` : 'Mọi thay đổi đã lưu',
+              ),
+              button(
+                'Xóa ô đang chọn',
+                () => {
+                  if (gridPending.size || !selectedGridCell) return;
+                  editScore(selectedGridCell.student, selectedGridCell.column);
+                },
+                'button',
+                { 'data-grid-remove': '', disabled: gridPending.size > 0 || !selectedGridCell },
+              ),
+              button('Lưu thay đổi', saveGrid, 'button primary', {
+                'data-grid-save': '',
+                disabled: !gridPending.size || gridStale,
+              }),
+              gridProgress,
+              button(
+                'Bỏ thay đổi',
+                async () => {
+                  if (
+                    !(await confirm(
+                      'Bỏ các điểm chưa lưu?',
+                      'Các điểm chưa lưu sẽ bị hủy; dữ liệu trên máy chủ không thay đổi.',
+                    ))
+                  )
+                    return;
+                  gridPending.clear();
+                  gridStale = false;
+                  dirty = false;
+                  render();
+                },
+                'button',
+                { 'data-grid-discard': '', disabled: !gridPending.size },
+              ),
+            ),
+          ]
         : []),
       el(
         'p',
