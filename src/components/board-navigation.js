@@ -41,6 +41,27 @@ export function restoredBoardLeft(board, position) {
 }
 
 /**
+ * Keeps the mirrored heading hidden until the original heading has completely
+ * passed beneath sticky controls, and hides it at the end of the Board.
+ * Pure geometry allows regression tests without a browser or backend.
+ */
+export function stickyHeadingVisible({
+  desktop,
+  stickyTop,
+  stickyBottom,
+  originalBottom,
+  boardBottom,
+  headingHeight,
+}) {
+  return (
+    desktop &&
+    Math.abs(stickyTop) <= 1 &&
+    originalBottom <= stickyBottom + 1 &&
+    boardBottom > stickyBottom + headingHeight + 4
+  );
+}
+
+/**
  * Builds a sticky navigation row with native synchronized scrollbars and step buttons.
  * Attach after each board replacement; reset releases observers and stale session references.
  * @returns {object} The navigation element, attach/capture/reset helpers and section reveal action.
@@ -49,7 +70,8 @@ export function BoardNavigation() {
   let board = null,
     enabled = false,
     frame = 0,
-    trackTarget = null;
+    trackTarget = null,
+    mirrors = [];
   const position = el('span', { class: 'board-navigation-position' });
   const previous = button('←', () => step(-1), 'icon-button', {
     'aria-label': 'Cuộn chủ đề sang trái',
@@ -85,7 +107,42 @@ export function BoardNavigation() {
     ),
     track,
   );
+  const headings = el('div', { class: 'board-sticky-headings', hidden: true });
+  const headingTrack = el('div', { class: 'board-sticky-heading-track' });
+  headings.append(headingTrack);
   const observer = new ResizeObserver(update);
+  // Sticky controls are outside the scrollable Board; mirrors follow its native scrollLeft.
+  const refreshMirrors = () => {
+    if (!board?.isConnected || !mirrors.length) {
+      headings.hidden = true;
+      return;
+    }
+    const original = board.querySelector('.section-heading');
+    const stickyBounds = headings.parentElement?.getBoundingClientRect();
+    const boardBounds = board.getBoundingClientRect();
+    const visible =
+      !!original &&
+      !!stickyBounds &&
+      stickyHeadingVisible({
+        desktop: matchMedia('(min-width:701px)').matches,
+        stickyTop: stickyBounds.top,
+        stickyBottom: stickyBounds.bottom,
+        originalBottom: original.getBoundingClientRect().bottom,
+        boardBottom: boardBounds.bottom,
+        headingHeight: original.getBoundingClientRect().height,
+      });
+    headings.hidden = !visible;
+    if (!visible) return;
+    headingTrack.style.width = `${boardBounds.width}px`;
+    for (let i = 0; i < mirrors.length; i++) {
+      const column = board.querySelectorAll('.section-column')[i];
+      if (!column) continue;
+      const bounds = column.getBoundingClientRect();
+      mirrors[i].style.width = `${bounds.width}px`;
+      mirrors[i].style.left = `${bounds.left - boardBounds.left}px`;
+    }
+  };
+  window.addEventListener('scroll', refreshMirrors, { passive: true });
   track.addEventListener(
     'scroll',
     () => {
@@ -110,6 +167,7 @@ export function BoardNavigation() {
     const columns = [...board.querySelectorAll('[data-section-id]')];
     element.hidden =
       !enabled || !matchMedia('(min-width:701px)').matches || max <= 1 || columns.length < 2;
+    refreshMirrors();
     if (element.hidden) return;
     fill.style.width = `${track.clientWidth + max}px`;
     const left = (board.scrollLeft / max) * (track.scrollWidth - track.clientWidth);
@@ -162,11 +220,15 @@ export function BoardNavigation() {
     board?.removeEventListener('scroll', scheduleUpdate);
     board = null;
     trackTarget = null;
+    mirrors = [];
+    headingTrack.replaceChildren();
+    headings.hidden = true;
     element.hidden = true;
   }
 
   return {
     element,
+    headings,
     capture: () => captureBoardPosition(board),
     reset,
     /**
@@ -180,6 +242,20 @@ export function BoardNavigation() {
       enabled = all;
       board.scrollLeft = restoredBoardLeft(board, savedPosition);
       board.addEventListener('scroll', scheduleUpdate, { passive: true });
+      mirrors = [...board.querySelectorAll('.section-column')].map((column) => {
+        const original = column.querySelector('.section-heading');
+        const clone = original.cloneNode(true);
+        clone.classList.add('board-heading-mirror');
+        // Keep the mirrored topic action keyboard accessible while it is visible.
+        // Forward admin's topic action to its canonical control; no duplicate handler.
+        for (const button of clone.querySelectorAll('button')) {
+          const originalButton = original.querySelector('button');
+          button.addEventListener('click', () => originalButton?.click());
+        }
+        clone.style.backgroundColor = getComputedStyle(original).backgroundColor;
+        headingTrack.append(clone);
+        return clone;
+      });
       observer.observe(board);
       for (const column of board.querySelectorAll('[data-section-id]')) observer.observe(column);
       update();

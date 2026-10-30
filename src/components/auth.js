@@ -1,7 +1,7 @@
 /** Presents admin login and verifies the active profile before enabling editor actions. */
 
 import { el, button, field, errorMessage } from '../utils/dom.js';
-import { requireClient, sessionPersistent } from '../services/client.js';
+import { requireClient, sessionPersistent, rememberAdminSession } from '../services/client.js';
 import { isAdmin } from '../services/board.js';
 import { openDialog } from './primitives.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
@@ -30,6 +30,8 @@ export function LoginScreen(onSuccess) {
     autocomplete: 'current-password',
     placeholder: 'Mật khẩu quản trị',
   });
+  const remember = el('input', { type: 'checkbox' });
+  remember.checked = rememberAdminSession.remember();
   const error = el('p', { class: 'form-error', role: 'alert' });
   const submit = el('button', { type: 'submit', class: 'button primary' }, 'Đăng nhập');
   // Login form: admin-only guidance, credentials, inline error, and submit action.
@@ -43,6 +45,7 @@ export function LoginScreen(onSuccess) {
     ),
     field('Email', email),
     field('Mật khẩu', password),
+    field('Ghi nhớ đăng nhập trên thiết bị cá nhân (30 ngày)', remember),
     el(
       'p',
       { class: 'fine-print' },
@@ -86,6 +89,7 @@ export function LoginScreen(onSuccess) {
           throw Error('Tài khoản này chưa được cấp quyền quản trị.');
         }
         if (!dialog.open) return;
+        rememberAdminSession.select(remember.checked);
         dialog.close();
         await onSuccess();
       } catch (e) {

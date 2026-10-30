@@ -3,7 +3,7 @@
 import './styles/main.css';
 import { el, button, errorMessage } from './utils/dom.js';
 import { debounce, canRestore, moveItem } from './utils/validation.js';
-import { client } from './services/client.js';
+import { client, rememberAdminSession } from './services/client.js';
 import { loadBoard, savePost, exportMetadata, reorderPosts } from './services/board.js';
 import { verifyAdminSession } from './services/auth-session.js';
 import { cleanupPending } from './services/storage.js';
@@ -32,6 +32,11 @@ import { createPendingTask } from './utils/pending-task.js';
 import { PulseIndicator, setPendingMessage } from './components/pending.js';
 import { BoardNavigation } from './components/board-navigation.js';
 import { createAdminEntry } from './utils/app-navigation.js';
+import { BoardAssistant } from './components/board-assistant.js';
+import { createLiveAssistantRequest } from './services/board-assistant.js';
+import { config } from './config/public.js';
+import { assistantCatalog, resolveAssistantAction } from './utils/board-assistant.js';
+import './styles/board-assistant.css';
 const managedRoot = document.querySelector('#board-app');
 const root = managedRoot || document.querySelector('#app');
 let boardActive = !managedRoot || location.pathname === '/';
@@ -58,8 +63,11 @@ try {
   /* Preferences are optional. */
 }
 // The header search debounces board filtering and attempts to persist the query locally.
+let assistantIds = null;
 const search = SearchBar(
   debounce((value) => {
+    if (search.querySelector('input').value !== value) return;
+    assistantIds = null;
     query = value;
     try {
       localStorage.setItem('khtn8:query', query);
@@ -74,9 +82,21 @@ const search = SearchBar(
 const shell = el('div', { class: 'board-shell' }),
   controls = el('div', { class: 'board-controls' }),
   workspace = el('div', { class: 'board-workspace' }),
+  stickyRegion = el('div', { class: 'board-sticky' }),
   boardRegion = el('div'),
   adminRegion = el('div');
 const navigation = BoardNavigation();
+// The assistant receives only an explicit public projection, never the Auth or Gradebook state.
+const assistant = BoardAssistant({
+  snapshot: () => data,
+  request: createLiveAssistantRequest({
+    enabled: import.meta.env?.VITE_BOARD_ASSISTANT_AI !== 'false',
+    endpoint: config.assistantEndpoint,
+  }),
+  hosted: import.meta.env?.VITE_BOARD_ASSISTANT_AI !== 'false',
+  live: true,
+  perform: performAssistantAction,
+});
 const countText = el('span');
 // One persistent region survives board rerenders and describes pending admin work or refreshes.
 const activity = PulseIndicator();
@@ -122,10 +142,21 @@ root.append(
   ),
   shell,
 );
-// The workspace bounds sticky navigation to the board; the footer remains outside that region.
-workspace.append(controls, navigation.element, boardRegion);
+// Keep filters and mirrored section headings in the same sticky layer;
+// the horizontally scrollable post grid remains untouched and below it.
+stickyRegion.append(controls, navigation.element, navigation.headings);
+workspace.append(stickyRegion, boardRegion);
+// Mobile headings stick below dynamically sized filters (including wrapped status text).
+const stickySize = new ResizeObserver(() => {
+  workspace.style.setProperty(
+    '--board-sticky-height',
+    `${stickyRegion.getBoundingClientRect().height}px`,
+  );
+});
+stickySize.observe(stickyRegion);
 shell.append(
   activity,
+  assistant.element,
   adminRegion,
   workspace,
   el(
@@ -143,6 +174,7 @@ function updatePendingUI() {
   adminRegion.inert = pending;
   controls.inert = pending;
   navigation.element.inert = pending;
+  navigation.headings.inert = pending;
   boardRegion.inert = pending;
   boardRegion.setAttribute('aria-busy', String(pending || !!syncMessage));
   root.querySelector('.header-actions').inert = pending || !!syncMessage;
@@ -167,6 +199,50 @@ function runBoardAction(message, task) {
 
 // Board rendering and interaction callbacks.
 
+/** Applies only user-confirmed read-only assistant actions to the current public Board snapshot. */
+function performAssistantAction(value) {
+  if (
+    !boardActive ||
+    operations.pending() ||
+    syncMessage ||
+    authChecking ||
+    authFailed ||
+    logoutPending
+  )
+    return false;
+  const action = resolveAssistantAction(value, assistantCatalog(data));
+  if (!action) return false;
+  if (action.type === 'open') {
+    const post = data.posts.find((p) => p.id === action.id && p.status === 'published');
+    if (!post) return false;
+    PostPreviewModal(
+      post,
+      data.sections.find((s) => s.id === post.section_id),
+    );
+    return true;
+  }
+  // Assistant navigation is temporary; never retain a question or resurrect older filters.
+  assistantIds = action.type === 'filter' ? action.ids : null;
+  selected = action.type === 'topic' ? action.id : 'all';
+  query = '';
+  try {
+    localStorage.removeItem('khtn8:query');
+    localStorage.removeItem('khtn8:selected');
+  } catch {}
+  if (assistantIds && matchMedia('(max-width:700px)').matches) {
+    selected =
+      data.posts.find((post) => assistantIds.includes(post.id) && post.status === 'published')
+        ?.section_id || 'all';
+  }
+  filter = 'all';
+  search.querySelector('input').value = query;
+  renderControls();
+  renderBoard({ resetPosition: true });
+  return true;
+}
+
+window.addEventListener('pagehide', () => assistant.dismiss());
+
 /**
  * Rebuilds desktop tabs and the mobile section picker from current board state.
  */
@@ -179,6 +255,11 @@ function renderControls() {
    * @param {string} id - The selected section identifier.
    */
   const select = (id) => {
+    if (assistantIds !== null) {
+      assistantIds = null;
+      query = '';
+      search.querySelector('input').value = '';
+    }
     selected = id;
     try {
       localStorage.setItem('khtn8:selected', id);
@@ -257,7 +338,24 @@ function actions() {
  */
 function renderBoard({ resetPosition = false } = {}) {
   const position = resetPosition ? null : navigation.capture();
-  const board = BoardContainer(data, actions());
+  const visibleData =
+    assistantIds === null
+      ? data
+      : {
+          ...data,
+          posts: data.posts.filter(
+            (post) => post.status === 'published' && assistantIds.includes(post.id),
+          ),
+        };
+  const board = BoardContainer(visibleData, actions());
+  if (assistantIds !== null)
+    board.prepend(
+      el(
+        'p',
+        { role: 'status' },
+        'Đang lọc theo nguồn trợ lý đã chọn. Dùng tìm kiếm hoặc chọn chủ đề để bỏ bộ lọc.',
+      ),
+    );
   boardRegion.replaceChildren(board);
   navigation.attach(board, { all: selected === 'all', position });
   updatePendingUI();
@@ -265,6 +363,8 @@ function renderBoard({ resetPosition = false } = {}) {
 
 /** Updates counts, admin controls, quota, filters, and board after state changes. */
 function render(options = {}) {
+  // An auth reset temporarily clears Board data; only reconcile a committed snapshot.
+  if (options.reconcileAssistant !== false) assistant.reconcile();
   if (!data.sections.some((s) => s.id === selected)) selected = 'all';
   countText.textContent = `${data.sections.length} chủ đề · ${data.posts.filter((p) => p.status === 'published').length} học liệu`;
   // Clear the previous admin-only toolbar and quota before rebuilding this region.
@@ -391,6 +491,7 @@ async function restoreAuth() {
     if (generation !== requests.generation()) return;
     admin = !!identity;
     userId = identity?.userId ?? null;
+    if (identity) rememberAdminSession.renew();
     authChecking = false;
     window.dispatchEvent(new Event('app:auth-state'));
     if (boardActive) await refresh();
@@ -555,7 +656,7 @@ function clearSession() {
   data = { sections: [], posts: [] };
   lastSync = null;
   window.dispatchEvent(new Event('app:sign-out'));
-  render();
+  render({ reconcileAssistant: false });
 }
 
 /** Defers SDK reads until the Auth event callback has released its internal lock. */
@@ -624,6 +725,8 @@ let gradebookAuthSession = null;
 client?.auth.onAuthStateChange((event, session) => {
   gradebookAuthSession = session;
   if (event === 'SIGNED_OUT') {
+    // Unlike routine refresh, sign-out ends the current user's conversation.
+    assistant.invalidate();
     clearSession();
     schedulePublicRefresh();
   }
@@ -651,6 +754,7 @@ export function setBoardActive(active) {
   if (boardActive === active) return;
   boardActive = active;
   if (!active) {
+    assistant.dismiss();
     authRefreshPromise = null;
     clearTimeout(authRefreshTimer);
     requests.invalidate();

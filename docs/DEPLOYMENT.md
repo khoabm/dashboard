@@ -1,8 +1,19 @@
+## Live AI Worker — 2026-10-30
+
+Owner-approved ongoing Free-only chat is integrated into develop. Worker entry live.js, AI enabled, native3/10-second rate binding; no Pilot token/expiry/lifetime gate. Public Board is fetched anonymously server-side, general knowledge needs no Board source. See [live receipts/acceptance](features/board-assistant/LIVE_CHAT_ACCEPTANCE.md). Main/production website is unchanged; old Worker-disabled descriptions below are historical.
+
 # Triển khai frontend tĩnh
 
 **2026-10-28 owner update:** chọn Cloudflare Pages Free, GitHub main auto-deploy và bật Personal Gradebook. [Cấu hình, receipt dọn synthetic, checks và gate còn thiếu](CLOUDFLARE_RELEASE_20261028.md) là hướng dẫn release hiện hành. Không dùng Sites cho lần phát hành này; phần Sites dưới đây giữ làm quy trình thay thế lịch sử. Nguồn SPEC R03–04, R17–18, R24–28; không thay backend Supabase hoặc tự merge main.
 
 ## Điều kiện
+
+Ngoại lệ riêng 2026-10-29: người dùng cho phép deploy Worker AI tách biệt phục vụ localhost
+cho [Board Assistant MVP](features/board-assistant/README.md), cấm merge/main/web deployment.
+Đây không phải phát hành frontend hoặc bằng chứng production. Worker đã kết thúc E2E ở
+trạng thái `AI_ENABLED=false`; bản frontend/config source vẫn mặc định tắt AI. Các mô tả
+chưa-deploy bên dưới là baseline frontend cũ, không đại diện danh mục dịch vụ hiện có trong
+tài khoản Cloudflare của chủ repo.
 
 - Người dùng đã yêu cầu triển khai trong phạm vi/audience cụ thể; nếu chỉ code/docs/QA thì không deploy. Sites mặc định private; không đổi audience để né lỗi deploy.
 

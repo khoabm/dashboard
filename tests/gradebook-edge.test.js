@@ -816,7 +816,7 @@ test('capability TTL/audience/project/version/tampering and BIGINT epochs are ch
 
 test('verify commits limiter first, issues no grades, and sends only protected matching state to SQL', async () => {
   const pair = { classId: cid, studentId: sid, classEpoch: '2', studentEpoch: '3', class: clazz };
-  const f = fixture('student', { gb_pair_check: pair });
+  const f = fixture('student', { gb_pair_check: { allowed: true, retryAfter: 0, pair } });
   const result = await f.send({ op: 'verify', documentNumber: digits, birthDate: dob });
   assert.equal(result.status, 200);
   assert.deepEqual(
@@ -848,7 +848,7 @@ test('verify commits limiter first, issues no grades, and sends only protected m
 });
 
 test('unknown/mismatched identities are neutral; malformed verify still consumes global quota', async () => {
-  const f = fixture('student', { gb_pair_check: null });
+  const f = fixture('student', { gb_pair_check: { allowed: true, retryAfter: 0, pair: null } });
   const first = await f.send({ op: 'verify', documentNumber: digits, birthDate: dob });
   const second = await f.send({
     op: 'verify',
@@ -1528,4 +1528,105 @@ test('CON-004 static chain guard verifies eight reviewed replacements and unchan
   assert.match(reveal, /identityLookup.*,encode\(s\.identity_lookup/);
   assert.match(reveal, /lookupKeyVersion.*,s\.lookup_key_version/);
   assert.doesNotMatch(reveal, /ERRCODE.*40[0-9A-Z]{3}/);
+});
+
+test('failed-pair RPC decision denies after ten failures with 429 and Retry-After', async () => {
+  const f = fixture('student', {
+    gb_pair_check: { allowed: false, retryAfter: 42, pair: null },
+  });
+  const result = await f.send({ op: 'verify', documentNumber: digits, birthDate: dob });
+  assert.equal(result.status, 429);
+  assert.equal(result.body.error.code, 'limited');
+  assert.equal(result.headers.get('retry-after'), '42');
+  assert.deepEqual(
+    f.calls.map(({ name }) => name),
+    ['gb_lookup_context', 'gb_limit', 'gb_pair_check'],
+  );
+});
+
+test('correct pair response is explicitly unwrapped without leaking limiter fields', async () => {
+  const pair = { classId: cid, studentId: sid, classEpoch: '2', studentEpoch: '3', class: clazz };
+  const f = fixture('student', { gb_pair_check: { allowed: true, retryAfter: 0, pair } });
+  const result = await f.send({ op: 'verify', documentNumber: digits, birthDate: dob });
+  assert.equal(result.status, 200);
+  assert.equal(Object.hasOwn(result.body, 'allowed'), false);
+  assert.equal(Object.hasOwn(result.body, 'pair'), false);
+});
+
+test('transitional release accepts old direct pair/null before migration', async () => {
+  const pair = { classId: cid, studentId: sid, classEpoch: '2', studentEpoch: '3', class: clazz };
+  const good = fixture('student', { gb_pair_check: pair });
+  const ok = await good.send({ op: 'verify', documentNumber: digits, birthDate: dob });
+  assert.equal(ok.status, 200);
+  const bad = fixture('student', { gb_pair_check: null });
+  const denied = await bad.send({ op: 'verify', documentNumber: digits, birthDate: dob });
+  assert.equal(denied.status, 401);
+  assert.equal(denied.body.error.code, 'verification');
+});
+
+test('GRID-B02 signed grid batch preview/apply preserves revision string and rejects tampered input', async () => {
+  const changes = [
+    {
+      studentId: sid,
+      subjectCode: 'math',
+      columnCode: 'midterm',
+      expectedRevision: null,
+      score: '8.12345',
+    },
+  ];
+  const mock = fixture('admin', {
+    gb_score_batch_preview: plan,
+    gb_score_batch_apply: { counts, errors: [], committed: true },
+  });
+  const source = { classId: cid, semester: 1, changes };
+  const preview = await mock.send({ op: 'scores.batch.preview', ...source });
+  assert.equal(preview.status, 200);
+  assert.equal(typeof preview.body.previewToken, 'string');
+  assert.equal(preview.body.internalStateHash, undefined);
+  const applied = await mock.send({
+    op: 'scores.batch.apply',
+    ...source,
+    previewToken: preview.body.previewToken,
+  });
+  assert.equal(applied.status, 200);
+  assert.equal(applied.body.committed, true);
+  assert.equal(mock.calls.filter((c) => c.name === 'gb_score_batch_apply').length, 1);
+  const sent = mock.calls.find((c) => c.name === 'gb_score_batch_apply');
+  assert.equal(sent.args.changes[0].score, '8.12345');
+  assert.equal(sent.args.changes[0].expectedRevision, null);
+  const tampered = await mock.send({
+    op: 'scores.batch.apply',
+    ...source,
+    changes: [{ ...changes[0], score: '8.12344' }],
+    previewToken: preview.body.previewToken,
+  });
+  assert.equal(tampered.status, 409);
+  assert.equal(mock.calls.filter((c) => c.name === 'gb_score_batch_apply').length, 1);
+});
+
+test('GRID-B03 malformed grid batches never reach privileged SQL', async () => {
+  const f = fixture();
+  const cell = {
+    studentId: sid,
+    subjectCode: 'math',
+    columnCode: 'midterm',
+    expectedRevision: null,
+    score: '8',
+  };
+  for (const changes of [
+    [cell, cell],
+    [{ ...cell, score: '8.123456' }],
+    [{ ...cell, studentId: 1 }],
+    [{ ...cell, role: 'service_role' }],
+    [],
+  ]) {
+    const response = await f.send({
+      op: 'scores.batch.preview',
+      classId: cid,
+      semester: 1,
+      changes,
+    });
+    assert.equal(response.status, 400);
+  }
+  assert.equal(f.calls.filter((call) => call.name.startsWith('gb_score_batch_')).length, 0);
 });

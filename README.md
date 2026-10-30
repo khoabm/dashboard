@@ -1,8 +1,25 @@
-# KHTN8 Board
+# Vui học cùng cô Quỳnh
 
-Bảng học liệu Khoa học tự nhiên lớp 8: HTML/CSS/Vanilla JavaScript ES Modules, Supabase Free, một admin được chỉ định, khách ẩn danh chỉ đọc published. Source chính: `khoabm/dashboard`, nhánh `develop`; chưa merge main hoặc deploy công khai.
+**Vui học cùng cô Quỳnh** là tên chính thức của website. Source hiện có nhiều ứng dụng
+hỗ trợ học tập và quản lý lớp/điểm theo quyền; không mặc nhiên tuyên bố mọi luồng đã
+nghiệm thu hoặc triển khai công khai.
 
-Có giao diện 3 cột/6 bài placeholder từ database thật, tìm kiếm, ảnh/PDF/YouTube/link và source CMS. **Chưa nghiệm thu toàn sản phẩm:** SQL 2026-10-24 đã xác nhận có một admin active/email confirmed; không tạo thêm admin. Cần xác minh cài đặt server signup/anonymous, chạy E2E Auth/admin/upload/sync và backup/restore trước khi công bố hoàn tất. Xem [STATUS](docs/STATUS.md), [QA_REPORT](docs/QA_REPORT.md), [ADMIN_SETUP](docs/ADMIN_SETUP.md).
+- **Bảng học liệu** (`/`): xem, tìm và mở học liệu published; quản trị nội dung theo quyền.
+  **KHTN8 Board** là tên lịch sử/kỹ thuật của ứng dụng này, không phải toàn website.
+- **Bảng điểm cá nhân** (`/personal-gradebook`): tra cứu dữ liệu riêng sau xác minh.
+- **Quản lý bảng điểm và lớp** (`/personal-gradebook/admin`): nghiệp vụ dành cho người có quyền.
+- **Trợ lý học liệu**: giải thích phạm vi website và hỗ trợ văn bản học liệu công khai;
+  AI hosted mặc định tắt, không có quyền truy cập Gradebook/Auth.
+
+**Đọc trước:** [Mục đích và mô hình sản phẩm](docs/PRODUCT_PROFILE.md) ·
+[OVERVIEW](docs/OVERVIEW.md) · [STATUS](docs/STATUS.md) ·
+[Đặc tả Bảng học liệu](docs/SPEC.md) ·
+[Gradebook](docs/features/personal-gradebook/README.md) ·
+[Trợ lý](docs/features/board-assistant/README.md).
+
+**Ràng buộc:** HTML/CSS/Vanilla JS, Vite, Supabase theo module và chi phí 0 USD.
+Không suy quyền từ giao diện/URL, không tự dùng dữ liệu học sinh thật,
+không tự kích hoạt AI hoặc triển khai website.
 
 ## Chạy độc lập
 
@@ -18,11 +35,10 @@ Mở URL local do Vite in ra. Cấu hình public của project đã chọn nằm
 ```bash
 npm test
 npm run check
-npm run test:api
 npm run build
 ```
 
-`test:api` gọi project Supabase đã chọn bằng publishable key, kiểm tra public read và denial; không phải test login thật. `build` xuất `dist/` để phục vụ bằng bất kỳ static HTTPS host phù hợp; không cần Node backend khi vận hành. Vite dùng để bundle SDK, khóa dependency/lockfile và tách cấu hình; không dùng React/Next/Vue. Không có cấu hình deployment của nhà cung cấp cũ.
+**Không chạy hosted trong tác vụ correction.** `test:api` cần phê duyệt hoạt động/budget riêng; lệnh này gọi project Supabase đã chọn bằng publishable key, kiểm tra public read và denial; không phải test login thật. `build` xuất `dist/` để phục vụ bằng bất kỳ static HTTPS host phù hợp; không cần Node backend khi vận hành. Vite dùng để bundle SDK, khóa dependency/lockfile và tách cấu hình; không dùng React/Next/Vue. Không có cấu hình deployment của nhà cung cấp cũ.
 
 ## CI và format code
 

@@ -1,4 +1,19 @@
+## Live chat Free verification — 2026-10-30
+
+Actual Chrome Workers plans Free/$0/Current plan, pre-acceptance59.41/10k daily neurons; Supabase organization API plan=free/tier_free. Same Worker/AI and historical namespace retained, native rate binding3/10 seconds, no paid fallback/upgrade/card/credits. Real acceptance uses five UI submissions total (three scenarios plus two failing-case retests); no forced quota exhaustion or hosted spam. Provider Free ceiling replaces old artificial lifetime budgets for normal chat. [Evidence](features/board-assistant/LIVE_CHAT_ACCEPTANCE.md). No privileged database access or normal-user manual Free receipt gate.
+
 # Ràng buộc chi phí 0 USD
+
+## Board Assistant — xác minh 2026-10-29
+
+Cloudflare dashboard Workers plans hiển thị **Free / $0 / Current plan**; Workers AI gồm
+10.000 Neurons/ngày, SQLite Durable Objects có hạn mức Free theo nguồn chính thức đã đọc.
+Chỉ một Worker + namespace bộ đếm cần cho task; không D1/R2, AI Gateway/prepaid credit,
+thẻ/trial/upgrade hoặc thay đổi billing. BGE-M3 và Qwen3 chỉ dùng trong các đợt synthetic
+được phê duyệt, có lifetime allowance và dừng lỗi; Worker đã deploy lại mặc định tắt.
+Nguồn, phiên bản deploy, từng đợt request và giới hạn: [assistant evidence](features/board-assistant/README.md).
+Không có yêu cầu trả phí nào được chấp nhận; không suy số đo này ra hóa đơn/usage toàn tài khoản.
+Nếu provider hoặc Codex yêu cầu trả phí thì dừng task và report, không đổi kiến trúc để lách.
 
 Nguồn SPEC R02/R15/R20–21/R25–28. Không nâng gói, trial/thẻ, domain, add-on, API AI, email/analytics/CI/storage trả phí hoặc lưu lượng giả để tránh pause. Hết quota ưu tiên chặn/tạm dừng, không trả phí. Không cam kết 24/7.
 

@@ -1,8 +1,38 @@
 # Cloudflare Pages release — 2026-10-28
 
-User authorizes Cloudflare Free static hosting, Personal Gradebook activation and GitHub main automatic deployments. Supersedes the former Sites-only hosting restriction; Supabase remains the runtime backend. Merge requires explicit approval of the prepared release PR; this record does not merge main or accept remaining security gates.
+## Confirmed deployment and remaining acceptance
 
-## Source, configuration and cost
+**DEPLOYED; GRADEBOOK CONFIGURED; FULL UAT PARTIAL.** Owner explicitly approved [release PR #13](https://github.com/khoabm/dashboard/pull/13), merged into main as `cda0ad8cdcbd6bfc3b9803ed25f082f9c270c8bc`. [Post-merge Offline CI40719153983](https://github.com/khoabm/dashboard/actions/runs/40719153983) SUCCESS (read back after deployment). Cloudflare UI confirmed the same commit and successful production deployment `48628e34-c994-46b2-94d7-284669bd0ab7`.
+
+- Project: `student-dashboard`; production URL: https://student-dashboard-bcy.pages.dev.
+- GitHub App installation authorized for only khoabm/dashboard. Git production branch main, automatic production deployments ON; preview branches None/OFF, saved then reopened to verify.
+- Build `npm run build`, output `dist`, preset None, Node24, VITE_GRADEBOOK_ENABLED=true. No secret keys in frontend build variables. First future merge-triggered update is not separately tested; initial setup deployed already-merged main.
+- Owner requested removing khtn8 from the name. Cloudflare assigned the suffix-bcy; exact plain student-dashboard.pages.dev was not available in this flow. Owner-approved deletion removed both temporary projects khtn8-dashboard and khtn8-co-quynh. Cloudflare inventory showed only student-dashboard afterward.
+- One approved Dashboard replacement updated only GB_ALLOWED_ORIGINS to `["http://localhost:4173","https://student-dashboard-bcy.pages.dev"]`. The previous public origin-list digest matched localhost-only before replacement; the new digest matched the intended two-item list afterward. Four keyring digests/timestamps unchanged; no plaintext keyring/credential read, regeneration, migration or Edge code deployment.
+- Authorized synthetic cleanup receipt below remains valid. Do not re-import stale fixtures merely to exercise the live site.
+
+### Finite hosted smoke and limits
+
+Owner approved two separately bounded activities. First terminal activity stopped immediately on its first OPTIONS attempt with no HTTP response (transport/timeout classification); no retry or remaining3 calls. Server receipt of that attempt UNKNOWN. After reporting the stop, owner explicitly approved a new run outside the network sandbox, same four-request maximum and stop rules. The second run completed4/4, timeout15s per request, redirects rejected, no retry:
+
+| Endpoint | Method/input | Observed result |
+| --- | --- | --- |
+| grades-admin | OPTIONS, exact production Origin | 204, exact allow-origin, no-store |
+| student-lookup | OPTIONS, exact production Origin | 204, exact allow-origin, no-store |
+| grades-admin | POST class.read, no JWT | 401, exact allow-origin, no-store |
+| student-lookup | POST verify, missing identity pair | 400, exact allow-origin, no-store |
+
+This establishes CORS/unauthenticated denial and handler reachability for these cases. The student invalid-pair path invokes at most1 gb_limit RPC by source contract; no independent SQL/log count was requested. The limiter may update security counters; no class/student/score mutation was sent. It does not establish valid admin login, authorized CRUD/import/publication, own-student grade retrieval or charts on production.
+
+Owner then approved browser QA for only /personal-gradebook (one load + one reload, static requests only, no submitted fields). Automatic browser approval review rejected navigation before execution because its review usage limit was exhausted. The initial browser/deep-link attempt was BLOCKED before execution; no workaround was used. After the stated review-limit reset time had passed (current time verified23:45 Asia/Bangkok), the same authorized browser action was retried successfully. **Production student-route/deep-link QA PASS:** one initial load and one reload of /personal-gradebook; CMND/CCCD and DOB form, calendar control, verification button and menu displayed; menu opened/closed. No form input, verification submit, login, Board/admin navigation or additional Supabase call. Static asset request totals were not independently captured; authorized ceiling42, source route loads only static assets and no backend until submit. Chrome desktop only; no mobile/Safari claim. Ignored screenshot: tests/local/cloudflare-release-29c1402/student-gradebook-route-live.png. Full authenticated admin/student UAT remains NOT RUN. No blanket product-done, real-data acceptance, full security or full managed recovery claim.
+
+### Accounting and handoff
+
+2 successful execute_sql calls (inventory + guarded cleanup transaction);1 rejected SQL attempt before its subsequent explicit approval.1 Dashboard origin replacement; control-plane UI request totals UNKNOWN. API smoke:1 stopped/no-response attempt plus4 completed HTTP requests in the separately reauthorized activity; no automatic retry. Initial browser QA blocked before navigation; after review-limit reset, one authorized initial load plus one reload and menu open/close PASS. No backend input submitted. Existing owner browser traffic unmeasured. Drive0; real student import0; paid service/add-on/card0; no further migration/Edge deploy/key rotation. Hosted SQL statements within the2 calls are not described as only2 database queries.
+
+Local screenshot evidence is ignored under tests/local/cloudflare-release-29c1402/: student-dashboard-deployed.png and main-only-auto-deploy.png; public repo contains no screenshots with private dashboard data. Local develop4f25496 and pre-existing .env.example/vite.config.js edits preserved. This final evidence update changes only this guide and STATUS, with documentation/diff review, no runtime suites repeated. Publication via a separate docs PR does not change deployed main or cause another production deployment.
+
+## Historical preparation — source, configuration and cost
 
 Release source baseline29c1402130c4cd28441f16c0b7f7f9091c46b468 (descendant of develop78f3c32 and PR12 documentation); mainae5000e currently contains only README.md. Initial Git project setup must not be mistaken for successful application deployment while main lacks source.
 
@@ -30,8 +60,8 @@ Owner explicitly selected only Gradebook synthetic; keep learning resources and 
 
 One approved execute_sql transaction then locked the exact class/student scope, required test marker and2/5 counts, deleted5 scores →2 students →1 class, asserted row counts, and committed. Result target_class_removed=true and target_students_removed=true. Catalogs, audit, limiter, Board/Auth/admin and keyrings were not targeted. No TRUNCATE, schema reset, migration, key rotation or blanket student delete. No real student data was read/exported/imported. Public receipt omits row IDs and names.
 
-Total Supabase successful calls this release task:2 execute_sql (one read-only inventory, one cleanup transaction); first unapproved inventory attempt was rejected before execution, then separately approved. No retries. No additional verification query. Underlying statement count is not represented as2 queries: the cleanup call contains guarded reads/deletes and final result checks. No Auth login or function/API test requests issued by agent yet; user-open existing app traffic unmeasured. Drive0. Further hosted verification needs a finite target/data/request plan, including SDK/preflight/retries, with separate approval per TESTING.
+Cleanup-stage accounting (superseded by the full release accounting above):2 successful execute_sql (one read-only inventory, one cleanup transaction); first unapproved inventory attempt was rejected before execution, then separately approved. No retries. No additional verification query. Underlying statement count is not represented as2 queries: the cleanup call contains guarded reads/deletes and final result checks. No Auth login or function/API test requests issued by agent yet; user-open existing app traffic unmeasured. Drive0. Further hosted verification needs a finite target/data/request plan, including SDK/preflight/retries, with separate approval per TESTING.
 
-## Pending completion evidence
+## Historical pre-deployment pending evidence
 
 Cloudflare GitHub App access approved for only khoabm/dashboard; GitHub sudo completed by owner. Git project configuration/deployment, exact origin update and browser acceptance still pending at this documentation commit. Do not claim Gradebook works end-to-end or production-ready from the enabled build alone. Do not re-request owner legal/organizational approval attestation.

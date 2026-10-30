@@ -1,6 +1,26 @@
+## AI-LIVE-D01 — current owner authorization / 2026-10-30
+
+Owner explicitly replaces the old design/Pilot constraints with ongoing Free-only hybrid AI, general knowledge plus public Board, short3/10-second spam rate limit and ordered PR21 ->16 ->develop merge. No private backend/paid upgrade/main merge. Earlier design records are historical. See SPEC R07.1 and live acceptance.
+
 # Quyết định và thay đổi định hướng
 
 Chỉ ghi quyết định có ảnh hưởng scope/kiến trúc; ngày + căn cứ + hệ quả. Không dùng file này làm nhật ký từng thao tác.
+
+## Board Assistant MVP — 2026-10-29
+
+AI-D01: người dùng cho phép phát triển trên branch hiện tại và deploy Worker riêng, cấm
+merge/main/web deploy. Zero cost có ưu tiên cao nhất; bất kỳ yêu cầu trả phí/thẻ/trial/credit
+(kể cả Codex) đều phải dừng. Quyền tự động hóa chỉ thuộc task này; không sửa AGENTS.md.
+
+AI-D02: MVP dùng chat UI + hybrid retrieval; model chỉ chọn ID nguồn, Worker lấy nguyên văn
+public text để hạn chế lỗi chép lại/hallucination. Nút hành động qua allowlist read-only và
+fresh snapshot; không model tools/JS/DOM tùy ý/Gradebook. Đây là nền mở rộng trợ lý page,
+không phải chatbot sinh lời giải hoặc quyền sửa nội dung. Chuẩn sản phẩm tại SPEC R07.1.
+
+AI-D03: một SQLite Durable Object lưu counter/stop flag để enforce allowance trên nhiều
+isolate; không lưu nội dung/IP, không thêm D1/R2. Allowance mới chỉ có sau phê duyệt từng
+đợt; không tự reset quota sau lỗi. Frontend AI và Worker config mặc định tắt. Dữ liệu public
+thật và public production API cần gate riêng; finite synthetic E2E không thay gate đó.
 
 | ID / ngày | Trạng thái | Quyết định và căn cứ |
 | --- | --- | --- |
@@ -43,3 +63,35 @@ Còn thiếu: ảnh wireframe quản trị để visual acceptance; tạo tài k
 
 - **GB-OPS-D01 / owner-approved:** only four unapplied Gradebook filenames follow actual MCP-assigned versions; exact SQL/guards and five applied Board ledger entries stay unchanged. Current mapping/evidence: [DATABASE](DATABASE.md#gradebook-migration-rollout-gate--gb-ops-rev-002). No general timestamp-renumbering or ledger-repair authority.
 - **GB-OPS-D02 / owner-approved synthetic scope:** four separate256-bit keyrings and local Windows DPAPI backup; origin allowlist is environment configuration, CP01-C localhost:4173 only. Origin changes do not rotate keys or mutate DB. DPAPI is not sufficient for real-data backup; independent recovery/production custody remains gated in [DATA §H](features/personal-gradebook/DATA_AND_SECURITY.md#h-real-personal-data-gate).
+
+## Tên website do chủ sở hữu xác nhận; mô hình ứng dụng đối chiếu từ source — 2026-10-29
+
+PRODUCT-D01 / **tên website được chủ sở hữu xác nhận**: **Vui học cùng cô Quỳnh**
+là tên toàn website; KHTN8 Board là tên lịch sử/kỹ thuật của **Bảng học liệu**,
+không thay tên repository, schema, module, brief hoặc bằng chứng cũ.
+
+PRODUCT-D02 / **mô hình được đối chiếu từ source**: các ứng dụng hiện có gồm Bảng học
+liệu, Bảng điểm cá nhân, Quản lý bảng điểm/lớp; Trợ lý học liệu là tính năng của Board.
+Đây là mô tả hiện trạng và công dụng, **không khẳng định chủ sở hữu đã duyệt mọi
+chi tiết định vị sản phẩm hoặc thêm nghiệp vụ mới**, không chứng minh đã public release.
+Xem [PRODUCT_PROFILE](PRODUCT_PROFILE.md).
+
+PRODUCT-D03 / **ranh giới tài liệu và quyền**: SPEC gốc chủ yếu cho Bảng học liệu
+và hạ tầng; Gradebook/AI giữ brief, quyền, acceptance gates riêng. Không tự mở
+Auth/Supabase, truy cập dữ liệu riêng, merge hoặc deploy do đổi tên/overview.
+
+
+## Historical design record retained from target branch
+
+## AI Learning Assistant — Owner decisions 2026-10-28
+
+| ID | Status | Decision and boundary |
+| --- | --- | --- |
+| AI-D01 | Approved DESIGN only | Add a bounded conversational assistant to public **KHTN8 Board**: semantic retrieval + multi-turn topic/type refinement, optional opening of existing published cards; not a replacement for existing SearchBar. |
+| AI-D02 | Technical choice subject to PoC | True pretrained Vietnamese/multilingual embeddings **inside browser if feasible**; deterministic intent/action state machine. No free-form generative LLM, teacher write controls, Gradebook data, new backend or paid AI API. No library/model/CSP added without AI-P01 evidence and owner go/no-go. |
+| AI-D03 | Branch/document authorization | Develop docs on separate `feature/ai-learning-assistant` derived from `develop`; **no implementation, PoC execution, PR, merge or deployment in this task**. Zero cost throughout. |
+
+See [feature design and acceptance](features/ai-learning-assistant/README.md); this new extension does not rewrite the original Board R01–R28 scope or resolve Personal Gradebook G07/G08 gates.
+
+
+| D11 / 2026-10-30 | Remember Me 30 ngày được người dùng duyệt | Khi chọn checkbox, phiên Supabase được lưu trong localStorage có timestamp xác minh; nếu quá 30 ngày không xác minh lại, SDK không khôi phục và cần đăng nhập lại. Chỉ renew tối đa 1 lần/24h khi verifyAdminSession đã thành công; không thêm polling hoặc gọi API riêng; không lưu mật khẩu. Đây là thời hạn client, không phải thu hồi phiên server. Không thay đổi DB/API. |

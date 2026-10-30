@@ -14,6 +14,8 @@ import {
 } from './contracts.js';
 import { classDto, studentDto, scoreDtos, catalogDtos, importDto, checked } from './dto.js';
 import { normalizeImport, protectedRows } from './imports.js';
+import { normalizeGridBatch } from './grid-batch.js';
+import { frameTuple } from './contracts.js';
 import { Failure } from './http.js';
 
 const specs = {
@@ -63,6 +65,21 @@ const specs = {
   'student.delete': [
     ['classId', 'studentId', 'expectedRevision', 'confirmed'],
     ['classId', 'studentId', 'expectedRevision', 'confirmed'],
+  ],
+  'student.scores.summary': [
+    ['classId', 'studentId', 'expectedRevision'],
+    ['classId', 'studentId', 'expectedRevision'],
+  ],
+  'student.scores.clear': [
+    [
+      'classId',
+      'studentId',
+      'expectedRevision',
+      'expectedFingerprint',
+      'confirmed',
+      'acknowledged',
+    ],
+    ['classId', 'studentId', 'expectedRevision', 'expectedFingerprint', 'confirmed'],
   ],
   'scores.read': [
     ['classId', 'semester', 'studentId', 'cursor', 'limit'],
@@ -126,6 +143,14 @@ const specs = {
     ['classId', 'semester', 'headers', 'rows', 'previewToken'],
     ['classId', 'semester', 'headers', 'rows', 'previewToken'],
   ],
+  'scores.batch.preview': [
+    ['classId', 'semester', 'changes'],
+    ['classId', 'semester', 'changes'],
+  ],
+  'scores.batch.apply': [
+    ['classId', 'semester', 'changes', 'previewToken'],
+    ['classId', 'semester', 'changes', 'previewToken'],
+  ],
 };
 
 /** Unknown fields, including client actor/session/crypto, fail before privileged access. */
@@ -152,6 +177,12 @@ export function validateAdmin(body, today) {
   if (Object.hasOwn(body, 'documentNumber')) documentNumber(body.documentNumber);
   if (Object.hasOwn(body, 'birthDate')) birthDate(body.birthDate, today);
   if (Object.hasOwn(body, 'score')) normalizeScore(body.score);
+  if (Object.hasOwn(body, 'expectedFingerprint'))
+    requireContract(
+      typeof body.expectedFingerprint === 'string' &&
+        /^[0-9a-f]{64}$/.test(body.expectedFingerprint),
+      'fingerprint',
+    );
   if (Object.hasOwn(body, 'name')) text(body.name, 100);
   if (Object.hasOwn(body, 'schoolYear')) text(body.schoolYear, 32);
   for (const field of ['confirmed', 'acknowledged', 'acknowledgeMissing'])
@@ -162,6 +193,7 @@ export function validateAdmin(body, today) {
       'student.deactivate',
       'student.reactivate',
       'student.delete',
+      'student.scores.clear',
       'score.delete',
       'semester.publish',
       'semester.unpublish',
@@ -332,6 +364,50 @@ export async function executeAdmin(body, identity, context) {
         confirmed: true,
       });
       return ok({ deleted: true });
+    case 'student.scores.summary':
+    case 'student.scores.clear': {
+      const clearing = body.op === 'student.scores.clear';
+      const data = await call(clearing ? 'gb_student_scores_clear' : 'gb_student_scores_summary', {
+        ...student,
+        expected: body.expectedRevision,
+        ...(clearing
+          ? {
+              expected_fingerprint: body.expectedFingerprint,
+              confirmed: true,
+              acknowledged: body.acknowledged === true,
+            }
+          : {}),
+      });
+      return ok(
+        checked(() => {
+          const keys = clearing
+            ? ['deletedCount']
+            : ['semester1Count', 'semester2Count', 'totalCount'];
+          for (const key of keys)
+            requireContract(
+              Number.isInteger(data?.[key]) && data[key] >= 0 && data[key] <= 112,
+              'backend',
+            );
+          if (clearing) return { deletedCount: data.deletedCount };
+          requireContract(
+            data.totalCount === data.semester1Count + data.semester2Count &&
+              typeof data.semester1Published === 'boolean' &&
+              typeof data.semester2Published === 'boolean' &&
+              typeof data.fingerprint === 'string' &&
+              /^[0-9a-f]{64}$/.test(data.fingerprint),
+            'backend',
+          );
+          return {
+            semester1Count: data.semester1Count,
+            semester2Count: data.semester2Count,
+            totalCount: data.totalCount,
+            semester1Published: data.semester1Published,
+            semester2Published: data.semester2Published,
+            fingerprint: data.fingerprint,
+          };
+        }),
+      );
+    }
     case 'score.put':
     case 'score.delete': {
       const args = {
@@ -391,6 +467,61 @@ export async function executeAdmin(body, identity, context) {
           }),
         ),
       });
+    case 'scores.batch.preview':
+    case 'scores.batch.apply': {
+      const applying = body.op === 'scores.batch.apply';
+      const changes = normalizeGridBatch(body.changes);
+      const binding = {
+        ...auth,
+        classId: body.classId,
+        kind: 'grid_batch',
+        semester: body.semester,
+      };
+      const canonical = frameTuple('gb:grid-batch:v1', [
+        ...changes.map((item) =>
+          frameTuple('cell', [
+            item.studentId,
+            item.subjectCode,
+            item.columnCode,
+            item.expectedRevision,
+            item.score,
+          ]),
+        ),
+      ]);
+      const token = applying
+        ? await cryptography.preview(body.previewToken, binding, canonical, now())
+        : null;
+      const args = { ...base, semester: body.semester, changes };
+      const plan = await call('gb_score_batch_preview', args);
+      const projected = importDto(plan);
+      if (!applying) {
+        const signed = await cryptography.issuePreview(
+          binding,
+          canonical,
+          plan.internalStateHash,
+          now(),
+        );
+        return ok({ ...projected, previewToken: signed.token, expiresAt: signed.expiresAt });
+      }
+      if (
+        !(await cryptography.stateMatches(
+          token.kid,
+          binding,
+          plan.internalStateHash,
+          token.stateDigest,
+        ))
+      )
+        throw new Failure(409, 'preview_conflict');
+      checkpoint();
+      let result;
+      try {
+        result = await call('gb_score_batch_apply', { ...args, expected: plan.internalStateHash });
+      } catch (error) {
+        if (error.classification === '22023') throw new Failure(409, 'preview_conflict');
+        throw error;
+      }
+      return ok(importDto(result, true));
+    }
     default: {
       const kind = body.op.startsWith('roster.') ? 'roster' : 'scores';
       const applying = body.op.endsWith('.apply');

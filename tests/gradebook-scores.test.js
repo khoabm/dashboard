@@ -7,6 +7,7 @@ import {
   teacherPage,
   compareScoreCells,
   scoreMutation,
+  gridBatch,
   publicationMutation,
   excelScore,
   scoreBatch,
@@ -350,4 +351,33 @@ test('CP04-T14 joins only matching paged identities and projects validated score
   const header = csvRecords(readFileSync('public/templates/score-template.csv', 'utf8'), 10)[0]
     .cells;
   assert.deepEqual(header, [...SCORE_HEADERS]);
+});
+
+test('GRID-B01 batch accepts exact changed cells with null/positive revisions and rejects unsafe scores', () => {
+  const batch = gridBatch(classroom, 1, [
+    {
+      studentId: '101',
+      subjectCode: 'math',
+      columnCode: 'midterm',
+      expectedRevision: null,
+      score: '8.12345',
+    },
+    {
+      studentId: '102',
+      subjectCode: 'math',
+      columnCode: 'final',
+      expectedRevision: '9999999999999999',
+      score: '0',
+    },
+  ]);
+  assert.equal(batch.changes.length, 2);
+  assert.equal(batch.changes[0].score, '8.12345');
+  assert.equal(batch.changes[1].score, '0');
+  const first = batch.changes[0];
+  assert.throws(() => gridBatch(classroom, 1, [first, first]));
+  assert.throws(() => gridBatch(classroom, 1, [{ ...first, score: '' }]));
+  assert.throws(() => gridBatch(classroom, 1, [{ ...first, score: '8.123456' }]));
+  assert.throws(() => gridBatch(classroom, 2, [first]));
+  assert.throws(() => gridBatch(classroom, 1, []));
+  assert.throws(() => gridBatch(classroom, 1, Array(141).fill(first)));
 });

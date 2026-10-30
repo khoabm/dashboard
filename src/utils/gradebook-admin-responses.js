@@ -27,6 +27,15 @@ export const adminFields = {
   'student.deactivate': ['classId', 'studentId', 'expectedRevision', 'confirmed'],
   'student.reactivate': ['classId', 'studentId', 'expectedRevision', 'confirmed'],
   'student.delete': ['classId', 'studentId', 'expectedRevision', 'confirmed'],
+  'student.scores.summary': ['classId', 'studentId', 'expectedRevision'],
+  'student.scores.clear': [
+    'classId',
+    'studentId',
+    'expectedRevision',
+    'expectedFingerprint',
+    'confirmed',
+    'acknowledged',
+  ],
   'scores.read': ['classId', 'semester', 'studentId', 'cursor', 'limit'],
   'score.put': [
     'classId',
@@ -60,6 +69,8 @@ export const adminFields = {
   'roster.apply': ['classId', 'headers', 'rows', 'previewToken'],
   'scores.preview': ['classId', 'semester', 'headers', 'rows'],
   'scores.apply': ['classId', 'semester', 'headers', 'rows', 'previewToken'],
+  'scores.batch.preview': ['classId', 'semester', 'changes'],
+  'scores.batch.apply': ['classId', 'semester', 'changes', 'previewToken'],
 };
 
 /** Rejects credential selectors and unsafe numeric coercion; B4 owns business preconditions. */
@@ -74,6 +85,12 @@ export function adminRequest(body) {
     )
       bigintId(body[key]);
   if ('score' in body) normalizeScore(body.score);
+  if ('expectedFingerprint' in body)
+    requireContract(
+      typeof body.expectedFingerprint === 'string' &&
+        /^[0-9a-f]{64}$/.test(body.expectedFingerprint),
+      'fingerprint',
+    );
   return structuredClone(body);
 }
 
@@ -230,6 +247,41 @@ export function adminPayload(body, payload) {
   if (op === 'student.reveal') {
     envelope(payload, ['documentNumber']);
     return { documentNumber: documentNumber(payload.documentNumber) };
+  }
+  if (op === 'student.scores.summary') {
+    const keys = [
+      'semester1Count',
+      'semester2Count',
+      'totalCount',
+      'semester1Published',
+      'semester2Published',
+      'fingerprint',
+    ];
+    envelope(payload, keys);
+    for (const field of ['semester1Count', 'semester2Count', 'totalCount'])
+      requireContract(
+        Number.isInteger(payload[field]) && payload[field] >= 0 && payload[field] <= 112,
+        'response',
+      );
+    requireContract(
+      payload.totalCount === payload.semester1Count + payload.semester2Count &&
+        typeof payload.semester1Published === 'boolean' &&
+        typeof payload.semester2Published === 'boolean' &&
+        typeof payload.fingerprint === 'string' &&
+        /^[0-9a-f]{64}$/.test(payload.fingerprint),
+      'response',
+    );
+    return payload;
+  }
+  if (op === 'student.scores.clear') {
+    envelope(payload, ['deletedCount']);
+    requireContract(
+      Number.isInteger(payload.deletedCount) &&
+        payload.deletedCount >= 0 &&
+        payload.deletedCount <= 112,
+      'response',
+    );
+    return { deletedCount: payload.deletedCount };
   }
   if (op === 'score.put') {
     envelope(payload, ['changed']);

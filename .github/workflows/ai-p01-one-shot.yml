@@ -1,0 +1,56 @@
+name: AI-P01 isolated specialist experiment
+# Corrected 30-string frozen fixture; isolated repeat for fixture-shape defect.
+on:
+  push:
+    branches: [feature/ai-learning-assistant]
+    paths:
+      - .github/workflows/ai-p01-one-shot.yml
+permissions:
+  contents: read
+concurrency:
+  group: ai-p01-one-shot
+  cancel-in-progress: false
+jobs:
+  synthetic-only:
+    if: github.repository == 'khoabm/dashboard' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Verify free public runner
+        run: |
+          set -euo pipefail
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          test "$RUNNER_OS" = Linux
+          test "$GITHUB_REPOSITORY" = khoabm/dashboard
+      - name: Install ephemeral research runtime (not in package.json)
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ai-p01-deps"
+          timeout 180 npm install --prefix "$RUNNER_TEMP/ai-p01-deps" --fetch-retries=0 --no-save --no-audit --no-fund @huggingface/transformers@4.3.1
+          test "$(du -sm "$RUNNER_TEMP/ai-p01-deps" | cut -f1)" -le 750
+          cat > "$RUNNER_TEMP/ai-p01-deps/run.mjs" <<'EOF'
+          import { pipeline, env } from '@huggingface/transformers';
+          import { pathToFileURL } from 'node:url';
+          import { join } from 'node:path';
+          const script=pathToFileURL(join(process.env.GITHUB_WORKSPACE,'tests','ai-p01','evaluate.mjs')).href;
+          const { runPoc }=await import(script);
+          await runPoc(pipeline,env);
+          EOF
+      - name: One bounded 30-query synthetic semantic experiment
+        env:
+          HF_HUB_DISABLE_TELEMETRY: '1'
+          DO_NOT_TRACK: '1'
+        run: |
+          set -euo pipefail
+          timeout 420 node "$RUNNER_TEMP/ai-p01-deps/run.mjs"
+      - name: Cleanup ephemeral model/runtime
+        if: always()
+        run: |
+          rm -rf "$RUNNER_TEMP/ai-p01-deps" "$RUNNER_TEMP/ai-p01-model-cache" || true

@@ -147,7 +147,7 @@ export function createAdminGate(request, session, deadline = 15000) {
         const response = Promise.resolve(request(body, { signal })).catch((error) => {
           if (
             error?.status === 422 &&
-            ['roster.preview', 'scores.preview'].includes(body.op) &&
+            ['roster.preview', 'scores.preview', 'scores.batch.preview'].includes(body.op) &&
             error.payload?.counts
           )
             return previewErrors(error.payload);
@@ -232,6 +232,23 @@ export function createRosterPreview(clock = Date.now, kind = 'roster') {
         previewToken: preview.previewToken,
       };
     },
+  };
+}
+
+/** Binds a bulk clear to one student and a verified snapshot, never an inferred browser score count. */
+export function studentScoresClearAction(student, classId, fingerprint, acknowledged = false) {
+  requireContract(
+    typeof fingerprint === 'string' && /^[0-9a-f]{64}$/.test(fingerprint),
+    'fingerprint',
+  );
+  return {
+    op: 'student.scores.clear',
+    classId,
+    studentId: bigintId(student.id),
+    expectedRevision: bigintId(student.revision),
+    expectedFingerprint: fingerprint,
+    confirmed: true,
+    acknowledged: acknowledged === true,
   };
 }
 

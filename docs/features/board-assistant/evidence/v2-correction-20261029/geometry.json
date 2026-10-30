@@ -1,0 +1,47 @@
+{
+  "geometry": [
+    {
+      "width": 360,
+      "height": 640,
+      "docWidth": 360,
+      "composerBottom": 640,
+      "transcriptHeight": 168
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "docWidth": 390,
+      "composerBottom": 844,
+      "transcriptHeight": 389
+    },
+    {
+      "width": 667,
+      "height": 375,
+      "docWidth": 667,
+      "composerBottom": 375,
+      "transcriptHeight": 145
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "docWidth": 768,
+      "composerBottom": 1011,
+      "transcriptHeight": 683
+    },
+    {
+      "width": 1024,
+      "height": 768,
+      "docWidth": 1024,
+      "composerBottom": 755,
+      "transcriptHeight": 427
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "docWidth": 1440,
+      "composerBottom": 887,
+      "transcriptHeight": 559
+    }
+  ],
+  "external": 0
+}
