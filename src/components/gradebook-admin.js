@@ -84,13 +84,7 @@ export function GradebookAdmin({
   const heading = el('h1', { tabindex: '-1' }, 'Quản lý bảng điểm');
   const progress = PulseIndicator();
   const body = el('div', { class: 'gradebook-admin-body' });
-  const element = el(
-    'main',
-    { id: 'main', class: 'gradebook-admin' },
-    heading,
-    progress,
-    body,
-  );
+  const element = el('main', { id: 'main', class: 'gradebook-admin' }, heading, progress, body);
 
   /** Cancels waits without claiming a previously sent mutation was rolled back. */
   function cancel() {
@@ -666,8 +660,7 @@ export function GradebookAdmin({
       if (!isCurrent()) return;
       if (result.deletedCount !== summary.totalCount) throw new AdminError(503);
       await list(isCurrent);
-      if (isCurrent())
-        ToastNotification('Đã xóa ' + result.deletedCount + ' ô điểm của học sinh.');
+      if (isCurrent()) ToastNotification('Đã xóa ' + result.deletedCount + ' ô điểm của học sinh.');
     });
   }
 
@@ -739,7 +732,9 @@ export function GradebookAdmin({
             file.value = '';
             dirty = false;
             inspect.disabled = true;
-            ToastNotification('Đã áp dụng danh sách. Đóng hộp thoại và tải lại danh sách học sinh.');
+            ToastNotification(
+              'Đã áp dụng danh sách. Đóng hộp thoại và tải lại danh sách học sinh.',
+            );
           },
           (e) => {
             preview.clear();

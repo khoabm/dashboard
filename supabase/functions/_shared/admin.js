@@ -71,7 +71,14 @@ const specs = {
     ['classId', 'studentId', 'expectedRevision'],
   ],
   'student.scores.clear': [
-    ['classId', 'studentId', 'expectedRevision', 'expectedFingerprint', 'confirmed', 'acknowledged'],
+    [
+      'classId',
+      'studentId',
+      'expectedRevision',
+      'expectedFingerprint',
+      'confirmed',
+      'acknowledged',
+    ],
     ['classId', 'studentId', 'expectedRevision', 'expectedFingerprint', 'confirmed'],
   ],
   'scores.read': [
@@ -172,7 +179,8 @@ export function validateAdmin(body, today) {
   if (Object.hasOwn(body, 'score')) normalizeScore(body.score);
   if (Object.hasOwn(body, 'expectedFingerprint'))
     requireContract(
-      typeof body.expectedFingerprint === 'string' && /^[0-9a-f]{64}$/.test(body.expectedFingerprint),
+      typeof body.expectedFingerprint === 'string' &&
+        /^[0-9a-f]{64}$/.test(body.expectedFingerprint),
       'fingerprint',
     );
   if (Object.hasOwn(body, 'name')) text(body.name, 100);
