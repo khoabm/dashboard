@@ -48,10 +48,5 @@ jobs:
       - name: Verify static production build
         run: npm run build
 
-      - name: Temporary show exact pinned Prettier output for admin UI
-        run: |
-          npx --no-install prettier --write src/components/gradebook-admin.js
-          git diff -- src/components/gradebook-admin.js
-
       - name: Check pinned Prettier format including Edge source
         run: npm run format:check
