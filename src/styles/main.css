@@ -403,8 +403,8 @@ kbd {
   inset-inline: 0;
   height: 80px;
   overflow: hidden;
-  /* The columns own their corners. A rounded parent clips their edges incorrectly. */
-  background: transparent;
+  /* Opaque backing masks artwork underneath each rounded heading. */
+  background: #eff4f1;
   pointer-events: none;
 }
 .board-sticky-headings[hidden] {
@@ -425,6 +425,13 @@ kbd {
 }
 .board-heading-mirror .icon-button {
   pointer-events: auto;
+}
+/* Keep mirrored controls clickable despite the noninteractive backing. */
+.board-sticky-heading-track {
+  pointer-events: auto;
+}
+.section-heading-frame {
+  min-width: 0;
 }
 .board-column-heading-anchor {
   scroll-margin-top: calc(var(--board-sticky-height, 90px) + 90px);
@@ -1052,11 +1059,15 @@ kbd {
     width: 100%;
     min-width: 0;
   }
-  .section-heading {
-    min-height: 77px;
+  .section-heading-frame {
     position: sticky;
     top: var(--board-sticky-height, 0px);
     z-index: 5;
+    padding-bottom: 1px;
+    background: #eff4f1;
+  }
+  .section-heading {
+    min-height: 77px;
     border-radius: 12px;
     background-clip: padding-box;
     overflow: hidden;
