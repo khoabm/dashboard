@@ -73,9 +73,9 @@ function assistantTool(label, detail, icon, callback) {
 }
 
 /** Returns a local display time; no conversation data is persisted or transmitted. */
-function messageTime() {
+function messageTime(at = new Date()) {
   return new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' }).format(
-    new Date(),
+    new Date(at),
   );
 }
 
@@ -90,7 +90,8 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     context = null,
     chatHistory = [],
     transcript = [],
-    cloudChoice = null;
+    cloudChoice = null,
+    pendingQuestion = null;
   const trigger = button('', open, 'assistant-trigger', {
     'aria-haspopup': 'dialog',
     'aria-controls': 'assistant-dialog',
@@ -104,6 +105,14 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
   /** Closes the panel without erasing this page's completed conversation. */
   function dismiss() {
     generation++;
+    if (pendingQuestion) {
+      transcript.push({
+        kind: 'notice',
+        text: 'Mình đã dừng trả lời khi bạn đóng cuộc trò chuyện. Bạn có thể hỏi lại nhé.',
+        at: new Date().toISOString(),
+      });
+      pendingQuestion = null;
+    }
     controller?.abort();
     controller = null;
     dialog?.close();
@@ -119,6 +128,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     chatHistory = [];
     transcript = [];
     cloudChoice = null;
+    pendingQuestion = null;
   }
 
   /** Opens a native modal; the chat transcript alone scrolls above its composer. */
@@ -191,8 +201,13 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
         generation++;
         controller?.abort();
         controller = null;
+        pendingQuestion = null;
         busy(false);
-        error.textContent = 'Đã dừng trả lời. Bạn có thể sửa câu hỏi hoặc hỏi lại nhé.';
+        const stoppedAt = new Date().toISOString();
+        const stoppedText = 'Đã dừng trả lời. Bạn có thể sửa câu hỏi hoặc hỏi lại nhé.';
+        transcript.push({ kind: 'notice', text: stoppedText, at: stoppedAt });
+        assistantMessage(stoppedText, 'assistant-notice', stoppedAt);
+        error.textContent = '';
         input.focus();
       },
       'button subtle assistant-stop',
@@ -360,6 +375,14 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     ownDialog.addEventListener('cancel', () => {
       if (dialog !== ownDialog) return;
       generation++;
+      if (pendingQuestion) {
+        transcript.push({
+          kind: 'notice',
+          text: 'Đã dừng trả lời. Bạn có thể hỏi lại nhé.',
+          at: new Date().toISOString(),
+        });
+        pendingQuestion = null;
+      }
       controller?.abort();
       controller = null;
     });
@@ -368,24 +391,25 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     input.focus();
 
     /** Adds one assistant bubble, keeping text as DOM text rather than injected HTML. */
-    function assistantMessage(content, className = '') {
+    function assistantMessage(content, className = '', at = new Date().toISOString()) {
       const bubble = el('div', { class: 'assistant-bubble ' + className }, content);
       const row = el(
         'div',
         { class: 'assistant-message assistant-message-bot' },
         assistantAvatar('assistant-message-avatar'),
-        el('div', { class: 'assistant-message-content' }, bubble, el('time', {}, messageTime())),
+        el('div', { class: 'assistant-message-content' }, bubble, el('time', { datetime: at }, messageTime(at))),
       );
       messages.append(row);
       return bubble;
     }
 
-    assistantMessage(
-      live
-        ? 'Chào bạn! Mình có thể giúp giải đáp thắc mắc hoặc tìm hiểu các bài viết trên trang. Bạn muốn hỏi gì nào?'
-        : 'Chào bạn! Mình có thể giúp tìm bài viết và giới thiệu những gì có trên trang. Bạn muốn bắt đầu từ đâu?',
-      'assistant-welcome',
-    );
+    if (!transcript.length)
+      assistantMessage(
+        live
+          ? 'Chào bạn! Mình có thể giúp giải đáp thắc mắc hoặc tìm hiểu các bài viết trên trang. Bạn muốn hỏi gì nào?'
+          : 'Chào bạn! Mình có thể giúp tìm bài viết và giới thiệu những gì có trên trang. Bạn muốn bắt đầu từ đâu?',
+        'assistant-welcome',
+      );
     ownDialog.addEventListener(
       'close',
       () => {
@@ -425,8 +449,10 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
         error.textContent = 'Học liệu đã thay đổi. Hãy tìm lại.';
         return;
       }
-      // Remove the old focus owner before the preview captures its return target.
-      invalidate();
+      // Opening a published source must not erase the conversation. Other Board
+      // navigation still invalidates the old selection as before.
+      if (action.type === 'open') dismiss();
+      else invalidate();
       trigger.focus({ preventScroll: true });
       if (!perform(action)) {
         open();
@@ -438,7 +464,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     }
 
     /** Shows exact cited excerpts in compact resource cards with explicit read-only actions. */
-    function showResults(result, catalog, question, fingerprint, remember = true) {
+    function showResults(result, catalog, question, fingerprint, remember = true, at = new Date().toISOString()) {
       result = { ...result, sources: validateAssistantSources(result.sources, catalog) };
       // AI answers should read as messages, not diagnostic reports.
       const content = el('div');
@@ -516,11 +542,12 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
           ),
         );
       }
-      assistantMessage(content, 'assistant-result');
+      assistantMessage(content, 'assistant-result', at);
       if (remember) {
         transcript.push({
           kind: 'result',
           question,
+          at,
           result: {
             mode: result.mode,
             status: result.status,
@@ -529,27 +556,23 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
             sources: result.sources.map(({ id, quote }) => ({ id, quote })),
           },
         });
-        transcript = transcript.slice(-8);
       }
-      while (messages.querySelectorAll('.assistant-message:not(.assistant-typing)').length > 9)
-        messages.querySelector('.assistant-message:not(.assistant-typing)')?.remove();
       messages.scrollTop = messages.scrollHeight;
     }
 
     /** Recreates transcript with fresh source handlers after a panel reopen. */
-    function userMessage(question, remember = true) {
+    function userMessage(question, remember = true, at = new Date().toISOString()) {
       messages.append(
         el(
           'div',
           { class: 'assistant-message assistant-message-user' },
           el('div', { class: 'assistant-message-content' },
             el('p', { class: 'assistant-bubble assistant-question' }, question),
-            el('time', {}, messageTime())),
+            el('time', { datetime: at }, messageTime(at))),
         ),
       );
       if (remember) {
-        transcript.push({ kind: 'user', text: question });
-        transcript = transcript.slice(-8);
+        transcript.push({ kind: 'user', text: question, at });
       }
       messages.scrollTop = messages.scrollHeight;
     }
@@ -557,9 +580,11 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     // Do not restore pending work; only completed bubbles survive dismiss.
     const fingerprintAtOpen = JSON.stringify(corpusAtOpen);
     for (const entry of transcript) {
-      if (entry.kind === 'user') userMessage(entry.text, false);
+      if (entry.kind === 'user') userMessage(entry.text, false, entry.at);
       else if (entry.kind === 'result')
-        showResults(entry.result, catalogAtOpen, entry.question, fingerprintAtOpen, false);
+        showResults(entry.result, catalogAtOpen, entry.question, fingerprintAtOpen, false, entry.at);
+      else if (entry.kind === 'notice')
+        assistantMessage(entry.text, 'assistant-notice', entry.at);
     }
 
     input.addEventListener('keydown', (event) => {
@@ -597,6 +622,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
       controller = new AbortController();
       const signal = controller.signal;
       userMessage(question);
+      pendingQuestion = question;
       busy(true);
       try {
         const deterministic = live ? null : websiteLearningAnswer(question, catalog);
@@ -652,9 +678,11 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
             },
           ].slice(-12);
         showResults(result, catalog, question, fingerprint);
+        pendingQuestion = null;
         input.value = '';
       } catch (failure) {
         if (ticket !== generation || signal.aborted || !ownDialog.open) return;
+        pendingQuestion = null;
         if (live) {
           error.textContent =
             failure?.message === 'rate_limit'
