@@ -1,5 +1,8 @@
 name: Bounded live production smoke (one-shot)
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - qa/production-release-20261030
