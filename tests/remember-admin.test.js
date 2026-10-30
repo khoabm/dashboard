@@ -28,6 +28,7 @@ test('remember opt-in persists SDK token, renews only after 24h and expires afte
   assert.equal(first.remember(), false);
   assert.equal(first.select(true), true);
   assert.equal(first.remember(), true);
+  assert.equal(first.options.storage.getItem(first.options.storageKey), 'synthetic-session');
   assert.equal(
     optionsFor(local, memoryStorage(), clock).options.storage.getItem('different-tab-key'),
     'synthetic-session',
@@ -44,6 +45,7 @@ test('remember opt-in persists SDK token, renews only after 24h and expires afte
   const expired = optionsFor(local, memoryStorage(), clock);
   assert.equal(expired.remember(), false);
   assert.equal(expired.options.storage.getItem('different-tab-key'), null);
+  assert.equal(first.options.storage.getItem(first.options.storageKey), null);
   assert.equal(local.getItem('khtn8:remember-token:test-project'), null);
 });
 

@@ -120,6 +120,8 @@ export function createRememberedAuthOptions(
         const existing = fallback.storage?.getItem(fallback.storageKey);
         persistent.setItem(marker, JSON.stringify({ lastVerified: now() }));
         if (existing) persistent.setItem(tokenKey, existing);
+        // A remembered token must have one owner: no expired tab fallback.
+        fallback.storage?.removeItem(fallback.storageKey);
       } else {
         const previous = read() ? persistent.getItem(tokenKey) : null;
         if (previous && fallback.storage) fallback.storage.setItem(fallback.storageKey, previous);
