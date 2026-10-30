@@ -467,8 +467,7 @@ export function GradebookAdmin({
           try {
             if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
             await navigator.clipboard.writeText(value.textContent);
-            if (revealed && entry.dialog.open)
-              feedback.textContent = 'Đã sao chép vào bộ nhớ tạm.';
+            if (revealed && entry.dialog.open) feedback.textContent = 'Đã sao chép vào bộ nhớ tạm.';
           } catch {
             if (revealed && entry.dialog.open)
               feedback.textContent = 'Không thể sao chép. Kiểm tra quyền clipboard.';
@@ -1045,8 +1044,7 @@ export function GradebookAdmin({
     }
   };
   const hideReveal = () => {
-    if (document.hidden)
-      for (const entry of dialogs) entry.hideIdentity?.();
+    if (document.hidden) for (const entry of dialogs) entry.hideIdentity?.();
   };
   window.addEventListener('beforeunload', beforeUnload);
   document.addEventListener('visibilitychange', hideReveal);
