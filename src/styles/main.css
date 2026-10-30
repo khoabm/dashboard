@@ -386,9 +386,46 @@ kbd {
   align-items: center;
   gap: 7px;
 }
-/* This workspace bounds sticky controls to the board and keeps existing filters unchanged. */
+/* The controls share a sticky layer; post columns retain their own horizontal scroll. */
 .board-workspace {
   min-width: 0;
+}
+.board-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #eff4f1;
+  isolation: isolate;
+}
+.board-sticky-headings {
+  position: absolute;
+  top: 100%;
+  inset-inline: 0;
+  height: 80px;
+  overflow: hidden;
+  background: #eff4f1;
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 9px 16px #243d3612;
+}
+.board-sticky-headings[hidden] {
+  display: none;
+}
+.board-sticky-heading-track {
+  position: relative;
+  height: 100%;
+}
+.board-heading-mirror {
+  position: absolute;
+  top: 0;
+  height: 80px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.board-heading-mirror .icon-button {
+  pointer-events: auto;
+}
+.board-column-heading-anchor {
+  scroll-margin-top: calc(var(--board-sticky-height, 90px) + 90px);
 }
 .board-navigation {
   position: sticky;
@@ -1015,6 +1052,12 @@ kbd {
   }
   .section-heading {
     min-height: 77px;
+    position: sticky;
+    top: var(--board-sticky-height, 0px);
+    z-index: 5;
+  }
+  .board-sticky-headings {
+    display: none;
   }
   .card-art {
     height: 160px;
