@@ -66,6 +66,14 @@ const specs = {
     ['classId', 'studentId', 'expectedRevision', 'confirmed'],
     ['classId', 'studentId', 'expectedRevision', 'confirmed'],
   ],
+  'student.scores.summary': [
+    ['classId', 'studentId', 'expectedRevision'],
+    ['classId', 'studentId', 'expectedRevision'],
+  ],
+  'student.scores.clear': [
+    ['classId', 'studentId', 'expectedRevision', 'expectedFingerprint', 'confirmed', 'acknowledged'],
+    ['classId', 'studentId', 'expectedRevision', 'expectedFingerprint', 'confirmed'],
+  ],
   'scores.read': [
     ['classId', 'semester', 'studentId', 'cursor', 'limit'],
     ['classId', 'semester'],
@@ -162,6 +170,11 @@ export function validateAdmin(body, today) {
   if (Object.hasOwn(body, 'documentNumber')) documentNumber(body.documentNumber);
   if (Object.hasOwn(body, 'birthDate')) birthDate(body.birthDate, today);
   if (Object.hasOwn(body, 'score')) normalizeScore(body.score);
+  if (Object.hasOwn(body, 'expectedFingerprint'))
+    requireContract(
+      typeof body.expectedFingerprint === 'string' && /^[0-9a-f]{64}$/.test(body.expectedFingerprint),
+      'fingerprint',
+    );
   if (Object.hasOwn(body, 'name')) text(body.name, 100);
   if (Object.hasOwn(body, 'schoolYear')) text(body.schoolYear, 32);
   for (const field of ['confirmed', 'acknowledged', 'acknowledgeMissing'])
@@ -172,6 +185,7 @@ export function validateAdmin(body, today) {
       'student.deactivate',
       'student.reactivate',
       'student.delete',
+      'student.scores.clear',
       'score.delete',
       'semester.publish',
       'semester.unpublish',
@@ -342,6 +356,50 @@ export async function executeAdmin(body, identity, context) {
         confirmed: true,
       });
       return ok({ deleted: true });
+    case 'student.scores.summary':
+    case 'student.scores.clear': {
+      const clearing = body.op === 'student.scores.clear';
+      const data = await call(
+        clearing ? 'gb_student_scores_clear' : 'gb_student_scores_summary',
+        {
+          ...student,
+          expected: body.expectedRevision,
+          ...(clearing
+            ? {
+                expected_fingerprint: body.expectedFingerprint,
+                confirmed: true,
+                acknowledged: body.acknowledged === true,
+              }
+            : {}),
+        },
+      );
+      return ok(
+        checked(() => {
+          const keys = clearing
+            ? ['deletedCount']
+            : ['semester1Count', 'semester2Count', 'totalCount'];
+          for (const key of keys)
+            requireContract(Number.isInteger(data?.[key]) && data[key] >= 0 && data[key] <= 112, 'backend');
+          if (clearing) return { deletedCount: data.deletedCount };
+          requireContract(
+            data.totalCount === data.semester1Count + data.semester2Count &&
+              typeof data.semester1Published === 'boolean' &&
+              typeof data.semester2Published === 'boolean' &&
+              typeof data.fingerprint === 'string' &&
+              /^[0-9a-f]{64}$/.test(data.fingerprint),
+            'backend',
+          );
+          return {
+            semester1Count: data.semester1Count,
+            semester2Count: data.semester2Count,
+            totalCount: data.totalCount,
+            semester1Published: data.semester1Published,
+            semester2Published: data.semester2Published,
+            fingerprint: data.fingerprint,
+          };
+        }),
+      );
+    }
     case 'score.put':
     case 'score.delete': {
       const args = {

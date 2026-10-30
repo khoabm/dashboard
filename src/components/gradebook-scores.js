@@ -366,7 +366,7 @@ export function GradebookScores({
         if (
           !(await confirm(
             'Xóa điểm?',
-            `${published ? 'Học kỳ đã công bố; học sinh sẽ thấy thay đổi ngay. ' : ''}Xóa ô điểm này, không thay bằng 0.`,
+            `${published ? 'Học kỳ đã công bố; học sinh sẽ thấy thay đổi ngay. ' : ''}Xóa vĩnh viễn ô điểm này (không thay bằng 0), đồng thời thay đổi thống kê liên quan. Không thể hoàn tác; hãy kiểm tra dữ liệu trước khi xác nhận.`,
           )) ||
           !entry.dialog.open
         )

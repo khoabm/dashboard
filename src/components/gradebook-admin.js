@@ -13,6 +13,7 @@ import {
   classInput,
   studentInput,
   studentAction,
+  studentScoresClearAction,
   studentRecord,
   createAdminGate,
   createRosterPreview,
@@ -57,6 +58,8 @@ export function GradebookAdmin({
         'student.deactivate': 'Đang ngừng sử dụng hồ sơ…',
         'student.reactivate': 'Đang kích hoạt lại hồ sơ…',
         'student.delete': 'Đang xóa hồ sơ học sinh…',
+        'student.scores.summary': 'Đang kiểm tra toàn bộ điểm của học sinh…',
+        'student.scores.clear': 'Đang xóa toàn bộ điểm của học sinh…',
         'roster.preview': 'Đang kiểm tra bản xem trước danh sách…',
         'roster.apply': 'Đang áp dụng danh sách học sinh…',
       };
@@ -69,6 +72,8 @@ export function GradebookAdmin({
           'student.deactivate',
           'student.reactivate',
           'student.delete',
+          'student.scores.summary',
+          'student.scores.clear',
         ].includes(payload.op),
       );
       pending(labels[payload.op] || 'Đang cập nhật hồ sơ học sinh…');
@@ -624,6 +629,47 @@ export function GradebookAdmin({
     });
   }
 
+  /** Uses the existing shared confirmation and an atomic, server-verified two-semester snapshot. */
+  function clearStudentScores(student) {
+    void run(async (isCurrent) => {
+      const summary = await gate.call({
+        op: 'student.scores.summary',
+        classId: currentClass.id,
+        studentId: student.id,
+        expectedRevision: student.revision,
+      });
+      if (!isCurrent()) return;
+      if (summary.totalCount === 0) {
+        status.textContent = 'Học sinh này không có điểm để xóa ở cả hai học kỳ.';
+        return;
+      }
+      const published = [
+        summary.semester1Published ? 'I' : null,
+        summary.semester2Published ? 'II' : null,
+      ].filter(Boolean);
+      const warning =
+        'Học sinh: ' + (student.fullName || 'Chưa có tên') +
+        '. Sẽ xóa vĩnh viễn ' + summary.totalCount +
+        ' ô điểm (học kỳ I: ' + summary.semester1Count +
+        '; học kỳ II: ' + summary.semester2Count +
+        '). Hồ sơ học sinh vẫn được giữ lại. ' +
+        (published.length
+          ? 'Học kỳ ' + published.join(' và ') +
+            ' đã công bố: học sinh sẽ thấy điểm biến mất ngay và thống kê lớp thay đổi. '
+          : 'Điểm chưa công bố cũng sẽ mất khỏi bảng quản trị. ') +
+        'Không thể hoàn tác thao tác này. Chỉ tiếp tục nếu đã kiểm tra và có bản sao lưu cần thiết.';
+      const accepted = await confirm('Xóa toàn bộ điểm của học sinh?', warning);
+      if (!accepted || !isCurrent()) return;
+      const result = await gate.call(
+        studentScoresClearAction(student, currentClass.id, summary.fingerprint, published.length > 0),
+      );
+      if (!isCurrent()) return;
+      if (result.deletedCount !== summary.totalCount) throw new AdminError(503);
+      await list(isCurrent);
+      if (isCurrent()) status.textContent = 'Đã xóa ' + result.deletedCount + ' ô điểm của học sinh.';
+    });
+  }
+
   /** Keeps imported identities/token in this modal only; changed files cancel and invalidate confirmation. */
   function importRoster() {
     const entry = dialog('Nhập danh sách học sinh');
@@ -968,6 +1014,11 @@ export function GradebookAdmin({
                 button(
                   student.active ? 'Ngừng sử dụng' : 'Sử dụng lại',
                   () => void changeStudent(student, student.active ? 'deactivate' : 'reactivate'),
+                ),
+                button(
+                  'Xóa toàn bộ điểm',
+                  () => clearStudentScores(student),
+                  'button danger',
                 ),
                 button('Xóa', () => void changeStudent(student, 'delete'), 'button danger'),
               ),
