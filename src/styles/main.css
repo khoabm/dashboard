@@ -420,8 +420,8 @@ kbd {
   height: 80px;
   box-sizing: border-box;
   overflow: hidden;
-  /* A sticky heading joins the card below, so only its outer top edge is rounded. */
-  border-radius: 12px 12px 0 0;
+  /* Each mirrored card owns all four corners; do not clip it at the overlay level. */
+  border-radius: 12px;
 }
 .board-heading-mirror .icon-button {
   pointer-events: auto;
