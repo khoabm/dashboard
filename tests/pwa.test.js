@@ -31,7 +31,7 @@ test('offline page is anonymous and SW only caches a static fallback', async () 
   const worker = await read('public/sw.js');
   const client = await read('src/utils/pwa.js');
   assert.match(html, /rel="manifest" href="\/manifest\.webmanifest"/);
-  assert.match(offline, /Không có kết nối mạng/);
+  assert.match(offline, /Hiện chưa có kết nối mạng/);
   assert.doesNotMatch(offline, /<script|<form|fetch\(/i);
   assert.match(worker, /event\.request\.mode !== 'navigate'/);
   assert.match(worker, /event\.request\.method !== 'GET'/);
