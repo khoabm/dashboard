@@ -1010,14 +1010,9 @@ export function GradebookAdmin({
                   student.active ? 'Ngừng sử dụng' : 'Sử dụng lại',
                   () => void changeStudent(student, student.active ? 'deactivate' : 'reactivate'),
                 ),
-                button(
-                  'Xóa toàn bộ điểm',
-                  () => clearStudentScores(student),
-                  'button danger',
-                  {
-                    'aria-label': `Xóa toàn bộ điểm của ${student.fullName || 'học sinh chưa có tên'}`,
-                  },
-                ),
+                button('Xóa toàn bộ điểm', () => clearStudentScores(student), 'button danger', {
+                  'aria-label': `Xóa toàn bộ điểm của ${student.fullName || 'học sinh chưa có tên'}`,
+                }),
                 button('Xóa', () => void changeStudent(student, 'delete'), 'button danger'),
               ),
             ),

@@ -46,10 +46,9 @@ test('summary schema allows counts, publication flags and fingerprint only', () 
   assert.deepEqual(adminPayload(request, summary), summary);
   assert.throws(() => adminPayload(request, { ...summary, totalCount: 4 }));
   assert.throws(() => adminPayload(request, { ...summary, documentNumber: '000000009' }));
-  assert.deepEqual(
-    adminPayload({ ...request, op: 'student.scores.clear' }, { deletedCount: 5 }),
-    { deletedCount: 5 },
-  );
+  assert.deepEqual(adminPayload({ ...request, op: 'student.scores.clear' }, { deletedCount: 5 }), {
+    deletedCount: 5,
+  });
   assert.throws(() =>
     adminPayload({ ...request, op: 'student.scores.clear' }, { deletedCount: -1 }),
   );

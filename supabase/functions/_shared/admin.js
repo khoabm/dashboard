@@ -367,20 +367,17 @@ export async function executeAdmin(body, identity, context) {
     case 'student.scores.summary':
     case 'student.scores.clear': {
       const clearing = body.op === 'student.scores.clear';
-      const data = await call(
-        clearing ? 'gb_student_scores_clear' : 'gb_student_scores_summary',
-        {
-          ...student,
-          expected: body.expectedRevision,
-          ...(clearing
-            ? {
-                expected_fingerprint: body.expectedFingerprint,
-                confirmed: true,
-                acknowledged: body.acknowledged === true,
-              }
-            : {}),
-        },
-      );
+      const data = await call(clearing ? 'gb_student_scores_clear' : 'gb_student_scores_summary', {
+        ...student,
+        expected: body.expectedRevision,
+        ...(clearing
+          ? {
+              expected_fingerprint: body.expectedFingerprint,
+              confirmed: true,
+              acknowledged: body.acknowledged === true,
+            }
+          : {}),
+      });
       return ok(
         checked(() => {
           const keys = clearing
