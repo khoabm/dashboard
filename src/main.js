@@ -229,7 +229,7 @@ function performAssistantAction(value) {
   return true;
 }
 
-window.addEventListener('pagehide', () => assistant.invalidate());
+window.addEventListener('pagehide', () => assistant.dismiss());
 
 /**
  * Rebuilds desktop tabs and the mobile section picker from current board state.
@@ -351,7 +351,8 @@ function renderBoard({ resetPosition = false } = {}) {
 
 /** Updates counts, admin controls, quota, filters, and board after state changes. */
 function render(options = {}) {
-  assistant.invalidate();
+  // An auth reset temporarily clears Board data; only reconcile a committed snapshot.
+  if (options.reconcileAssistant !== false) assistant.reconcile();
   if (!data.sections.some((s) => s.id === selected)) selected = 'all';
   countText.textContent = `${data.sections.length} chủ đề · ${data.posts.filter((p) => p.status === 'published').length} học liệu`;
   // Clear the previous admin-only toolbar and quota before rebuilding this region.
@@ -642,7 +643,7 @@ function clearSession() {
   data = { sections: [], posts: [] };
   lastSync = null;
   window.dispatchEvent(new Event('app:sign-out'));
-  render();
+  render({ reconcileAssistant: false });
 }
 
 /** Defers SDK reads until the Auth event callback has released its internal lock. */
@@ -711,6 +712,8 @@ let gradebookAuthSession = null;
 client?.auth.onAuthStateChange((event, session) => {
   gradebookAuthSession = session;
   if (event === 'SIGNED_OUT') {
+    // Unlike routine refresh, sign-out ends the current user's conversation.
+    assistant.invalidate();
     clearSession();
     schedulePublicRefresh();
   }
@@ -738,7 +741,7 @@ export function setBoardActive(active) {
   if (boardActive === active) return;
   boardActive = active;
   if (!active) {
-    assistant.invalidate();
+    assistant.dismiss();
     authRefreshPromise = null;
     clearTimeout(authRefreshTimer);
     requests.invalidate();

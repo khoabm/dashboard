@@ -690,3 +690,61 @@
   font-size: 13px;
   line-height: 1.5;
 }
+
+/* Assistant typing feedback belongs to the conversation, not to a full-width status rail. */
+.assistant-typing {
+  align-items: center;
+  margin-bottom: 18px;
+}
+.assistant-typing[hidden] {
+  display: none !important;
+}
+.assistant-typing-bubble {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 38px;
+  padding: 10px 15px;
+  border-radius: 16px 16px 16px 4px;
+  background: #f0f5f3;
+}
+.assistant-typing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #809b90;
+  animation: assistant-dot 1.15s infinite ease-in-out;
+}
+.assistant-typing-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.assistant-typing-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes assistant-dot {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.55;
+  }
+  30% {
+    transform: translateY(-5px);
+    opacity: 1;
+  }
+}
+.assistant-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .assistant-typing-dot {
+    animation: none;
+    opacity: 0.8;
+  }
+}
