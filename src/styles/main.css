@@ -1182,3 +1182,15 @@ kbd {
     text-wrap: balance;
   }
 }
+
+/* iPhone Safari zooms focused fields below 16px. Limit the fix to touch input controls. */
+@media (hover: none) and (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not(
+      [type='file']
+    ):not([type='hidden']):not([type='button']):not([type='submit']):not([type='reset']),
+  textarea,
+  select {
+    /* Component-level 12–15px rules must not override the iOS readability threshold. */
+    font-size: max(16px, 1em) !important;
+  }
+}

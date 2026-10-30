@@ -1,5 +1,21 @@
 # Nhật ký khắc phục lỗi
 
+## 2026-10-30 — UI-IOS-INPUT-ZOOM-01: iPhone auto-zooms on text field focus
+
+The shared search field, Board editor, Gradebook identity/date/score inputs and
+assistant composer use 12–15px typography in existing component CSS. iOS WebKit
+automatically zooms the visual viewport when a focused text-entry control has
+computed type below 16px. Added a touch-pointer-only rule in `src/styles/main.css`
+requiring `max(16px, 1em)` for text-like inputs, select and textarea. Excludes
+checkboxes, radio, file, range, hidden, color and button-like inputs; preserves
+existing viewport pinch zoom, desktop styling, field widths, labels and business
+logic. `!important` is intentionally limited to touch-control font size to
+override specialized component selectors without changing their visual states.
+Regression scope: search, Board editor/login, Gradebook lookup/date picker/admin
+score grid, assistant composer; 320/375/390/430px portrait + iPhone landscape.
+Real iPhone Safari and installed-PWA focus/keyboard/zoom checks still require
+device QA; CI does not claim to simulate WebKit. No DB/API/Auth changes.
+
 ## 2026-10-30 — UI-MOBILE-HEADER-01: mobile header title and account actions wrap awkwardly
 
 Screenshot at approximately 395px: header brand limited to 105px in the legacy
