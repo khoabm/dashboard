@@ -212,7 +212,11 @@ export function SectionColumn(section, posts, actions) {
         'aria-label': `Sửa ${section.title}`,
       }),
     );
-  column.append(heading, el('p', { class: 'section-description' }, section.description));
+  // The opaque sticky backing prevents pictures/text from showing through rounded corners.
+  column.append(
+    el('div', { class: 'section-heading-frame' }, heading),
+    el('p', { class: 'section-description' }, section.description),
+  );
   const list = el(
     'div',
     { class: 'post-list' },

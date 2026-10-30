@@ -2428,3 +2428,246 @@
   border-color: #a72c2c;
   box-shadow: 0 0 0 1px #a72c2c;
 }
+
+/* Read-only student profile: scoped to this modal; no shared dialog behavior changes. */
+.gradebook-student-info-dialog {
+  width: min(540px, calc(100vw - 28px));
+  max-width: 540px;
+}
+.gradebook-student-info-dialog .dialog-content {
+  padding: 22px;
+}
+.gradebook-student-info-card {
+  overflow: hidden;
+  border: 1px solid #deebe2;
+  border-radius: 18px;
+  background: #fff;
+}
+.gradebook-student-info-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px;
+  background: linear-gradient(130deg, #eaf5ed, #f8fbf9);
+  border-bottom: 1px solid #deebe2;
+}
+.gradebook-student-info-avatar {
+  display: grid;
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  border-radius: 18px;
+  background: #cfe7d7;
+  color: #255b42;
+  font-size: 23px;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+}
+.gradebook-student-info-summary {
+  min-width: 0;
+}
+.gradebook-student-info-eyebrow {
+  color: #537965;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.11em;
+}
+.gradebook-student-info-summary h3 {
+  margin: 5px 0 10px;
+  color: var(--ink);
+  font-size: clamp(18px, 3vw, 22px);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.gradebook-student-info-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #e0efe5;
+  color: #276047;
+  font-size: 12px;
+  font-weight: 650;
+}
+.gradebook-student-info-status.is-inactive {
+  background: #f5ebe7;
+  color: #8e533e;
+}
+.gradebook-student-info-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.gradebook-student-info-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 18px 22px 22px;
+}
+.gradebook-student-info-field {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #e5ece7;
+  border-radius: 12px;
+  background: #fafcfb;
+}
+.gradebook-student-info-field dt {
+  margin-bottom: 7px;
+  color: #5c7868;
+  font-size: 12px;
+}
+.gradebook-student-info-field dd {
+  margin: 0;
+  color: #294b3b;
+  font-size: 15px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.gradebook-student-info-private {
+  color: #61796d;
+  font-weight: 500;
+}
+@media (max-width: 480px) {
+  .gradebook-student-info-dialog .dialog-content {
+    padding: 14px;
+  }
+  .gradebook-student-info-hero {
+    gap: 12px;
+    padding: 16px;
+  }
+  .gradebook-student-info-avatar {
+    flex-basis: 52px;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    font-size: 19px;
+  }
+  .gradebook-student-info-fields {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 14px;
+  }
+}
+
+/* Student actions use stable slots, so state labels never shift adjacent buttons. */
+.gradebook-student-actions {
+  display: grid;
+  grid-template-columns: 60px 60px 130px 60px;
+  gap: 8px;
+  width: max-content;
+  margin-inline: auto;
+}
+.gradebook-student-actions .button {
+  width: 100%;
+  padding-inline: 6px;
+  white-space: nowrap;
+}
+.gradebook-student-actions .button:nth-child(3) {
+  grid-column: 3;
+}
+.gradebook-student-actions .button:nth-child(4) {
+  grid-column: 4;
+}
+/* The existing PulseIndicator moves into view for student.read, without a second loader. */
+.gradebook-admin > .pending-indicator.gradebook-admin-operation-progress:not([hidden]) {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 60;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 12px 40px #183c2530;
+}
+.gradebook-student-info-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+}
+.gradebook-student-info-value {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.gradebook-student-info-value > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.gradebook-student-info-copy {
+  flex: 0 0 44px;
+  color: var(--green);
+  border: 1px solid var(--line);
+  background: white;
+}
+.gradebook-student-info-reveal {
+  min-height: 36px;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+.gradebook-student-info-hint,
+.gradebook-student-info-feedback {
+  font-size: 11px;
+  font-weight: 400;
+  color: #61796d;
+}
+.gradebook-student-info-feedback:empty {
+  display: none;
+}
+@media (max-width: 700px) {
+  .gradebook-student-actions {
+    grid-template-columns: 60px 60px 130px 60px;
+  }
+}
+
+/* The admin editor reuses the same birthday calendar as /personal-gradebook. */
+.gradebook-student-form .birthday-field {
+  min-width: 0;
+  min-height: 49px;
+  border-color: #d8e2da;
+}
+.gradebook-student-form .birthday-field > input {
+  min-width: 0;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 48px;
+  border: 0;
+  border-radius: 12px 0 0 12px;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+}
+.gradebook-student-form .birthday-field > input:focus,
+.gradebook-student-form .birthday-field > input:focus-visible {
+  border: 0;
+  box-shadow: none;
+  outline: none;
+}
+.gradebook-student-form .birthday-field:focus-within {
+  border-color: #367c58;
+  box-shadow: 0 0 0 3px #367c582b;
+  outline: none;
+}
+.gradebook-student-form .birthday-field .birthday-trigger {
+  width: 48px;
+  flex: 0 0 48px;
+  border-radius: 0 10px 10px 0;
+}
+.gradebook-student-form .birthday-navigation input,
+.gradebook-student-form .birthday-navigation select {
+  width: 100%;
+  height: 44px;
+  padding: 7px;
+  border: 1px solid #dee7e0;
+  border-radius: 9px;
+  background: #f8faf8;
+  font-size: 12px;
+}
+.gradebook-student-form .birthday-calendar {
+  z-index: 4;
+}
