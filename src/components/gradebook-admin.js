@@ -459,12 +459,16 @@ export function GradebookAdmin({
       'stroke-linejoin': 'round',
       'aria-hidden': 'true',
       focusable: 'false',
-    })) svg.setAttribute(name, value);
+    }))
+      svg.setAttribute(name, value);
     const rectangle = document.createElementNS(namespace, 'rect');
     for (const [name, value] of Object.entries({ x: 8, y: 8, width: 12, height: 12, rx: 2 }))
       rectangle.setAttribute(name, String(value));
     const path = document.createElementNS(namespace, 'path');
-    path.setAttribute('d', 'M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2');
+    path.setAttribute(
+      'd',
+      'M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2',
+    );
     svg.append(rectangle, path);
     return svg;
   }
@@ -473,7 +477,11 @@ export function GradebookAdmin({
   function studentIdentityControls(entry, student) {
     let revealed = false;
     let timer = null;
-    const value = el('span', { class: 'gradebook-student-info-private' }, 'Đã ẩn để bảo vệ thông tin');
+    const value = el(
+      'span',
+      { class: 'gradebook-student-info-private' },
+      'Đã ẩn để bảo vệ thông tin',
+    );
     const feedback = el('span', {
       class: 'gradebook-student-info-feedback',
       role: 'status',
