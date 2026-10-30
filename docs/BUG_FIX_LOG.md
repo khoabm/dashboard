@@ -9,7 +9,7 @@ scoped mobile CSS Grid override in `src/styles/main.css`: brand on first row
 with navigation, actions on a second row, search on a third row, balanced title
 wrapping and full-width-safe text. No changes to HTML/JS, authentication,
 routing, PWA, DB or API. Branch `feature/pwa-installable-app-shell`.
-Browser device QA NOT RUN at initial implementation; CI pending.
+Browser device QA NOT RUN; verify 320/375/395/430px and tablet after CSS-only change. CI pending.
 
 ## 2026-10-30 — AI-LIVE-04: singular neuron quota errors classified as temporary errors
 
