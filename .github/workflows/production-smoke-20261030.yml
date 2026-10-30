@@ -20,5 +20,24 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
-      - name: Public URL and API/AI checks (11 requests maximum, no retry)
-        run: node tests/production-release-smoke.mjs
+      - name: Headless Chrome production UI smoke (no authentication or writes)
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$CHROME"
+          for route in / /personal-gradebook /personal-gradebook/admin; do
+            echo "Chrome opening $route"
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage \
+              --disable-background-networking --virtual-time-budget=3500 \
+              --dump-dom "https://student-dashboard-bcy.pages.dev$route" \
+              > /tmp/production-dom.html 2>/tmp/chrome-stderr.log
+            grep -q "id=\"app\"\|class=\"app-header\"\|personal-gradebook" /tmp/production-dom.html || { echo "Missing expected application DOM"; exit 1; }
+            echo "DOM received bytes $(wc -c </tmp/production-dom.html)"
+          done
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --window-size=390,844 --screenshot=/tmp/production-mobile.png \
+            --virtual-time-budget=3500 https://student-dashboard-bcy.pages.dev/ >/dev/null 2>/dev/null
+          test -s /tmp/production-mobile.png
+          echo "Browser smoke PASS; mobile image generated locally (not uploaded)"
+
