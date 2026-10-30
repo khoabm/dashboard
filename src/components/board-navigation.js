@@ -41,6 +41,27 @@ export function restoredBoardLeft(board, position) {
 }
 
 /**
+ * Keeps the mirrored heading hidden until the original heading has completely
+ * passed beneath sticky controls, and hides it at the end of the Board.
+ * Pure geometry allows regression tests without a browser or backend.
+ */
+export function stickyHeadingVisible({
+  desktop,
+  stickyTop,
+  stickyBottom,
+  originalBottom,
+  boardBottom,
+  headingHeight,
+}) {
+  return (
+    desktop &&
+    Math.abs(stickyTop) <= 1 &&
+    originalBottom <= stickyBottom + 1 &&
+    boardBottom > stickyBottom + headingHeight + 4
+  );
+}
+
+/**
  * Builds a sticky navigation row with native synchronized scrollbars and step buttons.
  * Attach after each board replacement; reset releases observers and stale session references.
  * @returns {object} The navigation element, attach/capture/reset helpers and section reveal action.
@@ -97,27 +118,28 @@ export function BoardNavigation() {
       return;
     }
     const original = board.querySelector('.section-heading');
-    const sticky = headings.parentElement;
-    const stickyTop = sticky?.getBoundingClientRect().top ?? 0;
-    const controlsHeight = sticky
-      ? [...sticky.children]
-          .filter((n) => n !== headings && !n.hidden)
-          .reduce((sum, n) => sum + n.getBoundingClientRect().height, 0)
-      : 0;
-    const rect = board.getBoundingClientRect();
+    const stickyBounds = headings.parentElement?.getBoundingClientRect();
+    const boardBounds = board.getBoundingClientRect();
     const visible =
-      matchMedia('(min-width:701px)').matches &&
       !!original &&
-      original.getBoundingClientRect().top <= Math.max(0, stickyTop) + controlsHeight;
+      !!stickyBounds &&
+      stickyHeadingVisible({
+        desktop: matchMedia('(min-width:701px)').matches,
+        stickyTop: stickyBounds.top,
+        stickyBottom: stickyBounds.bottom,
+        originalBottom: original.getBoundingClientRect().bottom,
+        boardBottom: boardBounds.bottom,
+        headingHeight: original.getBoundingClientRect().height,
+      });
     headings.hidden = !visible;
     if (!visible) return;
-    headingTrack.style.width = `${rect.width}px`;
+    headingTrack.style.width = `${boardBounds.width}px`;
     for (let i = 0; i < mirrors.length; i++) {
       const column = board.querySelectorAll('.section-column')[i];
       if (!column) continue;
       const bounds = column.getBoundingClientRect();
       mirrors[i].style.width = `${bounds.width}px`;
-      mirrors[i].style.left = `${bounds.left - rect.left}px`;
+      mirrors[i].style.left = `${bounds.left - boardBounds.left}px`;
     }
   };
   window.addEventListener('scroll', refreshMirrors, { passive: true });
