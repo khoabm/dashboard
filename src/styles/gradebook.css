@@ -2551,3 +2551,76 @@
     padding: 14px;
   }
 }
+
+/* Student actions use stable slots, so state labels never shift adjacent buttons. */
+.gradebook-student-actions {
+  display: grid;
+  grid-template-columns: 60px 60px 130px 60px;
+  gap: 8px;
+  width: max-content;
+  margin-inline: auto;
+}
+.gradebook-student-actions .button {
+  width: 100%;
+  padding-inline: 6px;
+  white-space: nowrap;
+}
+.gradebook-student-actions .button:nth-child(3) {
+  grid-column: 3;
+}
+.gradebook-student-actions .button:nth-child(4) {
+  grid-column: 4;
+}
+/* The existing PulseIndicator moves into view for student.read, without a second loader. */
+.gradebook-admin > .pending-indicator.gradebook-admin-read-progress:not([hidden]) {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 60;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 12px 40px #183c2530;
+}
+.gradebook-student-info-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+}
+.gradebook-student-info-value {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.gradebook-student-info-value > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.gradebook-student-info-copy {
+  flex: 0 0 44px;
+  color: var(--green);
+  border: 1px solid var(--line);
+  background: white;
+}
+.gradebook-student-info-reveal {
+  min-height: 36px;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+.gradebook-student-info-hint,
+.gradebook-student-info-feedback {
+  font-size: 11px;
+  font-weight: 400;
+  color: #61796d;
+}
+.gradebook-student-info-feedback:empty {
+  display: none;
+}
+@media (max-width: 700px) {
+  .gradebook-student-actions {
+    grid-template-columns: 60px 60px 130px 60px;
+  }
+}
