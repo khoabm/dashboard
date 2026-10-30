@@ -82,6 +82,7 @@ const search = SearchBar(
 const shell = el('div', { class: 'board-shell' }),
   controls = el('div', { class: 'board-controls' }),
   workspace = el('div', { class: 'board-workspace' }),
+  stickyRegion = el('div', { class: 'board-sticky' }),
   boardRegion = el('div'),
   adminRegion = el('div');
 const navigation = BoardNavigation();
@@ -141,8 +142,10 @@ root.append(
   ),
   shell,
 );
-// The workspace bounds sticky navigation to the board; the footer remains outside that region.
-workspace.append(controls, navigation.element, boardRegion);
+// Keep filters and mirrored section headings in the same sticky layer;
+// the horizontally scrollable post grid remains untouched and below it.
+stickyRegion.append(controls, navigation.element, navigation.headings);
+workspace.append(stickyRegion, boardRegion);
 shell.append(
   activity,
   assistant.element,
@@ -163,6 +166,7 @@ function updatePendingUI() {
   adminRegion.inert = pending;
   controls.inert = pending;
   navigation.element.inert = pending;
+  navigation.headings.inert = pending;
   boardRegion.inert = pending;
   boardRegion.setAttribute('aria-busy', String(pending || !!syncMessage));
   root.querySelector('.header-actions').inert = pending || !!syncMessage;
