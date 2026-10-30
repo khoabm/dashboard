@@ -896,10 +896,10 @@ export function GradebookScores({
         button('Tải lại điểm', reload),
       ),
       templates,
-      !published &&
-        el(
-          'div',
-          { class: 'admin-actions grid-edit-toolbar' },
+      ...(!published
+        ? [el(
+            'div',
+            { class: 'admin-actions grid-edit-toolbar' },
           el(
             'span',
             { 'data-grid-count': '', role: 'status', 'aria-live': 'polite' },
@@ -937,7 +937,8 @@ export function GradebookScores({
             'button',
             { 'data-grid-discard': '', disabled: !gridPending.size },
           ),
-        ),
+        )]
+        : []),
       el(
         'p',
         { class: 'muted' },
