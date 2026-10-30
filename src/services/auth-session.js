@@ -110,6 +110,8 @@ export function createRememberedAuthOptions(
       else fallback.storage?.setItem(key, value);
     },
     removeItem(key) {
+      // SDK sign-out must clear the remembered opt-in as well as both token copies.
+      persistent.removeItem(marker);
       persistent.removeItem(tokenKey);
       fallback.storage?.removeItem(key);
     },
