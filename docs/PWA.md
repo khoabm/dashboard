@@ -19,3 +19,5 @@ Trang **Vui học cùng cô Quỳnh** giữ nguyên ba route `/`, `/personal-gra
 6. iOS Safari Home Screen và màn hình nhỏ: biểu tượng/cách cài đặt và offline notice đọc được.
 
 CI chỉ chứng minh syntax/build/pure-unit; browser/device QA ghi NOT RUN nếu không thực tế chạy. Không gọi Supabase hosted để thử.
+
+Manifest và các icon được phục vụ như static assets, không yêu cầu dịch vụ cài đặt bên ngoài; đây không phải ứng dụng offline đầy đủ.
