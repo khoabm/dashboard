@@ -229,7 +229,7 @@ function performAssistantAction(value) {
   return true;
 }
 
-window.addEventListener('pagehide', () => assistant.invalidate());
+window.addEventListener('pagehide', () => assistant.dismiss());
 
 /**
  * Rebuilds desktop tabs and the mobile section picker from current board state.
@@ -351,7 +351,7 @@ function renderBoard({ resetPosition = false } = {}) {
 
 /** Updates counts, admin controls, quota, filters, and board after state changes. */
 function render(options = {}) {
-  assistant.invalidate();
+  assistant.reconcile();
   if (!data.sections.some((s) => s.id === selected)) selected = 'all';
   countText.textContent = `${data.sections.length} chủ đề · ${data.posts.filter((p) => p.status === 'published').length} học liệu`;
   // Clear the previous admin-only toolbar and quota before rebuilding this region.
@@ -738,7 +738,7 @@ export function setBoardActive(active) {
   if (boardActive === active) return;
   boardActive = active;
   if (!active) {
-    assistant.invalidate();
+    assistant.dismiss();
     authRefreshPromise = null;
     clearTimeout(authRefreshTimer);
     requests.invalidate();
