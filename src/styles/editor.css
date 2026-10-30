@@ -438,60 +438,60 @@
 
 
 /* Consistent editor surfaces and clearer interaction states; visuals only. */
-.dialog:not(.student-chart-dialog) {
+.dialog:not(.student-chart-dialog):not(.gradebook-student-info-dialog) {
   border-color: #ccded1;
   box-shadow: 0 24px 68px rgba(27, 59, 42, 0.19);
 }
-.dialog:not(.student-chart-dialog) .dialog-heading {
+.dialog:not(.student-chart-dialog):not(.gradebook-student-info-dialog) .dialog-heading {
   background: linear-gradient(115deg, #fff, #f5faf6);
 }
-.dialog:not(.student-chart-dialog) .dialog-heading h2 {
+.dialog:not(.student-chart-dialog):not(.gradebook-student-info-dialog) .dialog-heading h2 {
   color: #234f3a;
   letter-spacing: -0.025em;
   text-wrap: balance;
 }
-.dialog .field input:not([type='checkbox']):not([type='color']):not(:disabled):hover,
-.dialog .field textarea:not(:disabled):hover,
-.dialog .field select:not(:disabled):hover {
+.dialog:not(.gradebook-student-info-dialog) .field input:not([type='checkbox']):not([type='color']):not(:disabled):hover,
+.dialog:not(.gradebook-student-info-dialog) .field textarea:not(:disabled):hover,
+.dialog:not(.gradebook-student-info-dialog) .field select:not(:disabled):hover {
   border-color: #a7c7b1;
 }
-.dialog .field input:not([type='checkbox']):not([type='color']):not(:disabled),
-.dialog .field textarea:not(:disabled),
-.dialog .field select:not(:disabled) {
+.dialog:not(.gradebook-student-info-dialog) .field input:not([type='checkbox']):not([type='color']):not(:disabled),
+.dialog:not(.gradebook-student-info-dialog) .field textarea:not(:disabled),
+.dialog:not(.gradebook-student-info-dialog) .field select:not(:disabled) {
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
-.dialog .attachment {
+.dialog:not(.gradebook-student-info-dialog) .attachment {
   border-color: #d4e5d8;
   background: #fcfefd;
 }
-.dialog .upload-zone {
+.dialog:not(.gradebook-student-info-dialog) .upload-zone {
   border-color: #9fbea9;
   background: #f3f9f4;
 }
-.dialog .upload-zone:focus-within {
+.dialog:not(.gradebook-student-info-dialog) .upload-zone:focus-within {
   border-color: #397e57;
   box-shadow: 0 0 0 3px rgba(54, 124, 88, 0.14);
 }
-.dialog .editor-section-label {
+.dialog:not(.gradebook-student-info-dialog) .editor-section-label {
   color: #2c6247;
   font-weight: 700;
 }
-.dialog .form-actions {
+.dialog:not(.gradebook-student-info-dialog) .form-actions {
   padding-top: 12px;
   border-top: 1px solid #e3ece5;
 }
 @media (max-width: 600px) {
-  .dialog:not(.student-chart-dialog) .dialog-heading {
+  .dialog:not(.student-chart-dialog):not(.gradebook-student-info-dialog) .dialog-heading {
     padding: 14px 18px;
   }
-  .dialog:not(.student-chart-dialog) .dialog-content {
+  .dialog:not(.student-chart-dialog):not(.gradebook-student-info-dialog) .dialog-content {
     padding: 18px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .dialog .field input:not([type='checkbox']):not([type='color']),
-  .dialog .field textarea,
-  .dialog .field select {
+  .dialog:not(.gradebook-student-info-dialog) .field input:not([type='checkbox']):not([type='color']),
+  .dialog:not(.gradebook-student-info-dialog) .field textarea,
+  .dialog:not(.gradebook-student-info-dialog) .field select {
     transition: none;
   }
 }
