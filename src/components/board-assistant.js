@@ -81,7 +81,7 @@ function messageTime(at = new Date()) {
 
 /**
  * Builds a Board-owned assistant and floating entry point.
- * The caller invalidates its memory-only conversation on snapshot or route changes.
+ * The page keeps public chat in memory until a deliberate new chat or page disposal.
  */
 export function BoardAssistant({ snapshot, request, perform, hosted = false, live = false }) {
   let dialog = null,
@@ -91,7 +91,8 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     chatHistory = [],
     transcript = [],
     cloudChoice = null,
-    pendingQuestion = null;
+    pendingQuestion = null,
+    lastCorpus = publicAssistantCorpus(snapshot());
   const trigger = button('', open, 'assistant-trigger', {
     'aria-haspopup': 'dialog',
     'aria-controls': 'assistant-dialog',
@@ -121,7 +122,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     trigger.setAttribute('aria-expanded', 'false');
   }
 
-  /** New chat, Board refresh, route exit and sign-out invalidate old context. */
+  /** A new conversation is the only in-page operation that discards all messages. */
   function invalidate() {
     dismiss();
     context = null;
@@ -129,6 +130,38 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     transcript = [];
     cloudChoice = null;
     pendingQuestion = null;
+  }
+
+  /** Refreshes public-source references without discarding the conversation. */
+  function reconcile() {
+    const fresh = publicAssistantCorpus(snapshot());
+    if (JSON.stringify(fresh) === JSON.stringify(lastCorpus)) return;
+    const previous = new Map(lastCorpus.posts.map((post) => [post.id, post]));
+    const current = new Map(fresh.posts.map((post) => [post.id, post]));
+    const changed = new Set(
+      [...new Set([...previous.keys(), ...current.keys()])].filter(
+        (id) => JSON.stringify(previous.get(id)) !== JSON.stringify(current.get(id)),
+      ),
+    );
+    // Keep general chat and unaffected citations; never send a changed published
+    // source's former answer or its paired question back to the model.
+    chatHistory = chatHistory.filter((turn, index, turns) => {
+      const linked = turn.role === 'assistant' ? turn : turns[index + 1];
+      return !(
+        linked?.role === 'assistant' &&
+        linked.sourceIds?.some((id) => changed.has(id))
+      );
+    });
+    if (context?.ids.some((id) => changed.has(id))) context = null;
+    lastCorpus = fresh;
+    if (dialog?.open) {
+      // Rebuild source cards against the new published projection and preserve
+      // any unsent question when a background refresh finishes mid-composition.
+      const draft = dialog.querySelector('#assistant-query')?.value || '';
+      dismiss();
+      open();
+      dialog.querySelector('#assistant-query').value = draft;
+    }
   }
 
   /** Opens a native modal; the chat transcript alone scrolls above its composer. */
@@ -449,10 +482,9 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
         error.textContent = 'Học liệu đã thay đổi. Hãy tìm lại.';
         return;
       }
-      // Opening a published source must not erase the conversation. Other Board
-      // navigation still invalidates the old selection as before.
-      if (action.type === 'open') dismiss();
-      else invalidate();
+      // Opening a source, switching topic, filtering or resetting the Board
+      // must not clear a conversation that belongs to this browser document.
+      dismiss();
       trigger.focus({ preventScroll: true });
       if (!perform(action)) {
         open();
@@ -472,7 +504,19 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
       remember = true,
       at = new Date().toISOString(),
     ) {
-      result = { ...result, sources: validateAssistantSources(result.sources, catalog) };
+      // Older answers stay readable, but no revoked/edited quote may regain
+      // an actionable source card when the panel is reopened after refresh.
+      const currentSources = result.sources.filter(
+        (source) =>
+          catalog.some(
+            (post) =>
+              post.id === source.id &&
+              typeof source.quote === 'string' &&
+              (post.body.includes(source.quote) || post.title.includes(source.quote)),
+          ),
+      );
+      const sourcesChanged = currentSources.length !== result.sources.length;
+      result = { ...result, sources: validateAssistantSources(currentSources, catalog) };
       // AI answers should read as messages, not diagnostic reports.
       const content = el('div');
       if (result.mode !== 'ai') {
@@ -500,12 +544,20 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
           ),
         );
       }
+      if (sourcesChanged)
+        content.append(
+          el('p', { class: 'assistant-answer-note' },
+            'Nguồn của câu trả lời này đã thay đổi. Bạn hãy hỏi lại để kiểm tra thông tin mới.'),
+        );
       for (const source of result.sources) {
         const post = catalog.find((p) => p.id === source.id);
         if (!post) continue;
         const checkedAct = (action) => {
           if (JSON.stringify(publicAssistantCorpus(snapshot())) !== fingerprint) {
-            invalidate();
+            reconcile();
+            dialog?.querySelector('#assistant-error') &&
+              (dialog.querySelector('#assistant-error').textContent =
+                'Học liệu vừa được cập nhật. Bạn hãy kiểm tra lại nguồn mới nhé.');
             return;
           }
           act(action);
@@ -550,7 +602,10 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
             'Lọc trang theo nguồn đã chọn',
             () => {
               if (JSON.stringify(publicAssistantCorpus(snapshot())) !== fingerprint) {
-                invalidate();
+                reconcile();
+                dialog?.querySelector('#assistant-error') &&
+                  (dialog.querySelector('#assistant-error').textContent =
+                    'Học liệu vừa được cập nhật. Bạn hãy kiểm tra lại nguồn mới nhé.');
                 return;
               }
               act({ type: 'filter', ids: result.sources.map((source) => source.id) });
@@ -641,7 +696,10 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
       const catalog = corpus.posts;
       const fingerprint = JSON.stringify(corpus);
       if (fingerprint !== JSON.stringify(corpusAtOpen)) {
-        invalidate();
+        reconcile();
+        if (dialog?.open)
+          dialog.querySelector('#assistant-error').textContent =
+            'Học liệu vừa được cập nhật. Bạn hãy gửi lại câu hỏi nhé.';
         return;
       }
       const ticket = ++generation;
@@ -682,7 +740,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
                 ));
         if (ticket !== generation || signal.aborted || !ownDialog.open) return;
         if (fingerprint !== JSON.stringify(publicAssistantCorpus(snapshot()))) {
-          invalidate();
+          reconcile();
           return;
         }
         if (!result.note && !(live && result.mode === 'ai'))
@@ -737,5 +795,5 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
       }
     });
   }
-  return { element: trigger, invalidate };
+  return { element: trigger, dismiss, invalidate, reconcile };
 }
