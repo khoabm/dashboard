@@ -2673,3 +2673,76 @@
 .gradebook-student-form .birthday-calendar {
   z-index: 4;
 }
+
+
+/* UI polish: lookup and teacher workspace only. Student "Xem" view is intentionally excluded. */
+.gradebook-page {
+  background: radial-gradient(circle at 15% 12%, rgba(219, 235, 220, 0.42), transparent 36%);
+}
+.gradebook-intro h1 {
+  text-wrap: balance;
+}
+.gradebook-lead {
+  color: #324f40;
+}
+.lookup-card {
+  border-color: #d4e4d9;
+  box-shadow: 0 16px 48px rgba(31, 67, 47, 0.09);
+}
+.lookup-card:focus-within {
+  border-color: #a6cbb2;
+}
+.lookup-card h2 {
+  text-wrap: balance;
+  letter-spacing: -0.025em;
+}
+.lookup-form input:not(:disabled):hover {
+  border-color: #a8c7b3;
+}
+.lookup-submit:not(:disabled) {
+  box-shadow: 0 6px 18px rgba(35, 94, 74, 0.13);
+}
+.lookup-submit:not(:disabled):hover {
+  box-shadow: 0 9px 22px rgba(35, 94, 74, 0.19);
+}
+.gradebook-admin > h1 {
+  color: #214e3b;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.gradebook-admin .admin-class,
+.gradebook-admin .admin-table-scroll {
+  border-color: #d6e5da;
+  box-shadow: 0 8px 26px rgba(32, 65, 49, 0.055);
+}
+.gradebook-admin .admin-actions input:hover,
+.gradebook-admin .admin-actions select:hover {
+  border-color: #a9cbb4;
+}
+.gradebook-admin .admin-table thead th {
+  background: #f2f7f3;
+  border-bottom-color: #c9ddd0;
+}
+.gradebook-admin .admin-table tbody tr:hover > td,
+.gradebook-admin .admin-table tbody tr:hover > th {
+  background: #f7faf8;
+}
+.gradebook-admin .admin-table tbody tr:focus-within > td,
+.gradebook-admin .admin-table tbody tr:focus-within > th {
+  background: #f0f7f1;
+}
+.gradebook-admin .publication-warning {
+  border-color: #e2d1ab;
+}
+.site-navigation-panel {
+  border-color: #d1e2d6;
+}
+.site-navigation-panel a[aria-current='page'] {
+  box-shadow: inset 3px 0 0 #377954;
+}
+@media (max-width: 700px) {
+  .gradebook-admin .admin-class,
+  .gradebook-admin .admin-table-scroll {
+    box-shadow: 0 4px 16px rgba(32, 65, 49, 0.045);
+  }
+}
