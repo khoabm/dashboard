@@ -2,9 +2,11 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { config, configured } from '../config/public.js';
-import { createTabAuthOptions } from './auth-session.js';
+import { createRememberedAuthOptions } from './auth-session.js';
 
-const authOptions = createTabAuthOptions(config.url);
+const rememberedAuth = createRememberedAuthOptions(config.url);
+const authOptions = rememberedAuth.options;
+export const rememberAdminSession = rememberedAuth;
 export const sessionPersistent = authOptions.persistSession;
 // SDK tokens use sessionStorage only; drafts and localStorage never receive them.
 export const client = configured

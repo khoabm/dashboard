@@ -3,7 +3,7 @@
 import './styles/main.css';
 import { el, button, errorMessage } from './utils/dom.js';
 import { debounce, canRestore, moveItem } from './utils/validation.js';
-import { client } from './services/client.js';
+import { client, rememberAdminSession } from './services/client.js';
 import { loadBoard, savePost, exportMetadata, reorderPosts } from './services/board.js';
 import { verifyAdminSession } from './services/auth-session.js';
 import { cleanupPending } from './services/storage.js';
@@ -491,6 +491,7 @@ async function restoreAuth() {
     if (generation !== requests.generation()) return;
     admin = !!identity;
     userId = identity?.userId ?? null;
+    if (identity) rememberAdminSession.renew();
     authChecking = false;
     window.dispatchEvent(new Event('app:auth-state'));
     if (boardActive) await refresh();

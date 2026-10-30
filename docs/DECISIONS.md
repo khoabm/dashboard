@@ -92,3 +92,6 @@ Auth/Supabase, truy cập dữ liệu riêng, merge hoặc deploy do đổi tên
 | AI-D03 | Branch/document authorization | Develop docs on separate `feature/ai-learning-assistant` derived from `develop`; **no implementation, PoC execution, PR, merge or deployment in this task**. Zero cost throughout. |
 
 See [feature design and acceptance](features/ai-learning-assistant/README.md); this new extension does not rewrite the original Board R01–R28 scope or resolve Personal Gradebook G07/G08 gates.
+
+
+| D11 / 2026-10-30 | Remember Me 30 ngày được người dùng duyệt | Khi chọn checkbox, phiên Supabase được lưu trong localStorage có timestamp xác minh; nếu quá 30 ngày không xác minh lại, SDK không khôi phục và cần đăng nhập lại. Chỉ renew tối đa 1 lần/24h khi verifyAdminSession đã thành công; không thêm polling hoặc gọi API riêng; không lưu mật khẩu. Đây là thời hạn client, không phải thu hồi phiên server. Không thay đổi DB/API. |
