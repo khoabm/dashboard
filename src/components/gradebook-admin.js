@@ -2,8 +2,9 @@
 import { el, button, field, checkboxField, restrictNumericInput } from '../utils/dom.js';
 import { openDialog, ConfirmDialog } from './primitives.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
+import { BirthDatePicker } from './birth-date-picker.js';
 import { GradebookScores } from './gradebook-scores.js';
-import { displayDate, uiDate, vietnamToday } from '../utils/gradebook/dates.js';
+import { displayDate } from '../utils/gradebook/dates.js';
 import { formatBirthdayInput } from '../utils/birth-calendar.js';
 import { bigintId, documentNumber } from '../utils/gradebook/contracts.js';
 import {
@@ -59,8 +60,17 @@ export function GradebookAdmin({
         'roster.preview': 'Đang kiểm tra bản xem trước danh sách…',
         'roster.apply': 'Đang áp dụng danh sách học sinh…',
       };
-      // Reuse the shared pulse in the viewport while Xem/Sửa waits for the API.
-      progress.classList.toggle('gradebook-admin-read-progress', payload.op === 'student.read');
+      // Keep the existing pulse visible throughout student reads, status updates and deletion.
+      progress.classList.toggle(
+        'gradebook-admin-operation-progress',
+        [
+          'student.read',
+          'students.list',
+          'student.deactivate',
+          'student.reactivate',
+          'student.delete',
+        ].includes(payload.op),
+      );
       pending(labels[payload.op] || 'Đang cập nhật hồ sơ học sinh…');
       return request(payload, options);
     },
@@ -179,7 +189,7 @@ export function GradebookAdmin({
 
   /** Mirrors operation feedback into the active modal outside inert content. */
   function pending(message = '') {
-    if (!message) progress.classList.remove('gradebook-admin-read-progress');
+    if (!message) progress.classList.remove('gradebook-admin-operation-progress');
     body.setAttribute('aria-busy', String(!!message));
     setPendingMessage(progress, dialogs.size ? '' : message);
     for (const entry of dialogs) {
@@ -344,18 +354,6 @@ export function GradebookAdmin({
     });
     restrictNumericInput(identity);
     const correct = el('input', { type: 'checkbox' });
-    const picker = el('input', {
-      type: 'date',
-      class: 'lookup-date-picker',
-      max: vietnamToday(),
-      min: '0001-01-01',
-      'aria-label': 'Chọn ngày sinh từ lịch',
-      value: current?.birthDate || '',
-    });
-    picker.disabled = !!current;
-    picker.addEventListener('change', () => {
-      if (picker.value) dob.value = displayDate(picker.value);
-    });
     dob.addEventListener('beforeinput', (event) => {
       if (event.data && /[^0-9/]/.test(event.data)) event.preventDefault();
     });
@@ -365,33 +363,31 @@ export function GradebookAdmin({
         dob.value = formatted.text;
         dob.setSelectionRange(formatted.caret, formatted.caret);
       }
-      try {
-        picker.value = uiDate(dob.value);
-      } catch {
-        picker.value = '';
-      }
     });
+    // Register calendar synchronization after the existing DD/MM/YYYY formatter.
+    const birthday = BirthDatePicker(dob, clock);
+    birthday.setDisabled(!!current);
+    entry.cancel = () => birthday.dispose();
     identity.disabled = !!current;
     dob.readOnly = !!current;
     correct.addEventListener('change', () => {
       identity.disabled = !correct.checked;
       dob.readOnly = !correct.checked;
-      picker.disabled = !correct.checked;
+      birthday.setDisabled(!correct.checked);
       if (!correct.checked) {
         identity.value = '';
         dob.value = displayDate(current.birthDate);
-        picker.value = current.birthDate;
       }
     });
     const error = el('p', { class: 'form-error', role: 'alert' });
     const submit = el('button', { type: 'submit', class: 'button primary' }, 'Lưu học sinh');
     const form = el(
       'form',
-      {},
+      { class: 'gradebook-student-form' },
       field('Họ tên (không bắt buộc)', name),
       current && checkboxField('Điều chỉnh thông tin xác minh (thao tác riêng)', correct),
       field('CMND/CCCD', identity),
-      field('Ngày sinh — DD/MM/YYYY', el('div', { class: 'lookup-date-control' }, dob, picker)),
+      field('Ngày sinh — DD/MM/YYYY', birthday.element),
       el(
         'p',
         { class: 'muted' },
