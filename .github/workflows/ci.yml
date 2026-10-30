@@ -48,5 +48,11 @@ jobs:
       - name: Verify static production build
         run: npm run build
 
+      - name: Show exact Prettier changes for Remember Me
+        run: |
+          ./node_modules/.bin/prettier --write src/services/auth-session.js tests/remember-admin.test.js
+          git diff -- src/services/auth-session.js tests/remember-admin.test.js
+          node --test tests/remember-admin.test.js tests/auth-session.test.js
+
       - name: Check pinned Prettier format including Edge source
         run: npm run format:check
