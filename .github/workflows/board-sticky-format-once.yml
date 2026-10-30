@@ -1,0 +1,36 @@
+name: Board sticky UI scoped formatter
+on:
+  push:
+    branches: [feature/gradebook-student-info-ui-false-fix]
+    paths: [.github/workflows/board-sticky-format-once.yml]
+permissions:
+  contents: write
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feature/gradebook-student-info-ui-false-fix
+          persist-credentials: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - run: npm ci
+      - name: Format only sticky Board files
+        run: |
+          test "$(node -p "require('prettier/package.json').version")" = "3.6.2"
+          ./node_modules/.bin/prettier --write src/main.js src/components/board-navigation.js src/styles/main.css
+          ./node_modules/.bin/prettier --check src/main.js src/components/board-navigation.js src/styles/main.css
+          git diff --check
+          if git diff --name-only | grep -v -E '^(src/main\.js|src/components/board-navigation\.js|src/styles/main\.css)$'; then exit 1; fi
+      - name: Commit only formatting
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- src/main.js src/components/board-navigation.js src/styles/main.css
+          git commit -m "[CF-Pages-Skip] Format Board sticky header corrections"
+          git push origin HEAD:refs/heads/feature/gradebook-student-info-ui-false-fix
