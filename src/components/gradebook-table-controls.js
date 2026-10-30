@@ -18,7 +18,6 @@ export function SortableHeader(label, key, current, onChange) {
       () => onChange({ key, direction: next }),
       'table-sort-button',
       {
-        type: 'button',
         'aria-label': `Sắp xếp theo ${label}, ${next === 'asc' ? 'tăng dần' : 'giảm dần'}`,
       },
     ),
@@ -35,7 +34,7 @@ export function compareIdentity(a, b) {
     collator.compare(a.fullName || '', b.fullName || '') ||
     (a.documentOrder ?? Number.MAX_SAFE_INTEGER) - (b.documentOrder ?? Number.MAX_SAFE_INTEGER) ||
     collator.compare(a.birthDate || '', b.birthDate || '') ||
-    BigInt(a.id) > BigInt(b.id) ? 1 : BigInt(a.id) < BigInt(b.id) ? -1 : 0
+    stableId(a, b)
   );
 }
 
