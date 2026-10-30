@@ -453,11 +453,35 @@ export function GradebookAdmin({
       if (editing) studentForm(value);
       else {
         const entry = dialog('Thông tin học sinh');
+        entry.dialog.classList.add('gradebook-student-info-dialog');
+        const name = value.fullName || 'Chưa có tên';
+        const initials = name === 'Chưa có tên'
+          ? 'HS'
+          : name.trim().split(/\s+/u).slice(-2).map((part) => part.charAt(0)).join('').toLocaleUpperCase('vi-VN');
+        const infoRow = (label, content) =>
+          el('div', { class: 'gradebook-student-info-field' },
+            el('dt', {}, label),
+            el('dd', {}, content),
+          );
         entry.content.append(
-          el('p', {}, value.fullName || 'Chưa có tên'),
-          el('p', {}, `Ngày sinh: ${displayDate(value.birthDate)}`),
-          el('p', {}, 'CMND/CCCD: đã ẩn'),
-          el('p', {}, value.active ? 'Đang sử dụng' : 'Đã ngừng sử dụng'),
+          el('section', { class: 'gradebook-student-info-card', 'aria-label': 'Hồ sơ học sinh' },
+            el('div', { class: 'gradebook-student-info-hero' },
+              el('span', { class: 'gradebook-student-info-avatar', 'aria-hidden': 'true' }, initials),
+              el('div', { class: 'gradebook-student-info-summary' },
+                el('span', { class: 'gradebook-student-info-eyebrow' }, 'HỒ SƠ HỌC SINH'),
+                el('h3', {}, name),
+                el('span', {
+                  class: `gradebook-student-info-status ${value.active ? 'is-active' : 'is-inactive'}`,
+                }, el('span', { class: 'gradebook-student-info-status-dot', 'aria-hidden': 'true' }),
+                  value.active ? 'Đang sử dụng' : 'Đã ngừng sử dụng'),
+              ),
+            ),
+            el('dl', { class: 'gradebook-student-info-fields' },
+              infoRow('Ngày sinh', el('time', { datetime: value.birthDate }, displayDate(value.birthDate))),
+              infoRow('CMND/CCCD', el('span', { class: 'gradebook-student-info-private' },
+                'Đã ẩn để bảo vệ thông tin')),
+            ),
+          ),
         );
       }
     });
