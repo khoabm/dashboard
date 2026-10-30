@@ -1,6 +1,7 @@
 /** Synthetic Remember Me persistence tests; no live Auth credentials or network. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createClient } from '@supabase/supabase-js';
 import { createRememberedAuthOptions } from '../src/services/auth-session.js';
 
 function memoryStorage() {
@@ -83,4 +84,73 @@ test('signOut removeItem clears both stores and blocked local storage falls back
   });
   assert.equal(blocked.select(true), false);
   assert.equal(blocked.remember(), false);
+});
+
+test('real Supabase SDK restores remembered login in another tab and clears it after sign-out', async () => {
+  const namespace = 'https://remember-qa.invalid';
+  const local = memoryStorage();
+  const clock = { time: Date.now() };
+  const user = {
+    id: '00000000-0000-4000-8000-000000000001',
+    app_metadata: {},
+    user_metadata: {},
+  };
+  const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
+  const accessToken = `${encode({ alg: 'HS256' })}.${encode({
+    sub: user.id,
+    exp: Math.floor(clock.time / 1000) + 3600,
+  })}.synthetic`;
+  const network = async (input) => {
+    const url = String(input);
+    assert.ok(url.startsWith(`${namespace}/auth/v1/`));
+    if (url.includes('/logout')) return new Response(null, { status: 204 });
+    return new Response(
+      JSON.stringify(
+        url.includes('/token')
+          ? {
+              access_token: accessToken,
+              refresh_token: 'synthetic-refresh-only',
+              token_type: 'bearer',
+              expires_in: 3600,
+              user,
+            }
+          : user,
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    );
+  };
+  const clients = [];
+  const make = () => {
+    const options = createRememberedAuthOptions(namespace, {
+      local: () => local,
+      tab: () => memoryStorage(),
+      now: () => clock.time,
+    });
+    const client = createClient(namespace, 'synthetic-publishable-key', {
+      auth: options.options,
+      global: { fetch: network },
+    });
+    clients.push(client);
+    return { client, options };
+  };
+
+  try {
+    const first = make();
+    assert.equal(
+      (await first.client.auth.signInWithPassword({
+        email: 'qa@example.invalid',
+        password: 'synthetic-only',
+      })).error,
+      null,
+    );
+    assert.equal(first.options.select(true), true);
+    const reopened = make();
+    assert.equal((await reopened.client.auth.getSession()).data.session.user.id, user.id);
+    assert.equal(reopened.options.remember(), true);
+    assert.equal((await reopened.client.auth.signOut()).error, null);
+    const afterSignout = make();
+    assert.equal((await afterSignout.client.auth.getSession()).data.session, null);
+  } finally {
+    await Promise.all(clients.map((client) => client.auth.stopAutoRefresh()));
+  }
 });
