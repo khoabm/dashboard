@@ -2,7 +2,11 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { captureBoardPosition, restoredBoardLeft, stickyHeadingVisible } from '../src/components/board-navigation.js';
+import {
+  captureBoardPosition,
+  restoredBoardLeft,
+  stickyHeadingVisible,
+} from '../src/components/board-navigation.js';
 
 /**
  * Models real layout coordinates without requiring a DOM library or network.
