@@ -1,6 +1,6 @@
 /** Renders CP04 teacher scores/import/publication with injected adapters and memory-only ownership. */
 import { el, button, field, restrictNumericInput } from '../utils/dom.js';
-import { openDialog, ConfirmDialog } from './primitives.js';
+import { openDialog, ConfirmDialog, ToastNotification } from './primitives.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
 import {
   AdminError,
@@ -81,8 +81,7 @@ export function GradebookScores({
   // Tabs remain available during reads; the private workspace and dialogs are inert during an operation.
   const heading = el('h2', { tabindex: '-1' }, 'Quản lý điểm');
   const progress = PulseIndicator(),
-    gridProgress = PulseIndicator(),
-    status = el('p', { role: 'status', class: 'admin-feedback', 'aria-live': 'polite' });
+    gridProgress = PulseIndicator();
   const tabs = el('div', { role: 'tablist', 'aria-label': 'Học kỳ' });
   const panel = el('div', { role: 'tabpanel', id: 'teacher-semester', class: 'score-panel' });
   const element = el(
@@ -91,7 +90,6 @@ export function GradebookScores({
     heading,
     tabs,
     progress,
-    status,
     panel,
   );
 
@@ -136,8 +134,10 @@ export function GradebookScores({
       students = [];
       wipe(panel);
       render();
-      status.textContent =
-        'Đã dừng chờ kết quả ghi. Thao tác có thể đã hoàn tất; hãy tải lại điểm trước khi thao tác tiếp.';
+      ToastNotification(
+        'Đã dừng chờ kết quả ghi. Thao tác có thể đã hoàn tất; hãy tải lại điểm trước khi thao tác tiếp.',
+        true,
+      );
     }
   }
   /** Clears an owned modal before releasing its detached controls. */
@@ -221,7 +221,6 @@ export function GradebookScores({
     lastOperation = null;
     panel.inert = true;
     for (const d of dialogs) d.content.inert = true;
-    status.textContent = '';
     pending('Đang tải bảng điểm…');
     const current = () => !disposed && generation === ticket && owner.status === 'admin';
     try {
@@ -230,10 +229,12 @@ export function GradebookScores({
       if (current()) {
         if ([401, 403].includes(error?.status)) onUnauthorized();
         else {
-          status.textContent =
+          ToastNotification(
             error?.code === 'catalog_unavailable'
               ? 'Danh mục môn/cột điểm chưa kết nối. Quản lý điểm chưa sẵn sàng.'
-              : adminMessage(error);
+              : adminMessage(error),
+            true,
+          );
           failed(error);
         }
       }
@@ -433,7 +434,7 @@ export function GradebookScores({
             throw new AdminError();
           closeDialog(entry);
           await readPage(current);
-          if (current()) status.textContent = 'Đã cập nhật ô điểm.';
+          if (current()) ToastNotification('Đã cập nhật ô điểm.');
         },
         (failure) => {
           error.textContent = adminMessage(failure);
@@ -498,8 +499,10 @@ export function GradebookScores({
     try {
       payload = gridBatch(currentClass, semester, [...gridPending.values()]);
     } catch {
-      status.textContent =
-        'Có ô chưa hợp lệ. Điểm phải từ 0–10, tối đa 5 chữ số thập phân; ô trống không dùng để xóa.';
+      ToastNotification(
+        'Có ô chưa hợp lệ. Điểm phải từ 0–10, tối đa 5 chữ số thập phân; ô trống không dùng để xóa.',
+        true,
+      );
       return;
     }
     void run(
@@ -528,20 +531,22 @@ export function GradebookScores({
         dirty = false;
         gridStale = false;
         await readPage(current);
-        if (current()) status.textContent = 'Đã lưu toàn bộ ô điểm đã sửa.';
+        if (current()) ToastNotification('Đã lưu toàn bộ ô điểm đã sửa.');
       },
       (error) => {
         // A rejected preview has not sent any writes; keep the draft editable and retryable.
         // A sent apply has an uncertain outcome even if HTTP or timeout later reports failure.
         gridStale = applyDispatched || error?.status === 409;
-        status.textContent =
+        ToastNotification(
           !applyDispatched && error?.status === 400
             ? 'API chưa chấp nhận yêu cầu nhập điểm hàng loạt (HTTP 400). Hãy kiểm tra phiên bản Edge Function grades-admin và migration batch. Các ô chưa lưu vẫn được giữ; chưa gửi lệnh ghi.'
             : !applyDispatched && error?.status === 422
               ? 'Bản xem trước không hợp lệ; hãy kiểm tra các ô điểm. Bản nháp vẫn còn và chưa gửi lệnh ghi.'
               : gridStale
                 ? `${adminMessage(error)} Chưa xác định được kết quả ghi hoặc dữ liệu đã thay đổi. Giữ bản nháp nhưng cần tải lại để xác minh trước khi lưu tiếp.`
-                : `${adminMessage(error)} Chưa gửi lệnh ghi; bản nháp vẫn còn để thử lại sau.`;
+                : `${adminMessage(error)} Chưa gửi lệnh ghi; bản nháp vẫn còn để thử lại sau.`,
+          true,
+        );
         updateGridActions();
       },
     );
@@ -568,9 +573,9 @@ export function GradebookScores({
             closeDialog(entry);
             await readPage(current);
             if (current())
-              status.textContent = publishing
-                ? 'Đã công bố học kỳ đã chọn.'
-                : 'Đã tạm ẩn học kỳ đã chọn.';
+              ToastNotification(
+                publishing ? 'Đã công bố học kỳ đã chọn.' : 'Đã tạm ẩn học kỳ đã chọn.',
+              );
           },
           (failure) => {
             error.textContent = adminMessage(failure);
@@ -694,7 +699,7 @@ export function GradebookScores({
             if (result.committed !== true || result.counts?.error !== 0) throw new AdminError();
             closeDialog(entry);
             await readPage(current);
-            if (current()) status.textContent = 'Đã áp dụng bảng điểm.';
+            if (current()) ToastNotification('Đã áp dụng bảng điểm.');
           },
           (failure) => {
             invalidate();
@@ -873,11 +878,6 @@ export function GradebookScores({
       panel.querySelector('[aria-label="Học sinh trong trang"]')?.focus();
     });
     panel.append(
-      el(
-        'p',
-        { class: published ? 'publication-warning' : 'muted' },
-        `Học kỳ ${semester === 1 ? 'I' : 'II'}: ${published ? 'Đã công bố — tạm ẩn trước khi import.' : 'Chưa công bố'}`,
-      ),
       el(
         'p',
         { class: 'muted' },
