@@ -50,3 +50,111 @@ export async function verifyAdminSession(db) {
     ? { userId: data.user.id }
     : null;
 }
+
+/** Optional remembered session. Never persist passwords or enable offline privilege. */
+export const REMEMBER_DAYS = 30;
+const REMEMBER_MS = REMEMBER_DAYS * 24 * 60 * 60 * 1000;
+const RENEW_MS = 24 * 60 * 60 * 1000;
+const rememberFlag = (namespace) => `khtn8:remember-admin:${namespace}`;
+const keyFor = (namespace) => `khtn8:remember-token:${namespace}`;
+
+export function createRememberedAuthOptions(
+  namespace,
+  {
+    local = () => globalThis.localStorage,
+    tab = () => globalThis.sessionStorage,
+    now = () => Date.now(),
+  } = {},
+) {
+  const fallback = createTabAuthOptions(namespace, tab);
+  let persistent;
+  try {
+    persistent = local();
+    if (!persistent)
+      return { options: fallback, remember: () => false, renew: () => false, select: () => false };
+    const probe = `khtn8:storage-probe:${namespace}`;
+    persistent.setItem(probe, '1');
+    persistent.removeItem(probe);
+  } catch {
+    return { options: fallback, remember: () => false, renew: () => false, select: () => false };
+  }
+  const marker = rememberFlag(namespace);
+  const tokenKey = keyFor(namespace);
+  const read = () => {
+    try {
+      const value = JSON.parse(persistent.getItem(marker) || 'null');
+      if (
+        !value ||
+        !Number.isFinite(value.lastVerified) ||
+        value.lastVerified > now() + 60000 ||
+        now() - value.lastVerified >= REMEMBER_MS
+      ) {
+        persistent.removeItem(marker);
+        persistent.removeItem(tokenKey);
+        return null;
+      }
+      return value;
+    } catch {
+      persistent.removeItem(marker);
+      persistent.removeItem(tokenKey);
+      return null;
+    }
+  };
+  const storage = {
+    getItem(key) {
+      if (read()) return persistent.getItem(tokenKey);
+      return fallback.storage?.getItem(key) ?? null;
+    },
+    setItem(key, value) {
+      if (read()) persistent.setItem(tokenKey, value);
+      else fallback.storage?.setItem(key, value);
+    },
+    removeItem(key) {
+      // SDK sign-out must clear the remembered opt-in as well as both token copies.
+      persistent.removeItem(marker);
+      persistent.removeItem(tokenKey);
+      fallback.storage?.removeItem(key);
+    },
+  };
+  const select = (enabled) => {
+    try {
+      if (enabled) {
+        const existing = fallback.storage?.getItem(fallback.storageKey);
+        persistent.setItem(marker, JSON.stringify({ lastVerified: now() }));
+        if (existing) persistent.setItem(tokenKey, existing);
+        // A remembered token must have one owner: no expired tab fallback.
+        fallback.storage?.removeItem(fallback.storageKey);
+      } else {
+        const previous = read() ? persistent.getItem(tokenKey) : null;
+        if (previous && fallback.storage) fallback.storage.setItem(fallback.storageKey, previous);
+        persistent.removeItem(marker);
+        persistent.removeItem(tokenKey);
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  const renew = () => {
+    const state = read();
+    if (!state) return false;
+    if (now() - state.lastVerified < RENEW_MS) return true;
+    try {
+      persistent.setItem(marker, JSON.stringify({ lastVerified: now() }));
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  return {
+    options: {
+      ...fallback,
+      persistSession: true,
+      storageKey: fallback.storageKey || `khtn8:auth:${namespace}`,
+      storage,
+    },
+    remember: () => !!read(),
+    select,
+    renew,
+  };
+}
