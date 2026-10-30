@@ -226,12 +226,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
       el(
         'div',
         { class: 'assistant-compose-meta' },
-        el(
-          'label',
-          { class: 'assistant-consent' },
-          cloud,
-          el('span', {}, 'Dùng AI để trả lời'),
-        ),
+        el('label', { class: 'assistant-consent' }, cloud, el('span', {}, 'Dùng AI để trả lời')),
         el('span', { id: 'assistant-input-help', class: 'assistant-input-help' }, 'Enter để gửi'),
         stop,
       ),
@@ -397,7 +392,12 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
         'div',
         { class: 'assistant-message assistant-message-bot' },
         assistantAvatar('assistant-message-avatar'),
-        el('div', { class: 'assistant-message-content' }, bubble, el('time', { datetime: at }, messageTime(at))),
+        el(
+          'div',
+          { class: 'assistant-message-content' },
+          bubble,
+          el('time', { datetime: at }, messageTime(at)),
+        ),
       );
       messages.append(row);
       return bubble;
@@ -464,24 +464,41 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     }
 
     /** Shows exact cited excerpts in compact resource cards with explicit read-only actions. */
-    function showResults(result, catalog, question, fingerprint, remember = true, at = new Date().toISOString()) {
+    function showResults(
+      result,
+      catalog,
+      question,
+      fingerprint,
+      remember = true,
+      at = new Date().toISOString(),
+    ) {
       result = { ...result, sources: validateAssistantSources(result.sources, catalog) };
       // AI answers should read as messages, not diagnostic reports.
       const content = el('div');
       if (result.mode !== 'ai') {
         content.append(
-          el('strong', { class: 'assistant-result-mode' },
-            result.mode === 'deterministic' ? 'Thông tin từ trang' : 'Kết quả tìm bài viết'),
+          el(
+            'strong',
+            { class: 'assistant-result-mode' },
+            result.mode === 'deterministic' ? 'Thông tin từ trang' : 'Kết quả tìm bài viết',
+          ),
         );
       }
       if (result.answer) {
         content.append(el('p', { class: 'assistant-learning-answer' }, result.answer));
       } else if (result.sources.length) {
-        content.append(el('p', { class: 'assistant-result-intro' }, 'Bạn có thể xem các bài viết bên dưới.'));
+        content.append(
+          el('p', { class: 'assistant-result-intro' }, 'Bạn có thể xem các bài viết bên dưới.'),
+        );
       }
       if (result.note && !(live && result.mode === 'ai')) {
-        content.append(el('p', { class: 'assistant-answer-note' },
-          live ? 'Mình chỉ tìm trong các bài viết đã tải, chưa đọc tệp đính kèm.' : result.note));
+        content.append(
+          el(
+            'p',
+            { class: 'assistant-answer-note' },
+            live ? 'Mình chỉ tìm trong các bài viết đã tải, chưa đọc tệp đính kèm.' : result.note,
+          ),
+        );
       }
       for (const source of result.sources) {
         const post = catalog.find((p) => p.id === source.id);
@@ -566,9 +583,12 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
         el(
           'div',
           { class: 'assistant-message assistant-message-user' },
-          el('div', { class: 'assistant-message-content' },
+          el(
+            'div',
+            { class: 'assistant-message-content' },
             el('p', { class: 'assistant-bubble assistant-question' }, question),
-            el('time', { datetime: at }, messageTime(at))),
+            el('time', { datetime: at }, messageTime(at)),
+          ),
         ),
       );
       if (remember) {
@@ -582,9 +602,15 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     for (const entry of transcript) {
       if (entry.kind === 'user') userMessage(entry.text, false, entry.at);
       else if (entry.kind === 'result')
-        showResults(entry.result, catalogAtOpen, entry.question, fingerprintAtOpen, false, entry.at);
-      else if (entry.kind === 'notice')
-        assistantMessage(entry.text, 'assistant-notice', entry.at);
+        showResults(
+          entry.result,
+          catalogAtOpen,
+          entry.question,
+          fingerprintAtOpen,
+          false,
+          entry.at,
+        );
+      else if (entry.kind === 'notice') assistantMessage(entry.text, 'assistant-notice', entry.at);
     }
 
     input.addEventListener('keydown', (event) => {
