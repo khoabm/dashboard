@@ -14,7 +14,7 @@ override specialized component selectors without changing their visual states.
 Regression scope: search, Board editor/login, Gradebook lookup/date picker/admin
 score grid, assistant composer; 320/375/390/430px portrait + iPhone landscape.
 Real iPhone Safari and installed-PWA focus/keyboard/zoom checks still require
-device QA; CI does not claim to simulate WebKit. No DB/API/Auth changes.
+device QA; CI does not claim to simulate WebKit. Test with browser text zoom at default settings. No DB/API/Auth changes.
 
 ## 2026-10-30 — UI-MOBILE-HEADER-01: mobile header title and account actions wrap awkwardly
 
