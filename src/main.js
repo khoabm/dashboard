@@ -148,7 +148,10 @@ stickyRegion.append(controls, navigation.element, navigation.headings);
 workspace.append(stickyRegion, boardRegion);
 // Mobile headings stick below dynamically sized filters (including wrapped status text).
 const stickySize = new ResizeObserver(() => {
-  workspace.style.setProperty('--board-sticky-height', `${stickyRegion.getBoundingClientRect().height}px`);
+  workspace.style.setProperty(
+    '--board-sticky-height',
+    `${stickyRegion.getBoundingClientRect().height}px`,
+  );
 });
 stickySize.observe(stickyRegion);
 shell.append(

@@ -100,12 +100,15 @@ export function BoardNavigation() {
     const sticky = headings.parentElement;
     const stickyTop = sticky?.getBoundingClientRect().top ?? 0;
     const controlsHeight = sticky
-      ? [...sticky.children].filter((n) => n !== headings && !n.hidden)
+      ? [...sticky.children]
+          .filter((n) => n !== headings && !n.hidden)
           .reduce((sum, n) => sum + n.getBoundingClientRect().height, 0)
       : 0;
     const rect = board.getBoundingClientRect();
-    const visible = matchMedia('(min-width:701px)').matches &&
-      !!original && original.getBoundingClientRect().top <= Math.max(0, stickyTop) + controlsHeight;
+    const visible =
+      matchMedia('(min-width:701px)').matches &&
+      !!original &&
+      original.getBoundingClientRect().top <= Math.max(0, stickyTop) + controlsHeight;
     headings.hidden = !visible;
     if (!visible) return;
     headingTrack.style.width = `${rect.width}px`;
@@ -226,7 +229,6 @@ export function BoardNavigation() {
         for (const button of clone.querySelectorAll('button')) {
           const originalButton = original.querySelector('button');
           button.addEventListener('click', () => originalButton?.click());
-
         }
         clone.style.backgroundColor = getComputedStyle(original).backgroundColor;
         headingTrack.append(clone);
