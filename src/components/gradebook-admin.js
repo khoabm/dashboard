@@ -59,6 +59,8 @@ export function GradebookAdmin({
         'roster.preview': 'Đang kiểm tra bản xem trước danh sách…',
         'roster.apply': 'Đang áp dụng danh sách học sinh…',
       };
+      // Reuse the shared pulse in the viewport while Xem/Sửa waits for the API.
+      progress.classList.toggle('gradebook-admin-read-progress', payload.op === 'student.read');
       pending(labels[payload.op] || 'Đang cập nhật hồ sơ học sinh…');
       return request(payload, options);
     },
@@ -177,6 +179,7 @@ export function GradebookAdmin({
 
   /** Mirrors operation feedback into the active modal outside inert content. */
   function pending(message = '') {
+    if (!message) progress.classList.remove('gradebook-admin-read-progress');
     body.setAttribute('aria-busy', String(!!message));
     setPendingMessage(progress, dialogs.size ? '' : message);
     for (const entry of dialogs) {
@@ -441,6 +444,109 @@ export function GradebookAdmin({
     name.focus();
   }
 
+  /** Explicit, time-limited reveal in the read-only profile; nothing is persisted or logged. */
+  function studentIdentityControls(entry, student) {
+    let revealed = false;
+    let timer = null;
+    const value = el('span', { class: 'gradebook-student-info-private' }, 'Đã ẩn để bảo vệ thông tin');
+    const feedback = el('span', {
+      class: 'gradebook-student-info-feedback',
+      role: 'status',
+      'aria-live': 'polite',
+    });
+    const copy = el(
+      'button',
+      {
+        type: 'button',
+        class: 'icon-button gradebook-student-info-copy',
+        'aria-label': 'Sao chép CMND/CCCD',
+        title: 'Sao chép CMND/CCCD',
+        hidden: true,
+        onClick: async () => {
+          if (!revealed || !entry.dialog.open || document.hidden) return;
+          try {
+            if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+            await navigator.clipboard.writeText(value.textContent);
+            if (revealed && entry.dialog.open)
+              feedback.textContent = 'Đã sao chép vào bộ nhớ tạm.';
+          } catch {
+            if (revealed && entry.dialog.open)
+              feedback.textContent = 'Không thể sao chép. Kiểm tra quyền clipboard.';
+          }
+        },
+      },
+      el(
+        'svg',
+        {
+          viewBox: '0 0 24 24',
+          width: 20,
+          height: 20,
+          fill: 'none',
+          stroke: 'currentColor',
+          'stroke-width': 1.8,
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+          'aria-hidden': 'true',
+          focusable: 'false',
+        },
+        el('rect', { x: 8, y: 8, width: 12, height: 12, rx: 2 }),
+        el('path', { d: 'M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2' }),
+      ),
+    );
+    const toggle = button(
+      'Hiện CMND/CCCD',
+      () => {
+        if (revealed) {
+          hideIdentity();
+          return;
+        }
+        void run(async (isCurrent) => {
+          const result = await gate.call({
+            op: 'student.reveal',
+            classId: currentClass.id,
+            studentId: student.id,
+          });
+          if (!isCurrent() || !entry.dialog.open || document.hidden) return;
+          value.textContent = documentNumber(result.documentNumber);
+          value.classList.remove('gradebook-student-info-private');
+          revealed = true;
+          copy.hidden = false;
+          toggle.textContent = 'Ẩn CMND/CCCD';
+          toggle.setAttribute('aria-pressed', 'true');
+          feedback.textContent = '';
+          clearTimeout(timer);
+          timer = setTimeout(hideIdentity, 30000);
+        });
+      },
+      'button gradebook-student-info-reveal',
+      { 'aria-pressed': 'false' },
+    );
+
+    function hideIdentity() {
+      clearTimeout(timer);
+      timer = null;
+      revealed = false;
+      value.textContent = 'Đã ẩn để bảo vệ thông tin';
+      value.classList.add('gradebook-student-info-private');
+      copy.hidden = true;
+      toggle.textContent = 'Hiện CMND/CCCD';
+      toggle.setAttribute('aria-pressed', 'false');
+      feedback.textContent = '';
+    }
+
+    // Existing modal cleanup invokes cancel on close/logout/route exit.
+    entry.hideIdentity = hideIdentity;
+    entry.cancel = hideIdentity;
+    return el(
+      'div',
+      { class: 'gradebook-student-info-identity' },
+      el('div', { class: 'gradebook-student-info-value' }, value, copy),
+      toggle,
+      el('span', { class: 'gradebook-student-info-hint' }, 'Tự ẩn sau 30 giây.'),
+      feedback,
+    );
+  }
+
   function readStudent(student, editing) {
     void run(async (isCurrent) => {
       const result = await gate.call({
@@ -506,56 +612,12 @@ export function GradebookAdmin({
                 'Ngày sinh',
                 el('time', { datetime: value.birthDate }, displayDate(value.birthDate)),
               ),
-              infoRow(
-                'CMND/CCCD',
-                el(
-                  'span',
-                  { class: 'gradebook-student-info-private' },
-                  'Đã ẩn để bảo vệ thông tin',
-                ),
-              ),
+              infoRow('CMND/CCCD', studentIdentityControls(entry, student)),
             ),
           ),
         );
       }
     });
-  }
-
-  function reveal(student) {
-    const entry = dialog('Hiện CMND/CCCD');
-    const output = el(
-      'p',
-      { role: 'status', class: 'identity-reveal' },
-      'Chỉ tiết lộ một hồ sơ sau khi bạn xác nhận.',
-    );
-    const ask = button(
-      'Xác nhận hiện định danh',
-      () =>
-        void run(async (isCurrent) => {
-          const result = await gate.call({
-            op: 'student.reveal',
-            classId: currentClass.id,
-            studentId: student.id,
-          });
-          if (!isCurrent() || !entry.dialog.open) return;
-          output.textContent = documentNumber(result.documentNumber);
-          ask.hidden = true;
-          const timer = setTimeout(() => {
-            if (entry.dialog.open) entry.dialog.close();
-          }, 30000);
-          entry.cancel = () => clearTimeout(timer);
-        }),
-      'button primary',
-    );
-    entry.content.append(
-      output,
-      el(
-        'p',
-        { class: 'muted' },
-        'Không sao chép vào bản xuất hoặc nhật ký. Đóng hộp thoại để xóa; tự ẩn sau 30 giây.',
-      ),
-      ask,
-    );
   }
 
   async function changeStudent(student, kind) {
@@ -917,10 +979,9 @@ export function GradebookAdmin({
               {},
               el(
                 'div',
-                { class: 'admin-actions' },
+                { class: 'admin-actions gradebook-student-actions' },
                 button('Xem', () => readStudent(student, false)),
                 button('Sửa', () => readStudent(student, true)),
-                button('Hiện CMND/CCCD', () => reveal(student)),
                 button(
                   student.active ? 'Ngừng sử dụng' : 'Sử dụng lại',
                   () => void changeStudent(student, student.active ? 'deactivate' : 'reactivate'),
@@ -1001,8 +1062,7 @@ export function GradebookAdmin({
   };
   const hideReveal = () => {
     if (document.hidden)
-      for (const entry of [...dialogs])
-        if (entry.dialog.getAttribute('aria-label') === 'Hiện CMND/CCCD') entry.dialog.close();
+      for (const entry of dialogs) entry.hideIdentity?.();
   };
   window.addEventListener('beforeunload', beforeUnload);
   document.addEventListener('visibilitychange', hideReveal);
