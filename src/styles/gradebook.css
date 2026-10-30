@@ -2572,7 +2572,7 @@
   grid-column: 4;
 }
 /* The existing PulseIndicator moves into view for student.read, without a second loader. */
-.gradebook-admin > .pending-indicator.gradebook-admin-read-progress:not([hidden]) {
+.gradebook-admin > .pending-indicator.gradebook-admin-operation-progress:not([hidden]) {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -2623,4 +2623,51 @@
   .gradebook-student-actions {
     grid-template-columns: 60px 60px 130px 60px;
   }
+}
+
+/* The admin editor reuses the same birthday calendar as /personal-gradebook. */
+.gradebook-student-form .birthday-field {
+  min-width: 0;
+  min-height: 49px;
+  border-color: #d8e2da;
+}
+.gradebook-student-form .birthday-field > input {
+  min-width: 0;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 48px;
+  border: 0;
+  border-radius: 12px 0 0 12px;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+}
+.gradebook-student-form .birthday-field > input:focus,
+.gradebook-student-form .birthday-field > input:focus-visible {
+  border: 0;
+  box-shadow: none;
+  outline: none;
+}
+.gradebook-student-form .birthday-field:focus-within {
+  border-color: #367c58;
+  box-shadow: 0 0 0 3px #367c582b;
+  outline: none;
+}
+.gradebook-student-form .birthday-field .birthday-trigger {
+  width: 48px;
+  flex: 0 0 48px;
+  border-radius: 0 10px 10px 0;
+}
+.gradebook-student-form .birthday-navigation input,
+.gradebook-student-form .birthday-navigation select {
+  width: 100%;
+  height: 44px;
+  padding: 7px;
+  border: 1px solid #dee7e0;
+  border-radius: 9px;
+  background: #f8faf8;
+  font-size: 12px;
+}
+.gradebook-student-form .birthday-calendar {
+  z-index: 4;
 }
