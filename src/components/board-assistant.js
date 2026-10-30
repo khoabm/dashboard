@@ -147,10 +147,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     // source's former answer or its paired question back to the model.
     chatHistory = chatHistory.filter((turn, index, turns) => {
       const linked = turn.role === 'assistant' ? turn : turns[index + 1];
-      return !(
-        linked?.role === 'assistant' &&
-        linked.sourceIds?.some((id) => changed.has(id))
-      );
+      return !(linked?.role === 'assistant' && linked.sourceIds?.some((id) => changed.has(id)));
     });
     if (context?.ids.some((id) => changed.has(id))) context = null;
     lastCorpus = fresh;
@@ -506,14 +503,13 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     ) {
       // Older answers stay readable, but no revoked/edited quote may regain
       // an actionable source card when the panel is reopened after refresh.
-      const currentSources = result.sources.filter(
-        (source) =>
-          catalog.some(
-            (post) =>
-              post.id === source.id &&
-              typeof source.quote === 'string' &&
-              (post.body.includes(source.quote) || post.title.includes(source.quote)),
-          ),
+      const currentSources = result.sources.filter((source) =>
+        catalog.some(
+          (post) =>
+            post.id === source.id &&
+            typeof source.quote === 'string' &&
+            (post.body.includes(source.quote) || post.title.includes(source.quote)),
+        ),
       );
       const sourcesChanged = currentSources.length !== result.sources.length;
       result = { ...result, sources: validateAssistantSources(currentSources, catalog) };
@@ -546,8 +542,11 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
       }
       if (sourcesChanged)
         content.append(
-          el('p', { class: 'assistant-answer-note' },
-            'Nguồn của câu trả lời này đã thay đổi. Bạn hãy hỏi lại để kiểm tra thông tin mới.'),
+          el(
+            'p',
+            { class: 'assistant-answer-note' },
+            'Nguồn của câu trả lời này đã thay đổi. Bạn hãy hỏi lại để kiểm tra thông tin mới.',
+          ),
         );
       for (const source of result.sources) {
         const post = catalog.find((p) => p.id === source.id);
