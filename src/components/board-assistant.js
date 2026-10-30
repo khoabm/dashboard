@@ -6,7 +6,6 @@ import {
   resolveAssistantAction,
   validateAssistantSources,
 } from '../utils/board-assistant.js';
-import { PulseIndicator, setPendingMessage } from './pending.js';
 
 import {
   learningIntent,
@@ -117,7 +116,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     let context = null;
     let chatHistory = [];
     let cloudAvailable = hosted;
-    const title = el('h2', { id: 'assistant-title' }, 'Cùng tìm học liệu');
+    const title = el('h2', { id: 'assistant-title' }, 'Trợ lý học liệu');
     const close = button(
       '×',
       () => {
@@ -149,8 +148,22 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
       'aria-live': 'polite',
       'aria-relevant': 'additions',
     });
-    const status = PulseIndicator();
-    status.classList.add('assistant-pending');
+    // A compact messenger-style typing indicator beside the existing bot avatar.
+    const typing = el(
+      'div',
+      { class: 'assistant-message assistant-message-bot assistant-typing', role: 'status' },
+      assistantAvatar('assistant-message-avatar'),
+      el(
+        'span',
+        { class: 'assistant-typing-bubble', 'aria-hidden': 'true' },
+        el('span', { class: 'assistant-typing-dot' }),
+        el('span', { class: 'assistant-typing-dot' }),
+        el('span', { class: 'assistant-typing-dot' }),
+      ),
+      el('span', { class: 'assistant-visually-hidden' }, 'Trợ lý đang trả lời…'),
+    );
+    typing.hidden = true;
+    messages.append(typing);
     const error = el('p', { id: 'assistant-error', role: 'alert' });
     const input = el('textarea', {
       id: 'assistant-query',
@@ -161,14 +174,14 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     });
     const send = el('button', { type: 'submit', class: 'assistant-send' }, 'Gửi');
     const stop = button(
-      'Dừng tìm',
+      'Dừng trả lời',
       () => {
         context = null;
         generation++;
         controller?.abort();
         controller = null;
         busy(false);
-        error.textContent = 'Đã dừng. Bạn có thể sửa câu hỏi hoặc tìm bằng từ khóa.';
+        error.textContent = 'Đã dừng trả lời. Bạn có thể sửa câu hỏi hoặc hỏi lại nhé.';
         input.focus();
       },
       'button subtle assistant-stop',
@@ -188,7 +201,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
           'label',
           { class: 'assistant-consent' },
           cloud,
-          el('span', {}, 'Dùng AI Cloudflare cho câu hỏi này'),
+          el('span', {}, 'Dùng AI để trả lời'),
         ),
         el('span', { id: 'assistant-input-help', class: 'assistant-input-help' }, 'Enter để gửi'),
         stop,
@@ -287,7 +300,6 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
       ),
       utilities,
       messages,
-      status,
       error,
       el(
         'div',
@@ -301,13 +313,13 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     /** Keeps privacy and availability text synchronized, including after failure. */
     function updateCloudDisclosure() {
       ownDialog.querySelector('.assistant-consent span').textContent = cloudAvailable
-        ? 'Dùng AI Cloudflare cho câu hỏi này'
-        : 'AI không khả dụng · Chỉ tìm từ khóa';
+        ? 'Dùng AI để trả lời'
+        : 'Chỉ tìm bài theo từ khóa';
       disclosure.textContent = cloudAvailable
-        ? 'AI là tùy chọn: khi bật, câu hỏi, ngữ cảnh nguồn của phiên và các đoạn văn bản công khai được chọn sẽ gửi đến Cloudflare. Không nhập thông tin cá nhân. Không đọc nội dung tệp hoặc bảng điểm.'
+        ? 'Khi bật AI, câu hỏi, tin nhắn gần đây và nội dung bài đăng công khai liên quan được gửi đến Cloudflare. AI có thể nhầm lẫn; đừng chia sẻ thông tin cá nhân hoặc bảng điểm.'
         : hosted
-          ? 'AI không khả dụng cho kho học liệu này. Chỉ tìm từ khóa; không gửi đến Cloudflare.'
-          : 'AI đang tắt. Chỉ tìm từ khóa trên trang; không gửi đến Cloudflare, không đọc tệp hoặc bảng điểm.';
+          ? 'AI tạm thời không khả dụng. Bạn vẫn có thể tìm bài theo từ khóa.'
+          : 'AI đang tắt. Bạn vẫn có thể tìm bài theo từ khóa mà không gửi câu hỏi đến Cloudflare.';
     }
     updateCloudDisclosure();
     dialog = ownDialog;
@@ -357,8 +369,8 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
 
     assistantMessage(
       live
-        ? 'Xin chào! Bạn có thể hỏi kiến thức chung, hỏi tiếp trong hội thoại hoặc tìm hiểu các bài đăng công khai trên Vui học cùng cô Quỳnh.'
-        : 'Xin chào! Mình có thể giới thiệu Vui học cùng cô Quỳnh, hướng dẫn ứng dụng, tìm và đối chiếu nội dung các bài đăng công khai.',
+        ? 'Chào bạn! Mình có thể giúp giải đáp thắc mắc hoặc tìm hiểu các bài viết trên trang. Bạn muốn hỏi gì nào?'
+        : 'Chào bạn! Mình có thể giúp tìm bài viết và giới thiệu những gì có trên trang. Bạn muốn bắt đầu từ đâu?',
       'assistant-welcome',
     );
     ownDialog.addEventListener(
@@ -386,7 +398,11 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
       cloud.disabled = pending || !cloudAvailable;
       stop.hidden = !pending;
       messages.setAttribute('aria-busy', String(pending));
-      setPendingMessage(status, pending ? 'Đang tìm và đối chiếu học liệu…' : '');
+      typing.hidden = !pending;
+      if (pending) {
+        messages.append(typing);
+        messages.scrollTop = messages.scrollHeight;
+      }
     }
 
     /** Rechecks current published sources before any user-confirmed Board action. */
@@ -411,53 +427,23 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
     /** Shows exact cited excerpts in compact resource cards with explicit read-only actions. */
     function showResults(result, catalog, question, fingerprint) {
       result = { ...result, sources: validateAssistantSources(result.sources, catalog) };
-      const content = el(
-        'div',
-        {},
-        el(
-          'strong',
-          { class: 'assistant-result-mode' },
-          result.mode === 'ai'
-            ? result.status === 'insufficient'
-              ? 'AI · Chưa đủ nguồn để trả lời'
-              : live && !result.sources.length
-                ? 'AI · Kiến thức chung'
-                : 'AI · Trả lời từ nội dung công khai có nguồn'
-            : result.mode === 'deterministic'
-              ? result.status === 'insufficient'
-                ? 'Cần làm rõ câu hỏi · Không dùng AI'
-                : 'Thông tin website · Không dùng AI'
-              : 'Tìm bằng từ khóa · AI không được sử dụng',
-        ),
-        el(
-          'p',
-          { class: 'assistant-result-intro' },
-          result.mode === 'deterministic'
-            ? result.status === 'insufficient'
-              ? 'Bạn hãy nêu tên bài học hoặc chọn nguồn để trợ lý hỗ trợ đúng nội dung.'
-              : 'Thông tin tính từ snapshot công khai hiện tại.'
-            : result.sources.length
-              ? 'Mình tìm thấy một số nội dung có thể hữu ích. Bạn có thể mở nguồn để xem đầy đủ.'
-              : live && result.mode === 'ai'
-                ? 'Câu trả lời này dùng kiến thức của AI, không phải trích dẫn từ Board.'
-                : 'Chưa tìm thấy nội dung phù hợp trong văn bản đã tải. Bạn thử chi tiết hoặc tên bài đăng, hoặc hỏi “Web có những gì?” nhé.',
-        ),
-      );
-      if (result.note) content.append(el('p', { class: 'assistant-answer-note' }, result.note));
-      if (result.answer)
-        content
-          .querySelector('strong')
-          .after(el('p', { class: 'assistant-learning-answer' }, result.answer));
-      if (result.mode === 'ai')
+      // AI answers should read as messages, not diagnostic reports.
+      const content = el('div');
+      if (result.mode !== 'ai') {
         content.append(
-          el(
-            'p',
-            { class: 'assistant-answer-note' },
-            live
-              ? 'AI có thể trả lời sai. Hãy đối chiếu thông tin quan trọng và các nguồn được dẫn.'
-              : 'AI có thể diễn giải sai. Hãy đối chiếu nguồn; chỉ dùng văn bản công khai được cung cấp.',
-          ),
+          el('strong', { class: 'assistant-result-mode' },
+            result.mode === 'deterministic' ? 'Thông tin từ trang' : 'Kết quả tìm bài viết'),
         );
+      }
+      if (result.answer) {
+        content.append(el('p', { class: 'assistant-learning-answer' }, result.answer));
+      } else if (result.sources.length) {
+        content.append(el('p', { class: 'assistant-result-intro' }, 'Bạn có thể xem các bài viết bên dưới.'));
+      }
+      if (result.note && !(live && result.mode === 'ai')) {
+        content.append(el('p', { class: 'assistant-answer-note' },
+          live ? 'Mình chỉ tìm trong các bài viết đã tải, chưa đọc tệp đính kèm.' : result.note));
+      }
       for (const source of result.sources) {
         const post = catalog.find((p) => p.id === source.id);
         if (!post) continue;
@@ -518,7 +504,8 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
         );
       }
       assistantMessage(content, 'assistant-result');
-      while (messages.children.length > 9) messages.firstElementChild.remove();
+      while (messages.querySelectorAll('.assistant-message:not(.assistant-typing)').length > 9)
+        messages.querySelector('.assistant-message:not(.assistant-typing)')?.remove();
       messages.scrollTop = messages.scrollHeight;
     }
 
@@ -605,7 +592,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
           invalidate();
           return;
         }
-        if (!result.note)
+        if (!result.note && !(live && result.mode === 'ai'))
           result.note = `Thông tin dựa trên dữ liệu công khai đã tải. ${corpus.coverage === 'complete' ? 'Bảng có thể thay đổi sau khi tải.' : 'Chưa xác minh đã tải đủ dữ liệu.'} Không truy cập dữ liệu riêng hoặc nội dung tệp.`;
         context = result.sources.length
           ? {
@@ -633,7 +620,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
               ? 'Bạn gửi hơi nhanh. Chờ khoảng 10 giây rồi gửi tiếp nhé.'
               : failure?.message === 'provider_quota'
                 ? 'Cloudflare tạm hết hạn mức miễn phí. Hãy thử lại sau; tìm bằng từ khóa vẫn dùng được.'
-                : 'AI tạm thời chưa trả lời được. Bạn có thể gửi lại sau hoặc bỏ chọn AI để tìm bằng từ khóa.';
+                : 'Mình chưa trả lời được lúc này. Bạn hãy thử lại hoặc tắt AI để tìm bài theo từ khóa nhé.';
           return;
         }
         context = null;
