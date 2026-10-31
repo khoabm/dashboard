@@ -1,3 +1,29 @@
+## 2026-10-31 — AI-IA01-F02 / P1 — Partial general answers and incomplete hybrid responses
+
+- **Owner report:** TC-02 returned a sentence ending at “bị”, without the requested example.
+  TC-06 supplied study tips and an exam date but omitted the explicitly requested
+  Văn exam hour; the UI labeled the whole reply as website information.
+- **Verified architecture cause:** at prior Cloudflare deployment (29 October), Board
+  was always read and ranked before generation; Qwen used a single free-form
+  `answer` + `ids` response without a hybrid completeness contract.
+  `decodeChatAnswer` accepted plain/truncated strings and checked IDs only,
+  not semantic support. Website snippets can combine unrelated topics, including
+  exam preparation and student cleaning duties. New branch Worker was not deployed
+  when the owner tested the Pages preview.
+- **Correction on Draft PR #37:** strict structured JSON for live, bounded incomplete
+  output checks, explicit `website` and `general` hybrid model fields with
+  distinct rendered sections, provenance labels, and a narrow deterministic
+  exam-time check against published source passages. Missing answer parts or
+  unsupported exam hour cannot be displayed as a successful grounded reply.
+- **Evidence:** initial CI #41173760530 PASS (core response structure and build);
+  later exact-exam-time fix CI pending. Pure unit cases TC-02 and TC-06 added to
+  curated CI; specialist Worker test code added but NOT RUN. No additional
+  hosted requests, Worker deploy, or real browser E2E in this correction turn.
+- **Limitations:** validators catch incomplete structure and specific clock
+  discrepancies; they do not constitute full semantic entailment verification,
+  or prove Qwen will always provide complete replies. Owner QA and hosted Worker
+  acceptance remain BLOCKED/NOT RUN.
+
 ## 2026-10-31 — AI-IA01-F01 / P1 — General questions may be hijacked by Board retrieval
 
 - **Observed in source:** live Worker always read published Board and ranked candidates using
