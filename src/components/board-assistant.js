@@ -527,19 +527,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
       if (result.answer) {
         content.append(el('p', { class: 'assistant-learning-answer' }, result.answer));
       }
-      if (live && result.mode === 'ai') {
-        const provenance =
-          result.knowledge === 'board'
-            ? result.sources.length
-              ? 'Thông tin từ bài đăng công khai của website.'
-              : 'Chưa có nguồn bài đăng xác nhận thông tin này.'
-            : result.knowledge === 'hybrid'
-              ? result.sources.length
-                ? 'Kết hợp bài đăng công khai và giải thích từ AI.'
-                : 'Không tìm thấy nguồn website để kiểm chứng.'
-              : 'Kiến thức chung do AI tạo, không phải thông báo của giáo viên.';
-        content.append(el('p', { class: 'assistant-answer-note' }, provenance));
-      } else if (result.sources.length) {
+      if (!live && result.sources.length) {
         content.append(
           el('p', { class: 'assistant-result-intro' }, 'Bạn có thể xem các bài viết bên dưới.'),
         );
@@ -561,7 +549,11 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
             'Nguồn của câu trả lời này đã thay đổi. Bạn hãy hỏi lại để kiểm tra thông tin mới.',
           ),
         );
-      for (const source of result.sources) {
+      if (result.sources.length) {
+        // Source evidence is available on demand, not a second wall of text in every reply.
+        // A button controls an animated, initially inert panel and all read-only actions within.
+        const sourceList = el('div', { class: 'assistant-sources-inner' });
+        for (const source of result.sources) {
         const post = catalog.find((p) => p.id === source.id);
         if (!post) continue;
         const checkedAct = (action) => {
@@ -574,7 +566,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
           }
           act(action);
         };
-        content.append(
+        sourceList.append(
           el(
             'section',
             { class: 'assistant-source' },
@@ -609,7 +601,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
         );
       }
       if (result.sources.length) {
-        content.append(
+        sourceList.append(
           button(
             'Lọc trang theo nguồn đã chọn',
             () => {
@@ -626,6 +618,34 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
           ),
         );
       }
+        const sourceId = `assistant-sources-${crypto.randomUUID()}`;
+        const panel = el(
+          'div',
+          {
+            id: sourceId,
+            class: 'assistant-sources-panel',
+            'aria-hidden': 'true',
+            inert: true,
+          },
+          sourceList,
+        );
+        const opener = button(
+          `Xem bài đăng tham khảo (${result.sources.length})`,
+          () => {
+            const expanded = opener.getAttribute('aria-expanded') !== 'true';
+            opener.setAttribute('aria-expanded', String(expanded));
+            panel.setAttribute('aria-hidden', String(!expanded));
+            panel.inert = !expanded;
+            panel.classList.toggle('assistant-sources-panel-open', expanded);
+          },
+          'assistant-sources-toggle',
+          { 'aria-expanded': 'false', 'aria-controls': sourceId },
+        );
+        opener.append(el('span', { class: 'assistant-sources-chevron', 'aria-hidden': 'true' }, '⌄'));
+        content.append(
+          el('div', { class: 'assistant-sources-disclosure' }, opener, panel),
+        );
+      }
       assistantMessage(content, 'assistant-result', at);
       if (remember) {
         transcript.push({
@@ -637,6 +657,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
             status: result.status,
             answer: result.answer,
             note: result.note,
+            knowledge: result.knowledge,
             sources: result.sources.map(({ id, quote }) => ({ id, quote })),
           },
         });
