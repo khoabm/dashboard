@@ -47,6 +47,18 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
     const toggle = result.locator('.assistant-sources-toggle');
     const panel = result.locator('.assistant-sources-panel');
     assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
+    const chevron = toggle.locator('.assistant-sources-chevron svg');
+    assert.equal(await chevron.count(), 1);
+    assert.equal(await chevron.getAttribute('aria-hidden'), 'true');
+    const alignment = await chevron.evaluate((svg) => {
+      const icon = svg.getBoundingClientRect();
+      const holder = svg.parentElement.getBoundingClientRect();
+      return {
+        deltaX: Math.abs(icon.left + icon.width / 2 - (holder.left + holder.width / 2)),
+        deltaY: Math.abs(icon.top + icon.height / 2 - (holder.top + holder.height / 2)),
+      };
+    });
+    assert.ok(alignment.deltaX <= 1 && alignment.deltaY <= 1, JSON.stringify(alignment));
     assert.equal(await panel.getAttribute('aria-hidden'), 'true');
     assert.equal(await panel.evaluate((el) => el.inert), true);
     assert.equal(await result.locator('.assistant-source').count(), 1);
