@@ -1,9 +1,17 @@
 /** Renders CP03 administration against an injected B4-shaped adapter; no synthetic or hosted data source. */
+import { SelectControl, FilePicker } from './form-controls.js';
 import { el, button, field, checkboxField, restrictNumericInput } from '../utils/dom.js';
 import { openDialog, ConfirmDialog, ToastNotification } from './primitives.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
 import { BirthDatePicker } from './birth-date-picker.js';
 import { GradebookScores } from './gradebook-scores.js';
+import {
+  DEFAULT_TABLE_SORT,
+  SortableHeader,
+  ExportSelector,
+  sortGradebookRows,
+} from './gradebook-table-controls.js';
+import { downloadExport } from '../utils/gradebook-export.js';
 import { displayDate } from '../utils/gradebook/dates.js';
 import { formatBirthdayInput } from '../utils/birth-calendar.js';
 import { bigintId, documentNumber } from '../utils/gradebook/contracts.js';
@@ -36,9 +44,10 @@ export function GradebookAdmin({
   let currentClass = null,
     classKnown = false,
     students = [],
-    cursor = null,
-    cursors = [null],
-    nextCursor = null;
+    cursor = 0;
+  let sorting = DEFAULT_TABLE_SORT,
+    searchTerm = '',
+    statusFilter = 'all';
   const dialogs = new Set();
   let scoreView = null,
     mode = 'students';
@@ -50,7 +59,10 @@ export function GradebookAdmin({
         'class.read': 'Đang tải thông tin lớp…',
         'class.create': 'Đang tạo lớp…',
         'class.patch': 'Đang lưu thông tin lớp…',
-        'students.list': `Đang tải trang học sinh ${cursors.length}…`,
+        'class.snapshot':
+          payload.purpose === 'export'
+            ? 'Đang chuẩn bị tệp toàn bộ lớp…'
+            : 'Đang tải toàn bộ danh sách học sinh…',
         'student.read': 'Đang tải hồ sơ học sinh…',
         'student.create': 'Đang thêm học sinh…',
         'student.patch': 'Đang lưu hồ sơ học sinh…',
@@ -82,9 +94,11 @@ export function GradebookAdmin({
     () => session,
   );
   const heading = el('h1', { tabindex: '-1' }, 'Quản lý bảng điểm');
+  const headerActions = el('div', { class: 'gradebook-admin-header-actions' });
+  const header = el('div', { class: 'gradebook-admin-header' }, heading, headerActions);
   const progress = PulseIndicator();
   const body = el('div', { class: 'gradebook-admin-body' });
-  const element = el('main', { id: 'main', class: 'gradebook-admin' }, heading, progress, body);
+  const element = el('main', { id: 'main', class: 'gradebook-admin' }, header, progress, body);
 
   /** Cancels waits without claiming a previously sent mutation was rolled back. */
   function cancel() {
@@ -127,9 +141,10 @@ export function GradebookAdmin({
     currentClass = null;
     classKnown = false;
     students = [];
-    cursor = null;
-    cursors = [null];
-    nextCursor = null;
+    sorting = DEFAULT_TABLE_SORT;
+    searchTerm = '';
+    statusFilter = 'all';
+    cursor = 0;
     body.querySelectorAll('td').forEach((node) => {
       node.textContent = '';
     });
@@ -223,19 +238,43 @@ export function GradebookAdmin({
     }
   }
 
-  /** Reads only the selected page; search/filter explicitly applies to that page, with no hidden fetch loop. */
+  /** Loads a complete authorized snapshot once; pagination and sorting never issue hidden requests. */
   async function list(isCurrent) {
     const result = await gate.call({
-      op: 'students.list',
+      op: 'class.snapshot',
       classId: currentClass.id,
-      limit: 20,
-      ...(cursor ? { cursor } : {}),
+      purpose: 'sort',
     });
     if (!isCurrent()) return;
-    if (!Array.isArray(result.students) || result.students.length > 20) throw new AdminError();
-    students = result.students.map((value) => studentRecord(value, currentClass.id));
-    nextCursor = result.nextCursor === null ? null : bigintId(result.nextCursor);
+    if (!Array.isArray(result.students) || result.students.length > 2000) throw new AdminError();
+    students = result.students.map((value) => ({
+      ...studentRecord(value, currentClass.id),
+      documentOrder: value.documentOrder,
+    }));
+    cursor = 0;
+    currentClass = result.class;
     render();
+  }
+
+  /** Confirms the sensitive download and fences its lifetime with the existing page operation gate. */
+  async function exportStudents(format) {
+    if (
+      !(await confirm(
+        'Xuất toàn bộ danh sách học sinh?',
+        'Tệp chứa CMND/CCCD và ngày sinh của toàn bộ lớp, kể cả hồ sơ đã ngừng. Hãy lưu tại nơi riêng tư. Danh sách trống chỉ xuất tiêu đề.',
+      ))
+    )
+      return;
+    return run(async (current) => {
+      const snapshot = await gate.call({
+        op: 'class.snapshot',
+        classId: currentClass.id,
+        purpose: 'export',
+        confirmed: true,
+      });
+      if (current())
+        downloadExport('students', format, sortGradebookRows(snapshot.students, sorting));
+    });
   }
 
   function load() {
@@ -675,6 +714,7 @@ export function GradebookAdmin({
       accept: '.csv,.xlsx',
       'aria-label': 'Chọn tệp danh sách',
     });
+    const filePicker = FilePicker(file, { label: 'Chọn tệp CSV / Excel' });
     const fileProgress = PulseIndicator();
     const detail = el('div', { class: 'import-detail', 'aria-live': 'polite' });
     const errors = el('div', { role: 'alert', class: 'form-error' });
@@ -730,6 +770,7 @@ export function GradebookAdmin({
             preview.clear();
             batch = null;
             file.value = '';
+            filePicker.refresh();
             dirty = false;
             inspect.disabled = true;
             ToastNotification(
@@ -848,7 +889,7 @@ export function GradebookAdmin({
         {},
         'Hàng đầu là tiêu đề tùy chỉnh. A–B: định danh/ngày sinh; hoặc A–C: họ tên/định danh/ngày sinh. XLSX đọc trang tính đầu tiên. Tệp chỉ được đọc trong bộ nhớ.',
       ),
-      file,
+      filePicker,
       fileProgress,
       detail,
       errors,
@@ -862,6 +903,7 @@ export function GradebookAdmin({
   function render() {
     body.setAttribute('aria-busy', String(busy || session.status === 'loading'));
     body.replaceChildren();
+    headerActions.replaceChildren();
     if (session.status === 'loading') {
       body.append(PulseIndicator('Đang xác minh phiên quản trị…'));
       return;
@@ -874,7 +916,7 @@ export function GradebookAdmin({
       return;
     }
     const toolbar = el('div', { class: 'admin-actions' }, button('Tải lại', load));
-    body.append(toolbar);
+    headerActions.append(toolbar);
     if (!currentClass) {
       body.append(
         el(
@@ -941,54 +983,74 @@ export function GradebookAdmin({
     }
     const search = el('input', {
       type: 'search',
-      placeholder: 'Tìm tên trong trang hiện tại',
-      'aria-label': 'Tìm tên trong trang',
+      placeholder: 'Tìm tên trong toàn bộ lớp',
+      'aria-label': 'Tìm tên trong lớp',
       autocomplete: 'off',
+      value: searchTerm,
     });
     const filter = el(
       'select',
-      { 'aria-label': 'Trạng thái trong trang' },
+      { 'aria-label': 'Trạng thái học sinh' },
       el('option', { value: 'all' }, 'Tất cả'),
       el('option', { value: 'active' }, 'Đang sử dụng'),
       el('option', { value: 'inactive' }, 'Đã ngừng'),
     );
+    filter.value = statusFilter;
     body.append(
       el(
         'div',
         { class: 'admin-actions' },
         button('Thêm học sinh', () => studentForm(), 'button primary'),
         button('Nhập CSV/XLSX', importRoster),
+        ExportSelector(exportStudents, { label: 'Xuất danh sách' }),
         search,
-        filter,
+        SelectControl(filter, { label: 'Trạng thái học sinh' }),
       ),
     );
     const tableBody = el('tbody');
     const table = el(
       'table',
       { class: 'admin-table' },
-      el('caption', {}, 'Học sinh — định danh được ẩn; tìm/lọc chỉ áp dụng trang hiện tại'),
+      el('caption', {}, 'Học sinh · Sắp xếp và tìm/lọc toàn bộ lớp · Định danh được ẩn'),
       el(
         'thead',
         {},
         el(
           'tr',
           {},
-          ...['Họ tên', 'Ngày sinh', 'Định danh', 'Trạng thái', 'Thao tác'].map((text) =>
-            el('th', { scope: 'col' }, text),
+          ...[
+            ['Họ tên', 'name'],
+            ['Ngày sinh', 'birthDate'],
+            ['CMND/CCCD', 'document'],
+            ['Trạng thái', 'active'],
+          ].map(([label, key]) =>
+            SortableHeader(label, key, sorting, (value) => {
+              sorting = value;
+              cursor = 0;
+              render();
+              body.querySelector(`[data-sort-key="${key}"]`)?.focus();
+            }),
           ),
+          el('th', { scope: 'col' }, 'Thao tác'),
         ),
       ),
       tableBody,
     );
     const paint = () => {
       tableBody.replaceChildren();
-      const visible = students.filter(
+      const matching = sortGradebookRows(students, sorting).filter(
         (s) =>
           (s.fullName || '')
             .toLocaleLowerCase('vi')
             .includes(search.value.toLocaleLowerCase('vi')) &&
           (filter.value === 'all' || s.active === (filter.value === 'active')),
       );
+      const page = Math.min(cursor || 0, Math.max(0, Math.ceil(matching.length / 20) - 1));
+      cursor = page;
+      const visible = matching.slice(page * 20, (page + 1) * 20);
+      previous.disabled = page <= 0;
+      next.disabled = (page + 1) * 20 >= matching.length;
+      pageLabel.textContent = `Trang ${page + 1}/${Math.max(1, Math.ceil(matching.length / 20))} · ${matching.length} học sinh`;
       for (const student of visible)
         tableBody.append(
           el(
@@ -1023,9 +1085,16 @@ export function GradebookAdmin({
           el('tr', {}, el('td', { colspan: 5 }, 'Không có học sinh phù hợp trong trang này.')),
         );
     };
-    search.addEventListener('input', paint);
-    filter.addEventListener('change', paint);
-    paint();
+    search.addEventListener('input', () => {
+      searchTerm = search.value;
+      cursor = 0;
+      paint();
+    });
+    filter.addEventListener('change', () => {
+      statusFilter = filter.value;
+      cursor = 0;
+      paint();
+    });
     body.append(
       el(
         'div',
@@ -1033,40 +1102,22 @@ export function GradebookAdmin({
           class: 'admin-table-scroll',
           tabindex: '0',
           role: 'region',
-          'aria-label': 'Danh sách học sinh, cuộn ngang khi cần',
+          'aria-label': 'Danh sách học sinh, cuộn ngang và dọc khi cần',
         },
         table,
       ),
     );
     const previous = button('Trang trước', () => {
-      const original = cursors;
-      cursors = cursors.slice(0, -1);
-      cursor = cursors.at(-1);
-      void run(list, () => {
-        cursors = original;
-        cursor = cursors.at(-1);
-      });
+      cursor = Math.max(0, (cursor || 0) - 1);
+      paint();
     });
-    previous.disabled = cursors.length <= 1;
     const next = button('Trang sau', () => {
-      const original = cursors;
-      cursor = nextCursor;
-      cursors = [...cursors, cursor];
-      void run(list, () => {
-        cursors = original;
-        cursor = cursors.at(-1);
-      });
+      cursor = (cursor || 0) + 1;
+      paint();
     });
-    next.disabled = !nextCursor;
-    body.append(
-      el(
-        'div',
-        { class: 'admin-actions' },
-        previous,
-        el('span', {}, `Trang ${cursors.length}`),
-        next,
-      ),
-    );
+    const pageLabel = el('span', { role: 'status' });
+    paint();
+    body.append(el('div', { class: 'admin-actions' }, previous, pageLabel, next));
   }
 
   function setSession(value) {

@@ -1,3 +1,65 @@
+## 2026-10-31 — E2E post editor cover/order follow-up / Draft PR #33
+
+Task scope: rename "Ảnh đại diện" to "Ảnh bìa bài đăng", add selected-image
+preview after attachments, replace numeric "Vị trí" with first/last/custom
+placement. Preview is shown **only** for custom; highlighted post supports drag
+and ↑/↓ only on its row. Existing signed-cover and existing Storage preview
+helper are reused. Start/end use existing `sort_order`; middle placement uses
+the already-existing `save_post` then `reorder_posts` RPCs without changes
+to either definition or service. Reorder conflict after successful save
+reports partial success; original edit-without-position-change avoids extra
+reorder. Draft UI choices are locally recoverable.
+
+Code SHA `84ade376`, Offline CI [#41169464462](https://github.com/khoabm/dashboard/actions/runs/41169464462)
+PASS: syntax/static, **180/180 curated unit**, production build and Prettier.
+Exact changed code files: post editor, new placement component/helper, editor
+CSS, local draft allowlist, pure tests. API/DB/Auth/RLS/Edge/migrations/
+dependencies/deployment untouched. Browser/device acceptance and before/after
+visual screenshots: NOT RUN; owner controls the final QA gate. No hosted
+requests/writes or merge. [Evidence and cases](UI_UX_E2E_20261030.md).
+
+---
+
+## 2026-10-31 — End-to-end UI/UX refinement / Draft PR #33
+
+Branch `feature/e2e-ui-ux-audit-20261030`, implementation `054d6a8`. Owner-requested
+UI changes delivered in source: compact gradebook admin hierarchy, shared readable
+confirmation dialogs, internally scrolling/sticky table headers; shared custom
+select and file-picker presentation across Board/editor/Gradebook, plus three-card
+Board admin usage/maintenance layout. Student-management “Xem” remains excluded.
+Logic, Auth, services/API, database, Edge, migrations, dependencies and deploy are
+unchanged. Offline CI `#41163906785` PASS (static, 175 curated unit, production build,
+Prettier). New interactive browser/physical mobile QA and before/after evidence NOT RUN;
+owner retains final browser acceptance. Hosted requests/new fees0. Keep Draft,
+no merge or production deployment. [Scope/evidence](UI_UX_E2E_20261030.md).
+
+---
+
+## 2026-10-31 — Gradebook full export/sorting, Draft PR #34
+
+Branch `feature/gradebook-full-export-sort-20261031`, starting HEAD `4d95394`.
+Shared whole-class ASC/DESC sorting and CSV/XLSX exports wired to both teacher tables;
+empty class exports headers only, separate template downloads removed. New admin-only
+snapshot RPC/Edge source preserves encrypted identities and ordinary-list contracts;
+confirmed exports alone receive plaintext. Existing “Xem” view retained. Chrome found
+and verified correction of the existing decimal-input dot regex.
+
+Offline CI171/171, syntax/static, full Prettier and build/exclusion PASS. Manual native
+PostgreSQL17.11 snapshot assertions PASS/rolled back; three manual Web Crypto/Edge
+synthetic cases PASS. Owner Chrome keyboard/draft/error checks and iframe360/390/768/
+1024/1440 layouts PASS; native XLSX download confirmed by the owner on2026-10-31.
+**GB-10 bounded synthetic hosted acceptance PASS.** Owner approved deployment/tests and
+confirmed all 31 existing records synthetic; no student/score edits or deletes. Migration
+applied as ledger 20261031002916; grades-admin v7 (verify_jwt=true), exact source verified.
+Actual localhost Chrome: complete 31-row pagination/sorting and four CSV/XLSX export flows;
+missing-JWT/direct-RPC401. Final fingerprints:31 students / 62 scores unchanged; existing
+functions unchanged. Four manual SQL calls; client API test budget≤21 including preflights
+and negatives; Auth/bootstrap/internal RPC traffic accounted separately in the evidence.
+No 429/503/timeout/retry. CORS correctly blocks Quick Tunnel; localhost is the test URL.
+No public website deployment/merge or real-data acceptance. [Receipts, counts and limits](features/personal-gradebook/FULL_EXPORT_SORT.md#approved-hosted-follow-up--2026-10-31).
+
+---
+
 ## 2026-10-30 — PWA installability (feature branch, not merged)
 
 `feature/pwa-installable-app-shell` starts from `feature/gradebook-clear-student-scores` at `aa04ac6`. This adds install metadata/icons and a privacy-safe offline navigation fallback. No business logic, DB, API or existing UI modifications. Offline reads/writes and authentication remain unavailable by design. CI/QA evidence and delivery state are recorded in [PWA guide](PWA.md); browser/device QA is NOT RUN until verified. No website or Supabase deployment.

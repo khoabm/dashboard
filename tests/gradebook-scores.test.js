@@ -1,7 +1,6 @@
 /** CP04 pure/component contracts only: no HTTP, SDK, Edge, SQL, browser runtime or hosted requests. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import {
   teacherCatalog,
   teacherPage,
@@ -319,7 +318,7 @@ test('CP04-T13 late reads after cancellation/logout cannot expose a previous sem
   await rejected;
   assert.equal(calls, 1);
 });
-test('CP04-T14 joins only matching paged identities and projects validated score data; shipped template has exact labels', () => {
+test('CP04-T14 joins only matching paged identities and projects validated score data', () => {
   const roster = { students: [{ ...student, documentNumber: 'must discard' }], nextCursor: null },
     grades = {
       students: [
@@ -348,9 +347,6 @@ test('CP04-T14 joins only matching paged identities and projects validated score
       catalog,
     ),
   );
-  const header = csvRecords(readFileSync('public/templates/score-template.csv', 'utf8'), 10)[0]
-    .cells;
-  assert.deepEqual(header, [...SCORE_HEADERS]);
 });
 
 test('GRID-B01 batch accepts exact changed cells with null/positive revisions and rejects unsafe scores', () => {

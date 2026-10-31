@@ -98,6 +98,22 @@ export function openDialog(title, { drawer = false } = {}) {
 }
 
 /**
+ * Keeps confirmation and recovery copy readable without changing the decision contract.
+ * Text remains text nodes; sentence boundaries only affect visual grouping.
+ *
+ * @param {string} description - The caller's original explanatory text.
+ * @returns {HTMLElement} A shared message surface for decision dialogs.
+ */
+function dialogMessage(description) {
+  const surface = el('div', { class: 'ui-dialog-message' });
+  const paragraphs = String(description || '').split(/(?<=\.)\s+(?=[\p{Lu}\d])/u);
+  for (const paragraph of paragraphs) {
+    if (paragraph) surface.append(el('p', {}, paragraph));
+  }
+  return surface;
+}
+
+/**
  * Requests confirmation and resolves false when the dialog is dismissed.
  *
  * @param {string} message - The confirmation question.
@@ -109,14 +125,15 @@ export function ConfirmDialog(message, description = '', { signal } = {}) {
   return new Promise((resolve) => {
     if (signal?.aborted) return resolve(false);
     const { dialog, content } = openDialog(message);
+    dialog.classList.add('ui-confirm-dialog');
     const abort = () => dialog.close();
     signal?.addEventListener('abort', abort, { once: true });
     // The confirmation actions resolve true only when confirmed; dismissal resolves false.
     content.append(
-      el('p', {}, description),
+      dialogMessage(description),
       el(
         'div',
-        { class: 'form-actions' },
+        { class: 'form-actions ui-dialog-actions' },
         button('Hủy', () => dialog.close()),
         button(
           'Xác nhận',
@@ -148,13 +165,17 @@ export function ConfirmDialog(message, description = '', { signal } = {}) {
 export function DraftRecoveryDialog(description) {
   return new Promise((resolve) => {
     const { dialog, content } = openDialog('Có bản nháp trên thiết bị');
+    dialog.classList.add('ui-confirm-dialog');
+    const message = dialogMessage(description);
+    message.append(
+      el('p', { class: 'ui-dialog-note' }, 'Đóng hộp thoại để giữ nháp và quyết định sau.'),
+    );
     // Only the discard button authorizes deletion; Escape, X, and external close keep the draft.
     content.append(
-      el('p', {}, description),
-      el('p', {}, 'Đóng hộp thoại để giữ nháp và quyết định sau.'),
+      message,
       el(
         'div',
-        { class: 'form-actions' },
+        { class: 'form-actions ui-dialog-actions' },
         button(
           'Bỏ bản nháp',
           () => {

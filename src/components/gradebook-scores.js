@@ -1,4 +1,5 @@
 /** Renders CP04 teacher scores/import/publication with injected adapters and memory-only ownership. */
+import { SelectControl, FilePicker } from './form-controls.js';
 import { el, button, field, restrictNumericInput } from '../utils/dom.js';
 import { openDialog, ConfirmDialog, ToastNotification } from './primitives.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
@@ -10,13 +11,20 @@ import {
 } from '../utils/gradebook-admin.js';
 import {
   teacherCatalog,
-  teacherPage,
   scoreMutation,
   gridBatch,
   publicationMutation,
   compareScoreCells,
   SCORE_HEADERS,
 } from '../utils/gradebook-scores.js';
+import {
+  DEFAULT_TABLE_SORT,
+  SortableHeader,
+  ExportSelector,
+  sortGradebookRows,
+} from './gradebook-table-controls.js';
+import { downloadExport } from '../utils/gradebook-export.js';
+import { snapshotStudents } from '../utils/gradebook-snapshot.js';
 import { displayScore } from '../utils/gradebook/decimal.js';
 
 /** Displays one semester/subject and at most twenty students; all writes retain server preconditions. */
@@ -33,14 +41,12 @@ export function GradebookScores({
   let currentClass = { ...classroom },
     owner = { ...session },
     catalog = null,
-    students = [],
-    nextCursor = null,
-    loadingPage = 1;
+    students = [];
   let semester = 1,
     subject = null,
     selected = '',
-    sorting = null,
-    cursors = [null],
+    sorting = DEFAULT_TABLE_SORT,
+    pageIndex = 0,
     loaded = false,
     busy = false,
     dirty = false,
@@ -57,8 +63,10 @@ export function GradebookScores({
         lastOperation = body.op;
         const labels = {
           'class.read': 'Đang tải thông tin học kỳ…',
-          'students.list': 'Đang tải danh sách học sinh của trang điểm…',
-          'scores.read': `Đang tải trang điểm ${loadingPage} của học kỳ đã chọn…`,
+          'class.snapshot':
+            body.purpose === 'export'
+              ? 'Đang chuẩn bị tệp toàn bộ điểm…'
+              : 'Đang tải toàn bộ bảng điểm…',
           'score.put': 'Đang lưu ô điểm…',
           'score.delete': 'Đang xóa ô điểm…',
           'scores.preview': 'Đang kiểm tra bản xem trước điểm…',
@@ -249,16 +257,15 @@ export function GradebookScores({
       }
     }
   }
-  /** Reads only the requested page; mismatched roster/score snapshots fail without guessing identity joins. */
-  async function readPage(current, cursor = cursors.at(-1), history = cursors) {
-    loadingPage = history.length;
+  /** Loads one consistent class snapshot and derives the selected semester in memory. */
+  async function readPage(current) {
     preview.clear();
     loaded = false;
     students = [];
     selectedGridCell = null;
     wipe(panel);
     render();
-    pending(`Đang tải trang điểm ${history.length}…`);
+    pending('Đang tải toàn bộ bảng điểm…');
     if (!catalog) {
       pending('Đang tải danh mục môn và cột điểm…');
       const value = await catalogGate.call({});
@@ -271,14 +278,16 @@ export function GradebookScores({
     if (value.class?.id !== currentClass.id) throw new AdminError(409);
     currentClass = value.class;
     onClass({ ...currentClass });
-    const scope = { classId: currentClass.id, limit: 20, ...(cursor ? { cursor } : {}) };
-    const roster = await gate.call({ op: 'students.list', ...scope });
-    const grades = await gate.call({ op: 'scores.read', semester, ...scope });
+    const snapshot = await gate.call({
+      op: 'class.snapshot',
+      classId: currentClass.id,
+      purpose: 'sort',
+    });
     if (!current()) return;
-    const page = teacherPage(roster, grades, currentClass.id, catalog);
-    students = page.students;
-    nextCursor = page.nextCursor;
-    cursors = [...history];
+    currentClass = snapshot.class;
+    onClass({ ...currentClass });
+    students = snapshotStudents(snapshot, semester, currentClass.id, catalog);
+    pageIndex = Math.min(pageIndex, Math.max(0, Math.ceil(students.length / 20) - 1));
     selected = students.some((s) => s.id === selected) ? selected : '';
     loaded = true;
     render();
@@ -302,8 +311,8 @@ export function GradebookScores({
     dirty = false;
     students = [];
     loaded = false;
-    cursors = [null];
-    sorting = null;
+    sorting = DEFAULT_TABLE_SORT;
+    pageIndex = 0;
     selected = '';
     semester = value;
     paintTabs();
@@ -453,7 +462,7 @@ export function GradebookScores({
     input.focus();
   }
 
-  /** Every grid draft is scoped to one displayed subject, semester and page. */
+  /** Every grid draft is scoped to the class, subject and semester across in-memory pages. */
   function gridEdit(student, column, value) {
     const key = `${student.id}|${subject}|${column.code}`;
     const existing = student.cells.get(`${subject}|${column.code}`);
@@ -500,7 +509,9 @@ export function GradebookScores({
       payload = gridBatch(currentClass, semester, [...gridPending.values()]);
     } catch {
       ToastNotification(
-        'Có ô chưa hợp lệ. Điểm phải từ 0–10, tối đa 5 chữ số thập phân; ô trống không dùng để xóa.',
+        gridPending.size > 140
+          ? 'Mỗi lần lưu tối đa 140 ô. Hãy giảm số ô thay đổi trước khi lưu; bản nháp vẫn được giữ.'
+          : 'Có ô chưa hợp lệ. Điểm phải từ 0–10, tối đa 5 chữ số thập phân; ô trống không dùng để xóa.',
         true,
       );
       return;
@@ -621,6 +632,7 @@ export function GradebookScores({
     if (!loaded || currentClass[`semester${semester}Published`]) return;
     const entry = dialog('Nhập bảng điểm'),
       file = el('input', { type: 'file', accept: '.csv,.xlsx', 'aria-label': 'Chọn tệp điểm' });
+    const filePicker = FilePicker(file, { label: 'Chọn tệp CSV / Excel' });
     const fileProgress = PulseIndicator();
     const detail = el('div', { class: 'import-detail', 'aria-live': 'polite' }),
       errors = el('div', { role: 'alert', class: 'form-error' }),
@@ -794,7 +806,7 @@ export function GradebookScores({
         {},
         'Chỉ đọc trang tính đầu tiên. Ô điểm trống bỏ qua; 0 là một giá trị. Server kiểm tra lại toàn bộ batch trước khi áp dụng.',
       ),
-      file,
+      filePicker,
       fileProgress,
       detail,
       errors,
@@ -811,25 +823,10 @@ export function GradebookScores({
     selectedGridCell = null;
     panel.replaceChildren();
     panel.inert = busy;
-    const templates = el(
-      'div',
-      { class: 'admin-actions' },
-      el(
-        'a',
-        { href: '/templates/score-template.csv', download: 'mau-bang-diem.csv', class: 'button' },
-        'Mẫu CSV điểm',
-      ),
-      el(
-        'a',
-        { href: '/templates/score-template.xlsx', download: 'mau-bang-diem.xlsx', class: 'button' },
-        'Mẫu Excel điểm',
-      ),
-    );
     if (!loaded) {
       panel.append(
         button('Tải lại điểm', reload),
         el('p', {}, 'Chỉ dữ liệu đã tải và xác minh mới xuất hiện trong bảng điểm.'),
-        templates,
       );
       return;
     }
@@ -856,14 +853,15 @@ export function GradebookScores({
       gridStale = false;
       dirty = false;
       subject = next;
-      sorting = null;
+      sorting = DEFAULT_TABLE_SORT;
+      pageIndex = 0;
       render();
-      panel.querySelector('[aria-label="Môn học"]')?.focus();
+      panel.querySelector('.ui-select-trigger[aria-label="Môn học"]')?.focus();
     });
     const pupil = el(
       'select',
-      { 'aria-label': 'Học sinh trong trang' },
-      el('option', { value: '', selected: !selected }, 'Tất cả học sinh trang này'),
+      { 'aria-label': 'Học sinh trong lớp' },
+      el('option', { value: '', selected: !selected }, 'Tất cả học sinh trong lớp'),
       ...students.map((s, i) =>
         el(
           'option',
@@ -874,8 +872,9 @@ export function GradebookScores({
     );
     pupil.addEventListener('change', () => {
       selected = pupil.value;
+      pageIndex = 0;
       render();
-      panel.querySelector('[aria-label="Học sinh trong trang"]')?.focus();
+      panel.querySelector('.ui-select-trigger[aria-label="Học sinh trong lớp"]')?.focus();
     });
     panel.append(
       el(
@@ -886,16 +885,16 @@ export function GradebookScores({
       el(
         'div',
         { class: 'admin-actions' },
-        subjectSelect,
-        pupil,
+        SelectControl(subjectSelect, { label: 'Môn học' }),
+        SelectControl(pupil, { label: 'Học sinh trong lớp' }),
         upload,
+        ExportSelector(exportScores, { label: 'Xuất bảng điểm' }),
         button(published ? 'Tạm ẩn học kỳ' : 'Công bố học kỳ', publication, 'button', {
           'data-grid-exclusive': 'publication',
           disabled: gridPending.size > 0,
         }),
         button('Tải lại điểm', reload),
       ),
-      templates,
       ...(!published
         ? [
             el(
@@ -949,48 +948,29 @@ export function GradebookScores({
           : 'Nhập trực tiếp nhiều ô rồi Lưu thay đổi. Để xóa, chọn ô và nhấn Xóa ô đang chọn. Ô trống không phải lệnh xóa.',
       ),
     );
-    const list = students.filter((s) => !selected || s.id === selected);
-    if (sorting)
-      list.sort((a, b) =>
-        compareScoreCells(
-          a.cells.get(`${subject}|${sorting.column}`),
-          b.cells.get(`${subject}|${sorting.column}`),
-          sorting.descending,
-        ),
-      );
+    const ordered = sortGradebookRows(students, sorting, {
+      subject,
+      rawCompare: compareScoreCells,
+    }).filter((s) => !selected || s.id === selected);
+    const list = ordered.slice(pageIndex * 20, (pageIndex + 1) * 20);
+    const changeSort = (value) => {
+      sorting = value;
+      pageIndex = 0;
+      render();
+      panel.querySelector(`[data-sort-key="${value.key}"]`)?.focus();
+    };
     const table = el(
       'table',
       { class: 'admin-table scores-grid' },
       el(
         'caption',
         {},
-        `${catalog.subjects.find((s) => s.code === subject).displayName} · Học kỳ ${semester === 1 ? 'I' : 'II'} · Trang ${cursors.length}`,
+        `${catalog.subjects.find((s) => s.code === subject).displayName} · Học kỳ ${semester === 1 ? 'I' : 'II'} · Trang ${pageIndex + 1}`,
       ),
     );
-    const head = el('tr', {}, el('th', { scope: 'col' }, 'Học sinh'));
+    const head = el('tr', {}, SortableHeader('Học sinh', 'name', sorting, changeSort));
     for (const column of catalog.scoreColumns)
-      head.append(
-        el(
-          'th',
-          {
-            scope: 'col',
-            'aria-sort':
-              sorting?.column === column.code
-                ? sorting.descending
-                  ? 'descending'
-                  : 'ascending'
-                : 'none',
-          },
-          button(column.displayName, () => {
-            sorting = {
-              column: column.code,
-              descending: sorting?.column === column.code && !sorting.descending,
-            };
-            render();
-            panel.querySelectorAll('thead button')[catalog.scoreColumns.indexOf(column)]?.focus();
-          }),
-        ),
-      );
+      head.append(SortableHeader(column.displayName, `score:${column.code}`, sorting, changeSort));
     const rows = el('tbody');
     for (const student of list)
       rows.append(
@@ -1035,6 +1015,14 @@ export function GradebookScores({
               input.setAttribute('aria-invalid', String(!valid));
             };
             restrictNumericInput(input, { decimal: true });
+            const draft = gridPending.get(key);
+            if (draft) {
+              try {
+                gridBatch(currentClass, semester, [draft]);
+              } catch {
+                input.setAttribute('aria-invalid', 'true');
+              }
+            }
             input.classList.toggle('grid-score-dirty', gridPending.has(key));
             input.addEventListener('focus', () => {
               selectedGridCell = { student, column };
@@ -1048,22 +1036,28 @@ export function GradebookScores({
     if (!list.length)
       rows.append(el('tr', {}, el('td', { colspan: 8 }, 'Không có học sinh trong trang này.')));
     table.append(el('thead', {}, head), rows);
-    const prev = button('Trang điểm trước', async () => {
-      if (!(await prepareExit())) return;
-      gridPending.clear();
-      gridStale = false;
-      dirty = false;
-      void run((current) => readPage(current, cursors.at(-2), cursors.slice(0, -1)));
-    });
-    prev.disabled = cursors.length <= 1;
-    const next = button('Trang điểm sau', async () => {
-      if (!(await prepareExit())) return;
-      gridPending.clear();
-      gridStale = false;
-      dirty = false;
-      void run((current) => readPage(current, nextCursor, [...cursors, nextCursor]));
-    });
-    next.disabled = !nextCursor;
+    const prev = button(
+      'Trang điểm trước',
+      () => {
+        pageIndex = Math.max(0, pageIndex - 1);
+        render();
+        panel.querySelector('[aria-label="Trang điểm trước"]')?.focus();
+      },
+      'button',
+      { 'aria-label': 'Trang điểm trước' },
+    );
+    prev.disabled = pageIndex <= 0;
+    const next = button(
+      'Trang điểm sau',
+      () => {
+        pageIndex++;
+        render();
+        panel.querySelector('[aria-label="Trang điểm sau"]')?.focus();
+      },
+      'button',
+      { 'aria-label': 'Trang điểm sau' },
+    );
+    next.disabled = (pageIndex + 1) * 20 >= ordered.length;
     panel.append(
       el(
         'div',
@@ -1071,7 +1065,7 @@ export function GradebookScores({
           class: 'admin-table-scroll',
           role: 'region',
           tabindex: '0',
-          'aria-label': 'Bảng điểm, cuộn ngang khi cần',
+          'aria-label': 'Bảng điểm, cuộn ngang và dọc khi cần',
         },
         table,
       ),
@@ -1079,10 +1073,45 @@ export function GradebookScores({
         'div',
         { class: 'admin-actions' },
         prev,
-        el('span', {}, `Trang điểm ${cursors.length}`),
+        el(
+          'span',
+          {},
+          `Trang điểm ${pageIndex + 1}/${Math.max(1, Math.ceil(ordered.length / 20))} · ${ordered.length} học sinh`,
+        ),
         next,
       ),
     );
+  }
+  /** Exports committed values for both semesters; local drafts remain untouched. */
+  async function exportScores(format) {
+    if (
+      !(await confirm(
+        'Xuất toàn bộ bảng điểm?',
+        'Tệp chứa CMND/CCCD, ngày sinh và điểm đã lưu của cả hai học kỳ, tất cả môn và học sinh (kể cả đã ngừng). Điểm chưa lưu không được xuất. Danh sách trống chỉ xuất tiêu đề. Hãy lưu tại nơi riêng tư.',
+      ))
+    )
+      return;
+    return run(async (current) => {
+      const snapshot = await gate.call({
+        op: 'class.snapshot',
+        classId: currentClass.id,
+        purpose: 'export',
+        confirmed: true,
+      });
+      if (!current()) return;
+      const joined = snapshotStudents(snapshot, semester, currentClass.id, catalog);
+      const ids = sortGradebookRows(joined, sorting, {
+        subject,
+        rawCompare: compareScoreCells,
+      }).map((row) => row.id);
+      const entries = new Map(snapshot.students.map((row) => [row.id, row]));
+      downloadExport(
+        'scores',
+        format,
+        ids.map((id) => entries.get(id)),
+        catalog,
+      );
+    });
   }
   /** Requires an explicit discard decision before abandoning an unsent form/file. */
   async function prepareExit() {

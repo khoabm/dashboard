@@ -185,6 +185,83 @@ function fixture(kind = 'admin', replies = {}, options = {}) {
   };
 }
 
+test('snapshot: rank-only reads and confirmed exports preserve crypto binding and exact scores', async () => {
+  const row = {
+    ...referenceEnvelope(),
+    scores1: [{ subjectCode: 'math', columnCode: 'tx1', rawScore: '8.12345', revision: '1' }],
+    scores2: [],
+  };
+  for (const purpose of ['sort', 'export']) {
+    const f = fixture('admin', { gb_class_snapshot: { class: clazz, students: [row] } });
+    const result = await f.send({
+      op: 'class.snapshot',
+      classId: cid,
+      purpose,
+      ...(purpose === 'export' ? { confirmed: true } : {}),
+    });
+    assert.equal(result.status, 200);
+    assert.deepEqual(
+      f.calls.map((call) => call.name),
+      ['getUser', 'profile', 'gb_class_snapshot'],
+    );
+    assert.deepEqual(f.calls[2].args, { actor, session, cid, exporting: purpose === 'export' });
+    assert.equal(result.headers.get('cache-control'), 'no-store');
+    assert.equal(result.body.students[0].documentOrder, 0);
+    assert.equal(result.body.students[0].documentNumber, purpose === 'export' ? digits : undefined);
+    assert.equal(result.body.students[0].scores1[0].rawScore, '8.12345');
+    assert.doesNotMatch(
+      JSON.stringify(result.body),
+      /ciphertext|identityLookup|encKid|nonce|lookupKeyVersion/,
+    );
+  }
+});
+
+test('snapshot: unconfirmed export, forged actor and non-admin fail before snapshot RPC', async () => {
+  for (const extra of [
+    { purpose: 'export' },
+    { purpose: 'export', confirmed: false },
+    { purpose: 'sort', actor },
+  ]) {
+    const f = fixture();
+    const result = await f.send({ op: 'class.snapshot', classId: cid, ...extra });
+    assert.equal(result.status, 400);
+    assert.equal(f.calls.length, 0);
+  }
+  const f = fixture('admin', {}, { backend: { admin: async () => false } });
+  assert.equal((await f.send({ op: 'class.snapshot', classId: cid, purpose: 'sort' })).status, 403);
+  assert.equal(
+    f.calls.some((call) => call.name === 'gb_class_snapshot'),
+    false,
+  );
+});
+
+test('snapshot: empty export is valid; RPC denial, wrong-class ciphertext, tamper and oversize fail closed without retry', async () => {
+  const body = { op: 'class.snapshot', classId: cid, purpose: 'export', confirmed: true };
+  const empty = fixture('admin', { gb_class_snapshot: { class: clazz, students: [] } });
+  assert.deepEqual((await empty.send(body)).body.students, []);
+  for (const row of [
+    referenceEnvelope({ aadClass: other }),
+    { ...referenceEnvelope(), identityLookup: '00'.repeat(32) },
+  ]) {
+    const f = fixture('admin', {
+      gb_class_snapshot: { class: clazz, students: [{ ...row, scores1: [], scores2: [] }] },
+    });
+    const result = await f.send(body);
+    assert.equal(result.status, 503);
+    assert.equal(result.body.students, undefined);
+    assert.equal(f.calls.filter((call) => call.name === 'gb_class_snapshot').length, 1);
+  }
+  for (const status of [403, 413, 503]) {
+    const f = fixture('admin', {
+      gb_class_snapshot: () => {
+        throw new Failure(status, 'unavailable');
+      },
+    });
+    assert.equal((await f.send(body)).status, status);
+    assert.equal(f.calls.filter((call) => call.name === 'gb_class_snapshot').length, 1);
+  }
+});
+
 test('catalog.read returns only ordered V1 metadata after authenticated B3 class/session authorization', async () => {
   const context = { ...lookupContext, private: 'never disclose', students: [student] };
   context.subjects = [...catalogs.subjects].reverse();

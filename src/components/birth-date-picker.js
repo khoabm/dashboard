@@ -1,5 +1,6 @@
 /** Feature-local accessible birthday calendar; the manual text field remains the sole selected value. */
 import { el, button, restrictNumericInput } from '../utils/dom.js';
+import { SelectControl } from './form-controls.js';
 import { displayDate, vietnamToday } from '../utils/gradebook/dates.js';
 import {
   monthLength,
@@ -48,6 +49,7 @@ export function BirthDatePicker(input, clock = Date.now) {
       el('option', { value: String(i + 1) }, `Tháng ${i + 1}`),
     ),
   );
+  const monthControl = SelectControl(monthSelect, { label: 'Tháng sinh' });
   const yearInput = restrictNumericInput(
     el('input', {
       type: 'number',
@@ -81,7 +83,7 @@ export function BirthDatePicker(input, clock = Date.now) {
       button('×', () => hide(true), 'birthday-close', { 'aria-label': 'Đóng lịch' }),
     ),
     caption,
-    el('div', { class: 'birthday-navigation' }, previous, monthSelect, yearInput, next),
+    el('div', { class: 'birthday-navigation' }, previous, monthControl, yearInput, next),
     grid,
     el('p', { class: 'birthday-footer' }, 'Bạn cũng có thể nhập ngày theo DD/MM/YYYY.'),
   );
@@ -102,6 +104,7 @@ export function BirthDatePicker(input, clock = Date.now) {
       option.disabled = year === currentYear && Number(option.value) > currentMonth;
     });
     monthSelect.value = String(month);
+    monthControl.refresh();
     yearInput.value = String(year);
     yearInput.max = String(currentYear);
     const selected = typedBirthday(input.value, clock),
@@ -253,6 +256,7 @@ export function BirthDatePicker(input, clock = Date.now) {
       year = month = null;
       yearInput.value = '';
       monthSelect.value = '1';
+      monthControl.refresh();
     },
     setDisabled(value) {
       trigger.disabled = value;
@@ -265,6 +269,7 @@ export function BirthDatePicker(input, clock = Date.now) {
       year = month = null;
       yearInput.value = '';
       monthSelect.value = '1';
+      monthControl.refresh();
       document.removeEventListener('pointerdown', outside);
       input.removeEventListener('input', synchronize);
       panel.remove();

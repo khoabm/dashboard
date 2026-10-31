@@ -31,6 +31,8 @@ export function saveDraft(key, draft) {
     body: draft.body,
     section_id: draft.section_id,
     sort_order: draft.sort_order,
+    placement_mode: draft.placement_mode,
+    placement_index: draft.placement_index,
     status: draft.status,
     thumbnail_id: draft.thumbnail_id,
     files_key: draft.files_key,

@@ -1,3 +1,41 @@
+## 2026-10-31 — GB-XLSX-XML-001 / P1 — Excel rejects exported workbook XML
+
+- **Observed:** Owner reported Excel XML error and spreadsheet data not loading after styled XLSX export. Reproduced a structural risk in generated `xl/worksheets/sheetN.xml`: `<mergeCells>` was emitted before `<autoFilter>`, violating SpreadsheetML `CT_Worksheet` child order. Relaxed XLSX readers and generic XML parsers accepted the XML, so prior round-trips did not catch strict Excel validation.
+- **Fix:** `src/utils/gradebook-xlsx.js` emits `sheetData → autoFilter → mergeCells → printOptions → pageMargins → pageSetup → headerFooter`. Does not change input data, raw decimals, sheet separation, styling, CSV, API or database.
+- **Regression:** `tests/gradebook-export-sort.test.js` asserts strict worksheet child sequence and independent workbook row round-trip for **both** HKI/HKII and roster. Compare before/after using synthetic-only fixtures. Full CI and actual Microsoft Excel open need separate evidence; do not confuse relaxed-reader PASS with native Excel acceptance.
+- **Scope:** branch `feature/gradebook-full-export-sort-20261031`, PR #34; source-only, hosted requests 0, migrations/deployment 0, no student data accessed.
+
+## 2026-10-31 — GB-EXPORT-SORT-001 / GB-DECIMAL-INPUT-001
+
+Baseline `4d9539407cdb62ccd772abf1005d02c13947c734`, branch
+`feature/gradebook-full-export-sort-20261031`, Draft PR #34.
+
+- **GB-EXPORT-SORT-001:** previous work had two unwired modules; student pagination
+  read20 rows and score sorting touched only that page. Added a class-locked service-only
+  snapshot migration/Edge operation, explicit export confirmation and strict DTOs, shared
+  accessible headers on both tables, full-snapshot sorting before local pagination and
+  complete CSV/XLSX export. Empty classes emit headers; separate template UI/assets removed
+  by owner request. Drafts remain across sorting/pages. No ordinary list/reveal/Auth grant
+  widened. Files: both Gradebook components, table-controls/export/snapshot utilities,
+  admin response/transport, snapshot/admin/http Edge modules, migration and Gradebook CSS.
+- **GB-DECIMAL-INPUT-001:** Chrome typing7.12345 dropped the dot or cleared the input.
+  `restrictNumericInput` used a double-escaped dot in a regex literal. Corrected `dom.js`
+  and added a focused EventTarget regression for exact decimal text, invalid paste and
+  leading-zero identifiers. Chrome confirms7.12345 survives sorting unchanged; invalid
+  draft markers also survive the rerender.
+
+Evidence: curated171/171, check, full format and build PASS; three network-denying
+Web Crypto/Edge cases PASS; native PostgreSQL17.11 specialist PASS with rollback;
+owner Chrome synthetic keyboard/profile/draft/error and iframe responsive QA PASS.
+Native XLSX download owner-confirmed2026-10-31. Subsequent owner-approved follow-up
+applied ledger 20261031002916 and grades-admin v7; exact source matched 95d925a. Real
+localhost Auth/Edge/DB reads/global sorting and 4 full export snapshots PASS on owner-
+confirmed synthetic data; missing-JWT/direct-RPC401. Four manual SQL calls verify
+31 students / 62 scores unchanged, no deletions or score writes. No public website deploy
+or real-data acceptance. Client test scope≤21 HTTP requests including preflights/negatives;
+provider-internal/bootstrap traffic is distinguished in the linked evidence.
+[Detailed attempts, limitations and acceptance](features/personal-gradebook/FULL_EXPORT_SORT.md).
+
 # Nhật ký khắc phục lỗi
 
 ## 2026-10-30 — UI-IOS-INPUT-ZOOM-01: iPhone auto-zooms on text field focus
@@ -299,7 +337,7 @@ Actual enabled localhost4173 QA found the accepted offline form still said infor
 
 ## 2026-10-27 — GB-CP06-B-CATALOG / P2: teacher loader omits class scope (FIXED OFFLINE)
 
-Baseline64b6e92, feature/personal-gradebook. GradebookScores previously called loadCatalog with only signal; accepted B4 catalog.read requires classId. It now passes currentClass.id through createTeacherCatalog/the shared teacher session transport. Pure strict V1 projection and specialist catalog scope/header tests PASS; actual Chrome score workspace loads all8 subjects/7 columns through synthetic HTTP boundary. Server authorization/migrations unchanged; production transport disabled; hosted integration NOT RUN.
+Baseline64b6e92, feature/personal-gradebook. GradebookScores previously called loadCatalog with only signal; accepted B4 catalog.read requires classId. It now passes currentClass.id through createTeacherCatalog/the shared teacher session transport. Pure strict V1 projection and specialist catalog scope/header tests PASS; actual Chrome score workspace loads all 8 subjects/7 columns through synthetic HTTP boundary. Server authorization/migrations unchanged; production transport disabled; hosted integration NOT RUN.
 
 ## 2026-10-27 — GB-CP06-B-EMPTY / P3: unavailable class renders false text (FIXED OFFLINE)
 

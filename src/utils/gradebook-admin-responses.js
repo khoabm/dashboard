@@ -7,6 +7,7 @@ import { teacherCatalog, SCORE_HEADERS } from './gradebook-scores.js';
 import { envelope } from './gradebook-responses.js';
 
 export const adminFields = {
+  'class.snapshot': ['classId', 'purpose', 'confirmed'],
   'catalog.read': ['classId'],
   'class.read': ['classId'],
   'class.create': ['name', 'schoolYear'],
@@ -215,6 +216,53 @@ function imported(payload, applying) {
 /** Returns the operation DTO and drops the validated request correlation ID. */
 export function adminPayload(body, payload) {
   const op = body.op;
+  if (op === 'class.snapshot') {
+    envelope(payload, ['class', 'students']);
+    requireContract(['sort', 'export'].includes(body.purpose), 'purpose');
+    const exporting = body.purpose === 'export';
+    requireContract(!exporting || body.confirmed === true, 'confirmation');
+    requireContract(Array.isArray(payload.students) && payload.students.length <= 2000, 'snapshot');
+    const ids = new Set(),
+      ranks = new Set();
+    const students = payload.students.map((row) => {
+      const extra = [
+        'documentOrder',
+        'scores1',
+        'scores2',
+        ...(exporting ? ['documentNumber'] : []),
+      ];
+      const base = ['id', 'classId', 'fullName', 'birthDate', 'active', 'revision'];
+      allowFields(row, [...base, ...extra], [...base, ...extra]);
+      const entry = student(Object.fromEntries(base.map((key) => [key, row[key]])), body);
+      requireContract(
+        !ids.has(entry.id) &&
+          Number.isInteger(row.documentOrder) &&
+          row.documentOrder >= 0 &&
+          row.documentOrder < payload.students.length &&
+          !ranks.has(row.documentOrder),
+        'snapshot',
+      );
+      ids.add(entry.id);
+      ranks.add(row.documentOrder);
+      const scores = (values) =>
+        adminPayload(
+          { op: 'scores.read', studentId: entry.id },
+          {
+            students: [{ studentId: entry.id, scores: values }],
+            nextCursor: null,
+            requestId: payload.requestId,
+          },
+        ).students[0].scores;
+      return {
+        ...entry,
+        documentOrder: row.documentOrder,
+        scores1: scores(row.scores1),
+        scores2: scores(row.scores2),
+        ...(exporting ? { documentNumber: documentNumber(row.documentNumber) } : {}),
+      };
+    });
+    return { class: classroom(payload.class, body.classId), students };
+  }
   if (op === 'catalog.read') {
     envelope(payload, ['subjects', 'scoreColumns']);
     for (const rows of [payload.subjects, payload.scoreColumns]) {
