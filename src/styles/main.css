@@ -1760,3 +1760,119 @@ kbd {
     transition: none;
   }
 }
+
+/* Reusable switch: native checkbox owns value/events, track/thumb are presentation only. */
+.ui-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  min-height: 64px;
+  padding: 12px 14px;
+  border: 1px solid #d3e3d8;
+  border-radius: 12px;
+  background: #fff;
+  color: #284f3c;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+.ui-switch:hover {
+  border-color: #a9cbb4;
+  background: #fcfefc;
+}
+.ui-switch:focus-within {
+  border-color: #367c58;
+  box-shadow: 0 0 0 3px #367c5824;
+}
+.ui-switch:has(.ui-switch-input:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.ui-switch-copy {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 3px;
+}
+.ui-switch-title {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #24593d;
+}
+.ui-switch-description {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #647b6c;
+}
+.ui-switch-control {
+  position: relative;
+  display: block;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 26px;
+  margin: 0;
+  padding: 0;
+}
+.ui-switch .ui-switch-input,
+.upload-zone .ui-switch .ui-switch-input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.ui-switch .ui-switch-input:disabled {
+  cursor: not-allowed;
+}
+.ui-switch-track {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 44px;
+  height: 26px;
+  border: 1px solid #c0d1c5;
+  border-radius: 999px;
+  background: #e6ece8;
+  pointer-events: none;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+.ui-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px #173b2524;
+  transition: transform 150ms ease;
+}
+.ui-switch-input:checked + .ui-switch-track {
+  border-color: #276d4d;
+  background: #287b55;
+}
+.ui-switch-input:checked + .ui-switch-track .ui-switch-thumb {
+  transform: translateX(18px);
+}
+.ui-switch-input:focus-visible + .ui-switch-track {
+  outline: 2px solid #245c42;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-switch,
+  .ui-switch-track,
+  .ui-switch-thumb {
+    transition: none;
+  }
+}

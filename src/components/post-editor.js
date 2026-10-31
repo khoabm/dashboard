@@ -6,7 +6,7 @@ import {
   optimizeImage,
   MAX_SOURCE_IMAGE_BYTES,
 } from '../utils/image-compression.js';
-import { SelectControl, FilePicker } from './form-controls.js';
+import { SelectControl, FilePicker, SwitchControl } from './form-controls.js';
 import { PostPlacement } from './post-placement.js';
 import { saveSortOrder, orderedPlacement, needsReorder } from '../utils/post-placement.js';
 import { el, button, field, errorMessage } from '../utils/dom.js';
@@ -379,17 +379,11 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
         'JPG, PNG, WebP, PDF, DOCX, PPTX, XLSX · mỗi tệp < 2 MB · tối đa 10 tài nguyên/bài',
       ),
       filePicker,
-      el(
-        'label',
-        { class: 'upload-optimize-choice' },
-        el(
-          'span',
-          { class: 'upload-optimize-copy' },
-          el('strong', {}, 'Tự động nén ảnh'),
-          el('span', {}, 'Giảm dung lượng, giữ nguyên độ phân giải.'),
-        ),
-        optimizeChoice,
-      ),
+      SwitchControl(optimizeChoice, {
+        label: 'Tự động nén ảnh',
+        description: 'Giảm dung lượng, giữ nguyên độ phân giải.',
+        className: 'upload-optimize-choice',
+      }),
       compressionSummary,
       el(
         'div',
