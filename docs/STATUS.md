@@ -1,3 +1,17 @@
+## 2026-10-31 — Compression revision: keep original resolution, show result per selection
+
+PR #38 remains Draft. JPG/PNG/WebP Canvas uses decoded source width/height
+without resizing; only WebP encoder quality changes. Per-file UI now reports
+compressed input/final bytes and percentage, unchanged/unsupported or failed
+optimization, and size rejection **immediately on selection**. Client validation
+now displays "Mỗi tệp phải nhỏ hơn 2 MB." without the byte conversion while the
+actual boundary stays 2,000,000 bytes. Existing provider/database constraints,
+nonimage file paths and video exclusion unchanged. CI evidence: see PR #38.
+Hosted Storage/browser device QA NOT RUN; no merge or deploy.
+[Details](features/board-image-compression/README.md).
+
+---
+
 ## 2026-10-31 — Browser-local image compression candidate (Draft PR #38)
 
 Branch `feature/client-file-compression-20261031` from develop `b6f34055`.

@@ -165,7 +165,11 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
           if (destroyed) return;
           if (attachments.length >= 10) {
             onError('Mỗi bài tối đa 10 tài nguyên.');
-            showCompressionOutcome(originalFile.name, 'Không thêm được: đã đủ 10 tài nguyên.', false);
+            showCompressionOutcome(
+              originalFile.name,
+              'Không thêm được: đã đủ 10 tài nguyên.',
+              false,
+            );
             continue;
           }
 
@@ -184,7 +188,11 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
             }
             if (!(await verifyFileSignature(originalFile))) {
               onError(`Ảnh ${originalFile.name} không đúng định dạng.`);
-              showCompressionOutcome(originalFile.name, 'Không nén: định dạng ảnh không hợp lệ.', false);
+              showCompressionOutcome(
+                originalFile.name,
+                'Không nén: định dạng ảnh không hợp lệ.',
+                false,
+              );
               continue;
             }
             setPendingMessage(verificationStatus, `Đang nén ảnh ${originalFile.name}…`);
@@ -208,7 +216,11 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
                 false,
               );
             } else {
-              showCompressionOutcome(originalFile.name, error || 'Định dạng tệp không hợp lệ.', false);
+              showCompressionOutcome(
+                originalFile.name,
+                error || 'Định dạng tệp không hợp lệ.',
+                false,
+              );
             }
             continue;
           }

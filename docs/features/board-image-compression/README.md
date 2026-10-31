@@ -4,7 +4,9 @@
 - Branch: `feature/client-file-compression-20261031`, base `develop@b6f340559f0364a2406e778142936fdbd1b47790`.
 - Draft PR #38; implementation `e3a0447`. Do not merge or deploy until owner approval.
 - Only Board post `AttachmentUploader` images are optimized on-device. JPG, PNG, WebP
-  may convert to WebP at quality 0.8 and longest edge 1,600px without upscaling.
+  may convert to WebP at progressively lower quality (0.82, 0.72, 0.62, 0.50),
+  **keeping the decoded original pixel width and height**. No resizing, cropping,
+  stretching or enlargement.
 - Optimize only if final bytes <2,000,000 and strictly smaller; for originals already
   below the Storage limit require ≥10% AND ≥20 KB saving. For previously oversized
   images, any valid smaller-than-original output below the limit qualifies.
@@ -12,7 +14,9 @@
   attempt browser processing outside limits. Decode/encoding failures retain original.
 - Original file is never mutated. Converted filename and MIME become .webp/image/webp,
   then the ordinary `validateFile` and `verifyFileSignature` checks run.
-- UI shows checked-by-default opt-in and size savings on newly optimized images.
+- UI shows checked-by-default opt-in plus a per-file result when selecting files:
+  compressed original→final size, percentage saved, unchanged size, or the best
+  unsuccessful result and upload rejection. These results show **before** any upload.
 - Non-images PDF, DOCX, PPTX, XLSX pass unchanged; no video support, PDF rebuild,
   Excel rewrite or automatic backend transformation.
 
@@ -31,7 +35,8 @@
 | MIME/extension, size thresholds and fallback selection | Four focused Node pure tests in `tests/validation.test.js` | PASS |
 | Existing file/signature/upload business rules | Unchanged validation/Storage services, curated unit suite | PASS within offline scope |
 | Static/syntax, production build, Prettier | GitHub [run #41172134389](https://github.com/khoabm/dashboard/actions/runs/41172134389) at `e3a0447` | PASS, 184/184 unit |
-| Browser Canvas encoding and image color/transparency/EXIF | Compare JPG/PNG/WebP samples and before/after on Chrome, Safari, Android | NOT RUN |
+| Canvas retains original decoded pixel dimensions and tries lower encoding qualities | Scoped browser API mocks in `tests/validation.test.js` | PASS in unit harness |
+| Browser image appearance, color/transparency/EXIF | Compare JPG/PNG/WebP samples and before/after on Chrome, Safari, Android | NOT RUN |
 | Large image >2 MB compresses below 2 MB, input >12 MB rejected | Browser local file test, no remote request until approved | NOT RUN |
 | Toggle off, PDF/DOCX/PPTX/XLSX unchanged, video rejected | Browser selector and attachment preview/draft restoration | NOT RUN |
 | Mobile 375/390, tablet 768, desktop 1440, dialog close while processing | Browser responsive/focus/keyboard/device resource QA | NOT RUN |
@@ -50,3 +55,19 @@ validation remains in the existing browser-side flow, not a new backend check.
 
 No hosted request, billable add-on, external service, migration, merge, or deploy
 was performed in this feature task.
+
+## Owner revision: resolution and selection feedback (2026-10-31)
+
+- Do not resize photographs. The optimized WebP keeps the original decoded pixel
+  width and height; only encoder quality changes, and the first useful result
+  below the existing 2 MB bound is selected.
+- The prior longest-edge 1,600px policy is superseded. Large images above the
+  existing decoded pixel safety cap return the original and may fail validation;
+  this is an explicit memory-safety fallback, not a request to rescale them.
+- A separate readable result is shown for each selected file, including successful
+  before/after sizes and percent reduced, failed compression (best candidate if
+  available), disabled compression, and documents kept intact.
+- Validation message becomes "Mỗi tệp phải nhỏ hơn 2 MB." only; the byte limit
+  of 2,000,000 remains unchanged in client validation and provider/database.
+- Code SHA / CI for this revision: see PR #38 checks. Real device and actual
+  hosted Storage testing remain NOT RUN until owner browser QA.
