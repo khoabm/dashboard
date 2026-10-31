@@ -61,3 +61,22 @@ export function generalConversationHistory(history = []) {
   }
   return clean.slice(-12);
 }
+
+/** Returns a safe route for bounded classifier JSON, or clarification on malformed output. */
+export function decodeIntentRoute(generated) {
+  let value = generated?.response ?? generated?.choices?.[0]?.message?.content;
+  if (typeof value === 'string') {
+    const text = value.replace(/^\s*<think>[\s\S]*?<\/think>\s*/, '').trim();
+    if (text.length > 500 || text.startsWith('<think>')) return 'clarify';
+    try {
+      value = JSON.parse(text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''));
+    } catch {
+      return 'clarify';
+    }
+  }
+  return (
+    { BOARD: 'board', GENERAL: 'general', HYBRID: 'hybrid', CLARIFY: 'clarify' }[
+      value?.mode
+    ] || 'clarify'
+  );
+}
