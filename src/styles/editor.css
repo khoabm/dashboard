@@ -883,3 +883,114 @@
     transition: none;
   }
 }
+
+/* Progress and cancellation are one interaction, instead of detached stacked elements. */
+.upload-zone .upload-compression-progress {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  min-width: 0;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid #d0e4d5;
+  border-radius: 12px;
+  background: #edf7f0;
+  text-align: left;
+}
+.upload-zone .upload-compression-progress:not(:has(.pending-indicator:not([hidden]))) {
+  display: none;
+}
+.upload-zone .upload-compression-progress .pending-indicator {
+  display: flex;
+  align-items: center;
+  flex: 1 1 170px;
+  gap: 9px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: #245d40;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.upload-zone .upload-compression-progress .upload-compression-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-height: 40px;
+  margin: 0 0 0 auto;
+  padding: 8px 13px;
+  border: 1px solid #b8d3c1;
+  border-radius: 9px;
+  background: #fff;
+  color: #295d44;
+  font-size: 12px;
+  font-weight: 700;
+}
+.upload-zone .upload-compression-progress .upload-compression-cancel[hidden] {
+  display: none;
+}
+.upload-zone .upload-compression-progress .upload-compression-cancel:focus-visible {
+  outline: 3px solid #367c5830;
+  outline-offset: 2px;
+}
+@media (max-width: 600px) {
+  .upload-zone .upload-compression-progress {
+    padding: 10px;
+  }
+  .upload-zone .upload-compression-progress .upload-compression-cancel {
+    min-height: 44px;
+  }
+}
+
+/* Space the switch from FilePicker without affecting other forms. */
+.upload-zone > .ui-switch {
+  margin-top: 14px;
+}
+
+/* Per-file compression feedback persists even when a selected image is rejected. */
+.upload-zone .upload-compression-summary {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  text-align: left;
+}
+.upload-zone .upload-compression-summary:empty {
+  display: none;
+}
+.editor-file-label .editor-file-savings {
+  display: block;
+  margin-top: 4px;
+  color: #267348;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.upload-zone .upload-compression-result {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #cfe2d4;
+  border-radius: 10px;
+  background: #f4faf5;
+  color: #2b6041;
+  font-size: 12px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.upload-zone .upload-compression-result strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+.upload-zone .upload-compression-result.is-rejected {
+  border-color: #e5c7b6;
+  background: #fff7f1;
+  color: #855137;
+}

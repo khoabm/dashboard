@@ -1,7 +1,12 @@
 /** Builds the post editor, validates attachments, and preserves recoverable local drafts. */
 
 import { newId } from '../utils/id.js';
-import { SelectControl, FilePicker } from './form-controls.js';
+import {
+  isOptimizableImage,
+  optimizeImage,
+  MAX_SOURCE_IMAGE_BYTES,
+} from '../utils/image-compression.js';
+import { SelectControl, FilePicker, SwitchControl } from './form-controls.js';
 import { PostPlacement } from './post-placement.js';
 import { saveSortOrder, orderedPlacement, needsReorder } from '../utils/post-placement.js';
 import { el, button, field, errorMessage } from '../utils/dom.js';
@@ -44,6 +49,20 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
   const list = el('div', { class: 'editor-attachments' });
   const objectUrls = [];
   const verificationStatus = PulseIndicator();
+  const compressionSummary = el('div', {
+    class: 'upload-compression-summary',
+    role: 'status',
+    'aria-live': 'polite',
+  });
+  const optimizeChoice = el('input', { type: 'checkbox', checked: true });
+  const compressionSavings = new Map();
+  let processingAbort = null;
+  const cancelCompression = button(
+    'Dừng nén',
+    () => processingAbort?.abort(),
+    'button subtle upload-compression-cancel',
+  );
+  cancelCompression.hidden = true;
   let pendingFiles = 0;
   // File signature checks finish before submission or local draft dismissal can proceed.
   let pending = Promise.resolve(),
@@ -54,6 +73,9 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
    */
   function render() {
     objectUrls.splice(0).forEach((url) => URL.revokeObjectURL(url));
+    for (const id of compressionSavings.keys()) {
+      if (!attachments.some((attachment) => attachment.id === id)) compressionSavings.delete(id);
+    }
     list.replaceChildren();
     // Each row displays an attachment with reorder and remove controls.
     attachments.forEach((a, i) => {
@@ -63,8 +85,19 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
         objectUrls.push(url);
         row.append(el('img', { src: url, alt: `Xem trước ${a.file_name}` }));
       }
+      const fileLabel = el('span', { class: 'editor-file-label' }, a.file_name || a.external_url);
+      const savings = compressionSavings.get(a.id);
+      if (savings) {
+        fileLabel.append(
+          el(
+            'small',
+            { class: 'editor-file-savings' },
+            `Đã tối ưu ảnh: ${displayBytes(savings.before)} → ${displayBytes(savings.after)}`,
+          ),
+        );
+      }
       row.append(
-        el('span', {}, a.file_name || a.external_url),
+        fileLabel,
         button(
           '↑',
           () => {
@@ -99,6 +132,25 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
       list.append(row);
     });
   }
+  /** Keeps compression feedback visible even when the candidate is rejected. */
+  function showCompressionOutcome(name, description, accepted) {
+    compressionSummary.append(
+      el(
+        'p',
+        { class: `upload-compression-result ${accepted ? 'is-accepted' : 'is-rejected'}` },
+        el('strong', {}, name),
+        el('span', {}, description),
+      ),
+    );
+  }
+
+  /** Formats byte counts without changing the existing upload size boundary. */
+  function displayBytes(value) {
+    return value >= 1_000_000
+      ? `${(value / 1_000_000).toFixed(2)} MB`
+      : `${Math.round(value / 1000)} KB`;
+  }
+
   const files = el('input', {
     type: 'file',
     multiple: true,
@@ -113,20 +165,157 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
     setPendingMessage(verificationStatus, `Đang kiểm tra ${pendingFiles} tệp đã chọn…`);
     pending = pending
       .then(async () => {
-        for (const file of selectedFiles) {
-          if (destroyed) return;
-          const error = validateFile(file, attachments.length);
-          if (error || !(await verifyFileSignature(file))) {
-            onError(error || `Tệp ${file.name} có nội dung không đúng định dạng.`);
-            continue;
-          }
+        compressionSummary.replaceChildren();
+        onError('');
+        const shouldOptimize = optimizeChoice.checked;
+        for (const originalFile of selectedFiles) {
           if (destroyed) return;
           if (attachments.length >= 10) {
             onError('Mỗi bài tối đa 10 tài nguyên.');
+            showCompressionOutcome(
+              originalFile.name,
+              'Không thêm được: đã đủ 10 tài nguyên.',
+              false,
+            );
             continue;
           }
+
+          let file = originalFile;
+          let compression = null;
+          const image = isOptimizableImage(originalFile);
+          if (image && shouldOptimize) {
+            if (originalFile.size > MAX_SOURCE_IMAGE_BYTES) {
+              onError('Ảnh gốc vượt quá 12 MB. Vui lòng chọn ảnh nhỏ hơn.');
+              showCompressionOutcome(
+                originalFile.name,
+                `Không nén: ảnh gốc ${displayBytes(originalFile.size)} vượt giới hạn xử lý 12 MB.`,
+                false,
+              );
+              continue;
+            }
+            if (!(await verifyFileSignature(originalFile))) {
+              onError(`Ảnh ${originalFile.name} không đúng định dạng.`);
+              showCompressionOutcome(
+                originalFile.name,
+                'Không nén: định dạng ảnh không hợp lệ.',
+                false,
+              );
+              continue;
+            }
+            setPendingMessage(verificationStatus, `Đang nén ảnh ${originalFile.name}…`);
+            const controller = new AbortController();
+            processingAbort = controller;
+            try {
+              compression = await optimizeImage(originalFile, {
+                signal: controller.signal,
+                onProgress: (stage) => {
+                  if (destroyed) return;
+                  cancelCompression.hidden = false;
+                  const message =
+                    stage === 'decode'
+                      ? 'Đang chuẩn bị ảnh…'
+                      : stage === 'encode'
+                        ? 'Đang giảm dung lượng ảnh…'
+                        : 'Đang xử lý ảnh lớn…';
+                  setPendingMessage(verificationStatus, message);
+                },
+              });
+            } finally {
+              if (processingAbort === controller) processingAbort = null;
+              cancelCompression.hidden = true;
+            }
+            if (compression.reason === 'cancelled') {
+              showCompressionOutcome(
+                originalFile.name,
+                'Đã hủy nén. Tệp gốc trên máy không bị thay đổi.',
+                false,
+              );
+              continue;
+            }
+            file = compression.file;
+          }
+
+          if (destroyed) return;
+          const error = validateFile(file, attachments.length);
+          const validSignature = !error && (await verifyFileSignature(file));
+          if (error || !validSignature) {
+            onError(error || `Tệp ${file.name} có nội dung không đúng định dạng.`);
+            if (image) {
+              const best = compression?.bestCandidateBytes;
+              const reason = compression?.reason;
+              let attempted;
+              if (reason === 'pixel-limit') {
+                const width = compression.width;
+                const height = compression.height;
+                const megapixels = ((width * height) / 1_000_000).toFixed(1);
+                const safeBudget = ((compression.pixelBudget || 24_000_000) / 1_000_000).toFixed(0);
+                attempted =
+                  `Chưa thực hiện nén: ảnh ${width} × ${height} px (${megapixels} MP) ` +
+                  `vượt khả năng xử lý an toàn ${safeBudget} MP trên thiết bị này.`;
+              } else if (reason === 'encode-unavailable') {
+                attempted = 'Không tạo được ảnh WebP trên trình duyệt này.';
+              } else if (reason === 'encoding-failed') {
+                attempted = 'Quá trình giải mã hoặc mã hóa ảnh thất bại (có thể do bộ nhớ).';
+              } else if (reason === 'browser-unavailable') {
+                attempted = 'Trình duyệt không hỗ trợ xử lý ảnh bằng Canvas.';
+              } else if (reason === 'worker-unavailable') {
+                attempted = 'Trình duyệt không hỗ trợ xử lý ảnh lớn trong tác vụ riêng.';
+              } else if (reason === 'timeout') {
+                attempted = 'Đã dừng nén ảnh lớn vì xử lý quá lâu; tệp gốc được giữ nguyên.';
+              } else if (reason === 'still-too-large' && best) {
+                attempted =
+                  `Đã thử nén: ${displayBytes(originalFile.size)} → ` +
+                  `${displayBytes(best)} (nhỏ nhất), vẫn vượt giới hạn 2 MB.`;
+              } else if (reason === 'not-beneficial' && best) {
+                attempted =
+                  `Đã thử nén: ${displayBytes(originalFile.size)} → ` +
+                  `${displayBytes(best)}; bản nén không đủ lợi ích.`;
+              } else if (!shouldOptimize) {
+                attempted = 'Bạn đang tắt chức năng nén ảnh.';
+              } else {
+                attempted = `Chưa tạo được bản nén từ ảnh ${displayBytes(originalFile.size)}.`;
+              }
+              showCompressionOutcome(
+                originalFile.name,
+                `${attempted} Không thêm ảnh vì ${error || 'định dạng không hợp lệ'}`,
+                false,
+              );
+            } else {
+              showCompressionOutcome(
+                originalFile.name,
+                error || 'Định dạng tệp không hợp lệ.',
+                false,
+              );
+            }
+            continue;
+          }
+          if (destroyed) return;
+          const id = newId();
+          if (compression?.optimized) {
+            // The attachment row already shows the savings; avoid a duplicate success notice.
+            compressionSavings.set(id, { before: compression.originalBytes, after: file.size });
+          } else if (image) {
+            const explanation = !shouldOptimize
+              ? 'Đã tắt nén'
+              : compression?.reason === 'already-small'
+                ? 'Ảnh nhỏ, không cần nén'
+                : compression?.reason === 'not-beneficial'
+                  ? 'Nén không giảm đủ dung lượng'
+                  : 'Không thể nén trên thiết bị này';
+            showCompressionOutcome(
+              originalFile.name,
+              `${explanation}: giữ nguyên ${displayBytes(file.size)}.`,
+              true,
+            );
+          } else {
+            showCompressionOutcome(
+              originalFile.name,
+              `Tài liệu không nén, giữ nguyên ${displayBytes(file.size)}.`,
+              true,
+            );
+          }
           attachments.push({
-            id: newId(),
+            id,
             type: file.type.startsWith('image/') ? 'image' : 'document',
             file,
             file_name: file.name,
@@ -190,7 +379,13 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
         'JPG, PNG, WebP, PDF, DOCX, PPTX, XLSX · mỗi tệp < 2 MB · tối đa 10 tài nguyên/bài',
       ),
       filePicker,
-      verificationStatus,
+      SwitchControl(optimizeChoice, {
+        label: 'Tự động nén ảnh',
+        description: 'Giảm dung lượng, giữ nguyên độ phân giải.',
+        className: 'upload-optimize-choice',
+      }),
+      compressionSummary,
+      el('div', { class: 'upload-compression-progress' }, verificationStatus, cancelCompression),
     ),
     list,
     el(
@@ -204,6 +399,8 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
   root.whenReady = () => pending;
   root.cleanup = () => {
     destroyed = true;
+    processingAbort?.abort();
+    compressionSavings.clear();
     objectUrls.forEach((url) => URL.revokeObjectURL(url));
   };
   root.setAttachments = (value) => {

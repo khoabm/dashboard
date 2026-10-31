@@ -1,3 +1,110 @@
+## 2026-10-31 — Reusable upload switch UI fix (Draft PR #38)
+
+Fixed thumb overflow from overlapping legacy upload checkbox CSS. Added shared
+native-backed `SwitchControl` with dedicated track/thumb and explicit
+accessible label/description links. Moved presentation rules to `main.css`,
+removed old upload checkbox rules from `editor.css`, and added a focused
+DOM contract test. Original compression/upload behavior and data limits are
+unchanged. CI and browser/device QA at new HEAD remain to be verified.
+No deploy, merge, Auth/API/DB or Supabase operations.
+
+---
+
+## 2026-10-31 — Large-image compression worker trial / Draft PR #38
+
+Owner-approved expansion of local image optimization for the original
+`pexels-steve-24349103.jpg` (2,829,094 bytes, 8064×6048, 48.77 MP).
+Kept the existing ≤24 MP main-thread image processing policy. Higher-resolution
+images can be encoded with original pixel dimensions in a **cancellable module
+Web Worker / OffscreenCanvas** only when the browser supports the APIs and
+advisory device capability is adequate: 60 MP tier for reported ≥8 GB memory and
+≥4 logical cores, or desktop-only ≥8 cores when memory is unavailable; 32 MP
+tier for ≥4 GB and ≥4 cores; 24 MP otherwise. JPEG/PNG dimension header check
+avoids premature full decode; worker enforces its own pixel budget. User sees
+progress and "Hủy nén ảnh lớn"; cancellation and a 90-second timeout terminate
+the worker, retain the original and do not upload rejected files.
+
+No change to resolution, persisted <2 MB file cap, MIME/file checks, video
+exclusion, Storage/Auth/API/DB/RLS, Edge, migrations or Cloudflare config.
+Code SHA `61c4d5c` passed [Offline CI #41175731609](https://github.com/khoabm/dashboard/actions/runs/41175731609)
+(192/192 curated unit tests, syntax, production build, Prettier).
+Original JPG proof: local Pillow WebP quality 82 produced 1,345,418 bytes at
+8064×6048. This is **not browser-Worker evidence**: Chromium localhost access
+was blocked by the execution environment, so Chrome/iOS/Android browser QA,
+real user-device memory behavior, and hosted Storage uploads were NOT RUN.
+Keep PR Draft; no merge/deploy before owner review.
+[Detailed acceptance gates](features/board-image-compression/README.md).
+
+---
+
+## 2026-10-31 — Compression revision: keep original resolution, show result per selection
+
+PR #38 remains Draft. JPG/PNG/WebP Canvas uses decoded source width/height
+without resizing; only WebP encoder quality changes. Per-file UI now reports
+compressed input/final bytes and percentage, unchanged/unsupported or failed
+optimization, and size rejection **immediately on selection**. Client validation
+now displays "Mỗi tệp phải nhỏ hơn 2 MB." without the byte conversion while the
+actual boundary stays 2,000,000 bytes. Existing provider/database constraints,
+nonimage file paths and video exclusion unchanged. CI evidence: see PR #38.
+Hosted Storage/browser device QA NOT RUN; no merge or deploy.
+[Details](features/board-image-compression/README.md).
+
+---
+
+## 2026-10-31 — Browser-local image compression candidate (Draft PR #38)
+
+Branch `feature/client-file-compression-20261031` from develop `b6f34055`.
+Existing Board uploader now optimizes supported JPG/PNG/WebP **before** upload and retains
+the original when the encoded WebP is not smaller, fails conversion or is unsupported.
+The file-type/signature validation, <2,000,000-byte final Storage boundary, quota check,
+authenticated uploader, local draft, attachment and cleanup contracts are preserved.
+The UI offers an initially checked optimization choice and before/after file-size
+feedback. Input processing bound: original image ≤12 MB, decoded pixels ≤24 million,
+long edge ≤1600 CSS px. Uploading MP4/WebM remains disabled; PDF/DOCX/PPTX/XLSX
+are passed through unchanged, not recompressed.
+
+Code commit `e3a0447`, Offline CI [#41172134389](https://github.com/khoabm/dashboard/actions/runs/41172134389)
+PASS: syntax, curated 184 unit tests, build and Prettier. Native browser Canvas
+quality/device compatibility, real Storage upload, owner mobile QA and provider quota
+interaction **NOT RUN**. Hosted API/Auth/Storage calls, schema changes, paid services,
+deploy and merge: **0**. Preview/acceptance belongs to the owner; PR stays Draft.
+[Scope, test matrix and limitations](features/board-image-compression/README.md).
+
+---
+
+## 2026-10-31 — AI-IA01 owner follow-up F03 — general how-to and source disclosure
+
+Owner found conical-hat how-to incorrectly answered from a Board post; requested
+no repetitive provenance footer and default-collapsed smooth source cards.
+On `feature/ai-assistant-intent-aware-chat-20261031`, router now prefers
+generic practical instructions, keeps explicit Board queries, and UI groups
+all source cards/actions in one accessible initially collapsed disclosure
+with animated open/close and reduced-motion support. Updated pure unit and
+synthetic browser/legacy manual scenarios; source-only, no Auth/Gradebook/API,
+DB write, hosted Worker deploy or change to production.
+**Offline CI PASS** at code commit `41c162f`: [run #41175566511](https://github.com/khoabm/dashboard/actions/runs/41175566511), covering curated pure unit, syntax/static, production Vite build and pinned Prettier. Manual Browser/Worker E2E **NOT RUN**; new Worker **NOT DEPLOYED**. Cloudflare Pages preview is UI-only against existing deployed Worker.
+See [bug log](BUG_FIX_LOG.md), [execution plan](features/board-assistant/INTENT_AWARE_EXECPLAN.md)
+and [Draft PR #37](https://github.com/khoabm/dashboard/pull/37).
+
+---
+
+## 2026-10-31 — AI-IA01 intent-aware live assistant / Draft PR #37
+
+Branch `feature/ai-assistant-intent-aware-chat-20261031`, base develop `b6f3405`. Implemented conversation-first
+GENERAL/BOARD/HYBRID/CLARIFY routing, uncertain Qwen-only classification,
+published-only retrieval on demand, general-topic isolation, safe Board failure,
+source provenance labels and browser test fixture. No Auth/Gradebook/SQL/RLS,
+new dependencies, live Worker deploy or website production publish.
+
+CI on code commit `a4d242a`: [Offline CI #41172224963](https://github.com/khoabm/dashboard/actions/runs/41172224963)
+PASS syntax, curated186/186 unit, build/exclusion and Prettier. Added synthetic
+browser fixture/script afterward; newest commit's CI must be checked independently.
+Manual Worker specialist and Chrome browser QA are **NOT RUN** in this Chat session;
+hosted model/real Supabase calls0. Production runtime is unchanged.
+[Plan and owner gates](features/board-assistant/INTENT_AWARE_EXECPLAN.md).
+
+---
+
 ## 2026-10-31 — E2E post editor cover/order follow-up / Draft PR #33
 
 Task scope: rename "Ảnh đại diện" to "Ảnh bìa bài đăng", add selected-image
