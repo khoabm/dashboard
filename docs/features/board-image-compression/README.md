@@ -44,8 +44,9 @@ preserve readability; the checkbox permits opting out. Converting JPEG/PNG to We
 may change metadata and pixel representation; quality verification is a browser QA
 gate, not established by the Node tests. The browser must have available RAM and
 WebP Canvas encode support; unsupported environments use original bytes. The
-optimization is strictly client-side and does not replace server-side size,
-MIME, signature and permission checks.
+optimization is strictly client-side. Existing bucket/database size and MIME
+constraints plus permission checks remain enforced by the provider; image signature
+validation remains in the existing browser-side flow, not a new backend check.
 
 No hosted request, billable add-on, external service, migration, merge, or deploy
 was performed in this feature task.
