@@ -1,0 +1,33 @@
+name: One-time gradebook XLSX formatter
+on:
+  push:
+    branches:
+      - feature/gradebook-full-export-sort-20261031
+    paths:
+      - .github/workflows/format-gradebook-xlsx-once.yml
+permissions:
+  contents: write
+jobs:
+  format:
+    if: github.repository == 'khoabm/dashboard'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Format exactly scoped source and pure tests
+        run: npx prettier --write src/utils/gradebook-export.js src/utils/gradebook-xlsx.js tests/gradebook-export-sort.test.js
+      - name: Commit the formatting-only change
+        run: |
+          if ! git diff --quiet -- src/utils/gradebook-export.js src/utils/gradebook-xlsx.js tests/gradebook-export-sort.test.js; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add src/utils/gradebook-export.js src/utils/gradebook-xlsx.js tests/gradebook-export-sort.test.js
+            git commit -m 'style(gradebook): apply pinned Prettier to XLSX presentation changes'
+            git push origin HEAD:refs/heads/feature/gradebook-full-export-sort-20261031
+          fi
