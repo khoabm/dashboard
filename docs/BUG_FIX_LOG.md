@@ -1,3 +1,19 @@
+## 2026-10-31 — AI-IA01-F01 / P1 — General questions may be hijacked by Board retrieval
+
+- **Observed in source:** live Worker always read published Board and ranked candidates using
+  keyword/BGE even for general science questions. Broad follow-up regex could inherit
+  unrelated Board context. Chat UI omitted source provenance note for live answers.
+- **Fix:** `src/utils/assistant-intent.js` routes general/Board/hybrid before public
+  retrieval; uncertain intent uses bounded Qwen classification; general skips
+  Supabase/BGE, Board failures never silently turn into unsupported general facts,
+  and the UI shows the response's actual knowledge boundary. Pure and specialist
+  regression assets cover no-read general path, public-only source, topic switch,
+  no-citation Board fallback, classification error and responsive labels.
+- **Evidence:** GitHub Offline CI #41172224963 PASS (186 curated unit/build/format)
+  at `a4d242a`. Specialist Worker runtime tests and new browser E2E **NOT RUN**;
+  zero hosted requests/deploys. Branch `feature/ai-assistant-intent-aware-chat-20261031`, Draft PR #37;
+  source implemented, complete E2E acceptance **PENDING**.
+
 ## 2026-10-31 — GB-XLSX-XML-001 / P1 — Excel rejects exported workbook XML
 
 - **Observed:** Owner reported Excel XML error and spreadsheet data not loading after styled XLSX export. Reproduced a structural risk in generated `xl/worksheets/sheetN.xml`: `<mergeCells>` was emitted before `<autoFilter>`, violating SpreadsheetML `CT_Worksheet` child order. Relaxed XLSX readers and generic XML parsers accepted the XML, so prior round-trips did not catch strict Excel validation.

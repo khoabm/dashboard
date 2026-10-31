@@ -1,3 +1,14 @@
+## AI-IA01 branch-only enhancement (2026-10-31)
+
+[Execution plan and test gates](INTENT_AWARE_EXECPLAN.md). Draft PR #37 changes
+intent routing and response provenance without changing Worker production
+deployment. GENERAL bypasses Board and embedding; BOARD/HYBRID require public
+Board grounding; ambiguous questions may run a bounded classifier. Local
+specialist/browser E2E remain NOT RUN; keep this separate from the actual
+2026-10-30 hosted acceptance below.
+
+---
+
 # Live chatbot delivery
 
 Baseline `edc5f31`, feature/ai-learning-assistant-v2-e2e. Owner authorizes anonymous

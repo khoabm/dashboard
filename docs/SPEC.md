@@ -491,6 +491,17 @@ Các tính năng trên chỉ là khả năng mở rộng trong tương lai.
 
 ### 7.1. Board Assistant MVP — extension được yêu cầu 2026-10-29
 
+**Extension AI-IA01 (owner-approved 2026-10-31):** optimize response naturalness
+and source choice by routing intent before Board retrieval. GENERAL must avoid
+unnecessary Board/Supabase/BGE calls; BOARD uses current published data and
+may not invent school notices without sources; HYBRID separates public cited
+facts from general explanatory knowledge. Short-lived memory handles follow-ups
+and topic switching; ambiguous requests may use bounded classification and
+clarification instead of accidental source matches. Source identity must be
+visible in live chat. Preserve public-only read, read-only actions, Free-only
+service limits and existing Auth/Gradebook/data boundaries; no production
+release before build and browser QA.
+
 **Contract hiện hành — yêu cầu end-to-end live chat 2026-10-29:** chatbot hỏi đáp
 kiến thức chung và nội dung Board published thật, hội thoại tiếng Việt/follow-up;
 nguồn Board phù hợp có citation và mở/lọc bài, kiến thức chung không bắt buộc nguồn.

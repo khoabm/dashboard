@@ -1,3 +1,20 @@
+## 2026-10-31 — AI-IA01 intent-aware live assistant / Draft PR #37
+
+Branch `feature/ai-assistant-intent-aware-chat-20261031`, base develop `b6f3405`. Implemented conversation-first
+GENERAL/BOARD/HYBRID/CLARIFY routing, uncertain Qwen-only classification,
+published-only retrieval on demand, general-topic isolation, safe Board failure,
+source provenance labels and browser test fixture. No Auth/Gradebook/SQL/RLS,
+new dependencies, live Worker deploy or website production publish.
+
+CI on code commit `a4d242a`: [Offline CI #41172224963](https://github.com/khoabm/dashboard/actions/runs/41172224963)
+PASS syntax, curated186/186 unit, build/exclusion and Prettier. Added synthetic
+browser fixture/script afterward; newest commit's CI must be checked independently.
+Manual Worker specialist and Chrome browser QA are **NOT RUN** in this Chat session;
+hosted model/real Supabase calls0. Production runtime is unchanged.
+[Plan and owner gates](features/board-assistant/INTENT_AWARE_EXECPLAN.md).
+
+---
+
 ## 2026-10-31 — E2E post editor cover/order follow-up / Draft PR #33
 
 Task scope: rename "Ảnh đại diện" to "Ảnh bìa bài đăng", add selected-image

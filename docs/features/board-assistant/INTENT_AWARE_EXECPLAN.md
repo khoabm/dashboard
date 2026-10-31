@@ -18,3 +18,27 @@ Prioritize a natural Vietnamese dialogue over accidental post matches. Use publi
 | Real hosted AI latency, provider quota, quality or live data | Explicit per-activity budget and approval required by AGENTS | BLOCKED pending scoped hosted authorization |
 
 Planned merge inventory: `src/utils/assistant-intent.js` (pure route), `workers/board-assistant/live.js` (route before retrieval, bounded Qwen), `src/services/board-assistant.js` and `src/components/board-assistant.js` (truthful source labels), `tests/assistant-intent.test.js` (pure), `tests/assistant-live.test.js` (manual specialist), `package.json` (include only pure intent tests in curated CI), and short source docs / bug log. No Auth, Gradebook, migrations, Supabase schema/RLS/API, existing Cloudflare runtime binding or frontend framework change.
+
+## Implementation record — source checkpoint 2026-10-31
+
+- Branch created from exact develop base, commits through `39cc736e6a`
+  (documentation receipt will advance the SHA). Draft PR #37 targets develop.
+- Pure route `src/utils/assistant-intent.js`; conditionally read Board only for
+  BOARD/HYBRID; general path calls Qwen directly without Supabase/BGE; uncertain
+  classification uses Qwen without Board text and fails closed to clarification.
+- Live UI labels show Board, general or mixed origin; no authenticated or Gradebook
+  state is read. Worker still uses published-only public REST projection, native
+  Cloudflare rate limit and one-shot inference. No paid service/binding changes.
+- Offline CI #41172224963 at `a4d242a`: 186 curated unit PASS, check,
+  production build and Prettier PASS. New browser fixture/manual specialist
+  tests added later; rerun/latest receipt to be checked.
+- Source-test inventory: `tests/assistant-intent.test.js` curated pure;
+  `tests/assistant-live.test.js` manual fake-binding Worker specialist;
+  `tests/assistant-intent-browser.cjs` and
+  `tests/assistant-live-ui.html`/JS manual Chrome fixture, localhost only,
+  `tests/local/ai-intent-ui` for ignored screenshots. No external traffic
+  permitted in browser script. **Manual specialist/browser NOT RUN** in
+  current Chat connector execution, hosted inference/real Supabase 0.
+- Owner gate: verify specialist + interactive desktop/mobile browser/real
+  response quality in Work Cloud Browser before promoting this Draft PR.
+  Do not merge/deploy until evidence supports completion.
