@@ -28,6 +28,23 @@ test('science explanations route to general even when post topics share keywords
     assert.equal(routeAssistantIntent(question, boardHistory).mode, 'general', question);
 });
 
+test('ordinary step-by-step how-to is general, even beside a matching Board post', () => {
+  for (const question of [
+    'Chỉ tôi cách thiết kế nón lá đi',
+    'Hướng dẫn em làm nón lá bằng giấy',
+    'Làm sao để thiết kế nón lá?',
+    'Cách làm nón lá đẹp cho học sinh',
+    'Chỉ cho em cách trang trí nón lá',
+  ]) {
+    assert.deepEqual(routeAssistantIntent(question, boardHistory), {
+      mode: 'general',
+      followup: false,
+    }, question);
+  }
+  assert.equal(routeAssistantIntent('Theo bài đăng Trang trí nón lá, cô dặn gì?').mode, 'board');
+  assert.equal(routeAssistantIntent('Trong bài cô đăng hướng dẫn làm nón lá thế nào?').mode, 'board');
+});
+
 test('explicit website questions and real timetable queries route to Board', () => {
   for (const question of [
     'Cô có đăng lịch thi GK1 chưa?',
