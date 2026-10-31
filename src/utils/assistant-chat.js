@@ -127,3 +127,32 @@ export function decodeHybridChatAnswer(generated, catalog) {
     ids,
   };
 }
+
+/**
+ * Prevents a hybrid answer about an explicit exam time from substituting a date
+ * or a study plan for the requested hour. No extra AI inference is needed.
+ */
+export function validateHybridRequestedTime(query, answer, catalog) {
+  const plain = (value) =>
+    String(value).normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+  const normalized = plain(query);
+  if (!/\b(?:may gio|luc nao|gio nao)\b/.test(normalized)) return true;
+  const clocks = (value) => {
+    const result = [];
+    for (const [, hour, minute] of plain(value).matchAll(/\b(\d{1,2})\s*(?:g|h|gio|:)\s*(\d{1,2})\b/g))
+      if (+hour <= 23 && +minute <= 59) result.push(`${+hour}:${+minute}`);
+    return result;
+  };
+  const responseClocks = clocks(answer);
+  if (!responseClocks.length) return false;
+  const evidence = catalog.map((post) => post.body).join('\n');
+  const subject = ['van', 'toan', 'anh', 'vat ly', 'hoa hoc', 'sinh hoc'].find(
+    (name) => new RegExp(`\\b${name}\\b`).test(normalized),
+  );
+  const segments = plain(evidence).split(/[;\n]/);
+  const subjectClocks = subject
+    ? segments.filter((segment) => new RegExp(`\\b${subject}\\b`).test(segment)).flatMap(clocks)
+    : [];
+  const allowed = subjectClocks.length ? subjectClocks : clocks(evidence);
+  return responseClocks.some((time) => allowed.includes(time));
+}
