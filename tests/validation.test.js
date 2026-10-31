@@ -395,7 +395,7 @@ test('high-resolution processing budget considers worker support and actual devi
 test('JPEG header preflight reads the original 8064×6048 resolution without decoding pixels', () => {
   const jpeg = new Uint8Array([
     0xff, 0xd8, 0xff, 0xe0, 0x00, 0x04, 0x00, 0x00, 0xff, 0xc0, 0x00, 0x11, 0x08, 0x17, 0xa0, 0x1f,
-    0x80, 0x03, 0x01, 0x11, 0x00, 0, 0, 0, 0, 0,
+    0x80, 0x03, 0x01, 0x11, 0x00, 0, 0, 0, 0, 0, 0,
   ]);
   assert.deepEqual(sniffImageDimensions(jpeg, 'image/jpeg'), {
     width: 8064,
