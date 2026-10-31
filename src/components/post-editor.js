@@ -292,13 +292,8 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
           if (destroyed) return;
           const id = newId();
           if (compression?.optimized) {
+            // The attachment row already shows the savings; avoid a duplicate success notice.
             compressionSavings.set(id, { before: compression.originalBytes, after: file.size });
-            const reduction = Math.round((1 - file.size / originalFile.size) * 100);
-            showCompressionOutcome(
-              originalFile.name,
-              `Đã nén: ${displayBytes(originalFile.size)} → ${displayBytes(file.size)} (giảm ${reduction}%). Giữ nguyên độ phân giải.`,
-              true,
-            );
           } else if (image) {
             const explanation = !shouldOptimize
               ? 'Đã tắt nén'
