@@ -940,21 +940,11 @@
   outline-offset: 2px;
 }
 @media (max-width: 600px) {
-  .upload-zone .upload-optimize-choice {
-    padding: 12px;
-  }
   .upload-zone .upload-compression-progress {
     padding: 10px;
   }
   .upload-zone .upload-compression-progress .upload-compression-cancel {
     min-height: 44px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .upload-zone .upload-optimize-choice,
-  .upload-zone .upload-optimize-choice > input[type='checkbox'],
-  .upload-zone .upload-optimize-choice > input[type='checkbox']::before {
-    transition: none;
   }
 }
 
