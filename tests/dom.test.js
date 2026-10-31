@@ -2,7 +2,39 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { errorMessage } from '../src/utils/dom.js';
+import { errorMessage, restrictNumericInput } from '../src/utils/dom.js';
+
+test('decimal input retains dots and exact text; invalid paste restores the last accepted string', () => {
+  const input = new EventTarget();
+  Object.assign(input, {
+    value: '8.12345',
+    selectionStart: 7,
+    selectionEnd: 7,
+    setSelectionRange() {},
+  });
+  restrictNumericInput(input, { decimal: true });
+  for (const value of ['7', '7.', '7.12345', '8.123456', '0', '10.00000']) {
+    input.value = value;
+    input.dispatchEvent(new Event('input'));
+    assert.equal(input.value, value);
+  }
+  for (const value of ['1.2.3', '7x', 'NaN', '1e2', '-1']) {
+    input.value = value;
+    input.dispatchEvent(new Event('input'));
+    assert.equal(input.value, '10.00000');
+  }
+  const identity = new EventTarget();
+  Object.assign(identity, {
+    value: '000000009',
+    selectionStart: 9,
+    selectionEnd: 9,
+    setSelectionRange() {},
+  });
+  restrictNumericInput(identity);
+  identity.value = '000.009';
+  identity.dispatchEvent(new Event('input'));
+  assert.equal(identity.value, '000000009');
+});
 
 test('unknown backend diagnostics never appear verbatim', () => {
   assert.equal(

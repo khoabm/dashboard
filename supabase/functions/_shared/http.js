@@ -114,6 +114,7 @@ export function rpcFailure(error, student = false) {
     typeof error?.code === 'string' && /^[A-Z0-9]{5}$/.test(error.code) ? error.code : 'transport';
   if (sqlstate === 'PT409' || sqlstate === '23505' || sqlstate === '23503')
     return new Failure(409, 'conflict', sqlstate);
+  if (sqlstate === 'PT413') return new Failure(413, 'size', sqlstate);
   if (sqlstate === '42501')
     return new Failure(403, student ? 'unavailable_semester' : 'forbidden', sqlstate);
   if (sqlstate === '22023')

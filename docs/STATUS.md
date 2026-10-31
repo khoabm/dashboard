@@ -1,3 +1,28 @@
+## 2026-10-31 — Gradebook full export/sorting, Draft PR #34
+
+Branch `feature/gradebook-full-export-sort-20261031`, starting HEAD `4d95394`.
+Shared whole-class ASC/DESC sorting and CSV/XLSX exports wired to both teacher tables;
+empty class exports headers only, separate template downloads removed. New admin-only
+snapshot RPC/Edge source preserves encrypted identities and ordinary-list contracts;
+confirmed exports alone receive plaintext. Existing “Xem” view retained. Chrome found
+and verified correction of the existing decimal-input dot regex.
+
+Offline CI171/171, syntax/static, full Prettier and build/exclusion PASS. Manual native
+PostgreSQL17.11 snapshot assertions PASS/rolled back; three manual Web Crypto/Edge
+synthetic cases PASS. Owner Chrome keyboard/draft/error checks and iframe360/390/768/
+1024/1440 layouts PASS; native XLSX download confirmed by the owner on2026-10-31.
+**GB-10 bounded synthetic hosted acceptance PASS.** Owner approved deployment/tests and
+confirmed all 31 existing records synthetic; no student/score edits or deletes. Migration
+applied as ledger 20261031002916; grades-admin v7 (verify_jwt=true), exact source verified.
+Actual localhost Chrome: complete 31-row pagination/sorting and four CSV/XLSX export flows;
+missing-JWT/direct-RPC401. Final fingerprints:31 students / 62 scores unchanged; existing
+functions unchanged. Four manual SQL calls; client API test budget≤21 including preflights
+and negatives; Auth/bootstrap/internal RPC traffic accounted separately in the evidence.
+No 429/503/timeout/retry. CORS correctly blocks Quick Tunnel; localhost is the test URL.
+No public website deployment/merge or real-data acceptance. [Receipts, counts and limits](features/personal-gradebook/FULL_EXPORT_SORT.md#approved-hosted-follow-up--2026-10-31).
+
+---
+
 ## 2026-10-30 — PWA installability (feature branch, not merged)
 
 `feature/pwa-installable-app-shell` starts from `feature/gradebook-clear-student-scores` at `aa04ac6`. This adds install metadata/icons and a privacy-safe offline navigation fallback. No business logic, DB, API or existing UI modifications. Offline reads/writes and authentication remain unavailable by design. CI/QA evidence and delivery state are recorded in [PWA guide](PWA.md); browser/device QA is NOT RUN until verified. No website or Supabase deployment.
