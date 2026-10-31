@@ -212,14 +212,15 @@ function sheetXml({ name, title, columns, rows, kind, index }) {
     columnXml +
     '</cols><sheetData>' +
     grid.join('') +
-    '</sheetData><mergeCells count="2"><mergeCell ref="A1:' +
+    // SpreadsheetML CT_Worksheet requires autoFilter BEFORE mergeCells.
+    '</sheetData><autoFilter ref="A4:' +
+    lastColumn +
+    end +
+    '"/><mergeCells count="2"><mergeCell ref="A1:' +
     lastColumn +
     '1"/><mergeCell ref="A2:' +
     lastColumn +
-    '2"/></mergeCells><autoFilter ref="A4:' +
-    lastColumn +
-    end +
-    '"/><printOptions horizontalCentered="1"/><pageMargins left="0.35" right="0.35" top="0.55" bottom="0.55" header="0.2" footer="0.2"/><pageSetup orientation="' +
+    '2"/></mergeCells><printOptions horizontalCentered="1"/><pageMargins left="0.35" right="0.35" top="0.55" bottom="0.55" header="0.2" footer="0.2"/><pageSetup orientation="' +
     (kind === 'scores' ? 'landscape' : 'portrait') +
     '" paperSize="' +
     (kind === 'scores' ? '8' : '9') +
