@@ -35,6 +35,9 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
     await p.locator('#assistant-query').press('Shift+Enter');
     assert.ok((await p.locator('#assistant-query').inputValue()).includes('\n'));
     await p.locator('#assistant-query').press('Enter');
+    await p.locator('.assistant-sources-toggle').last().waitFor();
+    assert.equal(await p.locator('.assistant-sources-toggle').last().getAttribute('aria-expanded'), 'false');
+    await p.locator('.assistant-sources-toggle').last().click();
     await p.locator('.assistant-source').waitFor();
     const g = await p.locator('.assistant-dialog').evaluate((d) => {
       let c = d.querySelector('.assistant-composer').getBoundingClientRect(),
