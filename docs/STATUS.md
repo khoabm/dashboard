@@ -1,3 +1,25 @@
+## 2026-10-31 — E2E post editor cover/order follow-up / Draft PR #33
+
+Task scope: rename "Ảnh đại diện" to "Ảnh bìa bài đăng", add selected-image
+preview after attachments, replace numeric "Vị trí" with first/last/custom
+placement. Preview is shown **only** for custom; highlighted post supports drag
+and ↑/↓ only on its row. Existing signed-cover and existing Storage preview
+helper are reused. Start/end use existing `sort_order`; middle placement uses
+the already-existing `save_post` then `reorder_posts` RPCs without changes
+to either definition or service. Reorder conflict after successful save
+reports partial success; original edit-without-position-change avoids extra
+reorder. Draft UI choices are locally recoverable.
+
+Code SHA `84ade376`, Offline CI [#41169464462](https://github.com/khoabm/dashboard/actions/runs/41169464462)
+PASS: syntax/static, **180/180 curated unit**, production build and Prettier.
+Exact changed code files: post editor, new placement component/helper, editor
+CSS, local draft allowlist, pure tests. API/DB/Auth/RLS/Edge/migrations/
+dependencies/deployment untouched. Browser/device acceptance and before/after
+visual screenshots: NOT RUN; owner controls the final QA gate. No hosted
+requests/writes or merge. [Evidence and cases](UI_UX_E2E_20261030.md).
+
+---
+
 ## 2026-10-31 — End-to-end UI/UX refinement / Draft PR #33
 
 Branch `feature/e2e-ui-ux-audit-20261030`, implementation `054d6a8`. Owner-requested
