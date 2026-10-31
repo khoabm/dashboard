@@ -1,0 +1,33 @@
+name: One-time format UI/UX CSS after merge
+on:
+  push:
+    branches:
+      - integration/e2e-ui-ux-develop-20261031
+    paths:
+      - .github/workflows/e2e-ui-ux-formatter-once.yml
+permissions:
+  contents: write
+jobs:
+  format:
+    if: github.repository == 'khoabm/dashboard'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Prettier only UI/UX CSS files
+        run: npx prettier --write src/styles/editor.css src/styles/main.css src/styles/gradebook.css
+      - name: Commit formatting-only changes, without force-push
+        run: |
+          if ! git diff --quiet -- src/styles/editor.css src/styles/main.css src/styles/gradebook.css; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add src/styles/editor.css src/styles/main.css src/styles/gradebook.css
+            git commit -m 'style(ui): apply pinned Prettier after safe develop merge'
+            git push origin HEAD:refs/heads/integration/e2e-ui-ux-develop-20261031
+          fi
