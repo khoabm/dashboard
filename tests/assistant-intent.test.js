@@ -82,12 +82,16 @@ test('rejects unfinished model clauses and explicit output token truncation', ()
     finish_reason: 'length',
   };
   const plain = { response: 'Bầu trời xanh vì', finish_reason: 'stop' };
-  for (const generated of [unfinished, capped, plain])
-    assert.throws(() => decodeChatAnswer(generated, [], { structured: true }), /model_incomplete/);
+  for (const generated of [unfinished, capped, plain]) {
+    const decode = () => decodeChatAnswer(generated, [], { structured: true });
+    assert.throws(decode, /model_incomplete/);
+  }
 });
 
 test('hybrid answer requires factual website part and separate explanation', () => {
-  const catalog = [{ id: 'c0', title: 'Lịch thi GK1', body: 'Môn Văn thi lúc 7g20, 90 phút.' }];
+  const catalog = [
+    { id: 'c0', title: 'Lịch thi GK1', body: 'Môn Văn thi lúc 7g20, 90 phút.' },
+  ];
   const model = {
     response: {
       website: 'Môn Văn thi lúc 7g20.',
@@ -117,8 +121,10 @@ test('TC-06 requires a requested exam time to appear in the cited subject eviden
   ];
   const question = 'Theo bài Lịch thi GK1, môn Văn thi lúc mấy giờ? Giải thích thêm cách ôn.';
   assert.equal(validateHybridRequestedTime(question, 'Văn thi lúc 7g20.', catalog), true);
-  assert.equal(validateHybridRequestedTime(question, 'Môn Văn thi lúc 7 giờ 20 phút.', catalog), true);
-  assert.equal(validateHybridRequestedTime(question, 'Ngày 26/10 và em nên ôn Toán.', catalog), false);
+  const matching = validateHybridRequestedTime(question, 'Môn Văn thi lúc 7 giờ 20 phút.', catalog);
+  const unrelated = validateHybridRequestedTime(question, 'Ngày 26/10 và em nên ôn Toán.', catalog);
+  assert.equal(matching, true);
+  assert.equal(unrelated, false);
   assert.equal(validateHybridRequestedTime(question, 'Toán thi lúc 9g20.', catalog), false);
   assert.equal(
     validateHybridRequestedTime('Tóm tắt bài Lịch thi GK1.', 'Lịch có 3 môn.', catalog),
