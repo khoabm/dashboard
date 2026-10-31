@@ -2807,3 +2807,169 @@
     box-shadow: 0 4px 16px rgba(32, 65, 49, 0.045);
   }
 }
+/* E2E teacher workspace: compact class context with actions in the page heading. */
+.gradebook-admin {
+  margin-top: 28px;
+}
+.gradebook-admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-bottom: 20px;
+}
+.gradebook-admin-header h1 {
+  margin: 0;
+  color: #214e3b;
+  font-size: clamp(28px, 3vw, 36px);
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.gradebook-admin-header-actions .admin-actions {
+  justify-content: flex-end;
+}
+.gradebook-admin-body {
+  gap: 16px;
+}
+.gradebook-admin .admin-class {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 4px 24px;
+  padding: 18px 24px;
+  border-radius: 16px;
+  background: linear-gradient(115deg, #fff 60%, #f8fbf8);
+}
+.gradebook-admin .admin-class h2 {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+  color: #205540;
+  font-size: clamp(21px, 2.1vw, 26px);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.gradebook-admin .admin-class p {
+  grid-column: 1;
+  grid-row: 2;
+  margin: 0;
+  color: #587166;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.gradebook-admin .admin-class > .button {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  justify-self: end;
+}
+.gradebook-admin-body > .admin-actions[aria-label='Khu vực quản trị'] {
+  gap: 8px;
+  padding-block: 4px 10px;
+  border-bottom: 1px solid #d9e5dc;
+}
+.gradebook-admin-body > .admin-actions[aria-label='Khu vực quản trị'] .button {
+  border-radius: 11px;
+}
+.gradebook-admin-body > .admin-actions:not([aria-label]) > input[type='search'] {
+  flex: 1 1 220px;
+  min-width: min(210px, 100%);
+}
+.gradebook-admin .admin-actions > .button,
+.gradebook-admin .admin-actions > select,
+.gradebook-admin .admin-actions > input {
+  min-height: 44px;
+}
+.gradebook-admin .admin-actions > input[type='search'] {
+  background-color: #fff;
+  box-shadow: var(--ui-control-shadow);
+}
+.gradebook-admin .gradebook-export-controls {
+  padding: 5px;
+  border-color: #d6e4d9;
+  background: #f7faf7;
+}
+.gradebook-admin .admin-table-scroll {
+  max-height: clamp(320px, 62dvh, 720px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 0;
+  border-radius: 16px;
+}
+.gradebook-admin .admin-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.gradebook-admin .admin-table caption {
+  padding: 17px 20px 14px;
+  background: #fff;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.gradebook-admin .admin-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding-block: 10px;
+  background: #edf5ef;
+  box-shadow: inset 0 -1px #c5d8ca;
+}
+.gradebook-admin .admin-table tbody tr > td,
+.gradebook-admin .admin-table tbody tr > th {
+  padding-block: 12px;
+}
+.gradebook-admin .admin-table tbody tr:nth-child(even) > td,
+.gradebook-admin .admin-table tbody tr:nth-child(even) > th {
+  background: #fcfdfc;
+}
+.gradebook-admin .admin-table tbody tr:focus-within > td,
+.gradebook-admin .admin-table tbody tr:focus-within > th {
+  background: #eef6ef;
+}
+.gradebook-admin .admin-table-scroll:focus-visible {
+  outline: 3px solid #367c58;
+  outline-offset: 3px;
+}
+@media (max-width: 700px) {
+  .gradebook-admin {
+    margin-top: 22px;
+  }
+  .gradebook-admin-header {
+    margin-bottom: 15px;
+  }
+  .gradebook-admin-header h1 {
+    font-size: clamp(25px, 7vw, 31px);
+  }
+  .gradebook-admin .admin-class {
+    padding: 16px;
+    gap: 7px 12px;
+  }
+  .gradebook-admin .admin-table-scroll {
+    max-height: clamp(280px, 56dvh, 600px);
+  }
+  .gradebook-admin .admin-table caption {
+    padding: 13px 15px;
+  }
+}
+@media (max-width: 490px) {
+  .gradebook-admin .admin-class {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+  }
+  .gradebook-admin .admin-class > .button {
+    grid-column: 1;
+    grid-row: 3;
+    justify-self: start;
+    margin-top: 8px;
+  }
+  .gradebook-admin .admin-actions > .gradebook-export-controls,
+  .gradebook-admin-body > .admin-actions:not([aria-label]) > input[type='search'] {
+    flex: 1 1 100%;
+  }
+  .gradebook-admin .gradebook-export-controls > .gradebook-export-button {
+    flex: 1 1 auto;
+  }
+}

@@ -1063,7 +1063,7 @@ export function GradebookScores({
           class: 'admin-table-scroll',
           role: 'region',
           tabindex: '0',
-          'aria-label': 'Bảng điểm, cuộn ngang khi cần',
+          'aria-label': 'Bảng điểm, cuộn ngang và dọc khi cần',
         },
         table,
       ),

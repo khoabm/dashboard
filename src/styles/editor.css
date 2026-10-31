@@ -502,3 +502,103 @@
     transition: none;
   }
 }
+/* One visual decision surface for shared confirmations and draft recovery. */
+.dialog.ui-confirm-dialog {
+  width: min(620px, calc(100% - 28px));
+  max-width: 620px;
+  max-height: min(90dvh, 760px);
+  overflow-y: auto;
+  border: 1px solid #cbded0;
+  border-radius: 20px;
+  box-shadow: 0 28px 78px rgba(21, 56, 39, 0.25);
+}
+.dialog.ui-confirm-dialog .dialog-heading {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 19px 24px;
+  background: linear-gradient(120deg, #fff, #f2f8f3);
+}
+.dialog.ui-confirm-dialog .dialog-heading h2 {
+  max-width: 100%;
+  padding-top: 7px;
+  color: #20503c;
+  font-size: clamp(18px, 2vw, 21px);
+  line-height: 1.35;
+  text-wrap: balance;
+}
+.dialog.ui-confirm-dialog .dialog-heading .icon-button {
+  flex: 0 0 44px;
+}
+.dialog.ui-confirm-dialog .dialog-content {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+}
+.ui-dialog-message {
+  display: grid;
+  gap: 11px;
+  padding: 18px 20px;
+  border: 1px solid #dae8dd;
+  border-left: 4px solid #5a9372;
+  border-radius: 14px;
+  background: #f7fbf8;
+  color: #365248;
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.ui-dialog-message:empty {
+  display: none;
+}
+.ui-dialog-message p {
+  margin: 0;
+}
+.ui-dialog-message p + p {
+  padding-top: 10px;
+  border-top: 1px solid #e1ece4;
+}
+.ui-dialog-message .ui-dialog-note {
+  color: #42664f;
+  font-weight: 600;
+}
+.dialog.ui-confirm-dialog .ui-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 16px 0 0;
+  border-top: 1px solid #e4ece6;
+}
+.dialog.ui-confirm-dialog .ui-dialog-actions .button {
+  min-height: 44px;
+  padding-inline: 18px;
+  border-radius: 10px;
+}
+.dialog.ui-confirm-dialog .ui-dialog-actions .button.danger {
+  border-color: #e6b9b9;
+  background: #fff1f1;
+  color: #943535;
+}
+.dialog.ui-confirm-dialog .ui-dialog-actions .button.danger:hover {
+  border-color: #c78080;
+  background: #ffe6e6;
+}
+@media (max-width: 600px) {
+  .dialog.ui-confirm-dialog .dialog-heading {
+    padding: 14px 17px;
+  }
+  .dialog.ui-confirm-dialog .dialog-content {
+    gap: 16px;
+    padding: 17px;
+  }
+  .ui-dialog-message {
+    gap: 9px;
+    padding: 14px 15px;
+  }
+  .dialog.ui-confirm-dialog .ui-dialog-actions .button {
+    flex: 1 1 120px;
+  }
+}
