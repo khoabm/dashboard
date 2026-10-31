@@ -51,13 +51,9 @@ export function validateChatPayload(value) {
   return { query: publicChatText(value.query.trim()), history };
 }
 
-/** Reads model output without inspecting dates/numbers or demanding citations for general knowledge. */
 /** Parses strict live JSON while retaining legacy plaintext for callers that explicitly allow it. */
 function modelValue(generated, structured) {
-  if (
-    generated?.finish_reason === 'length' ||
-    generated?.choices?.[0]?.finish_reason === 'length'
-  )
+  if (generated?.finish_reason === 'length' || generated?.choices?.[0]?.finish_reason === 'length')
     throw Error('model_incomplete');
   let value = generated?.response ?? generated?.choices?.[0]?.message?.content;
   if (typeof value === 'string') {
