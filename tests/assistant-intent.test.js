@@ -36,13 +36,20 @@ test('ordinary step-by-step how-to is general, even beside a matching Board post
     'Cách làm nón lá đẹp cho học sinh',
     'Chỉ cho em cách trang trí nón lá',
   ]) {
-    assert.deepEqual(routeAssistantIntent(question, boardHistory), {
-      mode: 'general',
-      followup: false,
-    }, question);
+    assert.deepEqual(
+      routeAssistantIntent(question, boardHistory),
+      {
+        mode: 'general',
+        followup: false,
+      },
+      question,
+    );
   }
   assert.equal(routeAssistantIntent('Theo bài đăng Trang trí nón lá, cô dặn gì?').mode, 'board');
-  assert.equal(routeAssistantIntent('Trong bài cô đăng hướng dẫn làm nón lá thế nào?').mode, 'board');
+  assert.equal(
+    routeAssistantIntent('Trong bài cô đăng hướng dẫn làm nón lá thế nào?').mode,
+    'board',
+  );
 });
 
 test('explicit website questions and real timetable queries route to Board', () => {
@@ -145,24 +152,4 @@ test('TC-06 requires a requested exam time to appear in the cited subject eviden
     validateHybridRequestedTime('Tóm tắt bài Lịch thi GK1.', 'Lịch có 3 môn.', catalog),
     true,
   );
-});
-
-test('temporary format diagnostic for current UI and router', async () => {
-  const fs = await import('node:fs');
-  const prettier = await import('prettier');
-  for (const path of [
-    'src/components/board-assistant.js',
-    'src/utils/assistant-intent.js',
-    'tests/assistant-intent.test.js',
-    'tests/assistant-live-ui.js',
-  ]) {
-    const original = fs.readFileSync(path, 'utf8');
-    const config = await prettier.resolveConfig(path);
-    const formatted = await prettier.format(original, { ...config, filepath: path });
-    if (original !== formatted) {
-      console.log('UI_ROUTER_FORMAT_START', path);
-      console.log(formatted);
-      console.log('UI_ROUTER_FORMAT_END', path);
-    }
-  }
 });
