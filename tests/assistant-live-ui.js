@@ -6,7 +6,16 @@ const heading = document.createElement('h1');
 heading.textContent = 'Kiểm tra UI offline — không gọi AI';
 const mode = document.createElement('select');
 mode.setAttribute('aria-label', 'Kịch bản lỗi');
-for (const value of ['unavailable', 'answer', 'board', 'board-many', 'hybrid', 'rate_limit', 'provider_quota']) {
+const scenarios = [
+  'unavailable',
+  'answer',
+  'board',
+  'board-many',
+  'hybrid',
+  'rate_limit',
+  'provider_quota',
+];
+for (const value of scenarios) {
   const option = document.createElement('option');
   option.value = value;
   option.textContent = value;
@@ -42,8 +51,10 @@ const assistant = BoardAssistant({
   request: async (query, _, options) => {
     calls++;
     stats.textContent = `calls${calls} history${options.history.length}`;
-    if (!['answer', 'board', 'board-many', 'hybrid'].includes(mode.value)) throw Error(mode.value);
+    const successful = ['answer', 'board', 'board-many', 'hybrid'].includes(mode.value);
+    if (!successful) throw Error(mode.value);
     const cited = ['board', 'board-many', 'hybrid'].includes(mode.value);
+    const knowledge = mode.value === 'board-many' ? 'board' : mode.value;
     return {
       mode: 'ai',
       status: 'answered',
@@ -56,7 +67,7 @@ const assistant = BoardAssistant({
             quote: post.body,
           }))
         : [],
-      knowledge: cited ? (mode.value === 'board-many' ? 'board' : mode.value) : 'general',
+      knowledge: cited ? knowledge : 'general',
     };
   },
 });
