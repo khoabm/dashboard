@@ -259,3 +259,40 @@ export function FilePicker(input, { label = 'Chọn tệp', empty = 'Chưa chọ
   refresh();
   return root;
 }
+
+/**
+ * Renders an accessible reusable switch without replacing the original checkbox.
+ * The caller retains its checked state, change handlers, and disabled contract.
+ *
+ * @param {HTMLInputElement} input - Existing native checkbox.
+ * @param {{label: string, description?: string, className?: string}} options - Visible copy.
+ * @returns {HTMLLabelElement} The full-row hit target, with a native checkbox inside.
+ */
+let switchCounter = 0;
+
+export function SwitchControl(input, { label, description = '', className = '' } = {}) {
+  if (input?.type !== 'checkbox' || !label) {
+    throw Error('SwitchControl yêu cầu checkbox và nhãn hiển thị.');
+  }
+  const id = `ui-switch-${++switchCounter}`;
+  const root = el('label', { class: `ui-switch ${className}`.trim() });
+  const copy = el(
+    'span',
+    { class: 'ui-switch-copy' },
+    el('strong', { class: 'ui-switch-title', id: `${id}-label` }, label),
+    ...(description
+      ? [el('span', { class: 'ui-switch-description', id: `${id}-description` }, description)]
+      : []),
+  );
+  const track = el(
+    'span',
+    { class: 'ui-switch-track', 'aria-hidden': 'true' },
+    el('span', { class: 'ui-switch-thumb' }),
+  );
+  input.classList.add('ui-switch-input');
+  input.setAttribute('role', 'switch');
+  input.setAttribute('aria-labelledby', `${id}-label`);
+  if (description) input.setAttribute('aria-describedby', `${id}-description`);
+  root.append(copy, el('span', { class: 'ui-switch-control' }, input, track));
+  return root;
+}

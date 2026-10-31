@@ -60,7 +60,7 @@ export function youtubeId(value) {
  */
 export function validateFile(file, count = 0) {
   if (count >= MAX_ATTACHMENTS) return 'Mỗi bài tối đa 10 tài nguyên.';
-  if (!file.size || file.size >= MAX_BYTES) return 'Mỗi tệp phải nhỏ hơn 2 MB (2.000.000 byte).';
+  if (!file.size || file.size >= MAX_BYTES) return 'Mỗi tệp phải nhỏ hơn 2 MB.';
   const extension = file.name.toLowerCase().split('.').pop();
   if (!FILE_TYPES[extension] || file.type !== FILE_TYPES[extension])
     return 'Chỉ nhận JPG, PNG, WebP, PDF, DOCX, PPTX, XLSX đúng định dạng.';

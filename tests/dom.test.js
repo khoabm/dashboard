@@ -78,3 +78,122 @@ test('PT409 conflicts use safe reload guidance without exposing diagnostics', ()
     'Không thể hoàn tất thao tác. Vui lòng thử lại sau.',
   );
 });
+
+test('SwitchControl keeps the original checkbox state, events, and accessible label', async () => {
+  const { SwitchControl } = await import('../src/components/form-controls.js');
+  const priorDocument = globalThis.document;
+  const priorNode = globalThis.Node;
+  class TestNode extends EventTarget {
+    constructor(type) {
+      super();
+      this.typeName = type;
+      this.children = [];
+      this.attributes = new Map();
+      this.className = '';
+      this.classList = {
+        add: (...classes) => {
+          this.className = [this.className, ...classes].filter(Boolean).join(' ');
+        },
+      };
+    }
+    setAttribute(name, value) {
+      this.attributes.set(name, String(value));
+    }
+    append(...children) {
+      this.children.push(...children);
+    }
+  }
+  try {
+    globalThis.Node = TestNode;
+    globalThis.document = {
+      createElement: (name) => new TestNode(name),
+      createTextNode: (text) => {
+        const node = new TestNode('text');
+        node.value = text;
+        return node;
+      },
+    };
+    const input = new TestNode('input');
+    input.type = 'checkbox';
+    input.checked = true;
+    let changed = 0;
+    input.addEventListener('change', () => changed++);
+    const root = SwitchControl(input, {
+      label: 'Tự động nén ảnh',
+      description: 'Giữ nguyên độ phân giải.',
+      className: 'my-setting',
+    });
+    assert.equal(root.typeName, 'label');
+    assert.match(root.className, /ui-switch/);
+    assert.match(root.className, /my-setting/);
+    assert.equal(input.attributes.get('role'), 'switch');
+    assert.equal(
+      input.attributes.get('aria-labelledby'),
+      root.children[0].children[0].attributes.get('id'),
+    );
+    assert.equal(
+      input.attributes.get('aria-describedby'),
+      root.children[0].children[1].attributes.get('id'),
+    );
+    assert.equal(root.children[1].children[0], input);
+    assert.equal(root.children[1].children[1].attributes.get('aria-hidden'), 'true');
+    assert.equal(root.children[0].children[0].typeName, 'strong');
+    assert.equal(root.children[0].children[0].children[0].value, 'Tự động nén ảnh');
+    assert.equal(root.children[0].children[1].children[0].value, 'Giữ nguyên độ phân giải.');
+    input.checked = false;
+    input.dispatchEvent(new Event('change'));
+    assert.equal(changed, 1);
+    assert.equal(input.checked, false);
+    input.disabled = true;
+    assert.equal(root.children[1].children[0].disabled, true);
+  } finally {
+    if (priorDocument === undefined) delete globalThis.document;
+    else globalThis.document = priorDocument;
+    if (priorNode === undefined) delete globalThis.Node;
+    else globalThis.Node = priorNode;
+  }
+});
+
+test('shared switch CSS does not inherit obsolete upload-checkbox layout', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const [shared, editor] = await Promise.all([
+    readFile(new URL('../src/styles/main.css', import.meta.url), 'utf8'),
+    readFile(new URL('../src/styles/editor.css', import.meta.url), 'utf8'),
+  ]);
+  assert.match(shared, /\.ui-switch-control\s*\{/);
+  assert.match(shared, /\.ui-switch-track\s*\{/);
+  assert.match(shared, /\.ui-switch-thumb\s*\{/);
+  assert.match(shared, /\.upload-zone \.ui-switch \.ui-switch-input/);
+  assert.doesNotMatch(editor, /upload-optimize-choice/);
+  assert.match(editor, /\.editor-file-label \.editor-file-savings/);
+  assert.match(editor, /\.upload-zone \.upload-compression-summary:empty/);
+});
+
+test('native-select chevron uses a CSP-allowed same-origin SVG, not a data URI', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const [styles, icon, html] = await Promise.all([
+    readFile(new URL('../src/styles/main.css', import.meta.url), 'utf8'),
+    readFile(new URL('../public/icons/chevron-down.svg', import.meta.url), 'utf8'),
+    readFile(new URL('../index.html', import.meta.url), 'utf8'),
+  ]);
+  assert.doesNotMatch(styles, /data:image\//i);
+  assert.match(styles, /background-image: url\('\/icons\/chevron-down\.svg'\)/);
+  assert.match(icon, /<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
+  assert.match(icon, /<path d="m6 9 6 6 6-6"\/>/);
+  assert.match(html, /img-src 'self' blob:/);
+});
+
+test('shared switch animates only paint and thumb transform with reduced-motion support', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const styles = await readFile(new URL('../src/styles/main.css', import.meta.url), 'utf8');
+  assert.match(styles, /\.ui-switch-thumb[\s\S]*?translate3d\(0, 0, 0\)/);
+  assert.match(
+    styles,
+    /\.ui-switch-input:checked \+ \.ui-switch-track \.ui-switch-thumb\s*\{\s*transform: translate3d\(18px, 0, 0\)/,
+  );
+  assert.match(styles, /\.ui-switch:has\(\.ui-switch-input:focus-visible\)/);
+  assert.match(
+    styles,
+    /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.ui-switch-thumb[\s\S]*?transition: none/,
+  );
+});
