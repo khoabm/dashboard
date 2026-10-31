@@ -124,6 +124,7 @@ export function decodeHybridChatAnswer(generated, catalog) {
     throw Error('model');
   return {
     answer: `Theo bài đăng:\n${value.website.trim()}\n\nGiải thích thêm:\n${value.general.trim()}`,
+    website: value.website.trim(),
     ids,
   };
 }
@@ -133,13 +134,13 @@ export function decodeHybridChatAnswer(generated, catalog) {
  * or a study plan for the requested hour. No extra AI inference is needed.
  */
 export function validateHybridRequestedTime(query, answer, catalog) {
-  const plain = (value) =>
-    String(value).normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+  const plain = (value) => String(value).normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
   const normalized = plain(query);
   if (!/\b(?:may gio|luc nao|gio nao)\b/.test(normalized)) return true;
   const clocks = (value) => {
     const result = [];
-    for (const [, hour, minute] of plain(value).matchAll(/\b(\d{1,2})\s*(?:g|h|gio|:)\s*(\d{1,2})\b/g))
+    const matches = plain(value).matchAll(/\b(\d{1,2})\s*(?:g|h|gio|:)\s*(\d{1,2})\b/g);
+    for (const [, hour, minute] of matches)
       if (+hour <= 23 && +minute <= 59) result.push(`${+hour}:${+minute}`);
     return result;
   };
@@ -150,9 +151,10 @@ export function validateHybridRequestedTime(query, answer, catalog) {
     (name) => new RegExp(`\\b${name}\\b`).test(normalized),
   );
   const segments = plain(evidence).split(/[;\n]/);
-  const subjectClocks = subject
-    ? segments.filter((segment) => new RegExp(`\\b${subject}\\b`).test(segment)).flatMap(clocks)
+  const matching = subject
+    ? segments.filter((segment) => new RegExp(`\\b${subject}\\b`).test(segment))
     : [];
+  const subjectClocks = matching.flatMap(clocks);
   const allowed = subjectClocks.length ? subjectClocks : clocks(evidence);
   return responseClocks.some((time) => allowed.includes(time));
 }
