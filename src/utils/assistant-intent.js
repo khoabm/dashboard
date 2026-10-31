@@ -20,12 +20,18 @@ const ambiguousSignals =
 export function routeAssistantIntent(query, history = []) {
   const text = normalizeAssistantText(query).trim().replace(/\s+/g, ' ');
   const lastAssistant = [...history].reverse().find((turn) => turn.role === 'assistant');
-  const lastBoard = Boolean(lastAssistant?.sourceIds?.length);
+  const previousUser = [...history].reverse().find((turn) => turn.role === 'user');
+  const lastBoard = Boolean(
+    lastAssistant?.sourceIds?.length ||
+    (lastAssistant && previousUser && boardSignals.test(normalizeAssistantText(previousUser.content))),
+  );
   const reference = referring.test(text);
   const asksBoard = boardSignals.test(text);
   const asksGeneral = explicitGeneral.test(text);
   const clearScience = generalSignals.test(text);
   if (asksGeneral && !asksBoard) return { mode: 'general', followup: false };
+  if (/^(?:vay|the) (?:tai sao|vi sao|sao|do dau|giai thich)\b/.test(text) && !asksBoard)
+    return { mode: 'general', followup: false };
   if (asksBoard)
     return {
       mode: hybridSignals.test(text) ? 'hybrid' : 'board',
