@@ -1,3 +1,21 @@
+## 2026-10-31 — Gradebook full export/sorting, Draft PR #34
+
+Branch `feature/gradebook-full-export-sort-20261031`, starting HEAD `4d95394`.
+Shared whole-class ASC/DESC sorting and CSV/XLSX exports wired to both teacher tables;
+empty class exports headers only, separate template downloads removed. New admin-only
+snapshot RPC/Edge source preserves encrypted identities and ordinary-list contracts;
+confirmed exports alone receive plaintext. Existing “Xem” view retained. Chrome found
+and verified correction of the existing decimal-input dot regex.
+
+Offline CI171/171, syntax/static, full Prettier and build/exclusion PASS. Manual native
+PostgreSQL17.11 snapshot assertions PASS/rolled back; three manual Web Crypto/Edge
+synthetic cases PASS. Owner Chrome keyboard/draft/error checks and iframe360/390/768/
+1024/1440 layouts PASS; native XLSX download confirmed by the owner on2026-10-31.
+**Source/offline implementation; NOT production/E2E complete.** New migration/Edge
+NOT DEPLOYED; hosted requests0, real data0. [Matrix, inventory, attempts and gates](features/personal-gradebook/FULL_EXPORT_SORT.md).
+
+---
+
 ## 2026-10-30 — PWA installability (feature branch, not merged)
 
 `feature/pwa-installable-app-shell` starts from `feature/gradebook-clear-student-scores` at `aa04ac6`. This adds install metadata/icons and a privacy-safe offline navigation fallback. No business logic, DB, API or existing UI modifications. Offline reads/writes and authentication remain unavailable by design. CI/QA evidence and delivery state are recorded in [PWA guide](PWA.md); browser/device QA is NOT RUN until verified. No website or Supabase deployment.

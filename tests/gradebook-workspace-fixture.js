@@ -45,7 +45,7 @@ if (!params.has('embedded')) {
     semester1Published: false,
     semester2Published: false,
   };
-  let pupils = Array.from({ length: 20 }, (_, i) => ({
+  let pupils = Array.from({ length: 43 }, (_, i) => ({
     id: String(i + 1),
     classId: cid,
     revision: '1',
@@ -57,7 +57,40 @@ if (!params.has('embedded')) {
     active: true,
   }));
   const catalog = fixtureContext();
+  const controls = el('div', { class: 'admin-actions' });
+  const empty = el('input', { type: 'checkbox', 'aria-label': 'Danh sách trống' });
+  const failure = el('input', { type: 'checkbox', 'aria-label': 'Lỗi snapshot' });
+  const delay = el('input', { type: 'checkbox', 'aria-label': 'Chậm snapshot' });
+  controls.append(
+    el('label', {}, empty, 'Danh sách trống'),
+    el('label', {}, failure, 'Lỗi snapshot'),
+    el('label', {}, delay, 'Chậm snapshot'),
+  );
+  document.querySelector('#qa').append(controls);
   const request = async (body) => {
+    if (body.op === 'class.snapshot') {
+      if (delay.checked) await new Promise((resolve) => setTimeout(resolve, 1200));
+      if (failure.checked) throw Object.assign(new Error('Synthetic failure'), { status: 503 });
+      return {
+        class: classroom,
+        students: (empty.checked ? [] : pupils).map((p, i) => ({
+          ...p,
+          documentOrder: pupils.length - i - 1,
+          ...(body.purpose === 'export' ? { documentNumber: '000000' + String(142 - i) } : {}),
+          scores1: [
+            {
+              subjectCode: 'item_0',
+              columnCode: 'item_0',
+              rawScore: i === 42 ? '0' : ['8.24', '8.25', '8.26'][i % 3],
+              revision: '1',
+            },
+          ],
+          scores2: [
+            { subjectCode: 'item_7', columnCode: 'item_6', rawScore: '8.12345', revision: '1' },
+          ],
+        })),
+      };
+    }
     if (body.op === 'class.read') return { class: classroom };
     if (body.op === 'students.list')
       return { students: body.cursor ? [] : pupils, nextCursor: null };
@@ -83,8 +116,7 @@ if (!params.has('embedded')) {
     onLogin: () => {},
     onLogout: () => {},
   });
-  document.querySelector('#qa').textContent =
-    'SYNTHETIC ONLY — unsupported writes deliberately fail';
+  document.querySelector('#qa').prepend('SYNTHETIC ONLY — 43 students; unsupported writes fail. ');
   document.querySelector('#app').append(view.element);
   view.setSession({ status: 'admin', generation: 1 });
 }

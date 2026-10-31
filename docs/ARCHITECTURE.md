@@ -51,8 +51,11 @@ SPEC R01–R28 gốc chủ yếu mô tả Board/hạ tầng; nghiệp vụ Grade
 | scripts/owner-uat-setup.mjs; tests/assistant-owner-uat-flow.test.js | Exclusive one-time UAT ledger setup carrying34/60, immutable incident hash, QA1/owner2 and same-namespace UAT3 admission; --uat Start never initializes/replenishes allowance |
 | tests/board-assistant*.test.js | Pure projection/action tests and explicitly manual Worker/transport specialists, outside unchanged curated CI; V2 pure/specialist tests and explicit assistant-learning-browser.cjs/board-assistant-ui.html fixture; generated artifacts remain ignored under tests/local |
 | src/components/app-header.js, site-navigation.js | Shared branding/admin controls; accessible Board/lookup menu plus verified-admin entry; header-owned pulse awaits existing logout Promise |
-| src/components/gradebook-admin.js | CP03 class/student dialogs, paged list, reveal/import ownership and route/session disposal |
-| src/components/gradebook-scores.js | CP04 teacher-only semester/subject/student workspace, bounded score-page joins, cell CRUD, publication and score import; owned dialogs/previews/late-response disposal |
+| src/components/gradebook-admin.js | Class/student dialogs, full-snapshot local pagination/filter/sort, confirmed export, reveal/import ownership and route/session disposal |
+| src/components/gradebook-scores.js | Teacher semester/subject workspace, full-snapshot sorting/local pages, draft-preserving sorting, confirmed both-semester export; existing CRUD/publication/import and cancellation |
+| src/components/gradebook-table-controls.js | Shared keyboard sortable headers/aria-sort, export format controls, complete-list comparator and stable identity hierarchy |
+| src/utils/gradebook-export.js, gradebook-snapshot.js | CSV/inline-string XLSX writer; complete snapshot semester joins through existing pure DTO validation; no persistence |
+| supabase/functions/_shared/snapshot.js; new gb_class_snapshot migration | Admin/session/class-locked snapshot; server-memory identity decryption, rank-only ordinary responses, separately confirmed full export and class/count audit; source only, not deployed |
 | src/utils/gradebook-scores.js | Pure ordered catalog projection, B1 decimal comparison/input, score-page DTOs, mutation/publication preconditions and A–J batch validation |
 | src/services/gradebook-catalog.js | Scoped catalog.read through the same verified teacher request; current classId required, strict teacher catalog projection |
 | src/utils/gradebook-admin.js, roster.js | Pure input/DTO projection, cancellable operation/preview ownership and bounded positional CSV/roster validation; reuse B1 |

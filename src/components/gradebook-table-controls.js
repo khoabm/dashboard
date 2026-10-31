@@ -12,23 +12,28 @@ export function SortableHeader(label, key, current, onChange) {
   const next = selected && direction === 'asc' ? 'desc' : 'asc';
   const heading = el(
     'th',
-    { scope: 'col', 'aria-sort': selected ? (direction === 'asc' ? 'ascending' : 'descending') : 'none' },
-    button(
-      label,
-      () => onChange({ key, direction: next }),
-      'table-sort-button',
-      {
-        'aria-label': `Sắp xếp theo ${label}, ${next === 'asc' ? 'tăng dần' : 'giảm dần'}`,
-      },
-    ),
+    {
+      scope: 'col',
+      'aria-sort': selected ? (direction === 'asc' ? 'ascending' : 'descending') : 'none',
+    },
+    button(label, () => onChange({ key, direction: next }), 'table-sort-button', {
+      'data-sort-key': key,
+      'aria-label': `Sắp xếp theo ${label}, ${next === 'asc' ? 'tăng dần' : 'giảm dần'}`,
+    }),
   );
-  heading.querySelector('button').append(
-    el('span', { class: 'table-sort-indicator', 'aria-hidden': 'true' }, selected ? (direction === 'asc' ? '↑' : '↓') : '↕'),
-  );
+  heading
+    .querySelector('button')
+    .append(
+      el(
+        'span',
+        { class: 'table-sort-indicator', 'aria-hidden': 'true' },
+        selected ? (direction === 'asc' ? '↑' : '↓') : '↕',
+      ),
+    );
   return heading;
 }
 
-/** Default hierarchy: name → underlying CCCD numeric-text rank → birth date → stable ID. */
+/** Default hierarchy: name → underlying CCCD text rank → birth date → stable ID. */
 export function compareIdentity(a, b) {
   return (
     collator.compare(a.fullName || '', b.fullName || '') ||
@@ -56,7 +61,11 @@ export function sortGradebookRows(items, sort = DEFAULT_TABLE_SORT, { subject, r
     else if (key === 'active') value = Number(a.active) - Number(b.active);
     else if (key.startsWith('score:') && subject && rawCompare) {
       const code = key.slice(6);
-      value = rawCompare(a.cells?.get(`${subject}|${code}`), b.cells?.get(`${subject}|${code}`));
+      const first = a.cells?.get(`${subject}|${code}`),
+        second = b.cells?.get(`${subject}|${code}`);
+      // Missing points stay last in either direction.
+      if (!first || !second) return (first ? -1 : second ? 1 : 0) || compareIdentity(a, b);
+      value = rawCompare(first, second);
     }
     return value ? sign * value : compareIdentity(a, b) || stableId(a, b);
   });
@@ -70,8 +79,13 @@ export function ExportSelector(onExport, { label = 'Xuất dữ liệu' } = {}) 
     el('option', { value: 'xlsx' }, 'Excel (.xlsx)'),
     el('option', { value: 'csv' }, 'CSV (.csv)'),
   );
-  const action = button(label, () => void onExport(format.value), 'button gradebook-export-button', {
-    'aria-label': `${label} toàn bộ danh sách`,
-  });
+  const action = button(
+    label,
+    () => void onExport(format.value),
+    'button gradebook-export-button',
+    {
+      'aria-label': `${label} toàn bộ danh sách`,
+    },
+  );
   return el('div', { class: 'gradebook-export-controls' }, format, action);
 }

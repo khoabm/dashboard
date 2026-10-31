@@ -1,3 +1,29 @@
+## 2026-10-31 — GB-EXPORT-SORT-001 / GB-DECIMAL-INPUT-001
+
+Baseline `4d9539407cdb62ccd772abf1005d02c13947c734`, branch
+`feature/gradebook-full-export-sort-20261031`, Draft PR #34.
+
+- **GB-EXPORT-SORT-001:** previous work had two unwired modules; student pagination
+  read20 rows and score sorting touched only that page. Added a class-locked service-only
+  snapshot migration/Edge operation, explicit export confirmation and strict DTOs, shared
+  accessible headers on both tables, full-snapshot sorting before local pagination and
+  complete CSV/XLSX export. Empty classes emit headers; separate template UI/assets removed
+  by owner request. Drafts remain across sorting/pages. No ordinary list/reveal/Auth grant
+  widened. Files: both Gradebook components, table-controls/export/snapshot utilities,
+  admin response/transport, snapshot/admin/http Edge modules, migration and Gradebook CSS.
+- **GB-DECIMAL-INPUT-001:** Chrome typing7.12345 dropped the dot or cleared the input.
+  `restrictNumericInput` used a double-escaped dot in a regex literal. Corrected `dom.js`
+  and added a focused EventTarget regression for exact decimal text, invalid paste and
+  leading-zero identifiers. Chrome confirms7.12345 survives sorting unchanged; invalid
+  draft markers also survive the rerender.
+
+Evidence: curated171/171, check, full format and build PASS; three network-denying
+Web Crypto/Edge cases PASS; native PostgreSQL17.11 specialist PASS with rollback;
+owner Chrome synthetic keyboard/profile/draft/error and iframe responsive QA PASS.
+Native XLSX download owner-confirmed2026-10-31; hosted/new deployment/real Auth acceptance NOT RUN.
+No migration/Edge/website deploy, real student data or Supabase hosted requests.
+[Detailed attempts, limitations and acceptance](features/personal-gradebook/FULL_EXPORT_SORT.md).
+
 # Nhật ký khắc phục lỗi
 
 ## 2026-10-30 — UI-IOS-INPUT-ZOOM-01: iPhone auto-zooms on text field focus

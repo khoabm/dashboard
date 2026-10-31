@@ -1,3 +1,15 @@
+# Gradebook full export/sorting — 2026-10-31
+
+[Pre-edit concerns, final merge inventory, finite offline/specialist/browser evidence and open gates](features/personal-gradebook/FULL_EXPORT_SORT.md).
+`tests/gradebook-export-sort.test.js` adds six pure cases to explicit test:ci; decimal
+input adds one focused DOM-helper regression. Full curated171/171 PASS once. Manual
+`--test-name-pattern=snapshot:` selects three Edge cases; `tests/gradebook-snapshot.sql`
+runs only against a disposable loopback DB, not CI/hosted. Supabase hosted requests0.
+No stress/load/quota/retry testing. Native XLSX download is owner-confirmed; no production
+acceptance inferred.
+
+---
+
 # G07-3 specialist offline acceptance — 2026-10-28
 
 [Concern matrix, inventory, exact commands/history,36 core +4 final focused cases and G07-4 limits](features/personal-gradebook/G07_PRODUCTION_TOOLING.md). Real age1.3.2 and disposable local PG17.11 source snapshot/pg_dump/full archive decoding; no SQL restore, production keys or hosted access. Existing createCrypto contract exercised with active/retained versions1/2. Source-state inventory/data verifier PASS is not restored-target or effective-role evidence. Build/exclusion PASS; old UI/Drive/recovery suites not repeated. This specialist is manual-only, not added to test:ci or any workflow. Failed setup/harness attempts are retained separately; Operational/Overall PARTIAL, G07-4 NOT STARTED, G08 BLOCKED. Older records below retain their original boundaries.
