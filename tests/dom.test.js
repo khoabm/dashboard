@@ -165,3 +165,26 @@ test('shared switch CSS does not inherit obsolete upload-checkbox layout', async
   assert.match(editor, /\.editor-file-label \.editor-file-savings/);
   assert.match(editor, /\.upload-zone \.upload-compression-summary:empty/);
 });
+
+test('native-select chevron uses a CSP-allowed same-origin SVG, not a data URI', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const [styles, icon, html] = await Promise.all([
+    readFile(new URL('../src/styles/main.css', import.meta.url), 'utf8'),
+    readFile(new URL('../public/icons/chevron-down.svg', import.meta.url), 'utf8'),
+    readFile(new URL('../index.html', import.meta.url), 'utf8'),
+  ]);
+  assert.doesNotMatch(styles, /data:image\//i);
+  assert.match(styles, /background-image: url\('\/icons\/chevron-down\.svg'\)/);
+  assert.match(icon, /<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
+  assert.match(icon, /<path d="m6 9 6 6 6-6"\/>/);
+  assert.match(html, /img-src 'self' blob:/);
+});
+
+test('shared switch animates only paint and thumb transform with reduced-motion support', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const styles = await readFile(new URL('../src/styles/main.css', import.meta.url), 'utf8');
+  assert.match(styles, /\.ui-switch-thumb[\s\S]*?translate3d\(0, 0, 0\)/);
+  assert.match(styles, /\.ui-switch-input:checked \+ \.ui-switch-track \.ui-switch-thumb\s*\{\s*transform: translate3d\(18px, 0, 0\)/);
+  assert.match(styles, /\.ui-switch:has\(\.ui-switch-input:focus-visible\)/);
+  assert.match(styles, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.ui-switch-thumb[\s\S]*?transition: none/);
+});
