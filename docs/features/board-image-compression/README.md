@@ -71,3 +71,18 @@ was performed in this feature task.
   of 2,000,000 remains unchanged in client validation and provider/database.
 - Code SHA / CI for this revision: see PR #38 checks. Real device and actual
   hosted Storage testing remain NOT RUN until owner browser QA.
+ 
+## QA diagnostic follow-up — unexplained 2.83 MB rejection
+
+A selected, signature-valid JPEG of 2.83 MB may be rejected *before any WebP
+encoding* if its decoded width × height exceeds the existing 24,000,000-pixel
+browser safety cap. Other possible outcomes include Canvas or WebP unavailable
+and image decoding/encoding errors. Previously all of those resulted in the
+ambiguous message “Chưa nén được” despite `optimizeImage` returning a
+specific `reason`. The uploader now distinguishes these causes and, for
+the pixel-limit case, displays actual decoded dimensions and megapixels.
+The cap, original-resolution guarantee, 2 MB Storage ceiling and backend
+contracts are unchanged. This is an explanatory UI correction, **not**
+confirmation of the cause for the owner’s specific file; the unchanged source
+JPG is required for that determination. Packaging the JPG in a ZIP archive
+before attaching it to ChatGPT preserves the original file for inspection.

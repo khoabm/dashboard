@@ -207,9 +207,34 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
             onError(error || `Tệp ${file.name} có nội dung không đúng định dạng.`);
             if (image) {
               const best = compression?.bestCandidateBytes;
-              const attempted = best
-                ? `Đã thử nén: ${displayBytes(originalFile.size)} → ${displayBytes(best)} (tốt nhất).`
-                : `Chưa nén được: ${displayBytes(originalFile.size)}.`;
+              const reason = compression?.reason;
+              let attempted;
+              if (reason === 'pixel-limit') {
+                const width = compression.width;
+                const height = compression.height;
+                const megapixels = ((width * height) / 1_000_000).toFixed(1);
+                attempted =
+                  `Chưa thực hiện nén: ảnh ${width} × ${height} px (${megapixels} MP) ` +
+                  'vượt giới hạn xử lý 24 MP nhằm bảo vệ bộ nhớ thiết bị.';
+              } else if (reason === 'encode-unavailable') {
+                attempted = 'Không tạo được ảnh WebP trên trình duyệt này.';
+              } else if (reason === 'encoding-failed') {
+                attempted = 'Quá trình giải mã hoặc mã hóa ảnh thất bại (có thể do bộ nhớ).';
+              } else if (reason === 'browser-unavailable') {
+                attempted = 'Trình duyệt không hỗ trợ xử lý ảnh bằng Canvas.';
+              } else if (reason === 'still-too-large' && best) {
+                attempted =
+                  `Đã thử nén: ${displayBytes(originalFile.size)} → ` +
+                  `${displayBytes(best)} (nhỏ nhất), vẫn vượt giới hạn 2 MB.`;
+              } else if (reason === 'not-beneficial' && best) {
+                attempted =
+                  `Đã thử nén: ${displayBytes(originalFile.size)} → ` +
+                  `${displayBytes(best)}; bản nén không đủ lợi ích.`;
+              } else if (!shouldOptimize) {
+                attempted = 'Bạn đang tắt chức năng nén ảnh.';
+              } else {
+                attempted = `Chưa tạo được bản nén từ ảnh ${displayBytes(originalFile.size)}.`;
+              }
               showCompressionOutcome(
                 originalFile.name,
                 `${attempted} Không thêm ảnh vì ${error || 'định dạng không hợp lệ'}`,

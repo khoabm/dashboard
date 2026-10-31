@@ -323,3 +323,38 @@ test('file validation preserves the size boundary but uses concise Vietnamese te
     'Mỗi tệp phải nhỏ hơn 2 MB.',
   );
 });
+
+test('oversized pixel count reports the real dimensions instead of an unnamed failure', async () => {
+  const originalDocument = globalThis.document;
+  const originalCreateImageBitmap = globalThis.createImageBitmap;
+  let closed = false;
+  try {
+    globalThis.createImageBitmap = async () => ({
+      width: 6500,
+      height: 4200,
+      close() {
+        closed = true;
+      },
+    });
+    globalThis.document = {
+      createElement() {
+        throw Error('Encoder must not run for an over-limit image.');
+      },
+    };
+    const source = new File([new Uint8Array(2_830_000)], 'photo.jpg', {
+      type: 'image/jpeg',
+    });
+    const result = await optimizeImage(source);
+    assert.equal(result.file, source);
+    assert.equal(result.optimized, false);
+    assert.equal(result.reason, 'pixel-limit');
+    assert.deepEqual([result.width, result.height], [6500, 4200]);
+    assert.equal(result.bestCandidateBytes, undefined);
+    assert.equal(closed, true);
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+    if (originalCreateImageBitmap === undefined) delete globalThis.createImageBitmap;
+    else globalThis.createImageBitmap = originalCreateImageBitmap;
+  }
+});
