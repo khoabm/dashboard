@@ -270,6 +270,9 @@ export async function liveFetch(request, env, { fetcher = fetch } = {}) {
       { signal },
     );
     const answer = decodeChatAnswer(generated, catalog);
+    // A cited public fact must have a usable source; never substitute general knowledge.
+    if (intent !== 'general' && !answer.ids.length)
+      return reply(200, { mode: 'ai', status: 'insufficient', answer: 'Mình chưa có bài đăng công khai đủ rõ để xác nhận câu trả lời. Em có thể hỏi lại kèm tên bài nhé.', sources: [], knowledge: 'board' });
     const sources = [
       ...new Map(
         answer.ids
