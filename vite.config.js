@@ -2,8 +2,11 @@
 
 import { defineConfig } from 'vite';
 export default defineConfig({
-  server: { host: '0.0.0.0', port: 4173, strictPort: true, allowedHosts: ['terminal.local', 'hoping-faced-coordinator-hopefully.trycloudflare.com'] },
+  server: { host: '0.0.0.0', port: 4173, strictPort: true, allowedHosts: ['terminal.local'] },
   build: { target: 'es2022' },
+  preview: {
+    allowedHosts: ['lives-advertisement-pants-pet.trycloudflare.com'],
+  },
   plugins: [
     {
       name: 'exclude-test-modules',
