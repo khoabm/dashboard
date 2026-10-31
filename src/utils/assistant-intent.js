@@ -41,6 +41,9 @@ export function routeAssistantIntent(query, history = []) {
   // A complete new explanatory question must not inherit an unrelated Board citation.
   if (clearScience && !/\b(?:bai do|noi dung do|hoat dong do)\b/.test(text))
     return { mode: 'general', followup: false };
+  // Short subject replies often answer a Board-specific clarification, not a new question.
+  if (lastBoard && /^(?:mon )?(?:van|toan|tieng anh|anh|vat ly|hoa hoc|sinh hoc|khoa hoc tu nhien|lich su|dia ly)(?: a| ah)?$/.test(text))
+    return { mode: 'board', followup: true };
   if (reference && lastAssistant)
     return { mode: lastBoard ? 'board' : 'general', followup: lastBoard };
   if (reference && !lastAssistant && /^(?:vay|the|con|the con|bai do|hoat dong do)\b/.test(text))
