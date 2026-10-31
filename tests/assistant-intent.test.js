@@ -131,3 +131,28 @@ test('TC-06 requires a requested exam time to appear in the cited subject eviden
     true,
   );
 });
+
+test('temporary offline formatter diagnostics for two changed files', async () => {
+  const fs = await import('node:fs');
+  const prettier = await import('prettier');
+  for (const path of ['src/utils/assistant-chat.js', 'tests/assistant-intent.test.js']) {
+    const original = fs.readFileSync(path, 'utf8');
+    const config = await prettier.resolveConfig(path);
+    const formatted = await prettier.format(original, { ...config, filepath: path });
+    if (original !== formatted) {
+      const before = original.split('\n');
+      const after = formatted.split('\n');
+      const mismatch = [];
+      for (let i = 0; i < Math.max(before.length, after.length); i++) {
+        if (before[i] !== after[i]) {
+          mismatch.push(i);
+          break;
+        }
+      }
+      console.log('FORMAT_DIAG_START', path);
+      console.log(formatted);
+      console.log('FORMAT_DIAG_END', path);
+      console.log('FIRST_MISMATCH', mismatch[0]);
+    }
+  }
+});
