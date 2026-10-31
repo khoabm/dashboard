@@ -224,7 +224,10 @@ test('styled roster XLSX preserves full data, widths, formatting, and safely han
     const files = unzipSync(styledXlsxBytes(rows, 'students'));
     const workbook = strFromU8(files['xl/workbook.xml']);
     assert.equal((workbook.match(/<sheet /g) || []).length, 1);
-    assert.match(strFromU8(files['xl/styles.xml']), /<fills count="[1-9]/);
+    const styles = strFromU8(files['xl/styles.xml']);
+    assert.match(styles, /<fills count="[1-9]/);
+    assert.match(styles, /numFmtId="49"/);
+    assert.match(styles, /quotePrefix="1"/);
     const sheet = strFromU8(files['xl/worksheets/sheet1.xml']);
     assert.match(sheet, /autoFilter ref="A4:D/);
     const readRows = (
