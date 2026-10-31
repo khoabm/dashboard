@@ -36,8 +36,7 @@ export function routeAssistantIntent(query, history = []) {
   if (asksGeneral && !asksBoard) return { mode: 'general', followup: false };
   if (/^(?:vay|the) (?:tai sao|vi sao|sao|do dau|giai thich)\b/.test(text) && !asksBoard)
     return { mode: 'general', followup: false };
-  if (practicalHowTo.test(text) && !asksBoard)
-    return { mode: 'general', followup: false };
+  if (practicalHowTo.test(text) && !asksBoard) return { mode: 'general', followup: false };
   if (asksBoard)
     return {
       mode: hybridSignals.test(text) ? 'hybrid' : 'board',
