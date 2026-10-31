@@ -164,3 +164,14 @@ PASS. Keep the requested PR Draft; no merge/main change or public website deploy
 Real personal data, real-device/Safari, managed concurrency and the project's broader
 operational/recovery gates are not established by this feature test. Localhost is the
 working test URL; the Quick Tunnel origin remains intentionally unauthorized by CORS.
+
+## XLSX presentation-only refinement — 2026-10-31
+
+Owner supplied `mau-bang-diem.xlsx` solely as a visual reference: one sheet, emerald header, wide columns and frozen header/identity columns. The new export remains independent of this file; no template bytes, samples or personal data are included in the repository.
+
+- XLSX roster: one named worksheet, readable main title and metadata line, header row 4, differentiated name/identifier/date/status columns, alternating pupil groups, sensitive-ID text preservation, explicit bounded widths, filters, frozen identity/header rows and print margins.
+- XLSX scores: **exactly two worksheets, `HKI` and `HKII`**, each with the complete sorted student list and all catalog subjects for its semester. The redundant mixed-semester column is removed only in XLSX; existing CSV matrix and API/DB contracts remain unchanged. Blank/zero/raw decimal strings remain exact, including leading zeros in identities. No extra grade summary or invented average.
+- Palette: emerald / muted mint, contrast-conscious white headings, minimal grid borders, restrained status color, 25-point data rows and landscape score printing. No formulas, macros, external links, persistent file storage or new runtime dependency.
+- New focused pure regression reads generated spreadsheets independently by sheet name and checks full per-semester row order, all columns, blank scores, exact decimals, empty/header-only roster and structural style/freeze/width tags. This is a source-only refinement; it requires no hosted calls, mutation, migration or function redeployment.
+
+This refinement changes **only** `src/utils/gradebook-export.js`, new `src/utils/gradebook-xlsx.js`, pure export tests and documentation. Existing administrative loader, sort behavior, authorization, CSV and original snapshot semantics are not modified.
