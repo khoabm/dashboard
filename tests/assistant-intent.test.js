@@ -2,7 +2,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { routeAssistantIntent, generalConversationHistory } from '../src/utils/assistant-intent.js';
-import { decodeChatAnswer, decodeHybridChatAnswer } from '../src/utils/assistant-chat.js';
+import {
+  decodeChatAnswer,
+  decodeHybridChatAnswer,
+  validateHybridRequestedTime,
+} from '../src/utils/assistant-chat.js';
 
 const boardHistory = [
   { role: 'user', content: 'Trong bài Lịch thi GK1, môn Văn thi lúc mấy giờ?' },
@@ -101,4 +105,23 @@ test('hybrid answer requires factual website part and separate explanation', () 
   for (const generated of [omitted, blank])
     assert.throws(() => decodeHybridChatAnswer(generated, catalog), /model_incomplete/);
   assert.throws(() => decodeHybridChatAnswer(fabricated, catalog), /model/);
+});
+
+test('TC-06 requires a requested exam time to appear in the cited subject evidence', () => {
+  const catalog = [
+    {
+      id: 'c0',
+      title: 'Lịch thi GK1',
+      body: 'Văn: 7g20, 90 phút; Toán: 9g20, 60 phút.',
+    },
+  ];
+  const question = 'Theo bài Lịch thi GK1, môn Văn thi lúc mấy giờ? Giải thích thêm cách ôn.';
+  assert.equal(validateHybridRequestedTime(question, 'Văn thi lúc 7g20.', catalog), true);
+  assert.equal(validateHybridRequestedTime(question, 'Môn Văn thi lúc 7 giờ 20 phút.', catalog), true);
+  assert.equal(validateHybridRequestedTime(question, 'Ngày 26/10 và em nên ôn Toán.', catalog), false);
+  assert.equal(validateHybridRequestedTime(question, 'Toán thi lúc 9g20.', catalog), false);
+  assert.equal(
+    validateHybridRequestedTime('Tóm tắt bài Lịch thi GK1.', 'Lịch có 3 môn.', catalog),
+    true,
+  );
 });
