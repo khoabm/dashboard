@@ -5,7 +5,8 @@ const boardSignals =
   /\b(?:bai dang|thong bao|bang hoc lieu|website|web nay|trang nay|tren web|tren trang|trong bai|theo bai|bai cua co|co dang|co co dang|co thong bao|lop minh|lop em|lop chung minh|trong lop|lich thi|lich kiem tra|thoi khoa bieu)\b/;
 const generalSignals =
   /^(?:tai sao|vi sao|do dau|nguyen nhan|dinh nghia|khai niem|the nao la|la gi|giai thich|phan biet|vi du ve|cho vi du ve|cong thuc|cach tinh)\b/;
-const explicitGeneral = /\b(?:kien thuc chung|theo khoa hoc|noi chung|khong lien quan (?:web|website|bai dang))\b/;
+const explicitGeneral =
+  /\b(?:kien thuc chung|theo khoa hoc|noi chung|khong lien quan (?:web|website|bai dang))\b/;
 const hybridSignals =
   /\b(?:giai thich them|lien he thuc te|ung dung thuc te|theo khoa hoc|tai sao|vi sao)\b/;
 const referring =
@@ -23,7 +24,9 @@ export function routeAssistantIntent(query, history = []) {
   const previousUser = [...history].reverse().find((turn) => turn.role === 'user');
   const lastBoard = Boolean(
     lastAssistant?.sourceIds?.length ||
-    (lastAssistant && previousUser && boardSignals.test(normalizeAssistantText(previousUser.content))),
+    (lastAssistant &&
+      previousUser &&
+      boardSignals.test(normalizeAssistantText(previousUser.content))),
   );
   const reference = referring.test(text);
   const asksBoard = boardSignals.test(text);
@@ -75,8 +78,7 @@ export function decodeIntentRoute(generated) {
     }
   }
   return (
-    { BOARD: 'board', GENERAL: 'general', HYBRID: 'hybrid', CLARIFY: 'clarify' }[
-      value?.mode
-    ] || 'clarify'
+    { BOARD: 'board', GENERAL: 'general', HYBRID: 'hybrid', CLARIFY: 'clarify' }[value?.mode] ||
+    'clarify'
   );
 }
