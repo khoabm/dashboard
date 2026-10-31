@@ -62,3 +62,23 @@ Planned merge inventory: `src/utils/assistant-intent.js` (pure route), `workers/
   fabricating complete answers; no automatic retry.
 - Follow-up: manual specialist tests, browser QA with isolated test Worker, and
   free-quota-bounded hosted validation (separate approval per AGENTS), not performed.
+
+
+## Owner follow-up QA — natural craft how-to + collapsed sources (2026-10-31)
+
+Confirmed from the owner's supplied browser screenshot and responses:
+- A generic how-to question about designing a conical hat was answered with Board-specific class assignments and shopping steps: wrong source choice. Generic how-to should default to GENERAL, even when a published post has a matching topic; an explicit "theo bài đăng/cô đăng" request remains BOARD.
+- The Owner sees source-origin notes after every live answer and large multiple source cards by default. The requested UI is *no visible origin status note*, and one accessible source collection per answer, collapsed by default, with smooth expand/collapse and reduced-motion accessibility.
+- The old publicly deployed Worker still predates PR #37; observed online behavior must not be misrepresented as an evaluation of new intent logic.
+
+Focused matrix before edit:
+
+| Concern | Evidence target | Allowed environment |
+| --- | --- | --- |
+| Generic how-to vs explicit Board how-to vs hybrid Board + natural explanation, even when prior history has Board sources | Parameterized pure router tests, no network | Curated CI |
+| General path never reads Supabase or invokes BGE | Additional fake-binding Worker specialist fixture | Manual offline; NOT RUN unless directly executed |
+| Hide ordinary general/Board origin note but retain honest hybrid response split | Source view DOM inspection / manual Chrome fixture | Browser manual; NOT RUN until browser access |
+| Two+ related post cards under one collapsed toggle, accessible keyboard/focus, no unwanted source action until deliberate expand | Synthetic Chromium browser scenario at 390 and 1280, zero external traffic; reduced motion | Manual offline; NOT RUN until runnable environment |
+| No effects on routes, Gradebook/Auth/RLS, no new dependencies, no broken output | Existing GitHub CI syntax, curated unit, build, format | GitHub Actions on changed HEAD |
+
+Inventory: `src/utils/assistant-intent.js`, `src/components/board-assistant.js`, `src/styles/board-assistant.css`, `tests/assistant-intent.test.js`, `tests/assistant-live.test.js`, `tests/assistant-intent-browser.cjs`, `docs/features/board-assistant/INTENT_AWARE_EXECPLAN.md`, `docs/BUG_FIX_LOG.md`, `docs/STATUS.md`. No new service/dependency/API/DB, no production Worker publish or authorized hosted QA traffic.
