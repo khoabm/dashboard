@@ -41,7 +41,8 @@ SPEC R01–R28 gốc chủ yếu mô tả Board/hạ tầng; nghiệp vụ Grade
 | src/utils/public-temporal.js | Injected Asia/Ho_Chi_Minh clock, civil ranges, typed date evidence, conservative date/number/uncertainty guards; no event schema or publication inference |
 | src/utils/assistant-learning.js | V2 deterministic intent/site profile and exact published inventory, one-question/three-source context validation and strict generated status/answer/IDs/coverage contract; no network/storage |
 | src/utils/assistant-diagnostics.js | Fixed failure-stage/reason identifiers and sanitized receipt projection shared by Worker/controller; no raw prompts, model responses, credentials or network |
-| src/utils/assistant-chat.js; workers/board-assistant/live.js | Normal ongoing chat protocol, fresh anonymous published Board read, BGE/Qwen hybrid/general answers, short native rate limit and recoverable errors; no Pilot admission/DO calls |
+| src/utils/assistant-intent.js | Pure Vietnamese conversational route and safe ambiguity decoder before any Board access; general-topic history projection; no network/state |\n| src/utils/image-compression.js | Browser-local JPEG/PNG/WebP optimization using Canvas, size-benefit threshold, pixel/resource bounds and original-file fallback. No SDK, network, provider or schema changes |
+| src/utils/assistant-chat.js; workers/board-assistant/live.js | Normal chat protocol, intent-first conditional published Board read, BGE only for Board/hybrid, bounded Qwen classification for uncertainty, natural/general responses and recoverable errors; no Pilot admission/DO calls |
 | src/components/board-assistant.js; src/styles/board-assistant.css | Native modal, memory-only bounded conversation, opt-in cloud disclosure, pending/cancel/error and explicit read-only action buttons; invalidated by Board refresh/route exit |
 | src/utils/board-assistant.js; src/services/board-assistant.js | Published-only public text projection, keyword fallback, exact-quote validation and action allowlist; disabled-by-default bounded no-retry transport, no Auth/Gradebook/history persistence |
 | workers/board-assistant/index.js; wrangler.jsonc | Separate BGE-M3/Qwen V1 excerpt/V2 grounded-answer preview Worker and SQLite Durable Object allowance/stop flag; loopback CORS, expiry and finite inference budget; no Supabase/D1/R2/content storage |
@@ -76,7 +77,6 @@ SPEC R01–R28 gốc chủ yếu mô tả Board/hạ tầng; nghiệp vụ Grade
 | tests/gradebook-ui.test.js | Curated pure unit validation/route/disposal/late-response plus pending admin entry and blocked-history regression; no API or SDK |
 | src/components/ | Render/interaction của 20 component tại SPEC R06; cleanup listeners khi unmount |
 | src/services/ | Một Supabase client; truy vấn/Auth/Storage/sync, trả lỗi rõ ràng; không thao tác DOM |
-| src/utils/image-compression.js | Browser-local JPEG/PNG/WebP optimization using Canvas, size-benefit threshold, pixel/resource bounds and original-file fallback. No SDK, network, provider or schema changes | 
 | src/utils/ | Hàm thuần kiểm tra URL/file, format, debounce, thứ tự; test logic có rủi ro |
 | src/config/ | Chỉ cấu hình public; kiểm tra thiếu cấu hình và hiện lỗi hữu ích |
 | src/data/ | Placeholder có nhãn; tách rõ mode demo khỏi backend thật |

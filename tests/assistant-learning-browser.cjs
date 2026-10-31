@@ -99,6 +99,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
     );
     await page.locator('.assistant-consent input').check();
     await ask('Giải thích bọt khí');
+    await page.locator('.assistant-sources-toggle').last().click();
     await page.locator('.assistant-source').last().waitFor();
     assert.equal(await page.locator('.assistant-learning-answer img').count(), 0);
     await page.evaluate(
@@ -123,6 +124,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
     );
     geometry.push(g);
     await page.screenshot({ path: `${output}/${width}x${height}.png` });
+    await page.locator('.assistant-sources-toggle').last().click();
     await page.getByRole('button', { name: 'Mở học liệu', exact: true }).last().click();
     await page.keyboard.press('Escape');
     await page.waitForTimeout(30);
@@ -132,6 +134,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
     );
     await page.locator('.assistant-trigger').click();
     await ask('khí');
+    await page.locator('.assistant-sources-toggle').last().click();
     await page.locator('.assistant-filter-button').last().click();
     assert.deepEqual(await page.evaluate(() => actions.at(-1)), { type: 'filter', ids: ['p'] });
     await page.locator('.assistant-trigger').click();
