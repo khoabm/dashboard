@@ -28,9 +28,10 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
     await page.goto('http://127.0.0.1:4173/tests/assistant-live-ui.html');
     await page.locator('.assistant-trigger').click();
     const ask = async (question) => {
+      const previous = await page.locator('.assistant-result').count();
       await page.locator('#assistant-query').fill(question);
       await page.locator('#assistant-query').press('Enter');
-      await page.locator('.assistant-result').last().waitFor();
+      await page.locator('.assistant-result').nth(previous).waitFor();
     };
 
     const mode = page.getByRole('combobox', { name: 'Kịch bản lỗi' });
