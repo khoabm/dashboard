@@ -248,9 +248,7 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
                 const width = compression.width;
                 const height = compression.height;
                 const megapixels = ((width * height) / 1_000_000).toFixed(1);
-                const safeBudget = ((compression.pixelBudget || 24_000_000) / 1_000_000).toFixed(
-                  0,
-                );
+                const safeBudget = ((compression.pixelBudget || 24_000_000) / 1_000_000).toFixed(0);
                 attempted =
                   `Chưa thực hiện nén: ảnh ${width} × ${height} px (${megapixels} MP) ` +
                   `vượt khả năng xử lý an toàn ${safeBudget} MP trên thiết bị này.`;
@@ -387,12 +385,7 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
         className: 'upload-optimize-choice',
       }),
       compressionSummary,
-      el(
-        'div',
-        { class: 'upload-compression-progress' },
-        verificationStatus,
-        cancelCompression,
-      ),
+      el('div', { class: 'upload-compression-progress' }, verificationStatus, cancelCompression),
     ),
     list,
     el(

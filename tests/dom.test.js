@@ -156,7 +156,7 @@ test('SwitchControl keeps the original checkbox state, events, and accessible la
 
 test('shared switch CSS does not inherit obsolete upload-checkbox layout', async () => {
   const { readFile } = await import('node:fs/promises');
-  const [shared,editor] = await Promise.all([
+  const [shared, editor] = await Promise.all([
     readFile(new URL('../src/styles/main.css', import.meta.url), 'utf8'),
     readFile(new URL('../src/styles/editor.css', import.meta.url), 'utf8'),
   ]);
@@ -196,35 +196,4 @@ test('shared switch animates only paint and thumb transform with reduced-motion 
     styles,
     /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.ui-switch-thumb[\s\S]*?transition: none/,
   );
-});
-
-
-test('temporary pinned Prettier diff diagnostic for final merge', async () => {
-  const prettier = await import('prettier');
-  const fs = await import('node:fs/promises');
-  const os = await import('node:os');
-  const path = await import('node:path');
-  const { spawnSync } = await import('node:child_process');
-  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'gradebook-prettier-diagnostic-'));
-  try {
-    for (const file of ['src/components/post-editor.js', 'tests/dom.test.js']) {
-      const source = await fs.readFile(file, 'utf8');
-      const formatted = await prettier.format(source, {
-        ...(await prettier.resolveConfig(file)),
-        filepath: file,
-      });
-      const before = path.join(directory, 'before');
-      const after = path.join(directory, 'after');
-      await fs.writeFile(before, source);
-      await fs.writeFile(after, formatted);
-      const result = spawnSync(
-        'diff',
-        ['-u', '--label', file + '.old', before, '--label', file + '.formatted', after],
-        { encoding: 'utf8' },
-      );
-      console.log('=== PRETTIER DIFF BEGIN ' + file + ' ===\n' + result.stdout + '\n=== PRETTIER DIFF END ===');
-    }
-  } finally {
-    await fs.rm(directory, { recursive: true, force: true });
-  }
 });
