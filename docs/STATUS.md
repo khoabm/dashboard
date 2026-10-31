@@ -1,3 +1,19 @@
+## 2026-10-31 — AI-IA01 owner follow-up F03 — general how-to and source disclosure
+
+Owner found conical-hat how-to incorrectly answered from a Board post; requested
+no repetitive provenance footer and default-collapsed smooth source cards.
+On `feature/ai-assistant-intent-aware-chat-20261031`, router now prefers
+generic practical instructions, keeps explicit Board queries, and UI groups
+all source cards/actions in one accessible initially collapsed disclosure
+with animated open/close and reduced-motion support. Updated pure unit and
+synthetic browser/legacy manual scenarios; source-only, no Auth/Gradebook/API,
+DB write, hosted Worker deploy or change to production.
+**CI/latest receipt to be verified on final HEAD; manual Browser/Worker E2E NOT RUN.**
+See [bug log](BUG_FIX_LOG.md), [execution plan](features/board-assistant/INTENT_AWARE_EXECPLAN.md)
+and [Draft PR #37](https://github.com/khoabm/dashboard/pull/37).
+
+---
+
 ## 2026-10-31 — AI-IA01 intent-aware live assistant / Draft PR #37
 
 Branch `feature/ai-assistant-intent-aware-chat-20261031`, base develop `b6f3405`. Implemented conversation-first
