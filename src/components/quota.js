@@ -60,9 +60,7 @@ export async function QuotaStatus(root) {
           el('span', { class: 'quota-metric-limit' }, 'Chưa thể thống kê'),
         ),
       ),
-      ...(warning
-        ? [el('p', { class: 'quota-warning', role: 'status' }, warning)]
-        : []),
+      ...(warning ? [el('p', { class: 'quota-warning', role: 'status' }, warning)] : []),
     );
   } catch {
     if (root.isConnected)

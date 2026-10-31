@@ -44,9 +44,9 @@ export function SelectControl(select, { label = '', className = '' } = {}) {
     trigger.disabled = select.disabled;
     trigger.setAttribute('aria-required', String(select.required));
     if (popup) {
-      entries.forEach((node, index) =>
-        node.setAttribute('aria-selected', String(index === select.selectedIndex)),
-      );
+      entries.forEach((node, index) => {
+        node.setAttribute('aria-selected', String(index === select.selectedIndex));
+      });
     }
   }
 
@@ -145,7 +145,8 @@ export function SelectControl(select, { label = '', className = '' } = {}) {
       popup.append(node);
       return node;
     });
-    (dialog() || document.body).append(popup);
+    // Calendar controls keep the popup in the calendar subtree for its outside-click rule.
+    (root.closest('.birthday-calendar') || dialog() || document.body).append(popup);
     try {
       popup.showPopover();
     } catch {

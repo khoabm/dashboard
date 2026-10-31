@@ -3010,3 +3010,14 @@
     flex: 1 1 130px;
   }
 }
+
+/* The birthday picker shares the custom month-selector shell with other form controls. */
+.birthday-navigation > .ui-select {
+  flex: 1 1 110px;
+  width: 100%;
+  min-width: 0;
+}
+.birthday-navigation > .ui-select .ui-select-trigger {
+  min-height: 44px;
+  padding-inline: 10px;
+}
