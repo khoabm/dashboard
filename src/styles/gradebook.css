@@ -2674,12 +2674,16 @@
   z-index: 4;
 }
 
-/* Shared table actions retain the Gradebook palette and native keyboard controls. */
+/* Export format and action form one unit; the outer toolbar may wrap, not its contents. */
 .gradebook-export-controls {
-  display: flex;
+  display: inline-grid;
+  grid-template-columns: minmax(0, 154px) max-content;
   align-items: center;
-  flex-wrap: wrap;
   gap: 8px;
+  flex: 0 1 auto;
+  min-width: 0;
+  width: max-content;
+  max-width: 100%;
   padding: 6px;
   border: 1px solid var(--line, #dfe7e2);
   border-radius: 14px;
@@ -2730,9 +2734,7 @@
 @media (max-width: 600px) {
   .gradebook-export-controls {
     width: 100%;
-  }
-  .gradebook-export-controls > * {
-    flex: 1 1 auto;
+    grid-template-columns: minmax(0, 1fr) max-content;
   }
 }
 
@@ -2985,11 +2987,16 @@
   min-height: 44px;
 }
 .gradebook-export-controls > .ui-select {
-  flex: 1 1 142px;
+  width: 100%;
   min-width: 0;
+  max-width: none;
 }
 .gradebook-export-controls > .ui-select .ui-select-trigger {
   width: 100%;
+}
+.gradebook-export-controls > .gradebook-export-button {
+  min-width: 0;
+  white-space: nowrap;
 }
 .teacher-scores .admin-actions > .ui-select:nth-child(2) {
   min-width: min(260px, 100%);
@@ -3007,7 +3014,7 @@
     flex: 1 1 160px;
   }
   .gradebook-export-controls > .ui-select {
-    flex: 1 1 130px;
+    min-width: 0;
   }
 }
 
