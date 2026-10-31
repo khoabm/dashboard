@@ -209,10 +209,117 @@ test('optimizer does not touch Office/PDF or fetch remote resources in a non-DOM
     file: documentFile,
     optimized: false,
     originalBytes: documentFile.size,
+    reason: 'unsupported',
   });
   assert.deepEqual(await optimizeImage(imageFile), {
     file: imageFile,
     optimized: false,
     originalBytes: imageFile.size,
+    reason: 'browser-unavailable',
   });
+});
+
+test('Canvas quality optimization preserves original pixel width and height', async () => {
+  const originalDocument = globalThis.document;
+  const originalCreateImageBitmap = globalThis.createImageBitmap;
+  let canvas;
+  let released = false;
+  const qualities = [];
+  try {
+    globalThis.createImageBitmap = async () => ({
+      width: 2800,
+      height: 1800,
+      close() {
+        released = true;
+      },
+    });
+    globalThis.document = {
+      createElement(name) {
+        assert.equal(name, 'canvas');
+        canvas = {
+          width: 0,
+          height: 0,
+          getContext() {
+            return {
+              drawImage(_bitmap, x, y, width, height) {
+                assert.deepEqual([x, y, width, height], [0, 0, 2800, 1800]);
+                assert.deepEqual([canvas.width, canvas.height], [2800, 1800]);
+              },
+            };
+          },
+          toBlob(callback, type, quality) {
+            assert.equal(type, 'image/webp');
+            qualities.push(quality);
+            const length = quality === 0.82 ? 2_350_000 : 1_650_000;
+            callback(new Blob([new Uint8Array(length)], { type }));
+          },
+        };
+        return canvas;
+      },
+    };
+    const source = new File([new Uint8Array(2_700_000)], 'picture.jpg', {
+      type: 'image/jpeg',
+    });
+    const result = await optimizeImage(source);
+    assert.equal(result.optimized, true);
+    assert.equal(result.file.size, 1_650_000);
+    assert.equal(result.file.name, 'picture.webp');
+    assert.deepEqual([result.width, result.height], [2800, 1800]);
+    assert.deepEqual(qualities, [0.82, 0.72]);
+    assert.equal(released, true);
+    assert.deepEqual([canvas.width, canvas.height], [0, 0]);
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+    if (originalCreateImageBitmap === undefined) delete globalThis.createImageBitmap;
+    else globalThis.createImageBitmap = originalCreateImageBitmap;
+  }
+});
+
+test('quality-only encoding reports the best failed candidate without altering source', async () => {
+  const originalDocument = globalThis.document;
+  const originalCreateImageBitmap = globalThis.createImageBitmap;
+  try {
+    globalThis.createImageBitmap = async () => ({
+      width: 2200,
+      height: 1600,
+      close() {},
+    });
+    globalThis.document = {
+      createElement() {
+        return {
+          width: 0,
+          height: 0,
+          getContext() {
+            return { drawImage() {} };
+          },
+          toBlob(callback, type, quality) {
+            const length = quality >= 0.72 ? 2_300_000 : 2_090_000;
+            callback(new Blob([new Uint8Array(length)], { type }));
+          },
+        };
+      },
+    };
+    const source = new File([new Uint8Array(2_700_000)], 'oversize.jpg', {
+      type: 'image/jpeg',
+    });
+    const result = await optimizeImage(source);
+    assert.equal(result.optimized, false);
+    assert.equal(result.file, source);
+    assert.equal(result.reason, 'still-too-large');
+    assert.equal(result.bestCandidateBytes, 2_090_000);
+    assert.deepEqual([result.width, result.height], [2200, 1600]);
+  } finally {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+    if (originalCreateImageBitmap === undefined) delete globalThis.createImageBitmap;
+    else globalThis.createImageBitmap = originalCreateImageBitmap;
+  }
+});
+
+test('file validation preserves the size boundary but uses concise Vietnamese text', () => {
+  assert.equal(
+    validateFile({ name: 'image.jpg', size: 2_000_000, type: 'image/jpeg' }),
+    'Mỗi tệp phải nhỏ hơn 2 MB.',
+  );
 });

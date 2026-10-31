@@ -49,7 +49,7 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
   const list = el('div', { class: 'editor-attachments' });
   const objectUrls = [];
   const verificationStatus = PulseIndicator();
-  const compressionSummary = el('p', {
+  const compressionSummary = el('div', {
     class: 'upload-compression-summary',
     role: 'status',
     'aria-live': 'polite',
@@ -125,7 +125,19 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
       list.append(row);
     });
   }
-  /** Keeps compression stats separate from saved attachment metadata. */
+  /** Keeps compression feedback visible even when the candidate is rejected. */
+  function showCompressionOutcome(name, description, accepted) {
+    compressionSummary.append(
+      el(
+        'p',
+        { class: `upload-compression-result ${accepted ? 'is-accepted' : 'is-rejected'}` },
+        el('strong', {}, name),
+        el('span', {}, description),
+      ),
+    );
+  }
+
+  /** Formats byte counts without changing the existing upload size boundary. */
   function displayBytes(value) {
     return value >= 1_000_000
       ? `${(value / 1_000_000).toFixed(2)} MB`
@@ -146,41 +158,89 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
     setPendingMessage(verificationStatus, `Đang kiểm tra ${pendingFiles} tệp đã chọn…`);
     pending = pending
       .then(async () => {
-        let compressedCount = 0;
+        compressionSummary.replaceChildren();
+        onError('');
+        const shouldOptimize = optimizeChoice.checked;
         for (const originalFile of selectedFiles) {
           if (destroyed) return;
           if (attachments.length >= 10) {
             onError('Mỗi bài tối đa 10 tài nguyên.');
+            showCompressionOutcome(originalFile.name, 'Không thêm được: đã đủ 10 tài nguyên.', false);
             continue;
           }
 
           let file = originalFile;
           let compression = null;
-          if (isOptimizableImage(originalFile) && optimizeChoice.checked) {
+          const image = isOptimizableImage(originalFile);
+          if (image && shouldOptimize) {
             if (originalFile.size > MAX_SOURCE_IMAGE_BYTES) {
-              onError('Ảnh gốc vượt quá 12 MB. Vui lòng thu nhỏ ảnh trên thiết bị trước khi chọn.');
+              onError('Ảnh gốc vượt quá 12 MB. Vui lòng chọn ảnh nhỏ hơn.');
+              showCompressionOutcome(
+                originalFile.name,
+                `Không nén: ảnh gốc ${displayBytes(originalFile.size)} vượt giới hạn xử lý 12 MB.`,
+                false,
+              );
               continue;
             }
             if (!(await verifyFileSignature(originalFile))) {
               onError(`Ảnh ${originalFile.name} không đúng định dạng.`);
+              showCompressionOutcome(originalFile.name, 'Không nén: định dạng ảnh không hợp lệ.', false);
               continue;
             }
-            setPendingMessage(verificationStatus, `Đang tối ưu ảnh ${originalFile.name}…`);
+            setPendingMessage(verificationStatus, `Đang nén ảnh ${originalFile.name}…`);
             compression = await optimizeImage(originalFile);
             file = compression.file;
           }
 
           if (destroyed) return;
           const error = validateFile(file, attachments.length);
-          if (error || !(await verifyFileSignature(file))) {
+          const validSignature = !error && (await verifyFileSignature(file));
+          if (error || !validSignature) {
             onError(error || `Tệp ${file.name} có nội dung không đúng định dạng.`);
+            if (image) {
+              const best = compression?.bestCandidateBytes;
+              const attempted = best
+                ? `Đã thử nén: ${displayBytes(originalFile.size)} → ${displayBytes(best)} (tốt nhất).`
+                : `Chưa nén được: ${displayBytes(originalFile.size)}.`;
+              showCompressionOutcome(
+                originalFile.name,
+                `${attempted} Không thêm ảnh vì ${error || 'định dạng không hợp lệ'}`,
+                false,
+              );
+            } else {
+              showCompressionOutcome(originalFile.name, error || 'Định dạng tệp không hợp lệ.', false);
+            }
             continue;
           }
           if (destroyed) return;
           const id = newId();
           if (compression?.optimized) {
-            compressedCount++;
             compressionSavings.set(id, { before: compression.originalBytes, after: file.size });
+            const reduction = Math.round((1 - file.size / originalFile.size) * 100);
+            showCompressionOutcome(
+              originalFile.name,
+              `Đã nén: ${displayBytes(originalFile.size)} → ${displayBytes(file.size)} (giảm ${reduction}%). Giữ nguyên độ phân giải.`,
+              true,
+            );
+          } else if (image) {
+            const explanation = !shouldOptimize
+              ? 'Đã tắt nén'
+              : compression?.reason === 'already-small'
+                ? 'Ảnh nhỏ, không cần nén'
+                : compression?.reason === 'not-beneficial'
+                  ? 'Nén không giảm đủ dung lượng'
+                  : 'Không thể nén trên thiết bị này';
+            showCompressionOutcome(
+              originalFile.name,
+              `${explanation}: giữ nguyên ${displayBytes(file.size)}.`,
+              true,
+            );
+          } else {
+            showCompressionOutcome(
+              originalFile.name,
+              `Tài liệu không nén, giữ nguyên ${displayBytes(file.size)}.`,
+              true,
+            );
           }
           attachments.push({
             id,
@@ -192,9 +252,6 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
           });
         }
         if (destroyed) return;
-        compressionSummary.textContent = compressedCount
-          ? `Đã tối ưu ${compressedCount} ảnh trước khi tải lên. Tệp gốc vẫn nằm trên thiết bị.`
-          : '';
         onChange(attachments);
         render();
       })
@@ -259,7 +316,7 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
       el(
         'p',
         { class: 'upload-optimize-hint' },
-        'Áp dụng cho JPG, PNG, WebP khi giảm được dung lượng. PDF và Office giữ nguyên. Không hỗ trợ video.',
+        'Chỉ giảm chất lượng mã hóa, giữ nguyên kích thước ảnh (pixel). PDF và Office giữ nguyên. Không hỗ trợ video.',
       ),
       compressionSummary,
       verificationStatus,
