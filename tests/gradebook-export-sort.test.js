@@ -242,6 +242,33 @@ test('styled roster XLSX preserves full data, widths, formatting, and safely han
   }
 });
 
+test('OOXML worksheet child elements follow Excel schema sequence without discarding rows', async () => {
+  for (const kind of ['students', 'scores']) {
+    const rows = exportRows(kind, entries, catalog);
+    const file = unzipSync(styledXlsxBytes(rows, kind));
+    const names = kind === 'scores' ? ['xl/worksheets/sheet1.xml', 'xl/worksheets/sheet2.xml'] :
+      ['xl/worksheets/sheet1.xml'];
+    for (const name of names) {
+      const xml = strFromU8(file[name]);
+      const start = xml.indexOf('</sheetData>');
+      const filter = xml.indexOf('<autoFilter ', start);
+      const merge = xml.indexOf('<mergeCells ', start);
+      const print = xml.indexOf('<printOptions ', start);
+      const margins = xml.indexOf('<pageMargins ', start);
+      const setup = xml.indexOf('<pageSetup ', start);
+      const footer = xml.indexOf('<headerFooter>', start);
+      assert.ok(start >= 0 && start < filter && filter < merge && merge < print &&
+        print < margins && margins < setup && setup < footer,
+        `${name}: SpreadsheetML CT_Worksheet child ordering must be valid`);
+      assert.match(xml, /<mergeCell ref="A1:[A-Z]+1"\/>/);
+      assert.match(xml, /<autoFilter ref="A4:[A-Z]+\d+"\/>/);
+    }
+    const independentlyRead = await readXlsxFile(Buffer.from(styledXlsxBytes(rows, kind)));
+    assert.equal(independentlyRead.length, names.length);
+    assert.equal(independentlyRead[0].data.length, kind === 'scores' ? (43 * 8 + 4) : (43 + 4));
+  }
+});
+
 test('styled XLSX rejects malformed widths and cannot expose workbook formulas', () => {
   assert.throws(() => styledXlsxBytes([['bad']], 'scores'));
   assert.throws(() => styledXlsxBytes([['bad']], 'students'));
