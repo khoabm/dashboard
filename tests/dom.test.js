@@ -127,6 +127,11 @@ test('SwitchControl keeps the original checkbox state, events, and accessible la
     assert.match(root.className, /ui-switch/);
     assert.match(root.className, /my-setting/);
     assert.equal(input.attributes.get('role'), 'switch');
+    assert.equal(input.attributes.get('aria-labelledby'), root.children[0].children[0].attributes.get('id'));
+    assert.equal(
+      input.attributes.get('aria-describedby'),
+      root.children[0].children[1].attributes.get('id'),
+    );
     assert.equal(root.children[1].children[0], input);
     assert.equal(root.children[1].children[1].attributes.get('aria-hidden'), 'true');
     assert.equal(root.children[0].children[0].typeName, 'strong');
