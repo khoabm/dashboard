@@ -127,3 +127,23 @@ Important limitations:
   syntax, build and unit contracts provide **offline evidence** only. Actual
   cross-device browser compression quality/performance and hosted upload remain
   owner-QA gates. Do not merge/deploy this Draft PR without approval.
+
+
+## 2026-10-31 — Focused upload progress UI polish
+
+- Replaced the standalone technical checkbox + long explanatory paragraph with a
+  compact, native-checkbox-backed **“Tự động nén ảnh”** choice. It has a concise
+  human-readable hint: **“Giảm dung lượng, giữ nguyên độ phân giải.”**
+- The option stays checked by default and preserves the original `optimizeChoice`
+  state, file validation and compression worker. CSS renders it as a themed
+  switch; keyboard, focus, label-click and screen-reader checkbox semantics
+  remain native.
+- Progress uses plain language (**“Đang chuẩn bị ảnh…”** /
+  **“Đang giảm dung lượng ảnh…”**) and places **“Dừng nén”** next to the
+  active status on the same surface. Both remain hidden when inactive.
+- Successful compression still appears once beside the selected attachment.
+  Failed/rejected file messages remain visible. Existing storage, API, database,
+  image pixel resolution, quotas, and cancellation behavior are unchanged.
+- Responsive layout targets narrow phones and desktop drawer widths. Automated
+  CI must pass on this revision; real device/browser visual acceptance remains
+  with the owner. No merge or deploy.
