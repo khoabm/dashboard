@@ -127,7 +127,10 @@ test('SwitchControl keeps the original checkbox state, events, and accessible la
     assert.match(root.className, /ui-switch/);
     assert.match(root.className, /my-setting/);
     assert.equal(input.attributes.get('role'), 'switch');
-    assert.equal(input.attributes.get('aria-labelledby'), root.children[0].children[0].attributes.get('id'));
+    assert.equal(
+      input.attributes.get('aria-labelledby'),
+      root.children[0].children[0].attributes.get('id'),
+    );
     assert.equal(
       input.attributes.get('aria-describedby'),
       root.children[0].children[1].attributes.get('id'),
@@ -184,7 +187,13 @@ test('shared switch animates only paint and thumb transform with reduced-motion 
   const { readFile } = await import('node:fs/promises');
   const styles = await readFile(new URL('../src/styles/main.css', import.meta.url), 'utf8');
   assert.match(styles, /\.ui-switch-thumb[\s\S]*?translate3d\(0, 0, 0\)/);
-  assert.match(styles, /\.ui-switch-input:checked \+ \.ui-switch-track \.ui-switch-thumb\s*\{\s*transform: translate3d\(18px, 0, 0\)/);
+  assert.match(
+    styles,
+    /\.ui-switch-input:checked \+ \.ui-switch-track \.ui-switch-thumb\s*\{\s*transform: translate3d\(18px, 0, 0\)/,
+  );
   assert.match(styles, /\.ui-switch:has\(\.ui-switch-input:focus-visible\)/);
-  assert.match(styles, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.ui-switch-thumb[\s\S]*?transition: none/);
+  assert.match(
+    styles,
+    /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.ui-switch-thumb[\s\S]*?transition: none/,
+  );
 });
