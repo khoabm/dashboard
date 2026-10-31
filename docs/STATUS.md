@@ -8,7 +8,7 @@ all source cards/actions in one accessible initially collapsed disclosure
 with animated open/close and reduced-motion support. Updated pure unit and
 synthetic browser/legacy manual scenarios; source-only, no Auth/Gradebook/API,
 DB write, hosted Worker deploy or change to production.
-**CI/latest receipt to be verified on final HEAD; manual Browser/Worker E2E NOT RUN.**
+**Offline CI PASS** at code commit `41c162f`: [run #41175566511](https://github.com/khoabm/dashboard/actions/runs/41175566511), covering curated pure unit, syntax/static, production Vite build and pinned Prettier. Manual Browser/Worker E2E **NOT RUN**; new Worker **NOT DEPLOYED**. Cloudflare Pages preview is UI-only against existing deployed Worker.
 See [bug log](BUG_FIX_LOG.md), [execution plan](features/board-assistant/INTENT_AWARE_EXECPLAN.md)
 and [Draft PR #37](https://github.com/khoabm/dashboard/pull/37).
 
