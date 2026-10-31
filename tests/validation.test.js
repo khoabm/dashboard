@@ -526,3 +526,39 @@ test('abort immediately terminates the large-image worker without changing the o
     else delete globalThis.navigator;
   }
 });
+
+
+test('temporary scoped formatting diagnostics for large-image feature', async () => {
+  const prettier = await import('prettier');
+  const fs = await import('node:fs/promises');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const { spawnSync } = await import('node:child_process');
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'large-image-format-'));
+  try {
+    for (const file of [
+      'src/components/post-editor.js',
+      'src/utils/image-compression-policy.js',
+      'src/utils/image-compression.js',
+      'tests/validation.test.js',
+    ]) {
+      const original = await fs.readFile(file, 'utf8');
+      const formatted = await prettier.format(original, {
+        ...(await prettier.resolveConfig(file)),
+        filepath: file,
+      });
+      const a = path.join(directory, 'before');
+      const b = path.join(directory, 'after');
+      await fs.writeFile(a, original);
+      await fs.writeFile(b, formatted);
+      const output = spawnSync(
+        'diff',
+        ['-u', '--label', file + ':BEFORE', a, '--label', file + ':AFTER', b],
+        { encoding: 'utf8' },
+      );
+      console.log('BEGIN LARGE IMAGE FORMAT ' + file + '\n' + output.stdout + '\nEND LARGE IMAGE FORMAT');
+    }
+  } finally {
+    await fs.rm(directory, { recursive: true, force: true });
+  }
+});
