@@ -146,3 +146,23 @@ test('TC-06 requires a requested exam time to appear in the cited subject eviden
     true,
   );
 });
+
+test('temporary format diagnostic for current UI and router', async () => {
+  const fs = await import('node:fs');
+  const prettier = await import('prettier');
+  for (const path of [
+    'src/components/board-assistant.js',
+    'src/utils/assistant-intent.js',
+    'tests/assistant-intent.test.js',
+    'tests/assistant-live-ui.js',
+  ]) {
+    const original = fs.readFileSync(path, 'utf8');
+    const config = await prettier.resolveConfig(path);
+    const formatted = await prettier.format(original, { ...config, filepath: path });
+    if (original !== formatted) {
+      console.log('UI_ROUTER_FORMAT_START', path);
+      console.log(formatted);
+      console.log('UI_ROUTER_FORMAT_END', path);
+    }
+  }
+});
