@@ -301,7 +301,10 @@ test('Board failure is not disguised as ordinary general knowledge', async () =>
     new Request('https://worker.test/chat', {
       method: 'POST',
       headers: { Origin: origin, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: 'Trong bài Lịch thi GK1, môn Văn kiểm tra lúc mấy giờ?', history: [] }),
+      body: JSON.stringify({
+        query: 'Trong bài Lịch thi GK1, môn Văn kiểm tra lúc mấy giờ?',
+        history: [],
+      }),
     }),
     h.env,
     { fetcher: async () => Response.json({ unavailable: true }, { status: 503 }) },
@@ -318,8 +321,7 @@ test('missing evidence for Board questions never becomes an uncited general answ
   const h = fixture();
   const original = h.env.AI.run;
   h.env.AI.run = async (model, input, options) => {
-    if (model.includes('bge'))
-      return original(model, input, options);
+    if (model.includes('bge')) return original(model, input, options);
     return { response: { answer: 'Thông báo này sẽ diễn ra lúc 8 giờ.', ids: [] } };
   };
   const r = await h.send('Trong bài Lịch thi GK1, môn Văn kiểm tra lúc mấy giờ?');
