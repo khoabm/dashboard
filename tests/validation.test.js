@@ -15,6 +15,10 @@ import {
   shouldUseCompressedImage,
   optimizeImage,
   MAX_SOURCE_IMAGE_BYTES,
+  MAX_IMAGE_PIXELS,
+  MAX_HIGH_RES_IMAGE_PIXELS,
+  compressionPixelBudget,
+  sniffImageDimensions,
 } from '../src/utils/image-compression.js';
 import {
   safeUrl,
@@ -356,5 +360,169 @@ test('oversized pixel count reports the real dimensions instead of an unnamed fa
     else globalThis.document = originalDocument;
     if (originalCreateImageBitmap === undefined) delete globalThis.createImageBitmap;
     else globalThis.createImageBitmap = originalCreateImageBitmap;
+  }
+});
+
+test('high-resolution processing budget considers worker support and actual device capacity', () => {
+  assert.equal(MAX_IMAGE_PIXELS, 24_000_000);
+  assert.equal(MAX_HIGH_RES_IMAGE_PIXELS, 60_000_000);
+  assert.equal(compressionPixelBudget({ workerAvailable: false, memoryGB: 8, cores: 8 }), 24_000_000);
+  assert.equal(compressionPixelBudget({ workerAvailable: true, memoryGB: 8, cores: 8 }), 60_000_000);
+  assert.equal(compressionPixelBudget({ workerAvailable: true, memoryGB: 4, cores: 8 }), 32_000_000);
+  assert.equal(compressionPixelBudget({ workerAvailable: true, memoryGB: 2, cores: 8 }), 24_000_000);
+  assert.equal(
+    compressionPixelBudget({ workerAvailable: true, cores: 8, maxTouchPoints: 0 }),
+    60_000_000,
+  );
+  assert.equal(
+    compressionPixelBudget({ workerAvailable: true, cores: 8, maxTouchPoints: 5 }),
+    24_000_000,
+  );
+});
+
+test('JPEG header preflight reads the original 8064×6048 resolution without decoding pixels', () => {
+  const jpeg = new Uint8Array([
+    0xff, 0xd8, 0xff, 0xe0, 0x00, 0x04, 0x00, 0x00,
+    0xff, 0xc0, 0x00, 0x11, 0x08, 0x17, 0xa0, 0x1f, 0x80,
+    0x03, 0x01, 0x11, 0x00,
+  ]);
+  assert.deepEqual(sniffImageDimensions(jpeg, 'image/jpeg'), {
+    width: 8064,
+    height: 6048,
+  });
+  assert.equal(8064 * 6048, 48_771_072);
+  assert.equal(sniffImageDimensions(jpeg, 'image/webp'), null);
+  const png = new Uint8Array(24);
+  png.set([0x89, 0x50, 0x4e, 0x47], 0);
+  new DataView(png.buffer).setUint32(16, 3200);
+  new DataView(png.buffer).setUint32(20, 2400);
+  assert.deepEqual(sniffImageDimensions(png, 'image/png'), {
+    width: 3200,
+    height: 2400,
+  });
+});
+
+test('eligible 48.77 MP image is encoded in a cancellable worker, not main-thread Canvas', async () => {
+  const oldWorker = globalThis.Worker;
+  const oldCanvas = globalThis.OffscreenCanvas;
+  const oldBitmap = globalThis.createImageBitmap;
+  const oldDocument = globalThis.document;
+  const navDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  let terminated = false;
+  let workerMessages = 0;
+  const progress = [];
+  try {
+    globalThis.Worker = class {
+      postMessage({ pixelBudget }) {
+        workerMessages++;
+        assert.equal(pixelBudget, 60_000_000);
+        queueMicrotask(() => {
+          this.onmessage({ data: { type: 'progress', stage: 'decode' } });
+          this.onmessage({
+            data: {
+              type: 'result',
+              optimized: true,
+              blob: new Blob([new Uint8Array(1_350_000)], { type: 'image/webp' }),
+              width: 8064,
+              height: 6048,
+            },
+          });
+        });
+      }
+      terminate() {
+        terminated = true;
+      }
+    };
+    globalThis.OffscreenCanvas = class {};
+    globalThis.createImageBitmap = () => {
+      throw Error('Main thread must not decode this large image.');
+    };
+    globalThis.document = {
+      createElement() {
+        throw Error('Main thread must not allocate a Canvas.');
+      },
+    };
+    Object.defineProperty(globalThis, 'navigator', {
+      configurable: true,
+      value: { deviceMemory: 8, hardwareConcurrency: 8, maxTouchPoints: 0 },
+    });
+    const head = new Uint8Array([
+      0xff, 0xd8, 0xff, 0xc0, 0, 17, 8, 0x17, 0xa0, 0x1f, 0x80,
+    ]);
+    const file = new File([head, new Uint8Array(2_829_094 - head.length)], 'photo.jpg', {
+      type: 'image/jpeg',
+    });
+    const result = await optimizeImage(file, { onProgress: (stage) => progress.push(stage) });
+    assert.equal(result.optimized, true);
+    assert.equal(result.file.type, 'image/webp');
+    assert.equal(result.file.name, 'photo.webp');
+    assert.equal(result.file.size, 1_350_000);
+    assert.deepEqual([result.width, result.height], [8064, 6048]);
+    assert.equal(workerMessages, 1);
+    assert.equal(terminated, true);
+    assert.ok(progress.includes('large-image'));
+  } finally {
+    if (oldWorker === undefined) delete globalThis.Worker;
+    else globalThis.Worker = oldWorker;
+    if (oldCanvas === undefined) delete globalThis.OffscreenCanvas;
+    else globalThis.OffscreenCanvas = oldCanvas;
+    if (oldBitmap === undefined) delete globalThis.createImageBitmap;
+    else globalThis.createImageBitmap = oldBitmap;
+    if (oldDocument === undefined) delete globalThis.document;
+    else globalThis.document = oldDocument;
+    if (navDescriptor) Object.defineProperty(globalThis, 'navigator', navDescriptor);
+    else delete globalThis.navigator;
+  }
+});
+
+test('abort immediately terminates the large-image worker without changing the original', async () => {
+  const oldWorker = globalThis.Worker;
+  const oldCanvas = globalThis.OffscreenCanvas;
+  const oldBitmap = globalThis.createImageBitmap;
+  const oldDocument = globalThis.document;
+  const navDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  let terminated = false;
+  try {
+    globalThis.Worker = class {
+      postMessage() {
+        // Simulate a long encode with no response until cancelled.
+      }
+      terminate() {
+        terminated = true;
+      }
+    };
+    globalThis.OffscreenCanvas = class {};
+    globalThis.createImageBitmap = () => {};
+    globalThis.document = {};
+    Object.defineProperty(globalThis, 'navigator', {
+      configurable: true,
+      value: { deviceMemory: 8, hardwareConcurrency: 8, maxTouchPoints: 0 },
+    });
+    const head = new Uint8Array([
+      0xff, 0xd8, 0xff, 0xc0, 0, 17, 8, 0x17, 0xa0, 0x1f, 0x80,
+    ]);
+    const file = new File([head, new Uint8Array(2_829_094 - head.length)], 'photo.jpg', {
+      type: 'image/jpeg',
+    });
+    const signal = new AbortController();
+    const pending = optimizeImage(file, { signal: signal.signal });
+    await new Promise((resolve) => setImmediate(resolve));
+    signal.abort();
+    const result = await pending;
+    assert.equal(result.optimized, false);
+    assert.equal(result.reason, 'cancelled');
+    assert.equal(result.file, file);
+    assert.equal(terminated, true);
+  } finally {
+    if (oldWorker === undefined) delete globalThis.Worker;
+    else globalThis.Worker = oldWorker;
+    if (oldCanvas === undefined) delete globalThis.OffscreenCanvas;
+    else globalThis.OffscreenCanvas = oldCanvas;
+    if (oldBitmap === undefined) delete globalThis.createImageBitmap;
+    else globalThis.createImageBitmap = oldBitmap;
+    if (oldDocument === undefined) delete globalThis.document;
+    else globalThis.document = oldDocument;
+    if (navDescriptor) Object.defineProperty(globalThis, 'navigator', navDescriptor);
+    else delete globalThis.navigator;
   }
 });

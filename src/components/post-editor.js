@@ -56,6 +56,13 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
   });
   const optimizeChoice = el('input', { type: 'checkbox', checked: true });
   const compressionSavings = new Map();
+  let processingAbort = null;
+  const cancelCompression = button(
+    'Hủy nén ảnh lớn',
+    () => processingAbort?.abort(),
+    'button subtle upload-compression-cancel',
+  );
+  cancelCompression.hidden = true;
   let pendingFiles = 0;
   // File signature checks finish before submission or local draft dismissal can proceed.
   let pending = Promise.resolve(),
@@ -196,7 +203,35 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
               continue;
             }
             setPendingMessage(verificationStatus, `Đang nén ảnh ${originalFile.name}…`);
-            compression = await optimizeImage(originalFile);
+            const controller = new AbortController();
+            processingAbort = controller;
+            try {
+              compression = await optimizeImage(originalFile, {
+                signal: controller.signal,
+                onProgress: (stage) => {
+                  if (destroyed) return;
+                  cancelCompression.hidden = false;
+                  const message =
+                    stage === 'decode'
+                      ? 'Đang giải mã ảnh độ phân giải cao…'
+                      : stage === 'encode'
+                        ? 'Đang mã hóa WebP và giữ nguyên độ phân giải…'
+                        : 'Đang chuẩn bị xử lý ảnh lớn trên thiết bị…';
+                  setPendingMessage(verificationStatus, message);
+                },
+              });
+            } finally {
+              if (processingAbort === controller) processingAbort = null;
+              cancelCompression.hidden = true;
+            }
+            if (compression.reason === 'cancelled') {
+              showCompressionOutcome(
+                originalFile.name,
+                'Đã hủy nén. Tệp gốc trên máy không bị thay đổi.',
+                false,
+              );
+              continue;
+            }
             file = compression.file;
           }
 
@@ -213,15 +248,22 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
                 const width = compression.width;
                 const height = compression.height;
                 const megapixels = ((width * height) / 1_000_000).toFixed(1);
+                const safeBudget = ((compression.pixelBudget || 24_000_000) / 1_000_000).toFixed(
+                  0,
+                );
                 attempted =
                   `Chưa thực hiện nén: ảnh ${width} × ${height} px (${megapixels} MP) ` +
-                  'vượt giới hạn xử lý 24 MP nhằm bảo vệ bộ nhớ thiết bị.';
+                  `vượt khả năng xử lý an toàn ${safeBudget} MP trên thiết bị này.`;
               } else if (reason === 'encode-unavailable') {
                 attempted = 'Không tạo được ảnh WebP trên trình duyệt này.';
               } else if (reason === 'encoding-failed') {
                 attempted = 'Quá trình giải mã hoặc mã hóa ảnh thất bại (có thể do bộ nhớ).';
               } else if (reason === 'browser-unavailable') {
                 attempted = 'Trình duyệt không hỗ trợ xử lý ảnh bằng Canvas.';
+              } else if (reason === 'worker-unavailable') {
+                attempted = 'Trình duyệt không hỗ trợ xử lý ảnh lớn trong tác vụ riêng.';
+              } else if (reason === 'timeout') {
+                attempted = 'Đã dừng nén ảnh lớn vì xử lý quá lâu; tệp gốc được giữ nguyên.';
               } else if (reason === 'still-too-large' && best) {
                 attempted =
                   `Đã thử nén: ${displayBytes(originalFile.size)} → ` +
@@ -353,9 +395,10 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
       el(
         'p',
         { class: 'upload-optimize-hint' },
-        'Chỉ giảm chất lượng mã hóa, giữ nguyên kích thước ảnh (pixel). PDF và Office giữ nguyên. Không hỗ trợ video.',
+        'Giữ nguyên kích thước ảnh (pixel). Ảnh lớn được xử lý khi thiết bị hỗ trợ; có thể hủy. PDF và Office giữ nguyên. Không hỗ trợ video.',
       ),
       compressionSummary,
+      cancelCompression,
       verificationStatus,
     ),
     list,
@@ -370,6 +413,7 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
   root.whenReady = () => pending;
   root.cleanup = () => {
     destroyed = true;
+    processingAbort?.abort();
     compressionSavings.clear();
     objectUrls.forEach((url) => URL.revokeObjectURL(url));
   };

@@ -86,3 +86,44 @@ contracts are unchanged. This is an explanatory UI correction, **not**
 confirmation of the cause for the owner’s specific file; the unchanged source
 JPG is required for that determination. Packaging the JPG in a ZIP archive
 before attaching it to ChatGPT preserves the original file for inspection.
+
+
+## 2026-10-31 — Safe 48.77 MP trial (owner-approved follow-up)
+
+The original ZIP's source JPEG is **2,829,094 bytes, 8,064 × 6,048 pixels
+(48,771,072 pixels = 48.77 MP)**, not a compressed chat preview. A previous
+24 MP guard rejected this JPEG before WebP encoding; it was not a case of
+WebP being inherently unable to fit below 2 MB.
+
+The new code retains the previous 24 MP main-thread Canvas ceiling, but can
+select a separate **module Web Worker + OffscreenCanvas** path for high-resolution
+images. The worker decodes/encodes at the original pixel dimensions, attempts
+the existing WebP quality sequence, and returns a candidate only when the
+existing strict <2 MB rule passes.
+
+Safety gates are conservative advisory capacity checks:
+- No Worker/OffscreenCanvas/createImageBitmap: max 24 MP as before.
+- Worker present, reported memory >=4 GB and >=4 logical cores: up to 32 MP.
+- Worker present, memory >=8 GB and >=4 logical cores: up to **60 MP**.
+- If memory is not reported, the 60 MP tier is only used on desktops reporting
+  >=8 logical cores and zero touch points; touch devices without a memory
+  estimate remain at 24 MP.
+- JPEG and PNG pixel dimensions are inspected from small header slices to reject
+  over-budget images **before** allocating decoded bitmap/canvas memory.
+  The worker independently verifies the decoded dimensions.
+- Large-image Worker has an **90-second deadline** and a visible **Hủy nén ảnh lớn**
+  action; closing the editor aborts/terminates it. Failed/unsupported/timed-out
+  tasks retain the original file and are subject to the same 2 MB upload rule.
+
+Important limitations:
+- Browser navigator.deviceMemory is an approximate advisory, not a guarantee
+  of free RAM. A 49 MP encode can require several hundred MB of temporary
+  memory even inside a Worker. Unsupported devices are intentionally refused.
+- Web Worker isolation helps avoid UI-thread freezing but cannot guarantee
+  that every browser will remain responsive under heavy memory pressure.
+- No file is ever uploaded solely to test compression; no server, bucket,
+  database, API, Edge, Auth, package, Cloudflare or storage-quota change.
+- Tests of pure budget/header policies, worker response/cancellation wiring,
+  syntax, build and unit contracts provide **offline evidence** only. Actual
+  cross-device browser compression quality/performance and hosted upload remain
+  owner-QA gates. Do not merge/deploy this Draft PR without approval.

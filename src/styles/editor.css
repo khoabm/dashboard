@@ -976,3 +976,31 @@
   background: #fff7f1;
   color: #855137;
 }
+
+/* High-resolution encoding runs in a Worker; show cancellation only while it is active. */
+.upload-zone .upload-compression-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  max-width: 100%;
+  margin: 10px auto 2px;
+  border: 1px solid #c2d8c9;
+  border-radius: 10px;
+  background: #fff;
+  color: #275c43;
+  font-size: 13px;
+  font-weight: 650;
+}
+.upload-zone .upload-compression-cancel[hidden] {
+  display: none;
+}
+.upload-zone .upload-compression-cancel:focus-visible {
+  outline: 3px solid rgba(54, 124, 88, 0.24);
+  outline-offset: 2px;
+}
+@media (max-width: 600px) {
+  .upload-zone .upload-compression-cancel {
+    width: 100%;
+  }
+}
