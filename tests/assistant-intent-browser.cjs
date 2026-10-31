@@ -1,4 +1,4 @@
-/** Manual synthetic Chromium QA of live response labels; blocked external traffic, outside curated CI. */
+/** Manual localhost Chromium QA: response content and collapsed sources; no external HTTP. */
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core');
@@ -27,32 +27,48 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
     await page.setViewportSize({ width, height });
     await page.goto('http://127.0.0.1:4173/tests/assistant-live-ui.html');
     await page.locator('.assistant-trigger').click();
-    const ask = async (text) => {
-      await page.locator('#assistant-query').fill(text);
+    const ask = async (question) => {
+      await page.locator('#assistant-query').fill(question);
       await page.locator('#assistant-query').press('Enter');
       await page.locator('.assistant-result').last().waitFor();
     };
-    await page.getByRole('combobox', { name: 'Kịch bản lỗi' }).selectOption('answer');
-    await ask('Tại sao bầu trời màu xanh?');
-    assert.match(
-      await page.locator('.assistant-result').last().textContent(),
-      /Kiến thức chung do AI tạo/,
-    );
-    assert.equal(await page.locator('.assistant-result').last().locator('.assistant-source').count(), 0);
 
-    await page.getByRole('combobox', { name: 'Kịch bản lỗi' }).selectOption('board');
-    await ask('Trong bài Lịch thi GK1, Văn thi lúc mấy giờ?');
-    assert.match(
-      await page.locator('.assistant-result').last().textContent(),
-      /Thông tin từ bài đăng công khai/,
+    const mode = page.getByRole('combobox', { name: 'Kịch bản lỗi' });
+    await mode.selectOption('answer');
+    await ask('Chỉ tôi cách thiết kế nón lá đi');
+    assert.match(await page.locator('.assistant-result').last().textContent(), /Đã nhận/);
+    assert.equal(await page.locator('.assistant-answer-note').count(), 0);
+    assert.equal(await page.locator('.assistant-source').count(), 0);
+
+    await mode.selectOption('board');
+    await ask('Theo bài Lịch thi GK1, môn Văn thi lúc mấy giờ?');
+    const result = page.locator('.assistant-result').last();
+    const toggle = result.locator('.assistant-sources-toggle');
+    const panel = result.locator('.assistant-sources-panel');
+    assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
+    assert.equal(await panel.getAttribute('aria-hidden'), 'true');
+    assert.equal(await panel.evaluate((el) => el.inert), true);
+    assert.equal(await result.locator('.assistant-source').count(), 1);
+    assert.equal(await result.locator('.assistant-answer-note').count(), 0);
+    assert.equal(await result.getByRole('button', { name: 'Mở học liệu' }).count(), 0);
+
+    await toggle.click();
+    assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
+    assert.equal(await panel.evaluate((el) => el.inert), false);
+    await result.getByRole('button', { name: 'Mở học liệu' }).waitFor();
+    await toggle.click();
+    assert.equal(await panel.getAttribute('aria-hidden'), 'true');
+    assert.equal(await panel.evaluate((el) => el.inert), true);
+    assert.equal(await result.getByRole('button', { name: 'Mở học liệu' }).count(), 0);
+
+    await mode.selectOption('hybrid');
+    await ask('Theo bài Lịch thi GK1, giải thích thêm cách ôn tập.');
+    assert.equal(await page.locator('.assistant-answer-note').count(), 0);
+    assert.equal(
+      await page.locator('.assistant-result').last().locator('.assistant-sources-toggle').count(),
+      1,
     );
-    assert.equal(await page.locator('.assistant-result').last().locator('.assistant-source').count(), 1);
-    await page.getByRole('combobox', { name: 'Kịch bản lỗi' }).selectOption('hybrid');
-    await ask('Giải thích thêm về bài đăng của cô');
-    assert.match(
-      await page.locator('.assistant-result').last().textContent(),
-      /Kết hợp bài đăng công khai và giải thích từ AI/,
-    );
+
     const geometry = await page.evaluate(() => ({
       documentWidth: document.documentElement.scrollWidth,
       viewportWidth: innerWidth,
@@ -66,15 +82,24 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
     captures.push({ width, height, ...geometry });
     await page.screenshot({ path: `${output}/chat-${width}x${height}.png` });
 
-    await page.getByRole('combobox', { name: 'Kịch bản lỗi' }).selectOption('rate_limit');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    assert.equal(
+      await page.locator('.assistant-sources-panel').last().evaluate(
+        (element) => getComputedStyle(element).transitionDuration,
+      ),
+      '0s',
+    );
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+
+    await mode.selectOption('rate_limit');
     await page.locator('#assistant-query').fill('Xin chào');
     await page.locator('#assistant-query').press('Enter');
     await page.getByRole('alert').filter({ hasText: '10 giây' }).waitFor();
     assert.equal(await page.locator('.assistant-consent input').isDisabled(), false);
 
-    await page.getByRole('combobox', { name: 'Kịch bản lỗi' }).selectOption('answer');
+    await mode.selectOption('answer');
     await ask('Em hỏi lại nhé');
-    assert.match(await page.locator('.assistant-result').last().textContent(), /Kiến thức chung/);
+    assert.match(await page.locator('.assistant-result').last().textContent(), /Đã nhận/);
     await page.keyboard.press('Escape');
     await page.locator('.assistant-trigger').focus();
     assert.equal(await page.locator('#assistant-dialog').count(), 0);
@@ -82,7 +107,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
   assert.equal(external, 0);
   fs.writeFileSync(`${output}/browser-results.json`, JSON.stringify({ captures, external }, null, 2));
   await browser.close();
-  console.log('PASS: synthetic general/Board/hybrid labels, source actions, 429 recovery, mobile/desktop no overflow');
+  console.log('PASS: synthetic Board/general/hybrid, initially collapsed citations, keyboard/accessibility, reduced motion, 429 recovery, mobile and desktop');
 })().catch((error) => {
   console.error(error);
   process.exit(1);
