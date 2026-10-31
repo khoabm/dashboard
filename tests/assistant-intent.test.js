@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { routeAssistantIntent, generalConversationHistory } from '../src/utils/assistant-intent.js';
+import { decodeChatAnswer, decodeHybridChatAnswer } from '../src/utils/assistant-chat.js';
 
 const boardHistory = [
   { role: 'user', content: 'Trong bài Lịch thi GK1, môn Văn thi lúc mấy giờ?' },
@@ -68,4 +69,41 @@ test('general conversation removes pairs tied to revoked or unrelated Board sour
     { role: 'user', content: 'Vì sao bầu trời xanh?' },
     { role: 'assistant', content: 'Do tán xạ ánh sáng.' },
   ]);
+});
+
+test('rejects unfinished model clauses and explicit output token truncation', () => {
+  assert.throws(
+    () => decodeChatAnswer({ response: { answer: 'Bầu trời màu xanh vì ánh sáng bị', ids: [] } }, [], { structured: true }),
+    /model_incomplete/,
+  );
+  assert.throws(
+    () => decodeChatAnswer({ response: { answer: 'Bầu trời xanh.', ids: [] }, finish_reason: 'length' }, [], { structured: true }),
+    /model_incomplete/,
+  );
+  assert.throws(
+    () => decodeChatAnswer({ response: 'Bầu trời xanh vì', finish_reason: 'stop' }, [], { structured: true }),
+    /model_incomplete/,
+  );
+});
+
+test('hybrid answer requires factual website part and separate explanation', () => {
+  const catalog = [{ id: 'c0', title: 'Lịch thi GK1', body: 'Môn Văn thi lúc 7g20, 90 phút.' }];
+  const model = { response: { website: 'Môn Văn thi lúc 7g20.', general: 'Em nên chia thời gian ôn tập thành những khoảng ngắn.', ids: ['c0'] } };
+  const answer = decodeHybridChatAnswer(model, catalog);
+  assert.match(answer.answer, /Theo bài đăng:\nMôn Văn thi lúc 7g20/);
+  assert.match(answer.answer, /Giải thích thêm:\nEm nên chia thời gian/);
+  assert.deepEqual(answer.ids, ['c0']);
+
+  assert.throws(
+    () => decodeHybridChatAnswer({ response: { answer: 'Em hãy ôn tập đều.', ids: ['c0'] } }, catalog),
+    /model_incomplete/,
+  );
+  assert.throws(
+    () => decodeHybridChatAnswer({ response: { website: 'Văn 7g20.', general: '', ids: ['c0'] } }, catalog),
+    /model_incomplete/,
+  );
+  assert.throws(
+    () => decodeHybridChatAnswer({ response: { website: 'Văn 7g20.', general: 'Ôn bài.', ids: ['fake'] } }, catalog),
+    /model/,
+  );
 });
