@@ -11,8 +11,15 @@ Offline CI171/171, syntax/static, full Prettier and build/exclusion PASS. Manual
 PostgreSQL17.11 snapshot assertions PASS/rolled back; three manual Web Crypto/Edge
 synthetic cases PASS. Owner Chrome keyboard/draft/error checks and iframe360/390/768/
 1024/1440 layouts PASS; native XLSX download confirmed by the owner on2026-10-31.
-**Source/offline implementation; NOT production/E2E complete.** New migration/Edge
-NOT DEPLOYED; hosted requests0, real data0. [Matrix, inventory, attempts and gates](features/personal-gradebook/FULL_EXPORT_SORT.md).
+**GB-10 bounded synthetic hosted acceptance PASS.** Owner approved deployment/tests and
+confirmed all 31 existing records synthetic; no student/score edits or deletes. Migration
+applied as ledger 20261031002916; grades-admin v7 (verify_jwt=true), exact source verified.
+Actual localhost Chrome: complete 31-row pagination/sorting and four CSV/XLSX export flows;
+missing-JWT/direct-RPC401. Final fingerprints:31 students / 62 scores unchanged; existing
+functions unchanged. Four manual SQL calls; client API test budget≤21 including preflights
+and negatives; Auth/bootstrap/internal RPC traffic accounted separately in the evidence.
+No 429/503/timeout/retry. CORS correctly blocks Quick Tunnel; localhost is the test URL.
+No public website deployment/merge or real-data acceptance. [Receipts, counts and limits](features/personal-gradebook/FULL_EXPORT_SORT.md#approved-hosted-follow-up--2026-10-31).
 
 ---
 

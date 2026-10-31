@@ -1,10 +1,12 @@
-# 2026-10-31 — Full export and global sorting source / Draft PR #34
+# 2026-10-31 — Full export and global sorting accepted on synthetic hosted data / Draft PR #34
 
 Owner amendment [BRIEF GB-10](BRIEF.md#gb-10--full-export-and-table-sorting-owner-amendment-2026-10-31)
 adds full CSV/XLSX exports, header-only empty exports and shared global table sorting.
 [Implementation, security boundary and exact acceptance evidence](FULL_EXPORT_SORT.md).
-Source/offline checks PASS; new deployment/hosted acceptance NOT RUN; native Chrome
-XLSX download owner-confirmed. Existing real-data/release gates remain separate.
+Source/offline checks and bounded synthetic hosted acceptance PASS: migration applied,
+grades-admin v7 verified, localhost Chrome reads/sorts/exports all 31 records. Data
+fingerprints unchanged (31 students / 62 scores); no deletions. Native XLSX download
+owner-confirmed. Existing real-data/release gates remain separate.
 
 ---
 

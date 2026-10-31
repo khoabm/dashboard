@@ -91,6 +91,20 @@ A **separately authorized deployment task** must:
 The reveal correction targets only `public.gb_student_read(uuid,uuid,uuid,bigint,boolean)`, adding stored identity context to the server-only reveal branch. Its audit is an authorized DB request, not proof of Edge decryption/display; ordinary DTOs stay unchanged. [GB-B4-INT-001 evidence](features/personal-gradebook/B4_INTEGRATION_REVIEW.md): seven focused disposable SQL groups PASS; B4 crypto/hosted security NOT RUN. That historical correction review applied no migration; CP01-C later applied the exact reviewed SQL as recorded above.
 
 
-## Gradebook class snapshot migration — NOT APPLIED / 2026-10-31
+## Gradebook class snapshot migration — APPLIED / 2026-10-31
 
-`20261031001500_gradebook_class_snapshot.sql` adds only public.gb_class_snapshot(uuid,uuid,uuid,boolean), SECURITY INVOKER, empty search_path, EXECUTE revoked from PUBLIC/anon/authenticated and granted only to service_role. Common class share lock and active actor/session recheck precede roster/both-semester projection; fail closed above2000 students with PT413, not retryable SQLSTATE. Existing migrations, tables, RLS and RPC definitions are unchanged. Native PostgreSQL17.11 synthetic chain plus tests/gradebook-snapshot.sql PASS/rolled back; hosted application, deployment and concurrency verification NOT RUN. CLI was unavailable (no installed binary and registry resolution failed); this additive draft filename was created locally, not applied through CLI. [Evidence/rollout gates](features/personal-gradebook/FULL_EXPORT_SORT.md).
+Reviewed source `20261031001500_gradebook_class_snapshot.sql` applied once through MCP
+as **20261031002916 / gradebook_class_snapshot**, after explicit owner authorization.
+The canonical repo file is now `20261031002916_gradebook_class_snapshot.sql`; the rename
+from reviewed source is byte-identical and aligns the ledger without any reapplication.
+Adds only public.gb_class_snapshot(uuid,uuid,uuid,boolean), SECURITY INVOKER, empty
+search_path, fixed timeouts; anon/authenticated EXECUTE=false and service_role=true.
+Existing application-function fingerprint is unchanged. No old migration replay/repair,
+new table/RLS policy/client grant, data cleanup or student/score mutation.
+
+Hosted Chrome confirms 31 synthetic students and 4 complete export snapshots; missing-JWT
+and anonymous direct-RPC calls return 401. Four manual SQL inspections verify final
+student/score data fingerprints unchanged (31/62 rows). Native PostgreSQL17.11 synthetic
+SQL evidence is retained separately; hosted managed concurrency remains NOT RUN.
+CLI was unavailable during initial source creation; MCP generated the applied ledger
+version recorded above. [Detailed deployment/acceptance](features/personal-gradebook/FULL_EXPORT_SORT.md#approved-hosted-follow-up--2026-10-31).

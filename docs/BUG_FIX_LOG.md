@@ -20,8 +20,13 @@ Baseline `4d9539407cdb62ccd772abf1005d02c13947c734`, branch
 Evidence: curated171/171, check, full format and build PASS; three network-denying
 Web Crypto/Edge cases PASS; native PostgreSQL17.11 specialist PASS with rollback;
 owner Chrome synthetic keyboard/profile/draft/error and iframe responsive QA PASS.
-Native XLSX download owner-confirmed2026-10-31; hosted/new deployment/real Auth acceptance NOT RUN.
-No migration/Edge/website deploy, real student data or Supabase hosted requests.
+Native XLSX download owner-confirmed2026-10-31. Subsequent owner-approved follow-up
+applied ledger 20261031002916 and grades-admin v7; exact source matched 95d925a. Real
+localhost Auth/Edge/DB reads/global sorting and 4 full export snapshots PASS on owner-
+confirmed synthetic data; missing-JWT/direct-RPC401. Four manual SQL calls verify
+31 students / 62 scores unchanged, no deletions or score writes. No public website deploy
+or real-data acceptance. Client test scope≤21 HTTP requests including preflights/negatives;
+provider-internal/bootstrap traffic is distinguished in the linked evidence.
 [Detailed attempts, limitations and acceptance](features/personal-gradebook/FULL_EXPORT_SORT.md).
 
 # Nhật ký khắc phục lỗi
@@ -325,7 +330,7 @@ Actual enabled localhost4173 QA found the accepted offline form still said infor
 
 ## 2026-10-27 — GB-CP06-B-CATALOG / P2: teacher loader omits class scope (FIXED OFFLINE)
 
-Baseline64b6e92, feature/personal-gradebook. GradebookScores previously called loadCatalog with only signal; accepted B4 catalog.read requires classId. It now passes currentClass.id through createTeacherCatalog/the shared teacher session transport. Pure strict V1 projection and specialist catalog scope/header tests PASS; actual Chrome score workspace loads all8 subjects/7 columns through synthetic HTTP boundary. Server authorization/migrations unchanged; production transport disabled; hosted integration NOT RUN.
+Baseline64b6e92, feature/personal-gradebook. GradebookScores previously called loadCatalog with only signal; accepted B4 catalog.read requires classId. It now passes currentClass.id through createTeacherCatalog/the shared teacher session transport. Pure strict V1 projection and specialist catalog scope/header tests PASS; actual Chrome score workspace loads all 8 subjects/7 columns through synthetic HTTP boundary. Server authorization/migrations unchanged; production transport disabled; hosted integration NOT RUN.
 
 ## 2026-10-27 — GB-CP06-B-EMPTY / P3: unavailable class renders false text (FIXED OFFLINE)
 

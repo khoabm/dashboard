@@ -3,7 +3,10 @@
 Branch `feature/gradebook-full-export-sort-20261031`, starting HEAD
 `4d9539407cdb62ccd772abf1005d02c13947c734`, base `develop` at `2e6c173`.
 Canonical owner requirements: [BRIEF GB-10](BRIEF.md#gb-10--full-export-and-table-sorting-owner-amendment-2026-10-31).
-Source/offline implementation; deployment and hosted acceptance NOT RUN.
+Source implementation and bounded synthetic hosted acceptance PASS on 2026-10-31.
+Owner authorized migration/testing, confirmed all 31 existing records are synthetic,
+and explicitly required preserving them. No student or score writes/deletes were run. Empty-class/header-only behavior remains
+covered offline; no hosted data was removed to manufacture an empty test case.
 
 ## Concern matrix and merge inventory
 
@@ -23,7 +26,7 @@ and replaces their build/test references with header-only export coverage.
 | Drafts/keyboard/responsive | Chrome on owner's computer, synthetic `/tests/gradebook-workspace.html`; Enter sort and restored header focus; decimal7.12345 and draft retention; existing “Xem” information/hidden CCCD/Escape close preserved; real iframe sizes360/390/768/1024/1440, no page overflow, table-only horizontal scroll |
 | Errors/loading/lifecycle | Existing page pulse/inert state observed during delayed export; finite fixture fault injection, no automatic retries; existing gate cancellation tests; browser-specific evidence recorded below |
 | CI | One `test:ci` execution:171/171 PASS; syntax/credential/diff check PASS; production build/exclusion PASS; complete Prettier PASS. New pure file is explicit in CI; Edge/SQL/browser remain manual-only |
-| Hosted/real data | NOT RUN: new RPC/function deployment, actual gateway/Auth/RLS integration, managed concurrency, production data/export, real mobile devices/Safari. Supabase hosted requests/queries0; no real student data, merge, paid resources or deployment |
+| Hosted / real data | Approved synthetic hosted run PASS: migration applied, grades-admin v7 deployed and source-verified; real admin session, complete snapshot and four CSV/XLSX export flows; missing-JWT/direct-RPC401; row fingerprints unchanged. Real personal data, managed concurrency, real devices/Safari and public website deployment NOT RUN |
 
 Inventory: `gradebook-admin.js`, `gradebook-scores.js`, shared `gradebook-table-controls.js`,
 `gradebook-export.js`, `gradebook-snapshot.js`, decoded admin responses, bounded transport,
@@ -40,7 +43,7 @@ Pre-existing lockfile and local tunnel/Vite changes are excluded from the featur
 `class.snapshot` accepts only classId, purpose (`sort` or `export`) and optional confirmed.
 Export requires confirmed=true. Normal JWT verification/getUser/active-admin check runs
 before the RPC, which independently checks the actor/session under the common class
-share lock. All existing Gradebook mutations take the corresponding class write lock;
+share lock. The existing 31 records were owner-confirmed synthetic; tests never changed/deleted them. All existing Gradebook mutations take the corresponding class write lock;
 one snapshot contains roster and both semesters without cross-request page joins.
 No new table/schema/client grant or `SECURITY DEFINER` is added.
 
@@ -89,12 +92,75 @@ Exports contain extra metadata/both semesters and are not GB-07 import templates
   bypassed. Owner confirmed receiving lop-hoc-students-2026-10-31.xlsx. File-byte round-trips PASS independently; distinguish owner confirmation from tool event evidence.
 - Ignored local screenshots: `tests/local/export-sort/mobile-score.jpg` and
   `desktop-score.jpg`. Raw synthetic downloads, temporary DB and screenshots are not
-  part of Git or dist. Hosted requests0.
+  part of Git or dist. This initial offline phase made zero hosted requests; the separately
+  approved follow-up is accounted below.
 
-## Remaining release gates
+## Approved hosted follow-up — 2026-10-31
 
-Native Chrome XLSX download is owner-confirmed. Deploy/apply
-the exact source only after a separate owner authorization, then approve an explicit
-finite synthetic hosted acceptance activity (target, request cap, stop conditions) before
-checking new RPC/API/real Auth boundaries. Existing project real-data gates remain separate.
-PR stays Draft; no merge or production-complete claim.
+Owner authorized migration and the necessary tests, confirmed the existing 31 records
+are synthetic, then explicitly instructed not to delete data. No fixture was inserted,
+updated or deleted; no score/publication/class-metadata mutation or Auth change was run.
+Scope was fixed at one migration, one existing-function deployment, at most ten manual
+SQL calls and 24 client API test requests; no retries, polling loops or load testing.
+Normal Auth/bootstrap and Edge-internal Auth/profile/RPC work are distinguished from
+client test requests below; no all-account traffic count is claimed.
+
+- Existing project `vgciiqtwmxcdqppntgnt` ACTIVE_HEALTHY, PostgreSQL17.11;
+  organization plan verified `free` / `tier_free`. No project/branch/resource upgrade.
+- Reviewed source `20261031001500_gradebook_class_snapshot.sql` applied once via MCP
+  as ledger version **20261031002916**, name `gradebook_class_snapshot`. No old migration
+  replay, repair or reset. The repo file was renamed to
+  `20261031002916_gradebook_class_snapshot.sql` to match that ledger; its bytes match
+  reviewed source95d925a exactly. It was not reapplied. New RPC is invoker, fixed search_path/timeouts, service-only;
+  anon/authenticated EXECUTE=false. Existing function fingerprint unchanged.
+- Existing `grades-admin` **v6 → v7**, verify_jwt=true retained. Exact 19-file dependency
+  graph read back and matched source 95d925a. Only admin/http and the new snapshot module
+  differ from the previously deployed function. Bundle SHA256:
+  `9453b5d5b86ad35ba7f3dcc9752ac847a217dd8b2bb8453b9b19bf9a782e69de`.
+  `student-lookup`, keys and CORS configuration were not changed.
+- First UI attempt was blocked locally by the default-disabled frontend flag (no backend
+  call). Created ignored `.env.local` with VITE_GRADEBOOK_ENABLED=true for this approved
+  test environment only. Quick Tunnel then correctly returned OPTIONS403 because its
+  origin is not allowlisted; no POST followed and it was not retried. Used the already
+  approved `http://localhost:4173` origin instead. Owner logged in there; no credentials,
+  tokens or cookies were extracted/copied. Production build default remains disabled.
+- Actual Chrome + hosted Auth/Edge/DB: 31 rows paginate 20/11; global name DESC changes
+  the first page and preserves hidden CCCD; score workspace offers all 31 students and
+  sorts original score values. Both CSV and XLSX actions for both tables complete through
+  the real endpoint with no error or unsaved changes. Audit confirms **2 rank snapshots
+  and 4 full export snapshots, each covering 31 records**, irrespective of the visible20.
+  Score export includes both semesters/all 8 subjects (496 data rows + header by GB-10);
+  byte-level formatting/precision is covered by the retained independent round-trips.
+- Two finite native-fetch negative requests, no SDK or retry: missing admin JWT →401;
+  direct RPC with publishable key only →401; neither returns private data. Runner stays
+  ignored under tests/local, outside CI and application output.
+- Four manual SQL inspection calls: preflight/version/count/function fingerprint;
+  post-migration ACL/function fingerprint; pre-test data fingerprint; final fingerprint
+  and class-level audit counts. Final: **31 students,62 scores; student data unchanged=true,
+  score data unchanged=true, existing functions unchanged=true**. Only authorized
+  class-level snapshot audit events were added. No rows were deleted or edited.
+- Client test budget: at most21 Edge/Data API requests including preflights/negative
+  requests, derived from the finite UI sequence (9 successful operations plus2 negatives).
+  Bounded function logs observed OPTIONS204×9, OPTIONS403×1, POST200×8 and
+  POST401×1; one successful client operation is absent from that provider trace, so it
+  is not claimed as an exhaustive traffic ledger. All6 data snapshots are independently
+  confirmed by DB audit. No operation was re-executed to fill a log gap. No 429,503 or
+  hosted timeout was observed.
+  SDK Edge paths are source-verified retry(false); direct negatives use fetch once.
+  Provider-internal Auth/profile/RPC requests are normal per-operation work, not included
+  in this client count; existing Auth/session bootstrap traffic was not independently
+  measured. Five bounded log queries were used: source discovery, key-only schema inspection,
+  exact denial diagnosis, end-of-run counts and one delayed trace reconciliation. No
+  request was retried and no background polling was configured.
+- Hosted screenshot `tests/local/export-sort/hosted-desktop.jpg` is ignored and cropped
+  before individual student rows. Browser download-event limitations from the offline
+  phase remain; owner already confirmed native XLSX receipt. No raw exported files,
+  credentials or private payloads were added to Git/PR/artifacts.
+
+## Release boundary
+
+GB-10 source, offline tests, Chrome UI and this bounded synthetic hosted acceptance are
+PASS. Keep the requested PR Draft; no merge/main change or public website deployment.
+Real personal data, real-device/Safari, managed concurrency and the project's broader
+operational/recovery gates are not established by this feature test. Localhost is the
+working test URL; the Quick Tunnel origin remains intentionally unauthorized by CORS.

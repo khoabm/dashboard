@@ -55,7 +55,7 @@ SPEC R01–R28 gốc chủ yếu mô tả Board/hạ tầng; nghiệp vụ Grade
 | src/components/gradebook-scores.js | Teacher semester/subject workspace, full-snapshot sorting/local pages, draft-preserving sorting, confirmed both-semester export; existing CRUD/publication/import and cancellation |
 | src/components/gradebook-table-controls.js | Shared keyboard sortable headers/aria-sort, export format controls, complete-list comparator and stable identity hierarchy |
 | src/utils/gradebook-export.js, gradebook-snapshot.js | CSV/inline-string XLSX writer; complete snapshot semester joins through existing pure DTO validation; no persistence |
-| supabase/functions/_shared/snapshot.js; new gb_class_snapshot migration | Admin/session/class-locked snapshot; server-memory identity decryption, rank-only ordinary responses, separately confirmed full export and class/count audit; source only, not deployed |
+| supabase/functions/_shared/snapshot.js; new gb_class_snapshot migration | Admin/session/class-locked snapshot; server-memory identity decryption, rank-only ordinary responses, separately confirmed full export and class/count audit; grades-admin v7 and ledger20261031002916 deployed after owner approval; bounded synthetic hosted acceptance |
 | src/utils/gradebook-scores.js | Pure ordered catalog projection, B1 decimal comparison/input, score-page DTOs, mutation/publication preconditions and A–J batch validation |
 | src/services/gradebook-catalog.js | Scoped catalog.read through the same verified teacher request; current classId required, strict teacher catalog projection |
 | src/utils/gradebook-admin.js, roster.js | Pure input/DTO projection, cancellable operation/preview ownership and bounded positional CSV/roster validation; reuse B1 |

@@ -4,9 +4,12 @@
 `tests/gradebook-export-sort.test.js` adds six pure cases to explicit test:ci; decimal
 input adds one focused DOM-helper regression. Full curated171/171 PASS once. Manual
 `--test-name-pattern=snapshot:` selects three Edge cases; `tests/gradebook-snapshot.sql`
-runs only against a disposable loopback DB, not CI/hosted. Supabase hosted requests0.
-No stress/load/quota/retry testing. Native XLSX download is owner-confirmed; no production
-acceptance inferred.
+runs only against a disposable loopback DB, not CI/hosted. The separately owner-approved
+hosted follow-up applied one migration/deployed grades-admin v7, used4 manual SQL calls
+and a finite client API test budget≤21; actual Chrome reads/global sorting/four export
+flows and two401 denial cases PASS. Student/score fingerprints unchanged (31/62 rows),
+no data deletions. No stress/load/quota/retry testing. Native XLSX download owner-confirmed;
+no real-data/device/global production acceptance inferred.
 
 ---
 
