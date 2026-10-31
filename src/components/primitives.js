@@ -98,14 +98,6 @@ export function openDialog(title, { drawer = false } = {}) {
 }
 
 /**
- * Requests confirmation and resolves false when the dialog is dismissed.
- *
- * @param {string} message - The confirmation question.
- * @param {string} description - Optional context for the decision.
- * @param {object} options - Optional AbortSignal for a route/session-owned confirmation.
- * @returns {Promise<boolean>} True only when the user confirms.
- */
-/**
  * Keeps confirmation and recovery copy readable without changing the decision contract.
  * Text remains text nodes; sentence boundaries only affect visual grouping.
  *
@@ -121,6 +113,14 @@ function dialogMessage(description) {
   return surface;
 }
 
+/**
+ * Requests confirmation and resolves false when the dialog is dismissed.
+ *
+ * @param {string} message - The confirmation question.
+ * @param {string} description - Optional context for the decision.
+ * @param {object} options - Optional AbortSignal for a route/session-owned confirmation.
+ * @returns {Promise<boolean>} True only when the user confirms.
+ */
 export function ConfirmDialog(message, description = '', { signal } = {}) {
   return new Promise((resolve) => {
     if (signal?.aborted) return resolve(false);
@@ -167,7 +167,9 @@ export function DraftRecoveryDialog(description) {
     const { dialog, content } = openDialog('Có bản nháp trên thiết bị');
     dialog.classList.add('ui-confirm-dialog');
     const message = dialogMessage(description);
-    message.append(el('p', { class: 'ui-dialog-note' }, 'Đóng hộp thoại để giữ nháp và quyết định sau.'));
+    message.append(
+      el('p', { class: 'ui-dialog-note' }, 'Đóng hộp thoại để giữ nháp và quyết định sau.'),
+    );
     // Only the discard button authorizes deletion; Escape, X, and external close keep the draft.
     content.append(
       message,
