@@ -42,3 +42,23 @@ Planned merge inventory: `src/utils/assistant-intent.js` (pure route), `workers/
 - Owner gate: verify specialist + interactive desktop/mobile browser/real
   response quality in Work Cloud Browser before promoting this Draft PR.
   Do not merge/deploy until evidence supports completion.
+
+
+## Owner QA findings / correction 2026-10-31
+
+- TC-02 FAIL: general answer ended mid-clause and omitted a requested example.
+- TC-06 FAIL: website question and general study advice were blended; exam hour
+  was skipped, and entire message received a website-only label.
+- TC-09 fixture includes multiple independent topics within one published note
+  (Toán GK1 at 9g20/60 min, study guidance, rotating cleaning duties); a 1000-char
+  passage can include more than one topic, so semantic match is insufficient as
+  proof that a specific clause is supported.
+- Confirmed the actual Cloudflare Worker currently serving chat last deployed
+  2026-10-29, before PR #37; the owner's Pages preview used new frontend but
+  OLD model-routing server. No test currently proves new hosted intent behavior.
+- Fix added to source: strict structured model output, hybrid two-field contract,
+  deterministic requested-exam-time check against cited public passages, limited
+  model answer acceptance, and regression tests. Bounded error instead of
+  fabricating complete answers; no automatic retry.
+- Follow-up: manual specialist tests, browser QA with isolated test Worker, and
+  free-quota-bounded hosted validation (separate approval per AGENTS), not performed.
