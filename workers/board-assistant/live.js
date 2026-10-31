@@ -7,7 +7,7 @@ import {
 import { publicAssistantCorpus, retrievePublicContent } from '../../src/utils/public-retrieval.js';
 import { rankAssistantCatalog, cosine, AssistantBudget } from './index.js';
 import { normalizeAssistantText, lexicalAssistantScore } from '../../src/utils/board-assistant.js';
-import { routeAssistantIntent, generalConversationHistory } from '../../src/utils/assistant-intent.js';
+import { routeAssistantIntent, generalConversationHistory, decodeIntentRoute } from '../../src/utils/assistant-intent.js';
 export { AssistantBudget }; // Retains the historical DO class; live chat never reserves or stops it.
 
 /** Bounds untrusted JSON streams without logging user text or upstream errors. */
@@ -188,12 +188,7 @@ export async function liveFetch(request, env, { fetcher = fetch } = {}) {
         },
         { signal },
       );
-      let value = classified?.response ?? classified?.choices?.[0]?.message?.content;
-      if (typeof value === 'string') {
-        value = value.replace(/^\\s*<think>[\\s\\S]*?<\\/think>\\s*/, '').trim();
-        value = JSON.parse(value);
-      }
-      intent = ({ BOARD: 'board', GENERAL: 'general', HYBRID: 'hybrid', CLARIFY: 'clarify' })[value?.mode] || 'clarify';
+      intent = decodeIntentRoute(classified);
       if (intent === 'clarify')
         return reply(200, { mode: 'ai', status: 'clarify', answer: 'Em muốn hỏi kiến thức chung hay tìm thông tin từ bài đăng trên website?', sources: [], knowledge: 'general' });
     }
