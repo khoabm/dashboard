@@ -148,3 +148,34 @@ test('numeric post-order boundaries reject unsafe range before uploading', () =>
   assert.throws(() => saveSortOrder(peers, 'end', 1));
   assert.throws(() => saveSortOrder([{ id: 'x', sort_order: -2147483648 }], 'start', 0));
 });
+
+/* TEMPORARY CI FORMAT DIAGNOSTIC — removed after applying the reported diffs. */
+test('temporary prettier diagnosis for scoped UI files', async () => {
+  const prettier = await import('prettier');
+  const fs = await import('node:fs/promises');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const { spawnSync } = await import('node:child_process');
+  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), 'ui-format-'));
+  try {
+    for (const name of [
+      'src/components/post-placement.js',
+      'src/utils/post-placement.js',
+      'tests/validation.test.js',
+    ]) {
+      const original = await fs.readFile(name, 'utf8');
+      const formatted = await prettier.format(original, {
+        ...(await prettier.resolveConfig(name)),
+        filepath: name,
+      });
+      const before = path.join(temporary, 'before');
+      const after = path.join(temporary, 'after');
+      await fs.writeFile(before, original);
+      await fs.writeFile(after, formatted);
+      const diff = spawnSync('diff', ['-u', '--label', name + ':OLD', before, '--label', name + ':NEW', after], { encoding: 'utf8' });
+      console.log('BEGIN FORMAT DIFF ' + name + '\n' + diff.stdout + '\nEND FORMAT DIFF ' + name);
+    }
+  } finally {
+    await fs.rm(temporary, { recursive: true, force: true });
+  }
+});
