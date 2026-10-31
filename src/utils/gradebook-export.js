@@ -1,5 +1,6 @@
 /** Pure, offline-safe CSV and minimal OOXML writer; no hidden persistence or spreadsheet formulas. */
 import { zipSync } from 'fflate';
+import { styledXlsxBytes } from './gradebook-xlsx.js';
 
 const encoder = new TextEncoder();
 const headers = {
@@ -131,7 +132,7 @@ export function downloadExport(kind, format, entries, catalog) {
   const bytes =
     format === 'csv'
       ? csvBytes(rows)
-      : xlsxBytes(rows, kind === 'scores' ? 'Bang diem' : 'Hoc sinh');
+      : styledXlsxBytes(rows, kind);
   const mime =
     format === 'csv'
       ? 'text/csv;charset=utf-8'
