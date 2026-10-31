@@ -1,0 +1,30 @@
+name: One-time verify merged UI/UX branch
+on:
+  push:
+    branches:
+      - integration/e2e-ui-ux-develop-20261031
+    paths:
+      - .github/workflows/verify-e2e-ui-ux-integration-once.yml
+permissions:
+  contents: read
+jobs:
+  offline:
+    if: github.repository == 'khoabm/dashboard'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --no-audit --no-fund
+      - name: Check syntax and scoped credentials
+        run: npm run check
+      - name: Curated pure component tests
+        run: npm run test:ci
+      - name: Build static assets and exclusion guard
+        run: npm run build
+      - name: Pinned Prettier for all production JS and CSS
+        run: npm run format:check
