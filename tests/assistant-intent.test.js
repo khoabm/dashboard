@@ -52,6 +52,10 @@ test('Board follow-ups preserve sources but new science topics change to general
   });
   assert.equal(routeAssistantIntent('Vậy lúc mấy giờ?', generalHistory).mode, 'general');
   assert.equal(routeAssistantIntent('Vì sao bầu trời xanh?', boardHistory).mode, 'general');
+  assert.deepEqual(routeAssistantIntent('Môn Văn ạ', boardHistory), {
+    mode: 'board',
+    followup: true,
+  });
 });
 
 test('elliptical requests without context require clarification or bounded classification', () => {
