@@ -32,6 +32,7 @@ function assistantToolIcon(kind) {
     new: ['M4 5h16v12H9l-5 3V5', 'M12 8v6', 'M9 11h6'],
     filter: ['M4 6h16', 'M7 12h10', 'M10 18h4'],
     topic: ['M9 18h6', 'M10 21h4', 'M8 14a6 6 0 1 1 8 0c-1 1-1.5 2-1.5 4h-5C9.5 16 9 15 8 14'],
+    chevron: ['M6 9l6 6 6-6'],
   };
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 24 24');
@@ -526,7 +527,8 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
       }
       if (result.answer) {
         content.append(el('p', { class: 'assistant-learning-answer' }, result.answer));
-      } else if (result.sources.length) {
+      }
+      if (!live && result.sources.length) {
         content.append(
           el('p', { class: 'assistant-result-intro' }, 'Bạn có thể xem các bài viết bên dưới.'),
         );
@@ -548,70 +550,106 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
             'Nguồn của câu trả lời này đã thay đổi. Bạn hãy hỏi lại để kiểm tra thông tin mới.',
           ),
         );
-      for (const source of result.sources) {
-        const post = catalog.find((p) => p.id === source.id);
-        if (!post) continue;
-        const checkedAct = (action) => {
-          if (JSON.stringify(publicAssistantCorpus(snapshot())) !== fingerprint) {
-            reconcile();
-            dialog?.querySelector('#assistant-error') &&
-              (dialog.querySelector('#assistant-error').textContent =
-                'Học liệu vừa được cập nhật. Bạn hãy kiểm tra lại nguồn mới nhé.');
-            return;
-          }
-          act(action);
-        };
-        content.append(
-          el(
-            'section',
-            { class: 'assistant-source' },
-            el('span', { class: 'assistant-source-category' }, post.sectionTitle),
-            el('h3', {}, post.title),
-            el('blockquote', {}, source.quote),
-            ...(result.evidence || [])
-              .filter(
-                (ref) =>
-                  ref.postId === post.id &&
-                  ref.quote !== source.quote &&
-                  typeof ref.quote === 'string' &&
-                  ref.quote.length <= assistantLimits.body &&
-                  (post.body.includes(ref.quote) || post.title.includes(ref.quote)),
-              )
-              .map((ref) => el('blockquote', {}, ref.quote)),
+      if (result.sources.length) {
+        // Source evidence is available on demand, not a second wall of text in every reply.
+        // A button controls an animated, initially inert panel and all read-only actions within.
+        const sourceList = el('div', { class: 'assistant-sources-inner' });
+        for (const source of result.sources) {
+          const post = catalog.find((p) => p.id === source.id);
+          if (!post) continue;
+          const checkedAct = (action) => {
+            if (JSON.stringify(publicAssistantCorpus(snapshot())) !== fingerprint) {
+              reconcile();
+              dialog?.querySelector('#assistant-error') &&
+                (dialog.querySelector('#assistant-error').textContent =
+                  'Học liệu vừa được cập nhật. Bạn hãy kiểm tra lại nguồn mới nhé.');
+              return;
+            }
+            act(action);
+          };
+          sourceList.append(
             el(
-              'div',
-              { class: 'assistant-source-actions' },
-              button(
-                'Mở học liệu',
-                () => checkedAct({ type: 'open', id: post.id }),
-                'button primary',
-              ),
-              button(
-                'Xem chủ đề',
-                () => checkedAct({ type: 'topic', id: post.sectionId }),
-                'button subtle',
+              'section',
+              { class: 'assistant-source' },
+              el('span', { class: 'assistant-source-category' }, post.sectionTitle),
+              el('h3', {}, post.title),
+              el('blockquote', {}, source.quote),
+              ...(result.evidence || [])
+                .filter(
+                  (ref) =>
+                    ref.postId === post.id &&
+                    ref.quote !== source.quote &&
+                    typeof ref.quote === 'string' &&
+                    ref.quote.length <= assistantLimits.body &&
+                    (post.body.includes(ref.quote) || post.title.includes(ref.quote)),
+                )
+                .map((ref) => el('blockquote', {}, ref.quote)),
+              el(
+                'div',
+                { class: 'assistant-source-actions' },
+                button(
+                  'Mở học liệu',
+                  () => checkedAct({ type: 'open', id: post.id }),
+                  'button primary',
+                ),
+                button(
+                  'Xem chủ đề',
+                  () => checkedAct({ type: 'topic', id: post.sectionId }),
+                  'button subtle',
+                ),
               ),
             ),
+          );
+        }
+        if (result.sources.length) {
+          sourceList.append(
+            button(
+              'Lọc trang theo nguồn đã chọn',
+              () => {
+                if (JSON.stringify(publicAssistantCorpus(snapshot())) !== fingerprint) {
+                  reconcile();
+                  dialog?.querySelector('#assistant-error') &&
+                    (dialog.querySelector('#assistant-error').textContent =
+                      'Học liệu vừa được cập nhật. Bạn hãy kiểm tra lại nguồn mới nhé.');
+                  return;
+                }
+                act({ type: 'filter', ids: result.sources.map((source) => source.id) });
+              },
+              'button subtle assistant-filter-button',
+            ),
+          );
+        }
+        const sourceId = `assistant-sources-${crypto.randomUUID()}`;
+        const panel = el(
+          'div',
+          {
+            id: sourceId,
+            class: 'assistant-sources-panel',
+            'aria-hidden': 'true',
+            inert: true,
+          },
+          sourceList,
+        );
+        const opener = button(
+          `Xem bài đăng tham khảo (${result.sources.length})`,
+          () => {
+            const expanded = opener.getAttribute('aria-expanded') !== 'true';
+            opener.setAttribute('aria-expanded', String(expanded));
+            panel.setAttribute('aria-hidden', String(!expanded));
+            panel.inert = !expanded;
+            panel.classList.toggle('assistant-sources-panel-open', expanded);
+          },
+          'assistant-sources-toggle',
+          { 'aria-expanded': 'false', 'aria-controls': sourceId },
+        );
+        opener.append(
+          el(
+            'span',
+            { class: 'assistant-sources-chevron', 'aria-hidden': 'true' },
+            assistantToolIcon('chevron'),
           ),
         );
-      }
-      if (result.sources.length) {
-        content.append(
-          button(
-            'Lọc trang theo nguồn đã chọn',
-            () => {
-              if (JSON.stringify(publicAssistantCorpus(snapshot())) !== fingerprint) {
-                reconcile();
-                dialog?.querySelector('#assistant-error') &&
-                  (dialog.querySelector('#assistant-error').textContent =
-                    'Học liệu vừa được cập nhật. Bạn hãy kiểm tra lại nguồn mới nhé.');
-                return;
-              }
-              act({ type: 'filter', ids: result.sources.map((source) => source.id) });
-            },
-            'button subtle assistant-filter-button',
-          ),
-        );
+        content.append(el('div', { class: 'assistant-sources-disclosure' }, opener, panel));
       }
       assistantMessage(content, 'assistant-result', at);
       if (remember) {
@@ -624,6 +662,7 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
             status: result.status,
             answer: result.answer,
             note: result.note,
+            knowledge: result.knowledge,
             sources: result.sources.map(({ id, quote }) => ({ id, quote })),
           },
         });

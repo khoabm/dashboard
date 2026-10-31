@@ -1,3 +1,71 @@
+## 2026-10-31 — AI-IA01-F03 / P1 — Generic craft how-to hijacked by school project post
+
+- **Owner evidence:** Asking “Chỉ tôi cách thiết kế nón lá đi” caused a Board-grounded
+  response about choosing pupils, buying two hats, and the post “Trang trí nón lá”;
+  that is not a natural generic how-to. Owner also requested removal of repetitive
+  visible source-origin captions and collapsing multiple large source cards by default.
+- **Root cause:** Existing production Worker from 29 Oct always fetches/ranks Board
+  for arbitrary questions; lexical/semantic match on “nón lá” displaced the
+  user's **action intent** (“chỉ cách thiết kế”). The branch router lacked an
+  explicit how-to override for these phrases. The UI rendered all cited
+  `.assistant-source` cards and a provenance caption unconditionally.
+- **Fix on Draft PR #37:** Pure router recognizes generic “chỉ/hướng dẫn/cách
+  làm/thực hiện” instructions before Board lookup. Explicit “theo bài đăng
+  của cô/trên web” still routes to Board. Live chat keeps origin metadata but
+  no longer renders constant origin-caption text. All cited posts and their
+  read-only actions live in one ARIA-expanded disclosure, initially closed,
+  animated with fade+height and reduced-motion handling.
+- **Regression:** Curated pure how-to vs explicit-Board test. Updated synthetic
+  browser scenarios include one and two source cards, disclosure keyboard/ARIA,
+  closed controls and mobile/desktop + reduced-motion. Legacy manual browser
+  scripts adjusted for the new collapsed default. Browser scripts **NOT RUN**
+  in Chat connector; no hosted requests/DB writes/Worker deployments.
+- **Source branch:** `feature/ai-assistant-intent-aware-chat-20261031`,
+  [Draft PR #37](https://github.com/khoabm/dashboard/pull/37). Do not infer
+  the updated Worker has been tested by the owner’s existing old-Worker preview.
+
+## 2026-10-31 — AI-IA01-F02 / P1 — Partial general answers and incomplete hybrid responses
+
+- **Owner report:** TC-02 returned a sentence ending at “bị”, without the requested example.
+  TC-06 supplied study tips and an exam date but omitted the explicitly requested
+  Văn exam hour; the UI labeled the whole reply as website information.
+- **Verified architecture cause:** at prior Cloudflare deployment (29 October), Board
+  was always read and ranked before generation; Qwen used a single free-form
+  `answer` + `ids` response without a hybrid completeness contract.
+  `decodeChatAnswer` accepted plain/truncated strings and checked IDs only,
+  not semantic support. Website snippets can combine unrelated topics, including
+  exam preparation and student cleaning duties. New branch Worker was not deployed
+  when the owner tested the Pages preview.
+- **Correction on Draft PR #37:** strict structured JSON for live, bounded incomplete
+  output checks, explicit `website` and `general` hybrid model fields with
+  distinct rendered sections, provenance labels, and a narrow deterministic
+  exam-time check against published source passages. Missing answer parts or
+  unsupported exam hour cannot be displayed as a successful grounded reply.
+- **Evidence:** initial CI #41173760530 PASS (core response structure and build);
+  later exact-exam-time fix CI pending. Pure unit cases TC-02 and TC-06 added to
+  curated CI; specialist Worker test code added but NOT RUN. No additional
+  hosted requests, Worker deploy, or real browser E2E in this correction turn.
+- **Limitations:** validators catch incomplete structure and specific clock
+  discrepancies; they do not constitute full semantic entailment verification,
+  or prove Qwen will always provide complete replies. Owner QA and hosted Worker
+  acceptance remain BLOCKED/NOT RUN.
+
+## 2026-10-31 — AI-IA01-F01 / P1 — General questions may be hijacked by Board retrieval
+
+- **Observed in source:** live Worker always read published Board and ranked candidates using
+  keyword/BGE even for general science questions. Broad follow-up regex could inherit
+  unrelated Board context. Chat UI omitted source provenance note for live answers.
+- **Fix:** `src/utils/assistant-intent.js` routes general/Board/hybrid before public
+  retrieval; uncertain intent uses bounded Qwen classification; general skips
+  Supabase/BGE, Board failures never silently turn into unsupported general facts,
+  and the UI shows the response's actual knowledge boundary. Pure and specialist
+  regression assets cover no-read general path, public-only source, topic switch,
+  no-citation Board fallback, classification error and responsive labels.
+- **Evidence:** GitHub Offline CI #41172224963 PASS (186 curated unit/build/format)
+  at `a4d242a`. Specialist Worker runtime tests and new browser E2E **NOT RUN**;
+  zero hosted requests/deploys. Branch `feature/ai-assistant-intent-aware-chat-20261031`, Draft PR #37;
+  source implemented, complete E2E acceptance **PENDING**.
+
 ## 2026-10-31 — GB-XLSX-XML-001 / P1 — Excel rejects exported workbook XML
 
 - **Observed:** Owner reported Excel XML error and spreadsheet data not loading after styled XLSX export. Reproduced a structural risk in generated `xl/worksheets/sheetN.xml`: `<mergeCells>` was emitted before `<autoFilter>`, violating SpreadsheetML `CT_Worksheet` child order. Relaxed XLSX readers and generic XML parsers accepted the XML, so prior round-trips did not catch strict Excel validation.

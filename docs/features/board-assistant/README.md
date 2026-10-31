@@ -1,3 +1,17 @@
+# AI-IA01 — Intent-aware conversation improvement / Draft PR #37 (2026-10-31)
+
+**Branch under review:** [feature/ai-assistant-intent-aware-chat-20261031](INTENT_AWARE_EXECPLAN.md).
+General Vietnamese questions no longer retrieve Board by default; explicit website
+questions use fresh published-only sources, ambiguous intent can invoke bounded Qwen
+classification, and mixed answers carry a visible provenance note. Pure CI passed on
+`a4d242a`; newer browser fixture and latest CI require separate receipt. This is
+**source-only on Draft PR #37**: no hosted model test, Worker production deployment,
+Gradebook/Auth/schema change or merge. Browser/hosted acceptance remains NOT RUN.
+Earlier Pilot/V2 paragraphs below are historical and must not supersede the
+[normal live contract](LIVE_CHAT_ACCEPTANCE.md).
+
+---
+
 # Desktop correction và owner preview — 2026-10-29
 
 **Luồng hiện hành:** [Live chatbot](LIVE_CHAT_ACCEPTANCE.md), Worker entry live.js,

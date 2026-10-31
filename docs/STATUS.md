@@ -1,3 +1,36 @@
+## 2026-10-31 — AI-IA01 owner follow-up F03 — general how-to and source disclosure
+
+Owner found conical-hat how-to incorrectly answered from a Board post; requested
+no repetitive provenance footer and default-collapsed smooth source cards.
+On `feature/ai-assistant-intent-aware-chat-20261031`, router now prefers
+generic practical instructions, keeps explicit Board queries, and UI groups
+all source cards/actions in one accessible initially collapsed disclosure
+with animated open/close and reduced-motion support. Updated pure unit and
+synthetic browser/legacy manual scenarios; source-only, no Auth/Gradebook/API,
+DB write, hosted Worker deploy or change to production.
+**Offline CI PASS** at code commit `41c162f`: [run #41175566511](https://github.com/khoabm/dashboard/actions/runs/41175566511), covering curated pure unit, syntax/static, production Vite build and pinned Prettier. Manual Browser/Worker E2E **NOT RUN**; new Worker **NOT DEPLOYED**. Cloudflare Pages preview is UI-only against existing deployed Worker.
+See [bug log](BUG_FIX_LOG.md), [execution plan](features/board-assistant/INTENT_AWARE_EXECPLAN.md)
+and [Draft PR #37](https://github.com/khoabm/dashboard/pull/37).
+
+---
+
+## 2026-10-31 — AI-IA01 intent-aware live assistant / Draft PR #37
+
+Branch `feature/ai-assistant-intent-aware-chat-20261031`, base develop `b6f3405`. Implemented conversation-first
+GENERAL/BOARD/HYBRID/CLARIFY routing, uncertain Qwen-only classification,
+published-only retrieval on demand, general-topic isolation, safe Board failure,
+source provenance labels and browser test fixture. No Auth/Gradebook/SQL/RLS,
+new dependencies, live Worker deploy or website production publish.
+
+CI on code commit `a4d242a`: [Offline CI #41172224963](https://github.com/khoabm/dashboard/actions/runs/41172224963)
+PASS syntax, curated186/186 unit, build/exclusion and Prettier. Added synthetic
+browser fixture/script afterward; newest commit's CI must be checked independently.
+Manual Worker specialist and Chrome browser QA are **NOT RUN** in this Chat session;
+hosted model/real Supabase calls0. Production runtime is unchanged.
+[Plan and owner gates](features/board-assistant/INTENT_AWARE_EXECPLAN.md).
+
+---
+
 ## 2026-10-31 — E2E post editor cover/order follow-up / Draft PR #33
 
 Task scope: rename "Ảnh đại diện" to "Ảnh bìa bài đăng", add selected-image

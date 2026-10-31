@@ -324,6 +324,78 @@
   font-size: 13px;
   line-height: 1.55;
 }
+/* One compact, keyboard-operated disclosure replaces always-visible citation cards. */
+.assistant-sources-disclosure {
+  margin-top: 10px;
+  min-width: 0;
+}
+.assistant-sources-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 1px solid #d5e5dc;
+  border-radius: 11px;
+  background: #f5faf7;
+  color: #255f4b;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+}
+.assistant-sources-toggle:hover {
+  background: #edf6f0;
+}
+.assistant-sources-toggle:focus-visible {
+  outline: 2px solid #17624a;
+  outline-offset: 2px;
+}
+.assistant-sources-chevron {
+  display: inline-flex;
+  flex: 0 0 20px;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  transition: transform 220ms ease;
+}
+.assistant-sources-chevron svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+.assistant-sources-toggle[aria-expanded='true'] .assistant-sources-chevron {
+  transform: rotate(180deg);
+}
+.assistant-sources-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    grid-template-rows 240ms ease,
+    opacity 200ms ease,
+    visibility 240ms;
+}
+.assistant-sources-panel-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+}
+.assistant-sources-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  .assistant-sources-chevron,
+  .assistant-sources-panel {
+    transition: none;
+  }
+}
 .assistant-source {
   background: #fff;
   border: 1px solid #dce8e1;

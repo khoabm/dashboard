@@ -51,26 +51,114 @@ export function validateChatPayload(value) {
   return { query: publicChatText(value.query.trim()), history };
 }
 
-/** Reads model output without inspecting dates/numbers or demanding citations for general knowledge. */
-export function decodeChatAnswer(generated, catalog) {
+/** Parses strict live JSON while retaining legacy plaintext for callers that explicitly allow it. */
+function modelValue(generated, structured) {
+  const stoppedEarly = generated?.finish_reason === 'length';
+  const choiceStoppedEarly = generated?.choices?.[0]?.finish_reason === 'length';
+  if (stoppedEarly || choiceStoppedEarly) throw Error('model_incomplete');
   let value = generated?.response ?? generated?.choices?.[0]?.message?.content;
   if (typeof value === 'string') {
     let text = value.replace(/^\s*<think>[\s\S]*?<\/think>\s*/, '').trim();
     if (text.startsWith('<think>') || text.length > 16000) throw Error('model');
     text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+    if (structured && (!text.startsWith('{') || !text.endsWith('}')))
+      throw Error('model_incomplete');
     value = text.startsWith('{') ? JSON.parse(text) : { answer: text, ids: [] };
   }
+  return value;
+}
+
+/** Rejects an obviously unfinished Vietnamese clause without another model call. */
+function incompleteChatSentence(value) {
+  const end = String(value)
+    .trim()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .split(/\s+/)
+    .at(-1);
+  return ['vi', 'bi', 'khi', 'do', 'va', 'hoac', 'de', 'cua', 'tu', 'trong', 'ma'].includes(end);
+}
+
+/** Validates one natural response and its cited public passages. */
+export function decodeChatAnswer(generated, catalog, { structured = false } = {}) {
+  const value = modelValue(generated, structured);
   if (
     !value ||
     typeof value.answer !== 'string' ||
     !value.answer.trim() ||
     value.answer.length > chatLimits.answer ||
+    (structured && incompleteChatSentence(value.answer)) ||
     !Array.isArray(value.ids) ||
     value.ids.length > 3
   )
-    throw Error('model');
+    throw Error('model_incomplete');
   return {
     answer: value.answer.trim(),
     ids: [...new Set(value.ids)].filter((id) => catalog.some((p) => p.id === id)),
   };
+}
+
+/**
+ * Requires distinct grounded website facts and general advice for hybrid questions.
+ * The Worker composes the final sections; the model cannot omit one silently.
+ */
+export function decodeHybridChatAnswer(generated, catalog) {
+  const value = modelValue(generated, true);
+  if (
+    !value ||
+    typeof value.website !== 'string' ||
+    !value.website.trim() ||
+    value.website.length > 3000 ||
+    incompleteChatSentence(value.website) ||
+    typeof value.general !== 'string' ||
+    !value.general.trim() ||
+    value.general.length > 3000 ||
+    incompleteChatSentence(value.general) ||
+    !Array.isArray(value.ids) ||
+    !value.ids.length ||
+    value.ids.length > 3
+  )
+    throw Error('model_incomplete');
+  const ids = [...new Set(value.ids)];
+  const containsUnknown = ids.some((id) => !catalog.some((post) => post.id === id));
+  if (ids.length !== value.ids.length || containsUnknown) throw Error('model');
+  return {
+    answer: `Theo bài đăng:\n${value.website.trim()}\n\nGiải thích thêm:\n${value.general.trim()}`,
+    website: value.website.trim(),
+    ids,
+  };
+}
+
+/**
+ * Prevents a hybrid answer about an explicit exam time from substituting a date
+ * or a study plan for the requested hour. No extra AI inference is needed.
+ */
+export function validateHybridRequestedTime(query, answer, catalog) {
+  const plain = (value) => {
+    const base = String(value).normalize('NFD');
+    return base.replace(/\p{M}/gu, '').toLowerCase();
+  };
+  const normalized = plain(query);
+  if (!/\b(?:may gio|luc nao|gio nao)\b/.test(normalized)) return true;
+  const clocks = (value) => {
+    const result = [];
+    const matches = plain(value).matchAll(/\b(\d{1,2})\s*(?:g|h|gio|:)\s*(\d{1,2})\b/g);
+    for (const [, hour, minute] of matches)
+      if (+hour <= 23 && +minute <= 59) result.push(`${+hour}:${+minute}`);
+    return result;
+  };
+  const responseClocks = clocks(answer);
+  if (!responseClocks.length) return false;
+  const evidence = catalog.map((post) => post.body).join('\n');
+  const subject = ['van', 'toan', 'anh', 'vat ly', 'hoa hoc', 'sinh hoc'].find((name) =>
+    new RegExp(`\\b${name}\\b`).test(normalized),
+  );
+  const segments = plain(evidence).split(/[;\n]/);
+  const matching = subject
+    ? segments.filter((segment) => new RegExp(`\\b${subject}\\b`).test(segment))
+    : [];
+  const subjectClocks = matching.flatMap(clocks);
+  const allowed = subjectClocks.length ? subjectClocks : clocks(evidence);
+  return responseClocks.some((time) => allowed.includes(time));
 }
