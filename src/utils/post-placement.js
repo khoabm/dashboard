@@ -3,7 +3,10 @@
 /** Stable, non-deleted posts in one topic. */
 export function placementPeers(posts, sectionId, excludeId = null) {
   return posts
-    .filter((post) => post.section_id === sectionId && post.status !== 'deleted' && post.id !== excludeId)
+    .filter(
+      (post) =>
+        post.section_id === sectionId && post.status !== 'deleted' && post.id !== excludeId,
+    )
     .sort(
       (a, b) =>
         a.sort_order - b.sort_order ||

@@ -123,9 +123,7 @@ test('middle placement uses the existing reorder contract after save', () => {
   const post = { id: 'new', sort_order: 3, version: 1 };
   assert.equal(saveSortOrder(peers, 'custom', 1), 3);
   assert.equal(needsReorder('custom', 1, peers.length), true);
-  assert.deepEqual(orderedPlacement(peers, post, 1).map((item) => item.id), [
-    'a', 'new', 'b', 'c',
-  ]);
+  assert.deepEqual(orderedPlacement(peers, post, 1).map((item) => item.id), ['a', 'new', 'b', 'c']);
   assert.deepEqual(peers.map((item) => item.id), ['a', 'b', 'c']);
   assert.equal(needsReorder('custom', 0, 3), false);
   assert.equal(needsReorder('custom', 3, 3), false);
@@ -140,9 +138,7 @@ test('existing post placement reuses the previous integer for a middle reorder',
   ];
   assert.equal(saveSortOrder(peers, 'custom', 1, current, 'A'), 8);
   assert.equal(saveSortOrder(peers, 'custom', 1, current, 'B'), 16);
-  assert.deepEqual(orderedPlacement(peers, current, 1).map((item) => item.id), [
-    'a', 'b', 'c',
-  ]);
+  assert.deepEqual(orderedPlacement(peers, current, 1).map((item) => item.id), ['a', 'b', 'c']);
   assert.throws(() => orderedPlacement(peers, current, -1));
   assert.throws(() => orderedPlacement(peers, current, 3));
 });

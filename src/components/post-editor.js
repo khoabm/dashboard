@@ -448,7 +448,9 @@ export async function PostEditorDrawer({
         el('span', {}, 'Ảnh đã lưu sẽ hiển thị trên thẻ bài đăng sau khi tải lại.'),
       );
     }
-    coverPreview.append(el('span', { class: 'post-cover-name' }, selected.file_name || 'Ảnh đính kèm'));
+    coverPreview.append(
+      el('span', { class: 'post-cover-name' }, selected.file_name || 'Ảnh đính kèm'),
+    );
   }
 
   /** Retain selected image across attachment changes; reset a removed image safely. */
