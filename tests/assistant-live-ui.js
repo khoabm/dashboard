@@ -6,7 +6,7 @@ const heading = document.createElement('h1');
 heading.textContent = 'Kiểm tra UI offline — không gọi AI';
 const mode = document.createElement('select');
 mode.setAttribute('aria-label', 'Kịch bản lỗi');
-for (const value of ['unavailable', 'answer', 'board', 'hybrid', 'rate_limit', 'provider_quota']) {
+for (const value of ['unavailable', 'answer', 'board', 'board-many', 'hybrid', 'rate_limit', 'provider_quota']) {
   const option = document.createElement('option');
   option.value = value;
   option.textContent = value;
@@ -25,6 +25,13 @@ const data = {
       body: 'Môn Văn thi lúc 7g20 và làm bài trong 90 phút.',
       status: 'published',
     },
+    {
+      id: 'public-notice-two',
+      section_id: 'subject',
+      title: 'Kiểm tra GK môn LS-ĐL',
+      body: 'Ôn kỹ đề cương và ghi nhớ lịch kiểm tra môn LS-ĐL.',
+      status: 'published',
+    },
   ],
 };
 const assistant = BoardAssistant({
@@ -35,16 +42,21 @@ const assistant = BoardAssistant({
   request: async (query, _, options) => {
     calls++;
     stats.textContent = `calls${calls} history${options.history.length}`;
-    if (!['answer', 'board', 'hybrid'].includes(mode.value)) throw Error(mode.value);
-    const cited = mode.value === 'board' || mode.value === 'hybrid';
+    if (!['answer', 'board', 'board-many', 'hybrid'].includes(mode.value)) throw Error(mode.value);
+    const cited = ['board', 'board-many', 'hybrid'].includes(mode.value);
     return {
       mode: 'ai',
       status: 'answered',
       answer: cited
         ? `Theo bài Lịch thi GK1, Văn bắt đầu lúc 7g20. ${mode.value === 'hybrid' ? 'Giải thích thêm từ kiến thức chung.' : ''}`
         : `Đã nhận: ${query}`,
-      sources: cited ? [{ id: 'public-notice', quote: data.posts[0].body }] : [],
-      knowledge: cited ? mode.value : 'general',
+      sources: cited
+        ? data.posts.slice(0, mode.value === 'board-many' ? 2 : 1).map((post) => ({
+            id: post.id,
+            quote: post.body,
+          }))
+        : [],
+      knowledge: cited ? (mode.value === 'board-many' ? 'board' : mode.value) : 'general',
     };
   },
 });
