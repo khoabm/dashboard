@@ -884,7 +884,210 @@
   }
 }
 
-/* Keep image-optimization controls clear without changing the shared FilePicker geometry. */
+/* A compact, native-backed choice fits the existing green/white editor language. */
+.upload-zone .upload-optimize-choice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border: 1px solid #d3e3d8;
+  border-radius: 12px;
+  background: #fff;
+  color: #284f3c;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+.upload-zone .upload-optimize-choice:hover {
+  border-color: #a9cbb4;
+  background: #fcfefc;
+}
+.upload-zone .upload-optimize-choice:focus-within {
+  border-color: #367c58;
+  box-shadow: 0 0 0 3px #367c5824;
+}
+.upload-zone .upload-optimize-copy {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 3px;
+}
+.upload-zone .upload-optimize-copy strong {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #24593d;
+}
+.upload-zone .upload-optimize-copy span {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #647b6c;
+}
+.upload-zone .upload-optimize-choice > input[type='checkbox'] {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  display: block;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 26px;
+  min-height: 26px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #c0d1c5;
+  border-radius: 999px;
+  background: #e6ece8;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+.upload-zone .upload-optimize-choice > input[type='checkbox']::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px #173b2524;
+  transition: transform 150ms ease;
+}
+.upload-zone .upload-optimize-choice > input[type='checkbox']:checked {
+  border-color: #276d4d;
+  background: #287b55;
+}
+.upload-zone .upload-optimize-choice > input[type='checkbox']:checked::before {
+  transform: translateX(18px);
+}
+.upload-zone .upload-optimize-choice > input[type='checkbox']:focus-visible {
+  outline: 2px solid #245c42;
+  outline-offset: 3px;
+}
+.upload-zone .upload-optimize-choice > input[type='checkbox']:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Only rejected files need a separate notice; successful saves remain in the file list. */
+.upload-zone .upload-compression-summary {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  color: #365f45;
+  text-align: left;
+}
+.upload-zone .upload-compression-summary:empty {
+  display: none;
+}
+.upload-zone .upload-compression-result {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #d3e5d7;
+  border-radius: 10px;
+  background: #f9fcf9;
+  color: #42614d;
+  font-size: 12px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.upload-zone .upload-compression-result strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+.upload-zone .upload-compression-result.is-rejected {
+  border-color: #e5c7b6;
+  background: #fff7f1;
+  color: #855137;
+}
+.editor-file-label .editor-file-savings {
+  display: block;
+  margin-top: 4px;
+  color: #267348;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* Progress and cancellation are one interaction, instead of detached stacked elements. */
+.upload-zone .upload-compression-progress {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  min-width: 0;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid #d0e4d5;
+  border-radius: 12px;
+  background: #edf7f0;
+  text-align: left;
+}
+.upload-zone .upload-compression-progress:not(:has(.pending-indicator:not([hidden]))) {
+  display: none;
+}
+.upload-zone .upload-compression-progress .pending-indicator {
+  display: flex;
+  align-items: center;
+  flex: 1 1 170px;
+  gap: 9px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: #245d40;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.upload-zone .upload-compression-progress .upload-compression-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-height: 40px;
+  margin: 0 0 0 auto;
+  padding: 8px 13px;
+  border: 1px solid #b8d3c1;
+  border-radius: 9px;
+  background: #fff;
+  color: #295d44;
+  font-size: 12px;
+  font-weight: 700;
+}
+.upload-zone .upload-compression-progress .upload-compression-cancel[hidden] {
+  display: none;
+}
+.upload-zone .upload-compression-progress .upload-compression-cancel:focus-visible {
+  outline: 3px solid #367c5830;
+  outline-offset: 2px;
+}
+@media (max-width: 600px) {
+  .upload-zone .upload-optimize-choice {
+    padding: 12px;
+  }
+  .upload-zone .upload-compression-progress {
+    padding: 10px;
+  }
+  .upload-zone .upload-compression-progress .upload-compression-cancel {
+    min-height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .upload-zone .upload-optimize-choice,
+  .upload-zone .upload-optimize-choice > input[type='checkbox'],
+  .upload-zone .upload-optimize-choice > input[type='checkbox']::before {
+    transition: none;
+  }
+}
+
 .upload-zone .upload-optimize-choice {
   display: flex;
   align-items: center;

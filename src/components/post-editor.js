@@ -58,7 +58,7 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
   const compressionSavings = new Map();
   let processingAbort = null;
   const cancelCompression = button(
-    'Hủy nén ảnh lớn',
+    'Dừng nén',
     () => processingAbort?.abort(),
     'button subtle upload-compression-cancel',
   );
@@ -213,10 +213,10 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
                   cancelCompression.hidden = false;
                   const message =
                     stage === 'decode'
-                      ? 'Đang giải mã ảnh độ phân giải cao…'
+                      ? 'Đang chuẩn bị ảnh…'
                       : stage === 'encode'
-                        ? 'Đang mã hóa WebP và giữ nguyên độ phân giải…'
-                        : 'Đang chuẩn bị xử lý ảnh lớn trên thiết bị…';
+                        ? 'Đang giảm dung lượng ảnh…'
+                        : 'Đang xử lý ảnh lớn…';
                   setPendingMessage(verificationStatus, message);
                 },
               });
@@ -382,17 +382,21 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
       el(
         'label',
         { class: 'upload-optimize-choice' },
+        el(
+          'span',
+          { class: 'upload-optimize-copy' },
+          el('strong', {}, 'Tự động nén ảnh'),
+          el('span', {}, 'Giảm dung lượng, giữ nguyên độ phân giải.'),
+        ),
         optimizeChoice,
-        el('span', {}, 'Tự động tối ưu ảnh trước khi tải lên'),
-      ),
-      el(
-        'p',
-        { class: 'upload-optimize-hint' },
-        'Giữ nguyên kích thước ảnh (pixel). Ảnh lớn được xử lý khi thiết bị hỗ trợ; có thể hủy. PDF và Office giữ nguyên. Không hỗ trợ video.',
       ),
       compressionSummary,
-      cancelCompression,
-      verificationStatus,
+      el(
+        'div',
+        { class: 'upload-compression-progress' },
+        verificationStatus,
+        cancelCompression,
+      ),
     ),
     list,
     el(
