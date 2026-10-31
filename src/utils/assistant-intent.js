@@ -7,6 +7,9 @@ const generalSignals =
   /^(?:tai sao|vi sao|do dau|nguyen nhan|dinh nghia|khai niem|the nao la|la gi|giai thich|phan biet|vi du ve|cho vi du ve|cong thuc|cach tinh)\b/;
 const explicitGeneral =
   /\b(?:kien thuc chung|theo khoa hoc|noi chung|khong lien quan (?:web|website|bai dang))\b/;
+// Practical how-to requests stay general unless they explicitly point to Board content.
+const practicalHowTo =
+  /^(?:(?:em|toi|minh|ban)\s+)?(?:chi|huong dan|day|giup)\s+(?:(?:em|toi|minh)\s+)?(?:cach|lam|thiet ke|ve|tao)\b|^(?:lam sao|cach nao|cach|huong dan cach|lam the nao|thiet ke the nao)\b/;
 const hybridSignals =
   /\b(?:giai thich them|lien he thuc te|ung dung thuc te|theo khoa hoc|tai sao|vi sao)\b/;
 const referring =
@@ -32,6 +35,8 @@ export function routeAssistantIntent(query, history = []) {
   const clearScience = generalSignals.test(text);
   if (asksGeneral && !asksBoard) return { mode: 'general', followup: false };
   if (/^(?:vay|the) (?:tai sao|vi sao|sao|do dau|giai thich)\b/.test(text) && !asksBoard)
+    return { mode: 'general', followup: false };
+  if (practicalHowTo.test(text) && !asksBoard)
     return { mode: 'general', followup: false };
   if (asksBoard)
     return {
