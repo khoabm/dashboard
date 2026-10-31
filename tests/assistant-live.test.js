@@ -141,6 +141,8 @@ test('general knowledge needs no Board citation, ordinary dates/numbers are not 
   const result = await r.json();
   assert.equal(result.knowledge, 'general');
   assert.deepEqual(result.sources, []);
+  assert.equal(h.reads.length, 0);
+  assert.equal(h.models.length, 1);
 });
 
 test('public health reports Board availability without any model invocation or private content', async () => {
@@ -164,7 +166,8 @@ test('a new general topic does not inherit the previous Board retrieval/citation
   ]);
   assert.equal(response.status, 200);
   assert.deepEqual((await response.json()).sources, []);
-  assert.equal(h.models[0].input.text[0].trim(), 'Vì sao bầu trời có màu xanh?');
+  assert.equal(h.models.length, 1);
+  assert.equal(h.reads.length, 0);
   assert.deepEqual(
     JSON.parse(h.models.at(-1).input.messages.at(-1).content.split('\n/no_think')[0]).sources,
     [],
@@ -262,4 +265,76 @@ test('transport keeps no backend fields, does not retry503 and supports a later 
   assert.equal(calls, 1);
   assert.equal((await request('Xin chào', [])).answer, 'Xin chào');
   assert.deepEqual(Object.keys(body).sort(), ['history', 'query']);
+});
+
+test('general knowledge with overlapping Board topic never reads Supabase or BGE', async () => {
+  const h = fixture();
+  h.general();
+  const r = await h.send('Tại sao bầu trời có màu xanh?');
+  assert.equal(r.status, 200);
+  assert.equal((await r.json()).knowledge, 'general');
+  assert.equal(h.models.length, 1);
+  assert.equal(h.reads.length, 0);
+  assert.match(h.models[0].model, /qwen/);
+});
+
+test('ambiguous intent uses bounded classification before retrieval only when needed', async () => {
+  const h = fixture();
+  const original = h.env.AI.run;
+  h.env.AI.run = async (model, input, options) => {
+    if (input.messages?.[0]?.content.startsWith('Phân loại')) {
+      return { response: { mode: 'GENERAL' } };
+    }
+    return original(model, input, options);
+  };
+  h.general();
+  const r = await h.send('Em cần chuẩn bị gì?');
+  assert.equal(r.status, 200);
+  assert.equal((await r.json()).knowledge, 'general');
+  assert.equal(h.reads.length, 0);
+  assert.equal(h.models.length, 1);
+});
+
+test('Board failure is not disguised as ordinary general knowledge', async () => {
+  const h = fixture();
+  const r = await liveFetch(
+    new Request('https://worker.test/chat', {
+      method: 'POST',
+      headers: { Origin: origin, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'Trong bài Lịch thi GK1, môn Văn kiểm tra lúc mấy giờ?', history: [] }),
+    }),
+    h.env,
+    { fetcher: async () => Response.json({ unavailable: true }, { status: 503 }) },
+  );
+  assert.equal(r.status, 200);
+  const response = await r.json();
+  assert.equal(response.knowledge, 'board');
+  assert.equal(response.status, 'unavailable');
+  assert.deepEqual(response.sources, []);
+  assert.equal(h.models.length, 0);
+});
+
+test('missing evidence for Board questions never becomes an uncited general answer', async () => {
+  const h = fixture();
+  const original = h.env.AI.run;
+  h.env.AI.run = async (model, input, options) => {
+    if (model.includes('bge'))
+      return original(model, input, options);
+    return { response: { answer: 'Thông báo này sẽ diễn ra lúc 8 giờ.', ids: [] } };
+  };
+  const r = await h.send('Trong bài Lịch thi GK1, môn Văn kiểm tra lúc mấy giờ?');
+  assert.equal(r.status, 200);
+  const response = await r.json();
+  assert.equal(response.status, 'insufficient');
+  assert.deepEqual(response.sources, []);
+  assert.doesNotMatch(response.answer, /8 giờ/);
+});
+
+test('ambiguous classification invalid payload fails closed as clarification', async () => {
+  const h = fixture();
+  h.env.AI.run = async () => ({ response: { mode: 'WRITE_PRIVATE' } });
+  const r = await h.send('Em cần chuẩn bị gì?');
+  assert.equal(r.status, 200);
+  assert.equal((await r.json()).status, 'clarify');
+  assert.equal(h.reads.length, 0);
 });
