@@ -440,8 +440,7 @@ export async function PostEditorDrawer({
       photo.addEventListener(
         'error',
         () => {
-          if (generation === coverGeneration)
-            fallback('Chưa tải được bản xem trước ảnh bìa.');
+          if (generation === coverGeneration) fallback('Chưa tải được bản xem trước ảnh bìa.');
         },
         { once: true },
       );

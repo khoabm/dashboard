@@ -166,26 +166,3 @@ test('numeric post-order boundaries reject unsafe range before uploading', () =>
   assert.throws(() => saveSortOrder(peers, 'end', 1));
   assert.throws(() => saveSortOrder([{ id: 'x', sort_order: -2147483648 }], 'start', 0));
 });
-
-/* TEMPORARY PRETTIER DIFF REPORT: remove immediately after diagnosis. */
-test('temporary scoped post-editor Prettier diff', async () => {
-  const prettier = await import('prettier');
-  const fs = await import('node:fs/promises');
-  const os = await import('node:os');
-  const path = await import('node:path');
-  const { spawnSync } = await import('node:child_process');
-  const file = 'src/components/post-editor.js';
-  const source = await fs.readFile(file, 'utf8');
-  const formatted = await prettier.format(source, { ...(await prettier.resolveConfig(file)), filepath: file });
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'prettier-check-'));
-  try {
-    const before = path.join(dir, 'before');
-    const after = path.join(dir, 'after');
-    await fs.writeFile(before, source);
-    await fs.writeFile(after, formatted);
-    const diff = spawnSync('diff', ['-u', before, after], { encoding: 'utf8' });
-    console.log('POST EDITOR FORMAT DIFF START\n' + diff.stdout + '\nPOST EDITOR FORMAT DIFF END');
-  } finally {
-    await fs.rm(dir, { recursive: true, force: true });
-  }
-});
