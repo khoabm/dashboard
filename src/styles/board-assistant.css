@@ -355,10 +355,18 @@
   outline-offset: 2px;
 }
 .assistant-sources-chevron {
-  flex: none;
-  font-size: 19px;
-  line-height: 1;
+  display: inline-flex;
+  flex: 0 0 20px;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
   transition: transform 220ms ease;
+}
+.assistant-sources-chevron svg {
+  display: block;
+  width: 16px;
+  height: 16px;
 }
 .assistant-sources-toggle[aria-expanded='true'] .assistant-sources-chevron {
   transform: rotate(180deg);
