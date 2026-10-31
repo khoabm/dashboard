@@ -52,25 +52,82 @@ export function validateChatPayload(value) {
 }
 
 /** Reads model output without inspecting dates/numbers or demanding citations for general knowledge. */
-export function decodeChatAnswer(generated, catalog) {
+/** Parses strict live JSON while retaining legacy plaintext for callers that explicitly allow it. */
+function modelValue(generated, structured) {
+  if (
+    generated?.finish_reason === 'length' ||
+    generated?.choices?.[0]?.finish_reason === 'length'
+  )
+    throw Error('model_incomplete');
   let value = generated?.response ?? generated?.choices?.[0]?.message?.content;
   if (typeof value === 'string') {
     let text = value.replace(/^\s*<think>[\s\S]*?<\/think>\s*/, '').trim();
     if (text.startsWith('<think>') || text.length > 16000) throw Error('model');
     text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+    if (structured && (!text.startsWith('{') || !text.endsWith('}')))
+      throw Error('model_incomplete');
     value = text.startsWith('{') ? JSON.parse(text) : { answer: text, ids: [] };
   }
+  return value;
+}
+
+/** Rejects an obviously unfinished Vietnamese clause without another model call. */
+function incompleteChatSentence(value) {
+  const end = String(value)
+    .trim()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .split(/\s+/)
+    .at(-1);
+  return ['vi', 'bi', 'khi', 'do', 'va', 'hoac', 'de', 'cua', 'tu', 'trong', 'ma'].includes(end);
+}
+
+/** Validates one natural response and its cited public passages. */
+export function decodeChatAnswer(generated, catalog, { structured = false } = {}) {
+  const value = modelValue(generated, structured);
   if (
     !value ||
     typeof value.answer !== 'string' ||
     !value.answer.trim() ||
     value.answer.length > chatLimits.answer ||
+    (structured && incompleteChatSentence(value.answer)) ||
     !Array.isArray(value.ids) ||
     value.ids.length > 3
   )
-    throw Error('model');
+    throw Error('model_incomplete');
   return {
     answer: value.answer.trim(),
     ids: [...new Set(value.ids)].filter((id) => catalog.some((p) => p.id === id)),
+  };
+}
+
+/**
+ * Requires distinct grounded website facts and general advice for hybrid questions.
+ * The Worker composes the final sections; the model cannot omit one silently.
+ */
+export function decodeHybridChatAnswer(generated, catalog) {
+  const value = modelValue(generated, true);
+  if (
+    !value ||
+    typeof value.website !== 'string' ||
+    !value.website.trim() ||
+    value.website.length > 3000 ||
+    incompleteChatSentence(value.website) ||
+    typeof value.general !== 'string' ||
+    !value.general.trim() ||
+    value.general.length > 3000 ||
+    incompleteChatSentence(value.general) ||
+    !Array.isArray(value.ids) ||
+    !value.ids.length ||
+    value.ids.length > 3
+  )
+    throw Error('model_incomplete');
+  const ids = [...new Set(value.ids)];
+  if (ids.length !== value.ids.length || ids.some((id) => !catalog.some((post) => post.id === id)))
+    throw Error('model');
+  return {
+    answer: `Theo bài đăng:\n${value.website.trim()}\n\nGiải thích thêm:\n${value.general.trim()}`,
+    ids,
   };
 }
