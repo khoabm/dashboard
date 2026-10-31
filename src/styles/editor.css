@@ -602,3 +602,18 @@
     flex: 1 1 120px;
   }
 }
+
+/* Shared picker and select sizing inside existing forms; preserve the original dialog ownership. */
+.dialog:not(.gradebook-student-info-dialog) .field > .ui-select {
+  width: 100%;
+}
+.dialog:not(.gradebook-student-info-dialog) .ui-select-trigger {
+  width: 100%;
+  min-height: 45px;
+}
+.dialog:not(.gradebook-student-info-dialog) .ui-file-picker {
+  width: 100%;
+}
+.upload-zone .ui-file-picker {
+  margin-top: 12px;
+}

@@ -2973,3 +2973,40 @@
     flex: 1 1 auto;
   }
 }
+
+/* Gradebook selectors share the same button geometry without native listbox styling. */
+.gradebook-admin .admin-actions > .ui-select,
+.teacher-scores .admin-actions > .ui-select {
+  min-width: min(155px, 100%);
+  max-width: 100%;
+}
+.gradebook-admin .admin-actions > .ui-select .ui-select-trigger,
+.teacher-scores .admin-actions > .ui-select .ui-select-trigger {
+  min-height: 44px;
+}
+.gradebook-export-controls > .ui-select {
+  flex: 1 1 142px;
+  min-width: 0;
+}
+.gradebook-export-controls > .ui-select .ui-select-trigger {
+  width: 100%;
+}
+.teacher-scores .admin-actions > .ui-select:nth-child(2) {
+  min-width: min(260px, 100%);
+}
+.student-chart-selectors .ui-select {
+  width: 100%;
+  min-width: 0;
+}
+.gradebook-admin .ui-file-picker {
+  margin: 6px 0;
+}
+@media (max-width: 600px) {
+  .gradebook-admin .admin-actions > .ui-select,
+  .teacher-scores .admin-actions > .ui-select {
+    flex: 1 1 160px;
+  }
+  .gradebook-export-controls > .ui-select {
+    flex: 1 1 130px;
+  }
+}

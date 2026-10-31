@@ -1,4 +1,5 @@
 /** Renders CP04 teacher scores/import/publication with injected adapters and memory-only ownership. */
+import { SelectControl, FilePicker } from './form-controls.js';
 import { el, button, field, restrictNumericInput } from '../utils/dom.js';
 import { openDialog, ConfirmDialog, ToastNotification } from './primitives.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
@@ -631,6 +632,7 @@ export function GradebookScores({
     if (!loaded || currentClass[`semester${semester}Published`]) return;
     const entry = dialog('Nhập bảng điểm'),
       file = el('input', { type: 'file', accept: '.csv,.xlsx', 'aria-label': 'Chọn tệp điểm' });
+    const filePicker = FilePicker(file, { label: 'Chọn tệp CSV / Excel' });
     const fileProgress = PulseIndicator();
     const detail = el('div', { class: 'import-detail', 'aria-live': 'polite' }),
       errors = el('div', { role: 'alert', class: 'form-error' }),
@@ -804,7 +806,7 @@ export function GradebookScores({
         {},
         'Chỉ đọc trang tính đầu tiên. Ô điểm trống bỏ qua; 0 là một giá trị. Server kiểm tra lại toàn bộ batch trước khi áp dụng.',
       ),
-      file,
+      filePicker,
       fileProgress,
       detail,
       errors,
@@ -854,7 +856,7 @@ export function GradebookScores({
       sorting = DEFAULT_TABLE_SORT;
       pageIndex = 0;
       render();
-      panel.querySelector('[aria-label="Môn học"]')?.focus();
+      panel.querySelector('.ui-select-trigger[aria-label="Môn học"]')?.focus();
     });
     const pupil = el(
       'select',
@@ -872,7 +874,7 @@ export function GradebookScores({
       selected = pupil.value;
       pageIndex = 0;
       render();
-      panel.querySelector('[aria-label="Học sinh trong lớp"]')?.focus();
+      panel.querySelector('.ui-select-trigger[aria-label="Học sinh trong lớp"]')?.focus();
     });
     panel.append(
       el(
@@ -883,8 +885,8 @@ export function GradebookScores({
       el(
         'div',
         { class: 'admin-actions' },
-        subjectSelect,
-        pupil,
+        SelectControl(subjectSelect, { label: 'Môn học' }),
+        SelectControl(pupil, { label: 'Học sinh trong lớp' }),
         upload,
         ExportSelector(exportScores, { label: 'Xuất bảng điểm' }),
         button(published ? 'Tạm ẩn học kỳ' : 'Công bố học kỳ', publication, 'button', {

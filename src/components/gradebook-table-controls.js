@@ -1,4 +1,5 @@
 /** Shared accessible sorting contract for both gradebook tables. */
+import { SelectControl } from './form-controls.js';
 import { el, button } from '../utils/dom.js';
 
 const collator = new Intl.Collator('vi', { sensitivity: 'base', numeric: true });
@@ -87,5 +88,10 @@ export function ExportSelector(onExport, { label = 'Xuất dữ liệu' } = {}) 
       'aria-label': `${label} toàn bộ danh sách`,
     },
   );
-  return el('div', { class: 'gradebook-export-controls' }, format, action);
+  return el(
+    'div',
+    { class: 'gradebook-export-controls' },
+    SelectControl(format, { label: 'Định dạng tệp xuất' }),
+    action,
+  );
 }

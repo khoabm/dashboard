@@ -1,6 +1,7 @@
 /** Builds the post editor, validates attachments, and preserves recoverable local drafts. */
 
 import { newId } from '../utils/id.js';
+import { SelectControl, FilePicker } from './form-controls.js';
 import { el, button, field, errorMessage, restrictNumericInput } from '../utils/dom.js';
 import {
   safeUrl,
@@ -145,6 +146,7 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
       });
     onPending();
   });
+  const filePicker = FilePicker(files, { label: 'Chọn ảnh hoặc tài liệu' });
   const link = el('input', {
     type: 'url',
     placeholder: 'https://…',
@@ -185,7 +187,7 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
         {},
         'JPG, PNG, WebP, PDF, DOCX, PPTX, XLSX · mỗi tệp < 2 MB · tối đa 10 tài nguyên/bài',
       ),
-      files,
+      filePicker,
       verificationStatus,
     ),
     list,
@@ -308,10 +310,15 @@ export async function PostEditorDrawer({
     'form',
     {},
     field('Tiêu đề *', title),
-    field('Chủ đề *', section),
+    field('Chủ đề *', SelectControl(section, { label: 'Chủ đề' })),
     field('Nội dung / mô tả', body),
-    el('div', { class: 'field-row' }, field('Trạng thái', status), field('Vị trí', order)),
-    field('Ảnh đại diện', thumbnail),
+    el(
+      'div',
+      { class: 'field-row' },
+      field('Trạng thái', SelectControl(status, { label: 'Trạng thái' })),
+      field('Vị trí', order),
+    ),
+    field('Ảnh đại diện', SelectControl(thumbnail, { label: 'Ảnh đại diện' })),
     el('h3', { class: 'editor-section-label' }, 'Tài nguyên đính kèm'),
   );
 
@@ -380,6 +387,7 @@ export async function PostEditorDrawer({
         .filter((a) => a.type === 'image')
         .map((a) => el('option', { value: a.id, selected: a.id === value }, a.file_name)),
     );
+    thumbnail.closest('.ui-select')?.refresh();
   }
   const uploader = AttachmentUploader({
     attachments,

@@ -1,6 +1,7 @@
 /** Boots the board UI and coordinates rendering, admin actions, and refresh lifecycle. */
 
 import './styles/main.css';
+import { SelectControl } from './components/form-controls.js';
 import { el, button, errorMessage } from './utils/dom.js';
 import { debounce, canRestore, moveItem } from './utils/validation.js';
 import { client, rememberAdminSession } from './services/client.js';
@@ -292,7 +293,7 @@ function renderControls() {
   // The controls region also shows the board title and most recent successful sync time.
   controls.replaceChildren(
     tabs,
-    mobile,
+    SelectControl(mobile, { label: 'Chọn chủ đề', className: 'ui-mobile-select' }),
     el(
       'span',
       { class: 'board-label' },
@@ -369,7 +370,33 @@ function render(options = {}) {
   countText.textContent = `${data.sections.length} chủ đề · ${data.posts.filter((p) => p.status === 'published').length} học liệu`;
   // Clear the previous admin-only toolbar and quota before rebuilding this region.
   adminRegion.replaceChildren();
-  if (admin)
+  if (admin) {
+    // Keep maintenance feedback together without changing refresh, cleanup or usage requests.
+    const quota = el('div', { class: 'quota-status' });
+    const maintenance = el(
+      'section',
+      { class: 'admin-maintenance', 'aria-label': 'Dung lượng và bảo trì' },
+      el(
+        'div',
+        { class: 'admin-maintenance-heading' },
+        el(
+          'div',
+          { class: 'admin-maintenance-title' },
+          el('strong', {}, 'Dung lượng hệ thống'),
+          el('span', {}, 'Theo dõi mức sử dụng và quản lý tệp'),
+        ),
+        button(
+          'Dọn tệp thừa',
+          () =>
+            runBoardAction('Đang kiểm tra và dọn tệp thừa…', async (isCurrent) => {
+              await cleanupPending();
+              if (isCurrent()) ToastNotification('Đã hoàn tất kiểm tra các tệp đang chờ dọn.');
+            }),
+          'button subtle',
+        ),
+      ),
+      quota,
+    );
     adminRegion.append(
       AdminToolbar({
         onNew: () => editPost(),
@@ -381,20 +408,8 @@ function render(options = {}) {
         },
         filter,
       }),
-      button(
-        'Dọn tệp thừa',
-        () =>
-          runBoardAction('Đang kiểm tra và dọn tệp thừa…', async (isCurrent) => {
-            await cleanupPending();
-            if (isCurrent()) ToastNotification('Đã hoàn tất kiểm tra các tệp đang chờ dọn.');
-          }),
-        'button subtle',
-      ),
+      maintenance,
     );
-  if (admin) {
-    // The quota container is populated asynchronously by QuotaStatus.
-    const quota = el('div', { class: 'quota-status' });
-    adminRegion.append(quota);
     QuotaStatus(quota);
   }
   updateHeaderAdmin(root.querySelector('.app-header'), admin);
