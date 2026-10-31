@@ -64,7 +64,7 @@ export function checkboxField(label, control) {
  * @returns {HTMLInputElement} The unchanged control for fluent UI construction.
  */
 export function restrictNumericInput(input, { decimal = false, date = false } = {}) {
-  const accepted = decimal ? /^[0-9]*(?:\\.[0-9]*)?$/ : date ? /^[0-9/]*$/ : /^[0-9]*$/;
+  const accepted = decimal ? /^[0-9]*(?:\.[0-9]*)?$/ : date ? /^[0-9/]*$/ : /^[0-9]*$/;
   let lastValue = accepted.test(input.value) ? input.value : '';
   let lastCaret = null;
   const caret = () => {

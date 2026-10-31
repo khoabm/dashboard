@@ -40,3 +40,5 @@ KHTN8 Board là tên lịch sử của ứng dụng Bảng học liệu, không 
 | [R28](SPEC.md#r28) | Lệnh bắt đầu / sản phẩm độc lập | ROADMAP.md |
 
 Khi hoàn tất từng phase, ghi Rxx và tiểu mục đã xử lý, bằng chứng, điều kiện còn thiếu trong STATUS.md. Không đánh dấu toàn R08 hoàn tất nếu chỉ thực hiện một tiểu mục; không dùng độ phủ mục tài liệu như độ phủ test.
+
+Gradebook owner amendment: [GB-10 full exports and global sorting](features/personal-gradebook/BRIEF.md#gb-10--full-export-and-table-sorting-owner-amendment-2026-10-31) → [acceptance matrix](features/personal-gradebook/FULL_EXPORT_SORT.md); distinct from Board R01–R28.

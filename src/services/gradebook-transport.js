@@ -86,7 +86,9 @@ export function createGradebookTransport({
             const { done, value } = await reader.read();
             if (done) break;
             size += value.length;
-            if (controller.signal.aborted || size > 2097152) throw new TransportError();
+            const maxBytes =
+              endpoint === 'grades-admin' && body.op === 'class.snapshot' ? 33554432 : 2097152;
+            if (controller.signal.aborted || size > maxBytes) throw new TransportError(413);
             chunks.push(value);
           }
         } finally {

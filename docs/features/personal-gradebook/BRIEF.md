@@ -1,6 +1,6 @@
 # Implementation Brief — Bảng điểm cá nhân
 
-**Version:** V1.2, 2026-10-26: V1.1 plus approved GB-B1-REV-003 positional import mapping; supersedes earlier literal import-header requirements. D01–D05 business rules remain. **State:** B1 pure contracts implemented; UI/backend feature NOT IMPLEMENTED. **Owner:** existing single teacher/admin. The IDs `GB-xx` below are stable acceptance references, not API or database keys. Decision history: [Gradebook decisions](../../DECISIONS.md#personal-gradebook-2026-10-26).
+**Version:** V1.3, 2026-10-31: V1.2 plus owner-approved GB-10 full exports/sorting and header-only empty exports; V1.2 included GB-B1-REV-003 positional import mapping; supersedes earlier literal import-header requirements. D01–D05 business rules remain. **State:** B1 pure contracts implemented; UI/backend feature NOT IMPLEMENTED. **Owner:** existing single teacher/admin. The IDs `GB-xx` below are stable acceptance references, not API or database keys. Decision history: [Gradebook decisions](../../DECISIONS.md#personal-gradebook-2026-10-26).
 
 This feature is additional to, not a rewrite of, the current KHTN8 Board. Exact approved labels/order below take precedence over abbreviated examples in earlier discussions. See [DATA_AND_SECURITY](DATA_AND_SECURITY.md) for candidate storage/API architecture and [CHECKPOINTS](CHECKPOINTS.md) for work items.
 
@@ -120,6 +120,13 @@ Teacher can manually enter/edit/delete scores and student info, **plus** import 
 - **Before any real student data**, complete the separate security/data-governance gate in [DATA_AND_SECURITY §H](DATA_AND_SECURITY.md#h-real-personal-data-gate). Synthetic implementation/tests can proceed before that gate; neither CP03 nor deployment timing waives it.
 - No deployment, branch merge, source code implementation, personal-data insertion or actual DB migration is authorized by the request that created these documents. Each step needs checkpoint-specific authorization and measured evidence.
 
+## GB-10 — Full export and table sorting (owner amendment, 2026-10-31)
+
+- Both student and score lists provide CSV and XLSX exports of the complete class dataset, including inactive students. Score export includes both semesters and all ordered subjects/columns, using committed exact decimal strings. Pagination, search, pupil selection and subject selection never reduce the export scope.
+- An empty class exports a header-only CSV/XLSX. Remove the separate template-download feature; import remains available with the existing GB-07 contract. Export layouts include descriptive metadata and are not positional import templates.
+- Default table order is full name → underlying CMND/CCCD text (including leading zeroes) → ISO birth date, with stable internal ID as final tie-breaker. Every eligible visible data column supports ASC/DESC through one shared accessible header; action columns are excluded. Sort the complete dataset before pagination; preserve unsaved score drafts across sort/page changes.
+- Reuse existing page pending/loading and confirmation controls. Preserve the student information “Xem” view, all authorization/publication/import rules and exact score precision. Ordinary lists never disclose decrypted identities; a confirmed admin export is a distinct sensitive operation. No production deployment or hosted testing is implied.
+
 ## Traceability
 
-`GB-01..09` → [CHECKPOINTS](CHECKPOINTS.md). Schema/backend choices → [DATA_AND_SECURITY](DATA_AND_SECURITY.md). Any changes to confirmed names, ordering, precision, import behavior, identity factors, semester publication or chart access require explicit new user decision and a versioned amendment here.
+`GB-01..09` → [CHECKPOINTS](CHECKPOINTS.md); `GB-10` → [export/sort acceptance](FULL_EXPORT_SORT.md). Schema/backend choices → [DATA_AND_SECURITY](DATA_AND_SECURITY.md). Any changes to confirmed names, ordering, precision, import behavior, identity factors, semester publication or chart access require explicit new user decision and a versioned amendment here.
