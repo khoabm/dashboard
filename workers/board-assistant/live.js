@@ -4,6 +4,7 @@ import {
   publicChatText,
   decodeChatAnswer,
   decodeHybridChatAnswer,
+  validateHybridRequestedTime,
 } from '../../src/utils/assistant-chat.js';
 import { publicAssistantCorpus, retrievePublicContent } from '../../src/utils/public-retrieval.js';
 import { rankAssistantCatalog, cosine, AssistantBudget } from './index.js';
@@ -271,6 +272,22 @@ export async function liveFetch(request, env, { fetcher = fetch } = {}) {
       intent === 'hybrid'
         ? decodeHybridChatAnswer(generated, catalog)
         : decodeChatAnswer(generated, catalog, { structured: true });
+    // Keep a requested exam hour tied to the cited Board passage, not the general study advice.
+    if (
+      intent === 'hybrid' &&
+      !validateHybridRequestedTime(
+        payload.query,
+        answer.website,
+        catalog.filter((post) => answer.ids.includes(post.id)),
+      )
+    )
+      return reply(200, {
+        mode: 'ai',
+        status: 'insufficient',
+        answer: 'Mình chưa xác minh được giờ thi được hỏi từ bài đăng. Em hãy kiểm tra bài Lịch thi GK1 hoặc hỏi lại kèm môn học nhé.',
+        sources: [],
+        knowledge: 'board',
+      });
     // A cited public fact must have a usable source; never substitute general knowledge.
     if (intent !== 'general' && !answer.ids.length)
       return reply(200, { mode: 'ai', status: 'insufficient', answer: 'Mình chưa có bài đăng công khai đủ rõ để xác nhận câu trả lời. Em có thể hỏi lại kèm tên bài nhé.', sources: [], knowledge: 'board' });
