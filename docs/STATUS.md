@@ -1,3 +1,30 @@
+## 2026-10-31 — Large-image compression worker trial / Draft PR #38
+
+Owner-approved expansion of local image optimization for the original
+`pexels-steve-24349103.jpg` (2,829,094 bytes, 8064×6048, 48.77 MP).
+Kept the existing ≤24 MP main-thread image processing policy. Higher-resolution
+images can be encoded with original pixel dimensions in a **cancellable module
+Web Worker / OffscreenCanvas** only when the browser supports the APIs and
+advisory device capability is adequate: 60 MP tier for reported ≥8 GB memory and
+≥4 logical cores, or desktop-only ≥8 cores when memory is unavailable; 32 MP
+tier for ≥4 GB and ≥4 cores; 24 MP otherwise. JPEG/PNG dimension header check
+avoids premature full decode; worker enforces its own pixel budget. User sees
+progress and "Hủy nén ảnh lớn"; cancellation and a 90-second timeout terminate
+the worker, retain the original and do not upload rejected files.
+
+No change to resolution, persisted <2 MB file cap, MIME/file checks, video
+exclusion, Storage/Auth/API/DB/RLS, Edge, migrations or Cloudflare config.
+Code SHA `61c4d5c` passed [Offline CI #41175731609](https://github.com/khoabm/dashboard/actions/runs/41175731609)
+(192/192 curated unit tests, syntax, production build, Prettier).
+Original JPG proof: local Pillow WebP quality 82 produced 1,345,418 bytes at
+8064×6048. This is **not browser-Worker evidence**: Chromium localhost access
+was blocked by the execution environment, so Chrome/iOS/Android browser QA,
+real user-device memory behavior, and hosted Storage uploads were NOT RUN.
+Keep PR Draft; no merge/deploy before owner review.
+[Detailed acceptance gates](features/board-image-compression/README.md).
+
+---
+
 ## 2026-10-31 — Compression revision: keep original resolution, show result per selection
 
 PR #38 remains Draft. JPG/PNG/WebP Canvas uses decoded source width/height
