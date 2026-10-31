@@ -53,8 +53,9 @@ export function validateChatPayload(value) {
 
 /** Parses strict live JSON while retaining legacy plaintext for callers that explicitly allow it. */
 function modelValue(generated, structured) {
-  if (generated?.finish_reason === 'length' || generated?.choices?.[0]?.finish_reason === 'length')
-    throw Error('model_incomplete');
+  const stoppedEarly = generated?.finish_reason === 'length';
+  const choiceStoppedEarly = generated?.choices?.[0]?.finish_reason === 'length';
+  if (stoppedEarly || choiceStoppedEarly) throw Error('model_incomplete');
   let value = generated?.response ?? generated?.choices?.[0]?.message?.content;
   if (typeof value === 'string') {
     let text = value.replace(/^\s*<think>[\s\S]*?<\/think>\s*/, '').trim();
@@ -120,8 +121,8 @@ export function decodeHybridChatAnswer(generated, catalog) {
   )
     throw Error('model_incomplete');
   const ids = [...new Set(value.ids)];
-  if (ids.length !== value.ids.length || ids.some((id) => !catalog.some((post) => post.id === id)))
-    throw Error('model');
+  const containsUnknown = ids.some((id) => !catalog.some((post) => post.id === id));
+  if (ids.length !== value.ids.length || containsUnknown) throw Error('model');
   return {
     answer: `Theo bài đăng:\n${value.website.trim()}\n\nGiải thích thêm:\n${value.general.trim()}`,
     website: value.website.trim(),
@@ -134,7 +135,10 @@ export function decodeHybridChatAnswer(generated, catalog) {
  * or a study plan for the requested hour. No extra AI inference is needed.
  */
 export function validateHybridRequestedTime(query, answer, catalog) {
-  const plain = (value) => String(value).normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+  const plain = (value) => {
+    const base = String(value).normalize('NFD');
+    return base.replace(/\p{M}/gu, '').toLowerCase();
+  };
   const normalized = plain(query);
   if (!/\b(?:may gio|luc nao|gio nao)\b/.test(normalized)) return true;
   const clocks = (value) => {
