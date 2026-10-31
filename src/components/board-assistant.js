@@ -526,6 +526,19 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
       }
       if (result.answer) {
         content.append(el('p', { class: 'assistant-learning-answer' }, result.answer));
+      }
+      if (live && result.mode === 'ai') {
+        const provenance =
+          result.knowledge === 'board'
+            ? result.sources.length
+              ? 'Thông tin từ bài đăng công khai của website.'
+              : 'Chưa có nguồn bài đăng xác nhận thông tin này.'
+            : result.knowledge === 'hybrid'
+              ? result.sources.length
+                ? 'Kết hợp bài đăng công khai và giải thích từ AI.'
+                : 'Không tìm thấy nguồn website để kiểm chứng.'
+              : 'Kiến thức chung do AI tạo, không phải thông báo của giáo viên.';
+        content.append(el('p', { class: 'assistant-answer-note' }, provenance));
       } else if (result.sources.length) {
         content.append(
           el('p', { class: 'assistant-result-intro' }, 'Bạn có thể xem các bài viết bên dưới.'),
