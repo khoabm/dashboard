@@ -208,7 +208,10 @@ export async function optimizeImage(file, { signal, onProgress } = {}) {
 
   // Large-image work is never attempted on the main UI thread. If no header
   // dimension is available, delegate decoding/guarding to the worker if eligible.
-  if (pixelBudget > MAX_IMAGE_PIXELS && (!dimensions || dimensions.width * dimensions.height > MAX_IMAGE_PIXELS)) {
+  if (
+    pixelBudget > MAX_IMAGE_PIXELS &&
+    (!dimensions || dimensions.width * dimensions.height > MAX_IMAGE_PIXELS)
+  ) {
     return encodeInWorker(file, pixelBudget, { signal, onProgress });
   }
 

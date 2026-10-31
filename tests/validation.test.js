@@ -366,10 +366,22 @@ test('oversized pixel count reports the real dimensions instead of an unnamed fa
 test('high-resolution processing budget considers worker support and actual device capacity', () => {
   assert.equal(MAX_IMAGE_PIXELS, 24_000_000);
   assert.equal(MAX_HIGH_RES_IMAGE_PIXELS, 60_000_000);
-  assert.equal(compressionPixelBudget({ workerAvailable: false, memoryGB: 8, cores: 8 }), 24_000_000);
-  assert.equal(compressionPixelBudget({ workerAvailable: true, memoryGB: 8, cores: 8 }), 60_000_000);
-  assert.equal(compressionPixelBudget({ workerAvailable: true, memoryGB: 4, cores: 8 }), 32_000_000);
-  assert.equal(compressionPixelBudget({ workerAvailable: true, memoryGB: 2, cores: 8 }), 24_000_000);
+  assert.equal(
+    compressionPixelBudget({ workerAvailable: false, memoryGB: 8, cores: 8 }),
+    24_000_000,
+  );
+  assert.equal(
+    compressionPixelBudget({ workerAvailable: true, memoryGB: 8, cores: 8 }),
+    60_000_000,
+  );
+  assert.equal(
+    compressionPixelBudget({ workerAvailable: true, memoryGB: 4, cores: 8 }),
+    32_000_000,
+  );
+  assert.equal(
+    compressionPixelBudget({ workerAvailable: true, memoryGB: 2, cores: 8 }),
+    24_000_000,
+  );
   assert.equal(
     compressionPixelBudget({ workerAvailable: true, cores: 8, maxTouchPoints: 0 }),
     60_000_000,
@@ -382,9 +394,8 @@ test('high-resolution processing budget considers worker support and actual devi
 
 test('JPEG header preflight reads the original 8064×6048 resolution without decoding pixels', () => {
   const jpeg = new Uint8Array([
-    0xff, 0xd8, 0xff, 0xe0, 0x00, 0x04, 0x00, 0x00,
-    0xff, 0xc0, 0x00, 0x11, 0x08, 0x17, 0xa0, 0x1f, 0x80,
-    0x03, 0x01, 0x11, 0x00, 0, 0, 0, 0, 0, 0,
+    0xff, 0xd8, 0xff, 0xe0, 0x00, 0x04, 0x00, 0x00, 0xff, 0xc0, 0x00, 0x11, 0x08, 0x17, 0xa0, 0x1f,
+    0x80, 0x03, 0x01, 0x11, 0x00, 0, 0, 0, 0, 0,
   ]);
   assert.deepEqual(sniffImageDimensions(jpeg, 'image/jpeg'), {
     width: 8064,
@@ -446,9 +457,7 @@ test('eligible 48.77 MP image is encoded in a cancellable worker, not main-threa
       configurable: true,
       value: { deviceMemory: 8, hardwareConcurrency: 8, maxTouchPoints: 0 },
     });
-    const head = new Uint8Array([
-      0xff, 0xd8, 0xff, 0xc0, 0, 17, 8, 0x17, 0xa0, 0x1f, 0x80,
-    ]);
+    const head = new Uint8Array([0xff, 0xd8, 0xff, 0xc0, 0, 17, 8, 0x17, 0xa0, 0x1f, 0x80]);
     const file = new File([head, new Uint8Array(2_829_094 - head.length)], 'photo.jpg', {
       type: 'image/jpeg',
     });
@@ -498,9 +507,7 @@ test('abort immediately terminates the large-image worker without changing the o
       configurable: true,
       value: { deviceMemory: 8, hardwareConcurrency: 8, maxTouchPoints: 0 },
     });
-    const head = new Uint8Array([
-      0xff, 0xd8, 0xff, 0xc0, 0, 17, 8, 0x17, 0xa0, 0x1f, 0x80,
-    ]);
+    const head = new Uint8Array([0xff, 0xd8, 0xff, 0xc0, 0, 17, 8, 0x17, 0xa0, 0x1f, 0x80]);
     const file = new File([head, new Uint8Array(2_829_094 - head.length)], 'photo.jpg', {
       type: 'image/jpeg',
     });
@@ -524,41 +531,5 @@ test('abort immediately terminates the large-image worker without changing the o
     else globalThis.document = oldDocument;
     if (navDescriptor) Object.defineProperty(globalThis, 'navigator', navDescriptor);
     else delete globalThis.navigator;
-  }
-});
-
-
-test('temporary scoped formatting diagnostics for large-image feature', async () => {
-  const prettier = await import('prettier');
-  const fs = await import('node:fs/promises');
-  const os = await import('node:os');
-  const path = await import('node:path');
-  const { spawnSync } = await import('node:child_process');
-  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'large-image-format-'));
-  try {
-    for (const file of [
-      'src/components/post-editor.js',
-      'src/utils/image-compression-policy.js',
-      'src/utils/image-compression.js',
-      'tests/validation.test.js',
-    ]) {
-      const original = await fs.readFile(file, 'utf8');
-      const formatted = await prettier.format(original, {
-        ...(await prettier.resolveConfig(file)),
-        filepath: file,
-      });
-      const a = path.join(directory, 'before');
-      const b = path.join(directory, 'after');
-      await fs.writeFile(a, original);
-      await fs.writeFile(b, formatted);
-      const output = spawnSync(
-        'diff',
-        ['-u', '--label', file + ':BEFORE', a, '--label', file + ':AFTER', b],
-        { encoding: 'utf8' },
-      );
-      console.log('BEGIN LARGE IMAGE FORMAT ' + file + '\n' + output.stdout + '\nEND LARGE IMAGE FORMAT');
-    }
-  } finally {
-    await fs.rm(directory, { recursive: true, force: true });
   }
 });

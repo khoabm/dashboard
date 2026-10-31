@@ -90,11 +90,7 @@ export function sniffImageDimensions(bytes, mime) {
     if (offset + 2 > bytes.length) break;
     const size = (bytes[offset] << 8) | bytes[offset + 1];
     if (size < 2 || offset + size > bytes.length) break;
-    if (
-      (marker >= 0xc0 && marker <= 0xcf) &&
-      ![0xc4, 0xc8, 0xcc].includes(marker) &&
-      size >= 7
-    ) {
+    if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker) && size >= 7) {
       const height = (bytes[offset + 3] << 8) | bytes[offset + 4];
       const width = (bytes[offset + 5] << 8) | bytes[offset + 6];
       return width && height ? { width, height } : null;
