@@ -1,3 +1,29 @@
+## 2026-10-31 — AI-IA01-F03 / P1 — Generic craft how-to hijacked by school project post
+
+- **Owner evidence:** Asking “Chỉ tôi cách thiết kế nón lá đi” caused a Board-grounded
+  response about choosing pupils, buying two hats, and the post “Trang trí nón lá”;
+  that is not a natural generic how-to. Owner also requested removal of repetitive
+  visible source-origin captions and collapsing multiple large source cards by default.
+- **Root cause:** Existing production Worker from 29 Oct always fetches/ranks Board
+  for arbitrary questions; lexical/semantic match on “nón lá” displaced the
+  user's **action intent** (“chỉ cách thiết kế”). The branch router lacked an
+  explicit how-to override for these phrases. The UI rendered all cited
+  `.assistant-source` cards and a provenance caption unconditionally.
+- **Fix on Draft PR #37:** Pure router recognizes generic “chỉ/hướng dẫn/cách
+  làm/thực hiện” instructions before Board lookup. Explicit “theo bài đăng
+  của cô/trên web” still routes to Board. Live chat keeps origin metadata but
+  no longer renders constant origin-caption text. All cited posts and their
+  read-only actions live in one ARIA-expanded disclosure, initially closed,
+  animated with fade+height and reduced-motion handling.
+- **Regression:** Curated pure how-to vs explicit-Board test. Updated synthetic
+  browser scenarios include one and two source cards, disclosure keyboard/ARIA,
+  closed controls and mobile/desktop + reduced-motion. Legacy manual browser
+  scripts adjusted for the new collapsed default. Browser scripts **NOT RUN**
+  in Chat connector; no hosted requests/DB writes/Worker deployments.
+- **Source branch:** `feature/ai-assistant-intent-aware-chat-20261031`,
+  [Draft PR #37](https://github.com/khoabm/dashboard/pull/37). Do not infer
+  the updated Worker has been tested by the owner’s existing old-Worker preview.
+
 ## 2026-10-31 — AI-IA01-F02 / P1 — Partial general answers and incomplete hybrid responses
 
 - **Owner report:** TC-02 returned a sentence ending at “bị”, without the requested example.
