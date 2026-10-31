@@ -32,6 +32,7 @@ function assistantToolIcon(kind) {
     new: ['M4 5h16v12H9l-5 3V5', 'M12 8v6', 'M9 11h6'],
     filter: ['M4 6h16', 'M7 12h10', 'M10 18h4'],
     topic: ['M9 18h6', 'M10 21h4', 'M8 14a6 6 0 1 1 8 0c-1 1-1.5 2-1.5 4h-5C9.5 16 9 15 8 14'],
+    chevron: ['M6 9l6 6 6-6'],
   };
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 24 24');
@@ -642,7 +643,11 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
           { 'aria-expanded': 'false', 'aria-controls': sourceId },
         );
         opener.append(
-          el('span', { class: 'assistant-sources-chevron', 'aria-hidden': 'true' }, '⌄'),
+          el(
+            'span',
+            { class: 'assistant-sources-chevron', 'aria-hidden': 'true' },
+            assistantToolIcon('chevron'),
+          ),
         );
         content.append(el('div', { class: 'assistant-sources-disclosure' }, opener, panel));
       }
