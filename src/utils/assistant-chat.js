@@ -151,8 +151,8 @@ export function validateHybridRequestedTime(query, answer, catalog) {
   const responseClocks = clocks(answer);
   if (!responseClocks.length) return false;
   const evidence = catalog.map((post) => post.body).join('\n');
-  const subject = ['van', 'toan', 'anh', 'vat ly', 'hoa hoc', 'sinh hoc'].find(
-    (name) => new RegExp(`\\b${name}\\b`).test(normalized),
+  const subject = ['van', 'toan', 'anh', 'vat ly', 'hoa hoc', 'sinh hoc'].find((name) =>
+    new RegExp(`\\b${name}\\b`).test(normalized),
   );
   const segments = plain(evidence).split(/[;\n]/);
   const matching = subject
