@@ -80,7 +80,8 @@ export function createLiveAssistantRequest({ endpoint, enabled = true, fetcher =
       typeof result.answer !== 'string' ||
       result.answer.length > 8000 ||
       !Array.isArray(result.sources) ||
-      result.sources.length > 3
+      result.sources.length > 3 ||
+      !['board', 'general', 'hybrid'].includes(result.knowledge)
     )
       throw Error('response');
     // Publication edits/revocations can race a response; omit stale sources instead of exposing an old action.
