@@ -129,10 +129,7 @@ export function xlsxBytes(rows, sheetName = 'Du lieu') {
 export function downloadExport(kind, format, entries, catalog) {
   if (!['csv', 'xlsx'].includes(format)) throw Error('export_format');
   const rows = exportRows(kind, entries, catalog);
-  const bytes =
-    format === 'csv'
-      ? csvBytes(rows)
-      : styledXlsxBytes(rows, kind);
+  const bytes = format === 'csv' ? csvBytes(rows) : styledXlsxBytes(rows, kind);
   const mime =
     format === 'csv'
       ? 'text/csv;charset=utf-8'

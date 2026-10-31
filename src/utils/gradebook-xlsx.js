@@ -42,15 +42,7 @@ function cell(value, x, y, style) {
 }
 
 function rowXml(index, cells, height) {
-  return (
-    '<row r="' +
-    index +
-    '" ht="' +
-    height +
-    '" customHeight="1">' +
-    cells.join('') +
-    '</row>'
-  );
+  return '<row r="' + index + '" ht="' + height + '" customHeight="1">' + cells.join('') + '</row>';
 }
 
 const fontXml = [
@@ -196,13 +188,7 @@ function sheetXml({ name, title, columns, rows, kind, index }) {
   const columnXml = widths[kind]
     .map(
       (width, x) =>
-        '<col min="' +
-        (x + 1) +
-        '" max="' +
-        (x + 1) +
-        '" width="' +
-        width +
-        '" customWidth="1"/>',
+        '<col min="' + (x + 1) + '" max="' + (x + 1) + '" width="' + width + '" customWidth="1"/>',
     )
     .join('');
   return (
@@ -262,9 +248,7 @@ export function styledXlsxBytes(rows, kind) {
     if (data.some((row) => !['Học kỳ I', 'Học kỳ II'].includes(row[4])))
       throw Error('export_semester');
     const pick = (semester) =>
-      data
-        .filter((row) => row[4] === semester)
-        .map((row) => row.filter((_, index) => index !== 4));
+      data.filter((row) => row[4] === semester).map((row) => row.filter((_, index) => index !== 4));
     sheets = [
       {
         name: 'HKI',

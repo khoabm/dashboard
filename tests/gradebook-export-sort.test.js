@@ -198,11 +198,16 @@ test('styled score XLSX contains exactly HKI and HKII, each with complete studen
   const rows1 = actualSheets[0].data;
   const rows2 = actualSheets[1].data;
   const headers = data[0].filter((_, index) => index !== 4);
-  for (const [semester, workbookRows] of [['Học kỳ I', rows1], ['Học kỳ II', rows2]]) {
+  for (const [semester, workbookRows] of [
+    ['Học kỳ I', rows1],
+    ['Học kỳ II', rows2],
+  ]) {
     const headerIndex = workbookRows.findIndex((row) => row[0] === 'Họ tên');
     assert.ok(headerIndex >= 0);
     const actual = workbookRows.slice(headerIndex + 1);
-    const expected = data.slice(1).filter((row) => row[4] === semester)
+    const expected = data
+      .slice(1)
+      .filter((row) => row[4] === semester)
       .map((row) => row.filter((_, index) => index !== 4));
     assert.equal(actual.length, 43 * 8);
     assert.deepEqual(
@@ -222,7 +227,9 @@ test('styled roster XLSX preserves full data, widths, formatting, and safely han
     assert.match(strFromU8(files['xl/styles.xml']), /<fills count="[1-9]/);
     const sheet = strFromU8(files['xl/worksheets/sheet1.xml']);
     assert.match(sheet, /autoFilter ref="A4:D/);
-    const readRows = (await readXlsxFile(Buffer.from(styledXlsxBytes(rows, 'students')), { sheet: 1 }))[0].data;
+    const readRows = (
+      await readXlsxFile(Buffer.from(styledXlsxBytes(rows, 'students')), { sheet: 1 })
+    )[0].data;
     const headerIndex = readRows.findIndex((row) => row[0] === 'Họ tên');
     assert.ok(headerIndex >= 0);
     assert.deepEqual(
