@@ -165,3 +165,21 @@ were removed from `editor.css`. The editor continues to use the same
 The new DOM contract test checks the component structure and event identity;
 cross-browser responsive visuals are not yet verified. This remains a Draft
 PR with no merge or deployment.
+
+
+## 2026-10-31 — CSP-safe icons and switch motion refinement
+
+A native select's CSS chevron used a `data:image/svg+xml` background, conflicting
+with the existing `img-src 'self' blob: ...` CSP. The console surfaced
+`primitives.js:96` because opening the dialog caused the browser to render
+that select; the dialog logic was not the source. The original SVG has been
+moved to `public/icons/chevron-down.svg` and is referenced through same-origin
+`/icons/chevron-down.svg`, without changing CSP.
+
+The shared `SwitchControl` keeps its existing native checkbox, state and event
+contract. Thumb movement now animates using `translate3d` with a short
+220ms ease-out rather than a short abrupt `translateX`; the track uses
+color-only transition. Pointer clicks no longer trigger a full-row focus ring;
+keyboard `:focus-visible` retains clear focus indicators. Reduced-motion users
+still receive nonanimated changes. No logic, Storage, API, Auth, schema,
+dependency or hosting change. CI and actual device QA on this revision pending.

@@ -1,3 +1,12 @@
+## 2026-10-31 — BOARD-CSP-ICON-001 / P2 — Native select chevron blocked by CSP
+
+- **Observed:** Owner console reports `data:image/svg+xml` blocked by `img-src 'self' blob: ...` while opening a dialog. Browser identifies `primitives.js:96` because `showModal()` causes CSS to render; the offending resource is actually `src/styles/main.css` native select chevron.
+- **Root cause:** The CSS had a base64/url-encoded `data:` SVG background despite a strict CSP intentionally excluding `data:` from `img-src`.
+- **Fix:** Serve the same 18px SVG from `public/icons/chevron-down.svg` using `background-image: url('/icons/chevron-down.svg')`. No CSP relaxation, no JS API change, no extra dependency.
+- **Related UX:** Reusable `SwitchControl` thumb now uses compositor-friendly `translate3d` and 220ms ease-out, track color eases in 220ms, and container hover/focus feedback is restrained. Focus ring only for `:focus-visible`, reduced-motion keeps transitions off.
+- **Regressions added:** `tests/dom.test.js` asserts no `data:image/` in main stylesheet, same-origin SVG availability/reference, switch thumb travel and reduced-motion styles. Browser/device QA and CI on the exact new HEAD remain pending; no merge/deployment.
+- **Scope:** Frontend CSS, static icon and DOM/CSS tests only. No auth, compression logic, API, DB, Storage, Edge or quota changes.
+
 ## 2026-10-31 — BOARD-SWITCH-UI-001 / P2 — Compression switch thumb overflows on desktop and mobile
 
 - **Observed:** Owner screenshot after upload UX polish: green switch thumb rendered
