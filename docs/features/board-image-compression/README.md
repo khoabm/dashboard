@@ -147,3 +147,21 @@ Important limitations:
 - Responsive layout targets narrow phones and desktop drawer widths. Automated
   CI must pass on this revision; real device/browser visual acceptance remains
   with the owner. No merge or deploy.
+
+
+## Switch visual overflow correction — 2026-10-31
+
+Owner QA identified a toggle thumb displaced outside the upload setting. The
+underlying cause was leftover, more-specific CSS for the previous checkbox
+representation. The switch is now a standalone `SwitchControl` in shared
+`src/components/form-controls.js`. It preserves the original checkbox as the
+source of truth and draws the track/thumb separately. The 44×26px visual track
+has an 18×18px thumb with constrained 18px travel. Its label/description are
+linked with unique IDs; focus, checked, disabled and keyboard behavior remain
+native. Styles moved to `main.css` and stale upload-specific checkbox styles
+were removed from `editor.css`. The editor continues to use the same
+`optimizeChoice.checked` and handlers.
+
+The new DOM contract test checks the component structure and event identity;
+cross-browser responsive visuals are not yet verified. This remains a Draft
+PR with no merge or deployment.

@@ -1,3 +1,25 @@
+## 2026-10-31 — BOARD-SWITCH-UI-001 / P2 — Compression switch thumb overflows on desktop and mobile
+
+- **Observed:** Owner screenshot after upload UX polish: green switch thumb rendered
+  beyond the right edge of the checkbox card, with inconsistent toggle positioning.
+- **Cause (verified in source):** The old upload checkbox CSS remained after the
+  switch restyle and overrode size/margins. A visual switch styled directly on a
+  checkbox also mixed native checkbox geometry with the decorative track/thumb.
+- **Fix:** Introduce reusable native-backed `SwitchControl(input, {label,
+  description, className})` in `src/components/form-controls.js`; keep the
+  original checkbox as event/value owner and wrap a dedicated noninteractive
+  44×26px track and 18×18px thumb. Separate shared `.ui-switch*` rules in
+  `src/styles/main.css` from upload-progress rules in `editor.css`, and
+  delete obsolete/conflicting checkbox CSS. Preserve native focus, disabled,
+  checked, label-click, keyboard operation, and connect unique accessible label
+  and description IDs.
+- **Scope:** Presentation only. No compression, upload, FilePicker, storage,
+  API, Auth, database, dependency or deploy logic changed.
+- **Regression:** Added `tests/dom.test.js` contract for original checkbox
+  identity, checked/change propagation, labels, hints, aria and disabled. CI on
+  current HEAD pending; screenshot QA on real Chrome/Safari/mobile not run.
+  Draft PR #38; no merge/deploy.
+
 ## 2026-10-31 — GB-XLSX-XML-001 / P1 — Excel rejects exported workbook XML
 
 - **Observed:** Owner reported Excel XML error and spreadsheet data not loading after styled XLSX export. Reproduced a structural risk in generated `xl/worksheets/sheetN.xml`: `<mergeCells>` was emitted before `<autoFilter>`, violating SpreadsheetML `CT_Worksheet` child order. Relaxed XLSX readers and generic XML parsers accepted the XML, so prior round-trips did not catch strict Excel validation.

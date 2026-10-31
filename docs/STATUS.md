@@ -1,3 +1,15 @@
+## 2026-10-31 — Reusable upload switch UI fix (Draft PR #38)
+
+Fixed thumb overflow from overlapping legacy upload checkbox CSS. Added shared
+native-backed `SwitchControl` with dedicated track/thumb and explicit
+accessible label/description links. Moved presentation rules to `main.css`,
+removed old upload checkbox rules from `editor.css`, and added a focused
+DOM contract test. Original compression/upload behavior and data limits are
+unchanged. CI and browser/device QA at new HEAD remain to be verified.
+No deploy, merge, Auth/API/DB or Supabase operations.
+
+---
+
 ## 2026-10-31 — Large-image compression worker trial / Draft PR #38
 
 Owner-approved expansion of local image optimization for the original
