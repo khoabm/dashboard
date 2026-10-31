@@ -150,3 +150,18 @@ test('SwitchControl keeps the original checkbox state, events, and accessible la
     else globalThis.Node = priorNode;
   }
 });
+
+test('shared switch CSS does not inherit obsolete upload-checkbox layout', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const [shared,editor] = await Promise.all([
+    readFile(new URL('../src/styles/main.css', import.meta.url), 'utf8'),
+    readFile(new URL('../src/styles/editor.css', import.meta.url), 'utf8'),
+  ]);
+  assert.match(shared, /\.ui-switch-control\s*\{/);
+  assert.match(shared, /\.ui-switch-track\s*\{/);
+  assert.match(shared, /\.ui-switch-thumb\s*\{/);
+  assert.match(shared, /\.upload-zone \.ui-switch \.ui-switch-input/);
+  assert.doesNotMatch(editor, /upload-optimize-choice/);
+  assert.match(editor, /\.editor-file-label \.editor-file-savings/);
+  assert.match(editor, /\.upload-zone \.upload-compression-summary:empty/);
+});
