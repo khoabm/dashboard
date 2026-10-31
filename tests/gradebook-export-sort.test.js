@@ -193,8 +193,10 @@ test('styled score XLSX contains exactly HKI and HKII, each with complete studen
     assert.match(sheet, /pageSetup orientation="landscape"/);
     assert.doesNotMatch(sheet, /<f[\s>]|externalLink/);
   }
-  const rows1 = (await readXlsxFile(Buffer.from(styledXlsxBytes(data, 'scores')), { sheet: 'HKI' }))[0].data;
-  const rows2 = (await readXlsxFile(Buffer.from(styledXlsxBytes(data, 'scores')), { sheet: 'HKII' }))[0].data;
+  const actualSheets = await readXlsxFile(Buffer.from(styledXlsxBytes(data, 'scores')));
+  assert.deepEqual(actualSheets.map((sheet) => sheet.name), ['HKI', 'HKII']);
+  const rows1 = actualSheets.find((sheet) => sheet.name === 'HKI').data;
+  const rows2 = actualSheets.find((sheet) => sheet.name === 'HKII').data;
   const headers = data[0].filter((_, index) => index !== 4);
   for (const [semester, workbookRows] of [['Học kỳ I', rows1], ['Học kỳ II', rows2]]) {
     const headerIndex = workbookRows.findIndex((row) => row[0] === 'Họ tên');
