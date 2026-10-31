@@ -948,6 +948,11 @@
   }
 }
 
+/* Space the switch from FilePicker without affecting other forms. */
+.upload-zone > .ui-switch {
+  margin-top: 14px;
+}
+
 /* Per-file compression feedback persists even when a selected image is rejected. */
 .upload-zone .upload-compression-summary {
   display: grid;
