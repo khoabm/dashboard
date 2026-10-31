@@ -1195,7 +1195,6 @@ kbd {
   }
 }
 
-
 /* 2026-10-30 — restrained visual polish for public Board; no state or layout contracts changed. */
 :root {
   --ui-shadow-soft: 0 10px 32px rgba(32, 65, 49, 0.07);
@@ -1212,7 +1211,8 @@ kbd {
   z-index: -1;
   border: 1px solid rgba(180, 207, 187, 0.55);
   border-radius: 28px;
-  background: radial-gradient(circle at 85% 15%, rgba(208, 228, 208, 0.52), transparent 37%),
+  background:
+    radial-gradient(circle at 85% 15%, rgba(208, 228, 208, 0.52), transparent 37%),
     linear-gradient(122deg, rgba(255, 255, 255, 0.86), rgba(244, 249, 244, 0.65));
   pointer-events: none;
 }
@@ -1229,7 +1229,9 @@ kbd {
   background: #fff;
   border-color: #cddfd2;
   box-shadow: 0 2px 8px rgba(39, 83, 59, 0.035);
-  transition: border-color 160ms ease, box-shadow 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
 }
 .search-bar:focus-within {
   border-color: #367c58;
@@ -1243,7 +1245,10 @@ kbd {
 }
 .tab {
   border: 1px solid transparent;
-  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+  transition:
+    background 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
 }
 .tab.active {
   border-color: #c5ddcc;
@@ -1257,7 +1262,10 @@ kbd {
 .post-card {
   border-color: #d8e6dc;
   box-shadow: var(--ui-shadow-soft);
-  transition: box-shadow 170ms ease, border-color 170ms ease, transform 170ms ease;
+  transition:
+    box-shadow 170ms ease,
+    border-color 170ms ease,
+    transform 170ms ease;
 }
 .post-card:hover {
   border-color: #b6d3bf;
@@ -1281,10 +1289,15 @@ kbd {
   box-shadow: 0 18px 42px rgba(32, 65, 49, 0.15);
 }
 .site-navigation-panel a {
-  transition: background 150ms ease, color 150ms ease;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
 }
 .button:not(:disabled) {
-  transition: background 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 .button:not(:disabled):hover {
   border-color: #b6cfc0;

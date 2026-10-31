@@ -17,8 +17,13 @@ import { normalizeImport, protectedRows } from './imports.js';
 import { normalizeGridBatch } from './grid-batch.js';
 import { frameTuple } from './contracts.js';
 import { Failure } from './http.js';
+import { classSnapshot } from './snapshot.js';
 
 const specs = {
+  'class.snapshot': [
+    ['classId', 'purpose', 'confirmed'],
+    ['classId', 'purpose'],
+  ],
   'catalog.read': [['classId'], ['classId']],
   'class.read': [['classId'], []],
   'class.create': [
@@ -161,6 +166,10 @@ export function validateAdmin(body, today) {
   );
   const [allowed, required] = specs[body.op];
   allowFields(body, ['op', ...allowed], ['op', ...required]);
+  if (body.op === 'class.snapshot') {
+    requireContract(['sort', 'export'].includes(body.purpose), 'purpose');
+    requireContract(body.purpose !== 'export' || body.confirmed === true, 'confirmation');
+  }
   if (Object.hasOwn(body, 'classId')) uuid(body.classId);
   if (Object.hasOwn(body, 'studentId')) bigintId(body.studentId);
   if (Object.hasOwn(body, 'cursor')) bigintId(body.cursor);
@@ -255,6 +264,8 @@ export async function executeAdmin(body, identity, context) {
   };
 
   switch (body.op) {
+    case 'class.snapshot':
+      return ok(await classSnapshot(body, identity, context));
     case 'catalog.read': {
       // Service-role lookup alone is not authorization: retain B3's class lock/session recheck first.
       const current = classDto(await call('gb_class_read', base));

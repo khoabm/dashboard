@@ -1,3 +1,15 @@
+# 2026-10-31 — Full export and global sorting accepted on synthetic hosted data / Draft PR #34
+
+Owner amendment [BRIEF GB-10](BRIEF.md#gb-10--full-export-and-table-sorting-owner-amendment-2026-10-31)
+adds full CSV/XLSX exports, header-only empty exports and shared global table sorting.
+[Implementation, security boundary and exact acceptance evidence](FULL_EXPORT_SORT.md).
+Source/offline checks and bounded synthetic hosted acceptance PASS: migration applied,
+grades-admin v7 verified, localhost Chrome reads/sorts/exports all 31 records. Data
+fingerprints unchanged (31 students / 62 scores); no deletions. Native XLSX download
+owner-confirmed. Existing real-data/release gates remain separate.
+
+---
+
 # G07-3 — Synthetic offline tooling accepted / 2026-10-28
 
 `develop` starting HEAD `8cbe298` (PR #5 merged at `6a0daf3`). Staged production exporter/authenticator/verifier implemented: actual age1.3.2 + local PG17.11 source snapshot/archive decode, 36 core cases +4 final focused cases PASS; actual restore NOT RUN. [Contract, exact commands, failed attempts, limits and finite G07-4 handoff](G07_PRODUCTION_TOOLING.md). Build/exclusion PASS; no runtime/frontend/migration/dependency/CI-policy changes. **G07 Technical PASS retained; G07 Operational/Overall PARTIAL; G07-4 NOT STARTED; G08 BLOCKED; deployment NOT RUN.** A–F and accepted owner Drive PASS retained, no repeated Drive/UI/recovery suite. Production secure key acquisition, paper/replacement-device custody, independently authorized isolated restore and managed-service evidence remain open. Hosted Supabase/Drive requests0; no production keys/PII/rotation/main merge/deploy. The dated records below are historical.
