@@ -5,6 +5,7 @@ import { unzipSync, strFromU8 } from 'fflate';
 import readXlsxFile from 'read-excel-file/node';
 import { sortGradebookRows } from '../src/components/gradebook-table-controls.js';
 import { exportRows, csvBytes, xlsxBytes } from '../src/utils/gradebook-export.js';
+import { styledXlsxBytes } from '../src/utils/gradebook-xlsx.js';
 import { snapshotStudents } from '../src/utils/gradebook-snapshot.js';
 import { compareScoreCells } from '../src/utils/gradebook-scores.js';
 import { adminPayload } from '../src/utils/gradebook-admin-responses.js';
@@ -172,4 +173,71 @@ test('CSV neutralizes formula prefixes; XLSX uses string cells without formulas 
   );
   assert.doesNotMatch(safe, /[\u0001\u000b\uffff]/u);
   assert.match(safe, /name���/u);
+});
+
+test('styled score XLSX contains exactly HKI and HKII, each with complete students and exact semester scores', async () => {
+  const data = exportRows('scores', entries, catalog);
+  const files = unzipSync(styledXlsxBytes(data, 'scores'));
+  const workbook = strFromU8(files['xl/workbook.xml']);
+  assert.match(workbook, /name="HKI"/);
+  assert.match(workbook, /name="HKII"/);
+  assert.equal((workbook.match(/<sheet /g) || []).length, 2);
+  assert.ok(files['xl/worksheets/sheet1.xml']);
+  assert.ok(files['xl/worksheets/sheet2.xml']);
+  const first = strFromU8(files['xl/worksheets/sheet1.xml']);
+  const second = strFromU8(files['xl/worksheets/sheet2.xml']);
+  for (const sheet of [first, second]) {
+    assert.match(sheet, /<cols>/);
+    assert.match(sheet, /state="frozen"/);
+    assert.match(sheet, /autoFilter ref="A4:L/);
+    assert.match(sheet, /pageSetup orientation="landscape"/);
+    assert.doesNotMatch(sheet, /<f[\s>]|externalLink/);
+  }
+  const rows1 = (await readXlsxFile(Buffer.from(styledXlsxBytes(data, 'scores')), { sheet: 'HKI' }))[0].data;
+  const rows2 = (await readXlsxFile(Buffer.from(styledXlsxBytes(data, 'scores')), { sheet: 'HKII' }))[0].data;
+  const headers = data[0].filter((_, index) => index !== 4);
+  for (const [semester, workbookRows] of [['Học kỳ I', rows1], ['Học kỳ II', rows2]]) {
+    const headerIndex = workbookRows.findIndex((row) => row[0] === 'Họ tên');
+    assert.ok(headerIndex >= 0);
+    const actual = workbookRows.slice(headerIndex + 1);
+    const expected = data.slice(1).filter((row) => row[4] === semester)
+      .map((row) => row.filter((_, index) => index !== 4));
+    assert.equal(actual.length, 43 * 8);
+    assert.deepEqual(
+      actual.map((row) => headers.map((_, index) => row[index] ?? '')),
+      expected,
+    );
+    assert.ok(actual.some((row) => row.includes('8.12345')) || semester === 'Học kỳ I');
+  }
+});
+
+test('styled roster XLSX preserves full data, widths, formatting, and safely handles empty workbook', async () => {
+  const data = exportRows('students', entries, catalog);
+  for (const rows of [data, exportRows('students', [], catalog)]) {
+    const files = unzipSync(styledXlsxBytes(rows, 'students'));
+    const workbook = strFromU8(files['xl/workbook.xml']);
+    assert.equal((workbook.match(/<sheet /g) || []).length, 1);
+    assert.match(strFromU8(files['xl/styles.xml']), /<fills count="[1-9]/);
+    const sheet = strFromU8(files['xl/worksheets/sheet1.xml']);
+    assert.match(sheet, /autoFilter ref="A4:D/);
+    const readRows = (await readXlsxFile(Buffer.from(styledXlsxBytes(rows, 'students')), { sheet: 1 }))[0].data;
+    const headerIndex = readRows.findIndex((row) => row[0] === 'Họ tên');
+    assert.ok(headerIndex >= 0);
+    assert.deepEqual(
+      readRows.slice(headerIndex + 1).map((row) => rows[0].map((_, index) => row[index] ?? '')),
+      rows.slice(1),
+    );
+  }
+});
+
+test('styled XLSX rejects malformed widths and cannot expose workbook formulas', () => {
+  assert.throws(() => styledXlsxBytes([['bad']], 'scores'));
+  assert.throws(() => styledXlsxBytes([['bad']], 'students'));
+  const data = exportRows('students', entries, catalog);
+  data[1][0] = '=HYPERLINK("external")';
+  const files = unzipSync(styledXlsxBytes(data, 'students'));
+  const sheet = strFromU8(files['xl/worksheets/sheet1.xml']);
+  assert.match(sheet, /=HYPERLINK/);
+  assert.doesNotMatch(sheet, /<f[\s>]|externalLink/);
+  assert.match(sheet, /inlineStr/);
 });
