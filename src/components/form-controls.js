@@ -214,7 +214,8 @@ export function SelectControl(select, { label = '', className = '' } = {}) {
     } else if (key.length === 1 && !event.altKey && !event.ctrlKey && !event.metaKey) {
       const query = key.toLocaleLowerCase('vi');
       const found = Array.from(select.options).findIndex(
-        (option) => !option.disabled && option.textContent.toLocaleLowerCase('vi').startsWith(query),
+        (option) =>
+          !option.disabled && option.textContent.toLocaleLowerCase('vi').startsWith(query),
       );
       if (found !== -1) activate(found);
     }
