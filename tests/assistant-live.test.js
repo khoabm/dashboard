@@ -340,3 +340,52 @@ test('ambiguous classification invalid payload fails closed as clarification', a
   assert.equal((await r.json()).status, 'clarify');
   assert.equal(h.reads.length, 0);
 });
+
+test('hybrid response requires both user asks and correctly labels its grounding', async () => {
+  const h = fixture();
+  const original = h.env.AI.run;
+  h.env.AI.run = async (model, input, options) => {
+    if (model.includes('bge')) return original(model, input, options);
+    return {
+      response: {
+        website: 'Môn Văn bắt đầu lúc 7g20 và làm trong 90 phút.',
+        general: 'Em nên học Văn theo các phần nhỏ, xen kẽ thời gian nghỉ.',
+        ids: ['c0'],
+      },
+    };
+  };
+  const response = await h.send(
+    'Theo bài Lịch thi GK1 trên web, môn Văn thi lúc mấy giờ? Giải thích thêm cách em nên phân chia thời gian ôn tập.',
+  );
+  assert.equal(response.status, 200);
+  const answer = await response.json();
+  assert.equal(answer.knowledge, 'hybrid');
+  assert.match(answer.answer, /Theo bài đăng:\nMôn Văn bắt đầu lúc 7g20/);
+  assert.match(answer.answer, /Giải thích thêm:\nEm nên học Văn/);
+  assert.equal(answer.sources[0].id, 'post1');
+});
+
+test('hybrid answer missing the requested website portion is never silently marked as grounded', async () => {
+  const h = fixture();
+  const original = h.env.AI.run;
+  h.env.AI.run = async (model, input, options) => {
+    if (model.includes('bge')) return original(model, input, options);
+    return { response: { answer: 'Em nên ôn tập mỗi ngày.', ids: ['c0'] } };
+  };
+  const response = await h.send(
+    'Theo bài Lịch thi GK1 trên web, môn Văn thi lúc mấy giờ? Giải thích thêm cách em nên ôn tập.',
+  );
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).error, 'unavailable');
+});
+
+test('unfinished model sentence is rejected instead of printed to pupils', async () => {
+  const h = fixture();
+  h.env.AI.run = async () => ({
+    response: { answer: 'Bầu trời màu xanh vì ánh sáng Mặt Trời bị', ids: [] },
+  });
+  const response = await h.send('Vì sao bầu trời có màu xanh?');
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).error, 'unavailable');
+  assert.equal(h.reads.length, 0);
+});
