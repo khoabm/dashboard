@@ -91,9 +91,7 @@ export function PostPlacement({ posts, post, sectionId, onChange = () => {} }) {
   function renderPreview() {
     afterSelect.replaceChildren(
       el('option', { value: '__start__' }, 'Đầu danh sách'),
-      ...peers.map((item) =>
-        el('option', { value: item.id }, item.title || 'Bài chưa có tiêu đề'),
-      ),
+      ...peers.map((item) => el('option', { value: item.id }, item.title || 'Bài chưa có tiêu đề')),
     );
     afterSelect.value = index === 0 ? '__start__' : peers[index - 1]?.id || '__start__';
     afterControl.refresh();
@@ -226,9 +224,7 @@ export function PostPlacement({ posts, post, sectionId, onChange = () => {} }) {
       index: mode === 'start' ? 0 : mode === 'end' ? peers.length : index,
       peers: [...peers],
       changed:
-        !post ||
-        topic !== post.section_id ||
-        index !== initialPlacement(posts, post, topic).index,
+        !post || topic !== post.section_id || index !== initialPlacement(posts, post, topic).index,
     }),
     setTitle(value) {
       draftTitle = value;

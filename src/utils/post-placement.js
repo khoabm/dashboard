@@ -4,8 +4,7 @@
 export function placementPeers(posts, sectionId, excludeId = null) {
   return posts
     .filter(
-      (post) =>
-        post.section_id === sectionId && post.status !== 'deleted' && post.id !== excludeId,
+      (post) => post.section_id === sectionId && post.status !== 'deleted' && post.id !== excludeId,
     )
     .sort(
       (a, b) =>

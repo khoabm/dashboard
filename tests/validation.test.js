@@ -92,9 +92,18 @@ test('post placement includes only eligible topic peers and stable order', () =>
     { id: 'deleted', section_id: 'A', status: 'deleted', sort_order: -3 },
     { id: 'other', section_id: 'B', status: 'published', sort_order: -2 },
   ];
-  assert.deepEqual(placementPeers(posts, 'A').map((post) => post.id), ['a', 'b', 'c']);
-  assert.deepEqual(placementPeers(posts, 'A', 'b').map((post) => post.id), ['a', 'c']);
-  assert.deepEqual(posts.map((post) => post.id), ['c', 'a', 'b', 'deleted', 'other']);
+  assert.deepEqual(
+    placementPeers(posts, 'A').map((post) => post.id),
+    ['a', 'b', 'c'],
+  );
+  assert.deepEqual(
+    placementPeers(posts, 'A', 'b').map((post) => post.id),
+    ['a', 'c'],
+  );
+  assert.deepEqual(
+    posts.map((post) => post.id),
+    ['c', 'a', 'b', 'deleted', 'other'],
+  );
   assert.deepEqual(initialPlacement(posts, posts[2], 'A'), { mode: 'custom', index: 1 });
   assert.deepEqual(initialPlacement(posts, null, 'A'), { mode: 'end', index: 3 });
   assert.deepEqual(initialPlacement(posts, posts[2], 'B'), { mode: 'end', index: 1 });
@@ -123,8 +132,14 @@ test('middle placement uses the existing reorder contract after save', () => {
   const post = { id: 'new', sort_order: 3, version: 1 };
   assert.equal(saveSortOrder(peers, 'custom', 1), 3);
   assert.equal(needsReorder('custom', 1, peers.length), true);
-  assert.deepEqual(orderedPlacement(peers, post, 1).map((item) => item.id), ['a', 'new', 'b', 'c']);
-  assert.deepEqual(peers.map((item) => item.id), ['a', 'b', 'c']);
+  assert.deepEqual(
+    orderedPlacement(peers, post, 1).map((item) => item.id),
+    ['a', 'new', 'b', 'c'],
+  );
+  assert.deepEqual(
+    peers.map((item) => item.id),
+    ['a', 'b', 'c'],
+  );
   assert.equal(needsReorder('custom', 0, 3), false);
   assert.equal(needsReorder('custom', 3, 3), false);
   assert.equal(needsReorder('end', 2, 3), false);
@@ -138,7 +153,10 @@ test('existing post placement reuses the previous integer for a middle reorder',
   ];
   assert.equal(saveSortOrder(peers, 'custom', 1, current, 'A'), 8);
   assert.equal(saveSortOrder(peers, 'custom', 1, current, 'B'), 16);
-  assert.deepEqual(orderedPlacement(peers, current, 1).map((item) => item.id), ['a', 'b', 'c']);
+  assert.deepEqual(
+    orderedPlacement(peers, current, 1).map((item) => item.id),
+    ['a', 'b', 'c'],
+  );
   assert.throws(() => orderedPlacement(peers, current, -1));
   assert.throws(() => orderedPlacement(peers, current, 3));
 });
@@ -147,35 +165,4 @@ test('numeric post-order boundaries reject unsafe range before uploading', () =>
   const peers = [{ id: 'x', sort_order: 2147483647 }];
   assert.throws(() => saveSortOrder(peers, 'end', 1));
   assert.throws(() => saveSortOrder([{ id: 'x', sort_order: -2147483648 }], 'start', 0));
-});
-
-/* TEMPORARY CI FORMAT DIAGNOSTIC — removed after applying the reported diffs. */
-test('temporary prettier diagnosis for scoped UI files', async () => {
-  const prettier = await import('prettier');
-  const fs = await import('node:fs/promises');
-  const os = await import('node:os');
-  const path = await import('node:path');
-  const { spawnSync } = await import('node:child_process');
-  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), 'ui-format-'));
-  try {
-    for (const name of [
-      'src/components/post-placement.js',
-      'src/utils/post-placement.js',
-      'tests/validation.test.js',
-    ]) {
-      const original = await fs.readFile(name, 'utf8');
-      const formatted = await prettier.format(original, {
-        ...(await prettier.resolveConfig(name)),
-        filepath: name,
-      });
-      const before = path.join(temporary, 'before');
-      const after = path.join(temporary, 'after');
-      await fs.writeFile(before, original);
-      await fs.writeFile(after, formatted);
-      const diff = spawnSync('diff', ['-u', '--label', name + ':OLD', before, '--label', name + ':NEW', after], { encoding: 'utf8' });
-      console.log('BEGIN FORMAT DIFF ' + name + '\n' + diff.stdout + '\nEND FORMAT DIFF ' + name);
-    }
-  } finally {
-    await fs.rm(temporary, { recursive: true, force: true });
-  }
 });
