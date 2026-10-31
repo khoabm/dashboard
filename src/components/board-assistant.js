@@ -554,70 +554,70 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
         // A button controls an animated, initially inert panel and all read-only actions within.
         const sourceList = el('div', { class: 'assistant-sources-inner' });
         for (const source of result.sources) {
-        const post = catalog.find((p) => p.id === source.id);
-        if (!post) continue;
-        const checkedAct = (action) => {
-          if (JSON.stringify(publicAssistantCorpus(snapshot())) !== fingerprint) {
-            reconcile();
-            dialog?.querySelector('#assistant-error') &&
-              (dialog.querySelector('#assistant-error').textContent =
-                'Học liệu vừa được cập nhật. Bạn hãy kiểm tra lại nguồn mới nhé.');
-            return;
-          }
-          act(action);
-        };
-        sourceList.append(
-          el(
-            'section',
-            { class: 'assistant-source' },
-            el('span', { class: 'assistant-source-category' }, post.sectionTitle),
-            el('h3', {}, post.title),
-            el('blockquote', {}, source.quote),
-            ...(result.evidence || [])
-              .filter(
-                (ref) =>
-                  ref.postId === post.id &&
-                  ref.quote !== source.quote &&
-                  typeof ref.quote === 'string' &&
-                  ref.quote.length <= assistantLimits.body &&
-                  (post.body.includes(ref.quote) || post.title.includes(ref.quote)),
-              )
-              .map((ref) => el('blockquote', {}, ref.quote)),
+          const post = catalog.find((p) => p.id === source.id);
+          if (!post) continue;
+          const checkedAct = (action) => {
+            if (JSON.stringify(publicAssistantCorpus(snapshot())) !== fingerprint) {
+              reconcile();
+              dialog?.querySelector('#assistant-error') &&
+                (dialog.querySelector('#assistant-error').textContent =
+                  'Học liệu vừa được cập nhật. Bạn hãy kiểm tra lại nguồn mới nhé.');
+              return;
+            }
+            act(action);
+          };
+          sourceList.append(
             el(
-              'div',
-              { class: 'assistant-source-actions' },
-              button(
-                'Mở học liệu',
-                () => checkedAct({ type: 'open', id: post.id }),
-                'button primary',
-              ),
-              button(
-                'Xem chủ đề',
-                () => checkedAct({ type: 'topic', id: post.sectionId }),
-                'button subtle',
+              'section',
+              { class: 'assistant-source' },
+              el('span', { class: 'assistant-source-category' }, post.sectionTitle),
+              el('h3', {}, post.title),
+              el('blockquote', {}, source.quote),
+              ...(result.evidence || [])
+                .filter(
+                  (ref) =>
+                    ref.postId === post.id &&
+                    ref.quote !== source.quote &&
+                    typeof ref.quote === 'string' &&
+                    ref.quote.length <= assistantLimits.body &&
+                    (post.body.includes(ref.quote) || post.title.includes(ref.quote)),
+                )
+                .map((ref) => el('blockquote', {}, ref.quote)),
+              el(
+                'div',
+                { class: 'assistant-source-actions' },
+                button(
+                  'Mở học liệu',
+                  () => checkedAct({ type: 'open', id: post.id }),
+                  'button primary',
+                ),
+                button(
+                  'Xem chủ đề',
+                  () => checkedAct({ type: 'topic', id: post.sectionId }),
+                  'button subtle',
+                ),
               ),
             ),
-          ),
-        );
-      }
-      if (result.sources.length) {
-        sourceList.append(
-          button(
-            'Lọc trang theo nguồn đã chọn',
-            () => {
-              if (JSON.stringify(publicAssistantCorpus(snapshot())) !== fingerprint) {
-                reconcile();
-                dialog?.querySelector('#assistant-error') &&
-                  (dialog.querySelector('#assistant-error').textContent =
-                    'Học liệu vừa được cập nhật. Bạn hãy kiểm tra lại nguồn mới nhé.');
-                return;
-              }
-              act({ type: 'filter', ids: result.sources.map((source) => source.id) });
-            },
-            'button subtle assistant-filter-button',
-          ),
-        );
-      }
+          );
+        }
+        if (result.sources.length) {
+          sourceList.append(
+            button(
+              'Lọc trang theo nguồn đã chọn',
+              () => {
+                if (JSON.stringify(publicAssistantCorpus(snapshot())) !== fingerprint) {
+                  reconcile();
+                  dialog?.querySelector('#assistant-error') &&
+                    (dialog.querySelector('#assistant-error').textContent =
+                      'Học liệu vừa được cập nhật. Bạn hãy kiểm tra lại nguồn mới nhé.');
+                  return;
+                }
+                act({ type: 'filter', ids: result.sources.map((source) => source.id) });
+              },
+              'button subtle assistant-filter-button',
+            ),
+          );
+        }
         const sourceId = `assistant-sources-${crypto.randomUUID()}`;
         const panel = el(
           'div',
@@ -641,10 +641,10 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
           'assistant-sources-toggle',
           { 'aria-expanded': 'false', 'aria-controls': sourceId },
         );
-        opener.append(el('span', { class: 'assistant-sources-chevron', 'aria-hidden': 'true' }, '⌄'));
-        content.append(
-          el('div', { class: 'assistant-sources-disclosure' }, opener, panel),
+        opener.append(
+          el('span', { class: 'assistant-sources-chevron', 'aria-hidden': 'true' }, '⌄'),
         );
+        content.append(el('div', { class: 'assistant-sources-disclosure' }, opener, panel));
       }
       assistantMessage(content, 'assistant-result', at);
       if (remember) {
