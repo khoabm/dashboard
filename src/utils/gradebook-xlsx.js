@@ -120,13 +120,13 @@ const stylesXml =
   formats
     .map(
       ([font, fill, border, horizontal, wrap]) =>
-        '<xf numFmtId="0" fontId="' +
+        '<xf numFmtId="49" fontId="' +
         font +
         '" fillId="' +
         fill +
         '" borderId="' +
         border +
-        '" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="' +
+        '" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyNumberFormat="1" quotePrefix="1" applyAlignment="1"><alignment horizontal="' +
         horizontal +
         '" vertical="center"' +
         (wrap ? ' wrapText="1"' : '') +
