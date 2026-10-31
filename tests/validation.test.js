@@ -1,6 +1,13 @@
 /** Covers URL, upload, search, ordering, restore, and quota boundary cases offline. */
 
 import test from 'node:test';
+import {
+  placementPeers,
+  initialPlacement,
+  saveSortOrder,
+  orderedPlacement,
+  needsReorder,
+} from '../src/utils/post-placement.js';
 import assert from 'node:assert/strict';
 import {
   safeUrl,
@@ -75,4 +82,73 @@ test('quota threshold blocks before 90%, unknown usage fails closed', () => {
   assert.throws(() => assertUploadBudget(899999999, 1));
   assert.throws(() => assertUploadBudget(undefined, 1));
   assert.doesNotThrow(() => assertUploadBudget(1000, 1000));
+});
+
+test('post placement includes only eligible topic peers and stable order', () => {
+  const posts = [
+    { id: 'c', section_id: 'A', status: 'published', sort_order: 2, created_at: '2020' },
+    { id: 'a', section_id: 'A', status: 'draft', sort_order: 0, created_at: '2020' },
+    { id: 'b', section_id: 'A', status: 'hidden', sort_order: 1, created_at: '2020' },
+    { id: 'deleted', section_id: 'A', status: 'deleted', sort_order: -3 },
+    { id: 'other', section_id: 'B', status: 'published', sort_order: -2 },
+  ];
+  assert.deepEqual(placementPeers(posts, 'A').map((post) => post.id), ['a', 'b', 'c']);
+  assert.deepEqual(placementPeers(posts, 'A', 'b').map((post) => post.id), ['a', 'c']);
+  assert.deepEqual(posts.map((post) => post.id), ['c', 'a', 'b', 'deleted', 'other']);
+  assert.deepEqual(initialPlacement(posts, posts[2], 'A'), { mode: 'custom', index: 1 });
+  assert.deepEqual(initialPlacement(posts, null, 'A'), { mode: 'end', index: 3 });
+  assert.deepEqual(initialPlacement(posts, posts[2], 'B'), { mode: 'end', index: 1 });
+});
+
+test('new post at head or tail preserves existing IDs and correct numeric order', () => {
+  const peers = [
+    { id: 'a', sort_order: -3 },
+    { id: 'b', sort_order: 4 },
+    { id: 'c', sort_order: 9 },
+  ];
+  assert.equal(saveSortOrder(peers, 'start', 0), -4);
+  assert.equal(saveSortOrder(peers, 'end', 3), 10);
+  assert.equal(saveSortOrder([], 'start', 0), 0);
+  assert.equal(saveSortOrder([], 'end', 0), 0);
+  assert.equal(saveSortOrder(peers, 'custom', 0), -4);
+  assert.equal(saveSortOrder(peers, 'custom', 3), 10);
+});
+
+test('middle placement uses the existing reorder contract after save', () => {
+  const peers = [
+    { id: 'a', sort_order: 0, version: 1 },
+    { id: 'b', sort_order: 1, version: 1 },
+    { id: 'c', sort_order: 2, version: 1 },
+  ];
+  const post = { id: 'new', sort_order: 3, version: 1 };
+  assert.equal(saveSortOrder(peers, 'custom', 1), 3);
+  assert.equal(needsReorder('custom', 1, peers.length), true);
+  assert.deepEqual(orderedPlacement(peers, post, 1).map((item) => item.id), [
+    'a', 'new', 'b', 'c',
+  ]);
+  assert.deepEqual(peers.map((item) => item.id), ['a', 'b', 'c']);
+  assert.equal(needsReorder('custom', 0, 3), false);
+  assert.equal(needsReorder('custom', 3, 3), false);
+  assert.equal(needsReorder('end', 2, 3), false);
+});
+
+test('existing post placement reuses the previous integer for a middle reorder', () => {
+  const current = { id: 'b', section_id: 'A', sort_order: 8, version: 2 };
+  const peers = [
+    { id: 'a', section_id: 'A', sort_order: 0, version: 1 },
+    { id: 'c', section_id: 'A', sort_order: 15, version: 1 },
+  ];
+  assert.equal(saveSortOrder(peers, 'custom', 1, current, 'A'), 8);
+  assert.equal(saveSortOrder(peers, 'custom', 1, current, 'B'), 16);
+  assert.deepEqual(orderedPlacement(peers, current, 1).map((item) => item.id), [
+    'a', 'b', 'c',
+  ]);
+  assert.throws(() => orderedPlacement(peers, current, -1));
+  assert.throws(() => orderedPlacement(peers, current, 3));
+});
+
+test('numeric post-order boundaries reject unsafe range before uploading', () => {
+  const peers = [{ id: 'x', sort_order: 2147483647 }];
+  assert.throws(() => saveSortOrder(peers, 'end', 1));
+  assert.throws(() => saveSortOrder([{ id: 'x', sort_order: -2147483648 }], 'start', 0));
 });
