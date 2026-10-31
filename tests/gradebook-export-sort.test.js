@@ -246,8 +246,10 @@ test('OOXML worksheet child elements follow Excel schema sequence without discar
   for (const kind of ['students', 'scores']) {
     const rows = exportRows(kind, entries, catalog);
     const file = unzipSync(styledXlsxBytes(rows, kind));
-    const names = kind === 'scores' ? ['xl/worksheets/sheet1.xml', 'xl/worksheets/sheet2.xml'] :
-      ['xl/worksheets/sheet1.xml'];
+    const names =
+      kind === 'scores'
+        ? ['xl/worksheets/sheet1.xml', 'xl/worksheets/sheet2.xml']
+        : ['xl/worksheets/sheet1.xml'];
     for (const name of names) {
       const xml = strFromU8(file[name]);
       const start = xml.indexOf('</sheetData>');
@@ -257,15 +259,22 @@ test('OOXML worksheet child elements follow Excel schema sequence without discar
       const margins = xml.indexOf('<pageMargins ', start);
       const setup = xml.indexOf('<pageSetup ', start);
       const footer = xml.indexOf('<headerFooter>', start);
-      assert.ok(start >= 0 && start < filter && filter < merge && merge < print &&
-        print < margins && margins < setup && setup < footer,
-        `${name}: SpreadsheetML CT_Worksheet child ordering must be valid`);
+      assert.ok(
+        start >= 0 &&
+          start < filter &&
+          filter < merge &&
+          merge < print &&
+          print < margins &&
+          margins < setup &&
+          setup < footer,
+        `${name}: SpreadsheetML CT_Worksheet child ordering must be valid`,
+      );
       assert.match(xml, /<mergeCell ref="A1:[A-Z]+1"\/>/);
       assert.match(xml, /<autoFilter ref="A4:[A-Z]+\d+"\/>/);
     }
     const independentlyRead = await readXlsxFile(Buffer.from(styledXlsxBytes(rows, kind)));
     assert.equal(independentlyRead.length, names.length);
-    assert.equal(independentlyRead[0].data.length, kind === 'scores' ? (43 * 8 + 4) : (43 + 4));
+    assert.equal(independentlyRead[0].data.length, kind === 'scores' ? 43 * 8 + 4 : 43 + 4);
   }
 });
 
