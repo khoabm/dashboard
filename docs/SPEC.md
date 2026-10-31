@@ -497,10 +497,15 @@ unnecessary Board/Supabase/BGE calls; BOARD uses current published data and
 may not invent school notices without sources; HYBRID separates public cited
 facts from general explanatory knowledge. Short-lived memory handles follow-ups
 and topic switching; ambiguous requests may use bounded classification and
-clarification instead of accidental source matches. Source identity must be
-visible in live chat. Preserve public-only read, read-only actions, Free-only
-service limits and existing Auth/Gradebook/data boundaries; no production
-release before build and browser QA.
+clarification instead of accidental source matches. Website source citations remain available on demand, but live chat need not repeat
+origin-label footers after each answer. Multiple public source cards and read-only
+actions must be grouped under one initially collapsed, accessible toggle with
+smooth fade/height transitions and reduced-motion support. Generic craft/how-to
+questions such as making a conical hat must use general instructional knowledge,
+even if a matching Board post exists; explicitly asking about the teacher's
+published post remains Board-grounded. Preserve public-only read, read-only
+actions, Free-only service limits and existing Auth/Gradebook/data boundaries;
+no production release before build and browser QA.
 
 **Contract hiện hành — yêu cầu end-to-end live chat 2026-10-29:** chatbot hỏi đáp
 kiến thức chung và nội dung Board published thật, hội thoại tiếng Việt/follow-up;
