@@ -72,38 +72,33 @@ test('general conversation removes pairs tied to revoked or unrelated Board sour
 });
 
 test('rejects unfinished model clauses and explicit output token truncation', () => {
-  assert.throws(
-    () => decodeChatAnswer({ response: { answer: 'Bầu trời màu xanh vì ánh sáng bị', ids: [] } }, [], { structured: true }),
-    /model_incomplete/,
-  );
-  assert.throws(
-    () => decodeChatAnswer({ response: { answer: 'Bầu trời xanh.', ids: [] }, finish_reason: 'length' }, [], { structured: true }),
-    /model_incomplete/,
-  );
-  assert.throws(
-    () => decodeChatAnswer({ response: 'Bầu trời xanh vì', finish_reason: 'stop' }, [], { structured: true }),
-    /model_incomplete/,
-  );
+  const unfinished = { response: { answer: 'Bầu trời màu xanh vì ánh sáng bị', ids: [] } };
+  const capped = {
+    response: { answer: 'Bầu trời xanh.', ids: [] },
+    finish_reason: 'length',
+  };
+  const plain = { response: 'Bầu trời xanh vì', finish_reason: 'stop' };
+  for (const generated of [unfinished, capped, plain])
+    assert.throws(() => decodeChatAnswer(generated, [], { structured: true }), /model_incomplete/);
 });
 
 test('hybrid answer requires factual website part and separate explanation', () => {
   const catalog = [{ id: 'c0', title: 'Lịch thi GK1', body: 'Môn Văn thi lúc 7g20, 90 phút.' }];
-  const model = { response: { website: 'Môn Văn thi lúc 7g20.', general: 'Em nên chia thời gian ôn tập thành những khoảng ngắn.', ids: ['c0'] } };
+  const model = {
+    response: {
+      website: 'Môn Văn thi lúc 7g20.',
+      general: 'Em nên chia thời gian ôn tập thành những khoảng ngắn.',
+      ids: ['c0'],
+    },
+  };
   const answer = decodeHybridChatAnswer(model, catalog);
   assert.match(answer.answer, /Theo bài đăng:\nMôn Văn thi lúc 7g20/);
   assert.match(answer.answer, /Giải thích thêm:\nEm nên chia thời gian/);
   assert.deepEqual(answer.ids, ['c0']);
-
-  assert.throws(
-    () => decodeHybridChatAnswer({ response: { answer: 'Em hãy ôn tập đều.', ids: ['c0'] } }, catalog),
-    /model_incomplete/,
-  );
-  assert.throws(
-    () => decodeHybridChatAnswer({ response: { website: 'Văn 7g20.', general: '', ids: ['c0'] } }, catalog),
-    /model_incomplete/,
-  );
-  assert.throws(
-    () => decodeHybridChatAnswer({ response: { website: 'Văn 7g20.', general: 'Ôn bài.', ids: ['fake'] } }, catalog),
-    /model/,
-  );
+  const omitted = { response: { answer: 'Em hãy ôn tập đều.', ids: ['c0'] } };
+  const blank = { response: { website: 'Văn 7g20.', general: '', ids: ['c0'] } };
+  const fabricated = { response: { website: 'Văn 7g20.', general: 'Ôn bài.', ids: ['fake'] } };
+  for (const generated of [omitted, blank])
+    assert.throws(() => decodeHybridChatAnswer(generated, catalog), /model_incomplete/);
+  assert.throws(() => decodeHybridChatAnswer(fabricated, catalog), /model/);
 });
