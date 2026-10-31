@@ -35,7 +35,7 @@ const assistant = BoardAssistant({
   request: async (query, _, options) => {
     calls++;
     stats.textContent = `calls${calls} history${options.history.length}`;
-    if (mode.value !== 'answer') throw Error(mode.value);
+    if (!['answer', 'board', 'hybrid'].includes(mode.value)) throw Error(mode.value);
     const cited = mode.value === 'board' || mode.value === 'hybrid';
     return {
       mode: 'ai',
