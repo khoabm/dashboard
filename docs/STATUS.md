@@ -1,3 +1,18 @@
+## 2026-10-31 — End-to-end UI/UX refinement / Draft PR #33
+
+Branch `feature/e2e-ui-ux-audit-20261030`, implementation `054d6a8`. Owner-requested
+UI changes delivered in source: compact gradebook admin hierarchy, shared readable
+confirmation dialogs, internally scrolling/sticky table headers; shared custom
+select and file-picker presentation across Board/editor/Gradebook, plus three-card
+Board admin usage/maintenance layout. Student-management “Xem” remains excluded.
+Logic, Auth, services/API, database, Edge, migrations, dependencies and deploy are
+unchanged. Offline CI `#41163906785` PASS (static, 175 curated unit, production build,
+Prettier). New interactive browser/physical mobile QA and before/after evidence NOT RUN;
+owner retains final browser acceptance. Hosted requests/new fees0. Keep Draft,
+no merge or production deployment. [Scope/evidence](UI_UX_E2E_20261030.md).
+
+---
+
 ## 2026-10-31 — Gradebook full export/sorting, Draft PR #34
 
 Branch `feature/gradebook-full-export-sort-20261031`, starting HEAD `4d95394`.
