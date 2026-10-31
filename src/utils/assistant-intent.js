@@ -22,12 +22,10 @@ export function routeAssistantIntent(query, history = []) {
   const text = normalizeAssistantText(query).trim().replace(/\s+/g, ' ');
   const lastAssistant = [...history].reverse().find((turn) => turn.role === 'assistant');
   const previousUser = [...history].reverse().find((turn) => turn.role === 'user');
-  const lastBoard = Boolean(
-    lastAssistant?.sourceIds?.length ||
-    (lastAssistant &&
-      previousUser &&
-      boardSignals.test(normalizeAssistantText(previousUser.content))),
-  );
+  const previousBoard = previousUser
+    ? boardSignals.test(normalizeAssistantText(previousUser.content))
+    : false;
+  const lastBoard = Boolean(lastAssistant && (lastAssistant.sourceIds?.length || previousBoard));
   const reference = referring.test(text);
   const asksBoard = boardSignals.test(text);
   const asksGeneral = explicitGeneral.test(text);
@@ -77,8 +75,11 @@ export function decodeIntentRoute(generated) {
       return 'clarify';
     }
   }
-  return (
-    { BOARD: 'board', GENERAL: 'general', HYBRID: 'hybrid', CLARIFY: 'clarify' }[value?.mode] ||
-    'clarify'
-  );
+  const modes = {
+    BOARD: 'board',
+    GENERAL: 'general',
+    HYBRID: 'hybrid',
+    CLARIFY: 'clarify',
+  };
+  return modes[value?.mode] || 'clarify';
 }
