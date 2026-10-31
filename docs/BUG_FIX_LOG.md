@@ -1,3 +1,10 @@
+## 2026-10-31 — GB-XLSX-XML-001 / P1 — Excel rejects exported workbook XML
+
+- **Observed:** Owner reported Excel XML error and spreadsheet data not loading after styled XLSX export. Reproduced a structural risk in generated `xl/worksheets/sheetN.xml`: `<mergeCells>` was emitted before `<autoFilter>`, violating SpreadsheetML `CT_Worksheet` child order. Relaxed XLSX readers and generic XML parsers accepted the XML, so prior round-trips did not catch strict Excel validation.
+- **Fix:** `src/utils/gradebook-xlsx.js` emits `sheetData → autoFilter → mergeCells → printOptions → pageMargins → pageSetup → headerFooter`. Does not change input data, raw decimals, sheet separation, styling, CSV, API or database.
+- **Regression:** `tests/gradebook-export-sort.test.js` asserts strict worksheet child sequence and independent workbook row round-trip for **both** HKI/HKII and roster. Compare before/after using synthetic-only fixtures. Full CI and actual Microsoft Excel open need separate evidence; do not confuse relaxed-reader PASS with native Excel acceptance.
+- **Scope:** branch `feature/gradebook-full-export-sort-20261031`, PR #34; source-only, hosted requests 0, migrations/deployment 0, no student data accessed.
+
 ## 2026-10-31 — GB-EXPORT-SORT-001 / GB-DECIMAL-INPUT-001
 
 Baseline `4d9539407cdb62ccd772abf1005d02c13947c734`, branch
