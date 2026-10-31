@@ -76,6 +76,7 @@ SPEC R01–R28 gốc chủ yếu mô tả Board/hạ tầng; nghiệp vụ Grade
 | tests/gradebook-ui.test.js | Curated pure unit validation/route/disposal/late-response plus pending admin entry and blocked-history regression; no API or SDK |
 | src/components/ | Render/interaction của 20 component tại SPEC R06; cleanup listeners khi unmount |
 | src/services/ | Một Supabase client; truy vấn/Auth/Storage/sync, trả lỗi rõ ràng; không thao tác DOM |
+| src/utils/image-compression.js | Browser-local JPEG/PNG/WebP optimization using Canvas, size-benefit threshold, pixel/resource bounds and original-file fallback. No SDK, network, provider or schema changes | 
 | src/utils/ | Hàm thuần kiểm tra URL/file, format, debounce, thứ tự; test logic có rủi ro |
 | src/config/ | Chỉ cấu hình public; kiểm tra thiếu cấu hình và hiện lỗi hữu ích |
 | src/data/ | Placeholder có nhãn; tách rõ mode demo khỏi backend thật |

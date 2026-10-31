@@ -1,3 +1,24 @@
+## 2026-10-31 — Browser-local image compression candidate (Draft PR #38)
+
+Branch `feature/client-file-compression-20261031` from develop `b6f34055`.
+Existing Board uploader now optimizes supported JPG/PNG/WebP **before** upload and retains
+the original when the encoded WebP is not smaller, fails conversion or is unsupported.
+The file-type/signature validation, <2,000,000-byte final Storage boundary, quota check,
+authenticated uploader, local draft, attachment and cleanup contracts are preserved.
+The UI offers an initially checked optimization choice and before/after file-size
+feedback. Input processing bound: original image ≤12 MB, decoded pixels ≤24 million,
+long edge ≤1600 CSS px. Uploading MP4/WebM remains disabled; PDF/DOCX/PPTX/XLSX
+are passed through unchanged, not recompressed.
+
+Code commit `e3a0447`, Offline CI [#41172134389](https://github.com/khoabm/dashboard/actions/runs/41172134389)
+PASS: syntax, curated 184 unit tests, build and Prettier. Native browser Canvas
+quality/device compatibility, real Storage upload, owner mobile QA and provider quota
+interaction **NOT RUN**. Hosted API/Auth/Storage calls, schema changes, paid services,
+deploy and merge: **0**. Preview/acceptance belongs to the owner; PR stays Draft.
+[Scope, test matrix and limitations](features/board-image-compression/README.md).
+
+---
+
 ## 2026-10-31 — E2E post editor cover/order follow-up / Draft PR #33
 
 Task scope: rename "Ảnh đại diện" to "Ảnh bìa bài đăng", add selected-image
