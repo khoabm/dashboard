@@ -10,6 +10,13 @@ import {
 } from '../src/utils/post-placement.js';
 import assert from 'node:assert/strict';
 import {
+  compressedImageName,
+  isOptimizableImage,
+  shouldUseCompressedImage,
+  optimizeImage,
+  MAX_SOURCE_IMAGE_BYTES,
+} from '../src/utils/image-compression.js';
+import {
   safeUrl,
   youtubeId,
   validateFile,
@@ -165,4 +172,47 @@ test('numeric post-order boundaries reject unsafe range before uploading', () =>
   const peers = [{ id: 'x', sort_order: 2147483647 }];
   assert.throws(() => saveSortOrder(peers, 'end', 1));
   assert.throws(() => saveSortOrder([{ id: 'x', sort_order: -2147483648 }], 'start', 0));
+});
+
+test('image optimizer recognizes only the existing three exact image formats', () => {
+  assert.equal(isOptimizableImage({ name: 'activity.JPG', type: 'image/jpeg' }), true);
+  assert.equal(isOptimizableImage({ name: 'diagram.png', type: 'image/png' }), true);
+  assert.equal(isOptimizableImage({ name: 'preview.webp', type: 'image/webp' }), true);
+  assert.equal(isOptimizableImage({ name: 'clip.mp4', type: 'video/mp4' }), false);
+  assert.equal(isOptimizableImage({ name: 'notes.pdf', type: 'application/pdf' }), false);
+  assert.equal(isOptimizableImage({ name: 'sheet.xlsx', type: 'application/pdf' }), false);
+  assert.equal(isOptimizableImage({ name: 'fake.jpg', type: 'image/png' }), false);
+});
+
+test('image optimizer never stores larger output or bypasses the 2 MB Storage boundary', () => {
+  assert.equal(shouldUseCompressedImage(1_000_000, 300_000), true);
+  assert.equal(shouldUseCompressedImage(2_500_000, 1_700_000), true);
+  assert.equal(shouldUseCompressedImage(2_500_000, 2_000_000), false);
+  assert.equal(shouldUseCompressedImage(1_000_000, 950_000), false);
+  assert.equal(shouldUseCompressedImage(1_000_000, 990_000), false);
+  assert.equal(shouldUseCompressedImage(1_000_000, 1_100_000), false);
+  assert.equal(shouldUseCompressedImage(0, 100), false);
+  assert.equal(shouldUseCompressedImage(1_000_000, Number.NaN), false);
+});
+
+test('compressed image names retain the basename and match the real WebP MIME', () => {
+  assert.equal(compressedImageName('Hình hoạt động.JPG'), 'Hình hoạt động.webp');
+  assert.equal(compressedImageName('workshop.backup.png'), 'workshop.backup.webp');
+  assert.equal(compressedImageName('demo.webp'), 'demo.webp');
+  assert.equal(MAX_SOURCE_IMAGE_BYTES, 12_000_000);
+});
+
+test('optimizer does not touch Office/PDF or fetch remote resources in a non-DOM runtime', async () => {
+  const documentFile = { name: 'plan.pdf', type: 'application/pdf', size: 120_000 };
+  const imageFile = { name: 'lesson.jpg', type: 'image/jpeg', size: 1_000_000 };
+  assert.deepEqual(await optimizeImage(documentFile), {
+    file: documentFile,
+    optimized: false,
+    originalBytes: documentFile.size,
+  });
+  assert.deepEqual(await optimizeImage(imageFile), {
+    file: imageFile,
+    optimized: false,
+    originalBytes: imageFile.size,
+  });
 });

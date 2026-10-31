@@ -1,6 +1,11 @@
 /** Builds the post editor, validates attachments, and preserves recoverable local drafts. */
 
 import { newId } from '../utils/id.js';
+import {
+  isOptimizableImage,
+  optimizeImage,
+  MAX_SOURCE_IMAGE_BYTES,
+} from '../utils/image-compression.js';
 import { SelectControl, FilePicker } from './form-controls.js';
 import { PostPlacement } from './post-placement.js';
 import { saveSortOrder, orderedPlacement, needsReorder } from '../utils/post-placement.js';
@@ -44,6 +49,13 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
   const list = el('div', { class: 'editor-attachments' });
   const objectUrls = [];
   const verificationStatus = PulseIndicator();
+  const compressionSummary = el('p', {
+    class: 'upload-compression-summary',
+    role: 'status',
+    'aria-live': 'polite',
+  });
+  const optimizeChoice = el('input', { type: 'checkbox', checked: true });
+  const compressionSavings = new Map();
   let pendingFiles = 0;
   // File signature checks finish before submission or local draft dismissal can proceed.
   let pending = Promise.resolve(),
@@ -54,6 +66,9 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
    */
   function render() {
     objectUrls.splice(0).forEach((url) => URL.revokeObjectURL(url));
+    for (const id of compressionSavings.keys()) {
+      if (!attachments.some((attachment) => attachment.id === id)) compressionSavings.delete(id);
+    }
     list.replaceChildren();
     // Each row displays an attachment with reorder and remove controls.
     attachments.forEach((a, i) => {
@@ -63,8 +78,19 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
         objectUrls.push(url);
         row.append(el('img', { src: url, alt: `Xem trước ${a.file_name}` }));
       }
+      const fileLabel = el('span', { class: 'editor-file-label' }, a.file_name || a.external_url);
+      const savings = compressionSavings.get(a.id);
+      if (savings) {
+        fileLabel.append(
+          el(
+            'small',
+            { class: 'editor-file-savings' },
+            `Đã tối ưu ảnh: ${displayBytes(savings.before)} → ${displayBytes(savings.after)}`,
+          ),
+        );
+      }
       row.append(
-        el('span', {}, a.file_name || a.external_url),
+        fileLabel,
         button(
           '↑',
           () => {
@@ -99,6 +125,13 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
       list.append(row);
     });
   }
+  /** Keeps compression stats separate from saved attachment metadata. */
+  function displayBytes(value) {
+    return value >= 1_000_000
+      ? `${(value / 1_000_000).toFixed(2)} MB`
+      : `${Math.round(value / 1000)} KB`;
+  }
+
   const files = el('input', {
     type: 'file',
     multiple: true,
@@ -113,7 +146,30 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
     setPendingMessage(verificationStatus, `Đang kiểm tra ${pendingFiles} tệp đã chọn…`);
     pending = pending
       .then(async () => {
-        for (const file of selectedFiles) {
+        let compressedCount = 0;
+        for (const originalFile of selectedFiles) {
+          if (destroyed) return;
+          if (attachments.length >= 10) {
+            onError('Mỗi bài tối đa 10 tài nguyên.');
+            continue;
+          }
+
+          let file = originalFile;
+          let compression = null;
+          if (isOptimizableImage(originalFile) && optimizeChoice.checked) {
+            if (originalFile.size > MAX_SOURCE_IMAGE_BYTES) {
+              onError('Ảnh gốc vượt quá 12 MB. Vui lòng thu nhỏ ảnh trên thiết bị trước khi chọn.');
+              continue;
+            }
+            if (!(await verifyFileSignature(originalFile))) {
+              onError(`Ảnh ${originalFile.name} không đúng định dạng.`);
+              continue;
+            }
+            setPendingMessage(verificationStatus, `Đang tối ưu ảnh ${originalFile.name}…`);
+            compression = await optimizeImage(originalFile);
+            file = compression.file;
+          }
+
           if (destroyed) return;
           const error = validateFile(file, attachments.length);
           if (error || !(await verifyFileSignature(file))) {
@@ -121,12 +177,13 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
             continue;
           }
           if (destroyed) return;
-          if (attachments.length >= 10) {
-            onError('Mỗi bài tối đa 10 tài nguyên.');
-            continue;
+          const id = newId();
+          if (compression?.optimized) {
+            compressedCount++;
+            compressionSavings.set(id, { before: compression.originalBytes, after: file.size });
           }
           attachments.push({
-            id: newId(),
+            id,
             type: file.type.startsWith('image/') ? 'image' : 'document',
             file,
             file_name: file.name,
@@ -135,6 +192,9 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
           });
         }
         if (destroyed) return;
+        compressionSummary.textContent = compressedCount
+          ? `Đã tối ưu ${compressedCount} ảnh trước khi tải lên. Tệp gốc vẫn nằm trên thiết bị.`
+          : '';
         onChange(attachments);
         render();
       })
@@ -190,6 +250,18 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
         'JPG, PNG, WebP, PDF, DOCX, PPTX, XLSX · mỗi tệp < 2 MB · tối đa 10 tài nguyên/bài',
       ),
       filePicker,
+      el(
+        'label',
+        { class: 'upload-optimize-choice' },
+        optimizeChoice,
+        el('span', {}, 'Tự động tối ưu ảnh trước khi tải lên'),
+      ),
+      el(
+        'p',
+        { class: 'upload-optimize-hint' },
+        'Áp dụng cho JPG, PNG, WebP khi giảm được dung lượng. PDF và Office giữ nguyên. Không hỗ trợ video.',
+      ),
+      compressionSummary,
       verificationStatus,
     ),
     list,
@@ -204,6 +276,7 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
   root.whenReady = () => pending;
   root.cleanup = () => {
     destroyed = true;
+    compressionSavings.clear();
     objectUrls.forEach((url) => URL.revokeObjectURL(url));
   };
   root.setAttachments = (value) => {
