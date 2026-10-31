@@ -435,3 +435,451 @@
     transition: none;
   }
 }
+
+/* Consistent editor surfaces and clearer interaction states; visuals only. */
+.dialog:not(.student-chart-dialog):not(.gradebook-student-info-dialog) {
+  border-color: #ccded1;
+  box-shadow: 0 24px 68px rgba(27, 59, 42, 0.19);
+}
+.dialog:not(.student-chart-dialog):not(.gradebook-student-info-dialog) .dialog-heading {
+  background: linear-gradient(115deg, #fff, #f5faf6);
+}
+.dialog:not(.student-chart-dialog):not(.gradebook-student-info-dialog) .dialog-heading h2 {
+  color: #234f3a;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.dialog:not(.gradebook-student-info-dialog)
+  .field
+  input:not([type='checkbox']):not([type='color']):not(:disabled):hover,
+.dialog:not(.gradebook-student-info-dialog) .field textarea:not(:disabled):hover,
+.dialog:not(.gradebook-student-info-dialog) .field select:not(:disabled):hover {
+  border-color: #a7c7b1;
+}
+.dialog:not(.gradebook-student-info-dialog)
+  .field
+  input:not([type='checkbox']):not([type='color']):not(:disabled),
+.dialog:not(.gradebook-student-info-dialog) .field textarea:not(:disabled),
+.dialog:not(.gradebook-student-info-dialog) .field select:not(:disabled) {
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+.dialog:not(.gradebook-student-info-dialog) .attachment {
+  border-color: #d4e5d8;
+  background: #fcfefd;
+}
+.dialog:not(.gradebook-student-info-dialog) .upload-zone {
+  border-color: #9fbea9;
+  background: #f3f9f4;
+}
+.dialog:not(.gradebook-student-info-dialog) .upload-zone:focus-within {
+  border-color: #397e57;
+  box-shadow: 0 0 0 3px rgba(54, 124, 88, 0.14);
+}
+.dialog:not(.gradebook-student-info-dialog) .editor-section-label {
+  color: #2c6247;
+  font-weight: 700;
+}
+.dialog:not(.gradebook-student-info-dialog) .form-actions {
+  padding-top: 12px;
+  border-top: 1px solid #e3ece5;
+}
+@media (max-width: 600px) {
+  .dialog:not(.student-chart-dialog):not(.gradebook-student-info-dialog) .dialog-heading {
+    padding: 14px 18px;
+  }
+  .dialog:not(.student-chart-dialog):not(.gradebook-student-info-dialog) .dialog-content {
+    padding: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dialog:not(.gradebook-student-info-dialog)
+    .field
+    input:not([type='checkbox']):not([type='color']),
+  .dialog:not(.gradebook-student-info-dialog) .field textarea,
+  .dialog:not(.gradebook-student-info-dialog) .field select {
+    transition: none;
+  }
+}
+/* One visual decision surface for shared confirmations and draft recovery. */
+.dialog.ui-confirm-dialog {
+  width: min(620px, calc(100% - 28px));
+  max-width: 620px;
+  max-height: min(90dvh, 760px);
+  overflow-y: auto;
+  border: 1px solid #cbded0;
+  border-radius: 20px;
+  box-shadow: 0 28px 78px rgba(21, 56, 39, 0.25);
+}
+.dialog.ui-confirm-dialog .dialog-heading {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 19px 24px;
+  background: linear-gradient(120deg, #fff, #f2f8f3);
+}
+.dialog.ui-confirm-dialog .dialog-heading h2 {
+  max-width: 100%;
+  padding-top: 7px;
+  color: #20503c;
+  font-size: clamp(18px, 2vw, 21px);
+  line-height: 1.35;
+  text-wrap: balance;
+}
+.dialog.ui-confirm-dialog .dialog-heading .icon-button {
+  flex: 0 0 44px;
+}
+.dialog.ui-confirm-dialog .dialog-content {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+}
+.ui-dialog-message {
+  display: grid;
+  gap: 11px;
+  padding: 18px 20px;
+  border: 1px solid #dae8dd;
+  border-left: 4px solid #5a9372;
+  border-radius: 14px;
+  background: #f7fbf8;
+  color: #365248;
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.ui-dialog-message:empty {
+  display: none;
+}
+.ui-dialog-message p {
+  margin: 0;
+}
+.ui-dialog-message p + p {
+  padding-top: 10px;
+  border-top: 1px solid #e1ece4;
+}
+.ui-dialog-message .ui-dialog-note {
+  color: #42664f;
+  font-weight: 600;
+}
+.dialog.ui-confirm-dialog .ui-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 16px 0 0;
+  border-top: 1px solid #e4ece6;
+}
+.dialog.ui-confirm-dialog .ui-dialog-actions .button {
+  min-height: 44px;
+  padding-inline: 18px;
+  border-radius: 10px;
+}
+.dialog.ui-confirm-dialog .ui-dialog-actions .button.danger {
+  border-color: #e6b9b9;
+  background: #fff1f1;
+  color: #943535;
+}
+.dialog.ui-confirm-dialog .ui-dialog-actions .button.danger:hover {
+  border-color: #c78080;
+  background: #ffe6e6;
+}
+@media (max-width: 600px) {
+  .dialog.ui-confirm-dialog .dialog-heading {
+    padding: 14px 17px;
+  }
+  .dialog.ui-confirm-dialog .dialog-content {
+    gap: 16px;
+    padding: 17px;
+  }
+  .ui-dialog-message {
+    gap: 9px;
+    padding: 14px 15px;
+  }
+  .dialog.ui-confirm-dialog .ui-dialog-actions .button {
+    flex: 1 1 120px;
+  }
+}
+
+/* Shared picker and select sizing inside existing forms; preserve the original dialog ownership. */
+.dialog:not(.gradebook-student-info-dialog) .field > .ui-select {
+  width: 100%;
+}
+.dialog:not(.gradebook-student-info-dialog) .ui-select-trigger {
+  width: 100%;
+  min-height: 45px;
+}
+.dialog:not(.gradebook-student-info-dialog) .ui-file-picker {
+  width: 100%;
+}
+.upload-zone .ui-file-picker {
+  margin-top: 12px;
+}
+
+/* Post editor — cover selection and in-topic placement only. */
+.post-cover-field {
+  margin-top: 16px;
+  margin-bottom: 22px;
+  padding: 16px;
+  border: 1px solid #d9e8dc;
+  border-radius: 14px;
+  background: #f9fcfa;
+}
+.post-cover-field .field {
+  margin-bottom: 8px;
+}
+.post-cover-hint {
+  margin: 0 0 13px;
+  color: #637c6d;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.post-cover-preview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 98px;
+  padding: 12px;
+  border: 1px solid #d9e7db;
+  border-radius: 12px;
+  background: white;
+  color: #617769;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.post-cover-preview img {
+  display: block;
+  width: 125px;
+  height: 82px;
+  flex: 0 0 125px;
+  object-fit: cover;
+  border-radius: 9px;
+  border: 1px solid #e0e9e2;
+  background: #edf4ef;
+}
+.post-cover-empty {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 64px;
+  flex: 0 0 60px;
+  border-radius: 10px;
+  background: #edf5ef;
+  color: #5c806b;
+  font-size: 22px;
+}
+.post-cover-name {
+  min-width: 0;
+  color: #2b5643;
+  font-size: 13px;
+  font-weight: 600;
+}
+.post-placement {
+  min-width: 0;
+  margin: 2px 0 20px;
+  padding: 16px;
+  border: 1px solid #d9e8dc;
+  border-radius: 14px;
+  background: #f9fcfa;
+}
+.post-placement legend {
+  padding: 0 6px;
+  color: #20553c;
+  font-size: 14px;
+  font-weight: 700;
+}
+.post-placement-hint {
+  margin: 0 0 12px;
+  color: #627d6e;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.post-placement-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.post-placement-choice {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid #d7e5d9;
+  border-radius: 11px;
+  background: white;
+  color: #2b5140;
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.post-placement-choice:last-child {
+  grid-column: 1 / -1;
+}
+.post-placement-choice:has(input:checked) {
+  border-color: #77a989;
+  background: #edf6ef;
+  color: #1d5b3e;
+  font-weight: 650;
+}
+.post-placement-choice:has(input:focus-visible) {
+  outline: 3px solid #367c5833;
+  outline-offset: 2px;
+}
+.post-placement-choice:has(input:disabled) {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+.post-placement-choice input {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #235e4a;
+}
+.post-placement-custom {
+  min-width: 0;
+  margin-top: 15px;
+}
+.post-placement-custom[hidden] {
+  display: none;
+}
+.post-placement-after {
+  margin-bottom: 16px;
+}
+.post-placement-after .ui-select {
+  width: 100%;
+}
+.post-placement-caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-bottom: 10px;
+  color: #2b6049;
+  font-size: 12px;
+}
+.post-placement-caption > span {
+  color: #637d6b;
+}
+.post-placement-preview {
+  display: grid;
+  gap: 7px;
+  max-height: min(320px, 44dvh);
+  padding: 9px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #d7e6db;
+  border-radius: 12px;
+  background: #fff;
+}
+.post-placement-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  min-height: 46px;
+  padding: 7px 10px;
+  border: 1px solid #e9efe9;
+  border-radius: 9px;
+  background: #fafcfb;
+  color: #42604d;
+  font-size: 13px;
+}
+.post-placement-row.is-current {
+  border-color: #a4cdb0;
+  background: #eaf5ed;
+  color: #1c5037;
+}
+.post-placement-row.is-drop-target {
+  border-color: #2c8056;
+  outline: 2px dashed #5a9e73;
+  outline-offset: -3px;
+}
+.post-placement-handle,
+.post-placement-handle-placeholder {
+  flex: 0 0 22px;
+  width: 22px;
+  font-size: 19px;
+  color: #547f65;
+  text-align: center;
+  touch-action: none;
+}
+.post-placement-handle {
+  cursor: grab;
+}
+.post-placement-handle:active {
+  cursor: grabbing;
+}
+.post-placement-number {
+  flex: 0 0 23px;
+  color: #6f8879;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.post-placement-row-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.post-placement-row.is-current .post-placement-row-title {
+  font-weight: 700;
+}
+.post-placement-row-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+}
+.post-placement-row-actions .icon-button {
+  min-width: 40px;
+  min-height: 40px;
+  border: 1px solid #bfd7c6;
+  border-radius: 9px;
+  background: #fff;
+  color: #246543;
+}
+.post-placement-row-actions .icon-button:disabled {
+  opacity: 0.35;
+}
+.post-placement-live {
+  min-height: 16px;
+  margin: 8px 0 0;
+  color: #436c53;
+  font-size: 12px;
+}
+@media (max-width: 700px) {
+  .post-cover-field,
+  .post-placement {
+    padding: 13px;
+  }
+  .post-placement-choices {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .post-placement-choice:last-child {
+    grid-column: auto;
+  }
+  .post-placement-row {
+    padding: 7px;
+    gap: 7px;
+  }
+  .post-cover-preview {
+    gap: 10px;
+  }
+  .post-cover-preview img {
+    flex-basis: 96px;
+    width: 96px;
+    height: 72px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .post-placement-choice,
+  .post-placement-row,
+  .post-cover-preview {
+    transition: none;
+  }
+}

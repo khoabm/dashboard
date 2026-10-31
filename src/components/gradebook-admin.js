@@ -1,4 +1,5 @@
 /** Renders CP03 administration against an injected B4-shaped adapter; no synthetic or hosted data source. */
+import { SelectControl, FilePicker } from './form-controls.js';
 import { el, button, field, checkboxField, restrictNumericInput } from '../utils/dom.js';
 import { openDialog, ConfirmDialog, ToastNotification } from './primitives.js';
 import { PulseIndicator, setPendingMessage } from './pending.js';
@@ -93,9 +94,11 @@ export function GradebookAdmin({
     () => session,
   );
   const heading = el('h1', { tabindex: '-1' }, 'Quản lý bảng điểm');
+  const headerActions = el('div', { class: 'gradebook-admin-header-actions' });
+  const header = el('div', { class: 'gradebook-admin-header' }, heading, headerActions);
   const progress = PulseIndicator();
   const body = el('div', { class: 'gradebook-admin-body' });
-  const element = el('main', { id: 'main', class: 'gradebook-admin' }, heading, progress, body);
+  const element = el('main', { id: 'main', class: 'gradebook-admin' }, header, progress, body);
 
   /** Cancels waits without claiming a previously sent mutation was rolled back. */
   function cancel() {
@@ -711,6 +714,7 @@ export function GradebookAdmin({
       accept: '.csv,.xlsx',
       'aria-label': 'Chọn tệp danh sách',
     });
+    const filePicker = FilePicker(file, { label: 'Chọn tệp CSV / Excel' });
     const fileProgress = PulseIndicator();
     const detail = el('div', { class: 'import-detail', 'aria-live': 'polite' });
     const errors = el('div', { role: 'alert', class: 'form-error' });
@@ -766,6 +770,7 @@ export function GradebookAdmin({
             preview.clear();
             batch = null;
             file.value = '';
+            filePicker.refresh();
             dirty = false;
             inspect.disabled = true;
             ToastNotification(
@@ -884,7 +889,7 @@ export function GradebookAdmin({
         {},
         'Hàng đầu là tiêu đề tùy chỉnh. A–B: định danh/ngày sinh; hoặc A–C: họ tên/định danh/ngày sinh. XLSX đọc trang tính đầu tiên. Tệp chỉ được đọc trong bộ nhớ.',
       ),
-      file,
+      filePicker,
       fileProgress,
       detail,
       errors,
@@ -898,6 +903,7 @@ export function GradebookAdmin({
   function render() {
     body.setAttribute('aria-busy', String(busy || session.status === 'loading'));
     body.replaceChildren();
+    headerActions.replaceChildren();
     if (session.status === 'loading') {
       body.append(PulseIndicator('Đang xác minh phiên quản trị…'));
       return;
@@ -910,7 +916,7 @@ export function GradebookAdmin({
       return;
     }
     const toolbar = el('div', { class: 'admin-actions' }, button('Tải lại', load));
-    body.append(toolbar);
+    headerActions.append(toolbar);
     if (!currentClass) {
       body.append(
         el(
@@ -998,7 +1004,7 @@ export function GradebookAdmin({
         button('Nhập CSV/XLSX', importRoster),
         ExportSelector(exportStudents, { label: 'Xuất danh sách' }),
         search,
-        filter,
+        SelectControl(filter, { label: 'Trạng thái học sinh' }),
       ),
     );
     const tableBody = el('tbody');
@@ -1096,7 +1102,7 @@ export function GradebookAdmin({
           class: 'admin-table-scroll',
           tabindex: '0',
           role: 'region',
-          'aria-label': 'Danh sách học sinh, cuộn ngang khi cần',
+          'aria-label': 'Danh sách học sinh, cuộn ngang và dọc khi cần',
         },
         table,
       ),

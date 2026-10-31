@@ -1,4 +1,5 @@
 /** Renders one student's semester and one on-demand aggregate chart; owns every private read/dialog. */
+import { SelectControl } from './form-controls.js';
 import { el, button } from '../utils/dom.js';
 import { PulseIndicator } from './pending.js';
 import { openDialog } from './primitives.js';
@@ -241,8 +242,8 @@ export function StudentGradeboard({ context, read, onReset }) {
       el(
         'div',
         { class: 'student-chart-selectors' },
-        el('label', {}, 'Môn học', subject),
-        el('label', {}, 'Loại điểm', column),
+        el('label', {}, 'Môn học', SelectControl(subject, { label: 'Môn học' })),
+        el('label', {}, 'Loại điểm', SelectControl(column, { label: 'Loại điểm' })),
       ),
       insight,
       el(

@@ -1,3 +1,40 @@
+## 2026-10-31 — E2E post editor cover/order follow-up / Draft PR #33
+
+Task scope: rename "Ảnh đại diện" to "Ảnh bìa bài đăng", add selected-image
+preview after attachments, replace numeric "Vị trí" with first/last/custom
+placement. Preview is shown **only** for custom; highlighted post supports drag
+and ↑/↓ only on its row. Existing signed-cover and existing Storage preview
+helper are reused. Start/end use existing `sort_order`; middle placement uses
+the already-existing `save_post` then `reorder_posts` RPCs without changes
+to either definition or service. Reorder conflict after successful save
+reports partial success; original edit-without-position-change avoids extra
+reorder. Draft UI choices are locally recoverable.
+
+Code SHA `84ade376`, Offline CI [#41169464462](https://github.com/khoabm/dashboard/actions/runs/41169464462)
+PASS: syntax/static, **180/180 curated unit**, production build and Prettier.
+Exact changed code files: post editor, new placement component/helper, editor
+CSS, local draft allowlist, pure tests. API/DB/Auth/RLS/Edge/migrations/
+dependencies/deployment untouched. Browser/device acceptance and before/after
+visual screenshots: NOT RUN; owner controls the final QA gate. No hosted
+requests/writes or merge. [Evidence and cases](UI_UX_E2E_20261030.md).
+
+---
+
+## 2026-10-31 — End-to-end UI/UX refinement / Draft PR #33
+
+Branch `feature/e2e-ui-ux-audit-20261030`, implementation `054d6a8`. Owner-requested
+UI changes delivered in source: compact gradebook admin hierarchy, shared readable
+confirmation dialogs, internally scrolling/sticky table headers; shared custom
+select and file-picker presentation across Board/editor/Gradebook, plus three-card
+Board admin usage/maintenance layout. Student-management “Xem” remains excluded.
+Logic, Auth, services/API, database, Edge, migrations, dependencies and deploy are
+unchanged. Offline CI `#41163906785` PASS (static, 175 curated unit, production build,
+Prettier). New interactive browser/physical mobile QA and before/after evidence NOT RUN;
+owner retains final browser acceptance. Hosted requests/new fees0. Keep Draft,
+no merge or production deployment. [Scope/evidence](UI_UX_E2E_20261030.md).
+
+---
+
 ## 2026-10-31 — Gradebook full export/sorting, Draft PR #34
 
 Branch `feature/gradebook-full-export-sort-20261031`, starting HEAD `4d95394`.

@@ -6,8 +6,7 @@ import { quotaLevel, STORAGE_LIMIT } from '../utils/quota.js';
 import { PulseIndicator } from './pending.js';
 
 /**
- * Loads quota estimates and updates the attached status element.
- * Displays a fallback warning when usage cannot be read.
+ * Loads the same quota estimates and renders readable, grouped status metrics.
  *
  * @param {HTMLElement} root - The status container to update.
  */
@@ -19,18 +18,49 @@ export async function QuotaStatus(root) {
     const storageLevel = quotaLevel(usage.storage_bytes, STORAGE_LIMIT);
     const dbLevel = quotaLevel(usage.database_bytes_estimate, 500_000_000);
     const level = storageLevel === 'normal' ? dbLevel : storageLevel;
-    // Replace the quota region with measured usage and a warning level for this session.
+    const warning =
+      storageLevel === 'critical'
+        ? 'Đã tạm dừng tải tệp mới vì dung lượng lưu trữ chạm ngưỡng 90%.'
+        : level !== 'normal'
+          ? 'Dung lượng đang gần giới hạn. Số liệu về dữ liệu chỉ là ước tính; hãy kiểm tra thêm trong trang quản trị.'
+          : '';
+
+    // Preserve the measured numbers and prior warning thresholds; only group the text visually.
     root.replaceChildren(
       el(
         'div',
-        { class: level === 'normal' ? 'fine-print' : 'demo-note' },
-        `Dung lượng tệp đã sử dụng: ${(usage.storage_bytes / 1e6).toFixed(2)} MB / 1.000 MB · Dung lượng dữ liệu (ước tính): ${(usage.database_bytes_estimate / 1e6).toFixed(1)} MB / 500 MB. Lưu lượng sử dụng: chưa có số liệu.`,
-        storageLevel === 'critical'
-          ? ' Đã tạm dừng tải tệp mới vì dung lượng lưu trữ chạm ngưỡng 90%.'
-          : level !== 'normal'
-            ? ' Dung lượng đang gần giới hạn. Số liệu về dữ liệu chỉ là ước tính; hãy kiểm tra thêm trong trang quản trị.'
-            : '',
+        { class: 'quota-metrics' },
+        el(
+          'div',
+          { class: 'quota-metric' },
+          el('span', { class: 'quota-metric-label' }, 'Dung lượng tệp'),
+          el(
+            'strong',
+            { class: 'quota-metric-value' },
+            `${(usage.storage_bytes / 1e6).toFixed(2)} MB`,
+          ),
+          el('span', { class: 'quota-metric-limit' }, 'Giới hạn: 1.000 MB'),
+        ),
+        el(
+          'div',
+          { class: 'quota-metric' },
+          el('span', { class: 'quota-metric-label' }, 'Dữ liệu (ước tính)'),
+          el(
+            'strong',
+            { class: 'quota-metric-value' },
+            `${(usage.database_bytes_estimate / 1e6).toFixed(1)} MB`,
+          ),
+          el('span', { class: 'quota-metric-limit' }, 'Giới hạn: 500 MB'),
+        ),
+        el(
+          'div',
+          { class: 'quota-metric' },
+          el('span', { class: 'quota-metric-label' }, 'Lưu lượng sử dụng'),
+          el('strong', { class: 'quota-metric-value quota-metric-unknown' }, 'Chưa có số liệu'),
+          el('span', { class: 'quota-metric-limit' }, 'Chưa thể thống kê'),
+        ),
       ),
+      ...(warning ? [el('p', { class: 'quota-warning', role: 'status' }, warning)] : []),
     );
   } catch {
     if (root.isConnected)

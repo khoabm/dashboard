@@ -1,7 +1,10 @@
 /** Builds the post editor, validates attachments, and preserves recoverable local drafts. */
 
 import { newId } from '../utils/id.js';
-import { el, button, field, errorMessage, restrictNumericInput } from '../utils/dom.js';
+import { SelectControl, FilePicker } from './form-controls.js';
+import { PostPlacement } from './post-placement.js';
+import { saveSortOrder, orderedPlacement, needsReorder } from '../utils/post-placement.js';
+import { el, button, field, errorMessage } from '../utils/dom.js';
 import {
   safeUrl,
   youtubeId,
@@ -10,8 +13,8 @@ import {
   moveItem,
   debounce,
 } from '../utils/validation.js';
-import { savePost } from '../services/board.js';
-import { uploadAttachments, cleanup, queueCleanup } from '../services/storage.js';
+import { savePost, reorderPosts } from '../services/board.js';
+import { uploadAttachments, cleanup, queueCleanup, attachmentUrl } from '../services/storage.js';
 import {
   draftKey,
   createDraftWriter,
@@ -145,6 +148,7 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
       });
     onPending();
   });
+  const filePicker = FilePicker(files, { label: 'Chọn ảnh hoặc tài liệu' });
   const link = el('input', {
     type: 'url',
     placeholder: 'https://…',
@@ -185,7 +189,7 @@ export function AttachmentUploader({ attachments, onChange, onError, onPending =
         {},
         'JPG, PNG, WebP, PDF, DOCX, PPTX, XLSX · mỗi tệp < 2 MB · tối đa 10 tài nguyên/bài',
       ),
-      files,
+      filePicker,
       verificationStatus,
     ),
     list,
@@ -285,9 +289,6 @@ export async function PostEditorDrawer({
       el('option', { value: s.id, selected: s.id === model.section_id }, s.title),
     ),
   );
-  const order = restrictNumericInput(
-    el('input', { type: 'number', step: 1, required: true, value: model.sort_order }),
-  );
   const status = el(
     'select',
     {},
@@ -299,7 +300,30 @@ export async function PostEditorDrawer({
       ),
     ),
   );
-  const thumbnail = el('select', { 'aria-label': 'Ảnh đại diện' });
+  const thumbnail = el('select', { 'aria-label': 'Ảnh bìa bài đăng' });
+  const thumbnailControl = SelectControl(thumbnail, { label: 'Ảnh bìa bài đăng' });
+  const coverPreview = el('div', {
+    class: 'post-cover-preview',
+    role: 'status',
+    'aria-live': 'polite',
+  });
+  const coverField = el(
+    'div',
+    { class: 'post-cover-field' },
+    field('Ảnh bìa bài đăng', thumbnailControl),
+    el(
+      'p',
+      { class: 'post-cover-hint' },
+      'Chọn từ ảnh đính kèm. Nếu để tự động, ảnh đầu tiên sẽ làm bìa.',
+    ),
+    coverPreview,
+  );
+  const placement = PostPlacement({
+    posts: data.posts,
+    post,
+    sectionId: model.section_id,
+    onChange: () => markDirty(),
+  });
   // error reports validation/save failures; draftStatus reports local draft and upload progress.
   const error = el('p', { class: 'form-error', role: 'alert' }),
     draftStatus = el('div', { class: 'draft-status', role: 'status' });
@@ -308,10 +332,10 @@ export async function PostEditorDrawer({
     'form',
     {},
     field('Tiêu đề *', title),
-    field('Chủ đề *', section),
+    field('Chủ đề *', SelectControl(section, { label: 'Chủ đề' })),
     field('Nội dung / mô tả', body),
-    el('div', { class: 'field-row' }, field('Trạng thái', status), field('Vị trí', order)),
-    field('Ảnh đại diện', thumbnail),
+    field('Trạng thái', SelectControl(status, { label: 'Trạng thái' })),
+    placement.element,
     el('h3', { class: 'editor-section-label' }, 'Tài nguyên đính kèm'),
   );
 
@@ -326,7 +350,9 @@ export async function PostEditorDrawer({
       title: title.value.trim(),
       body: body.value,
       section_id: section.value,
-      sort_order: Number(order.value),
+      sort_order: model.sort_order,
+      placement_mode: placement.read().mode,
+      placement_index: placement.read().index,
       status: status.value,
       thumbnail_id: thumbnail.value || null,
       attachments,
@@ -371,16 +397,98 @@ export async function PostEditorDrawer({
     if (!busy && !closing) markDirty();
   }
 
-  /** Rebuilds image thumbnail choices while keeping the current selection. */
-  function renderThumbnail() {
-    const value = thumbnail.value || model.thumbnail_id;
-    thumbnail.replaceChildren(
-      el('option', { value: '' }, 'Không chọn / tự động'),
-      attachments
-        .filter((a) => a.type === 'image')
-        .map((a) => el('option', { value: a.id, selected: a.id === value }, a.file_name)),
-    );
+  let currentCoverUrl = null;
+  let coverGeneration = 0;
+  let preferredCover = model.thumbnail_id || '';
+  const originalCover =
+    original.find((item) => item.id === post?.thumbnail_id && item.type === 'image') ||
+    original.find((item) => item.type === 'image');
+
+  function releaseCover() {
+    if (currentCoverUrl) URL.revokeObjectURL(currentCoverUrl);
+    currentCoverUrl = null;
   }
+
+  /** Preview local or stored cover using existing URL resolution with stale-response protection. */
+  async function renderCover() {
+    const generation = ++coverGeneration;
+    releaseCover();
+    const pictures = attachments.filter((item) => item.type === 'image');
+    const selected = pictures.find((item) => item.id === thumbnail.value) || pictures[0];
+    coverPreview.replaceChildren();
+    if (!selected) {
+      coverPreview.append(
+        el('span', { class: 'post-cover-empty', 'aria-hidden': 'true' }, '▧'),
+        el('span', {}, 'Chưa có ảnh đính kèm. Bài đăng sẽ sử dụng hình minh họa mặc định.'),
+      );
+      return;
+    }
+
+    const name = el('span', { class: 'post-cover-name' }, selected.file_name || 'Ảnh đính kèm');
+    const fallback = (message) => {
+      coverPreview.replaceChildren(
+        el('span', { class: 'post-cover-empty', 'aria-hidden': 'true' }, '▧'),
+        el('span', {}, message),
+        name,
+      );
+    };
+    const display = (source) => {
+      const photo = el('img', {
+        src: source,
+        alt: `Xem trước ảnh bìa: ${selected.file_name || 'Ảnh'}`,
+      });
+      photo.addEventListener(
+        'error',
+        () => {
+          if (generation === coverGeneration) fallback('Chưa tải được bản xem trước ảnh bìa.');
+        },
+        { once: true },
+      );
+      coverPreview.replaceChildren(photo, name);
+    };
+
+    if (selected.file) {
+      currentCoverUrl = URL.createObjectURL(selected.file);
+      display(currentCoverUrl);
+      return;
+    }
+    if (originalCover?.id === selected.id && post?.thumbnail_url) {
+      display(post.thumbnail_url);
+      return;
+    }
+    if (!selected.storage_path) {
+      fallback('Ảnh này chưa có bản xem trước khả dụng.');
+      return;
+    }
+    fallback('Đang tải ảnh xem trước…');
+    try {
+      const source = await attachmentUrl(selected);
+      if (generation !== coverGeneration || !canContinue()) return;
+      display(source);
+    } catch {
+      if (generation === coverGeneration && canContinue())
+        fallback('Chưa tải được ảnh bìa. Bạn vẫn có thể lưu bài đăng.');
+    }
+  }
+
+  /** Retain selected image across attachment changes; reset a removed image safely. */
+  function renderThumbnail() {
+    const pictures = attachments.filter((item) => item.type === 'image');
+    thumbnail.replaceChildren(
+      el('option', { value: '' }, 'Tự động — ảnh đầu tiên'),
+      ...pictures.map((item) => el('option', { value: item.id }, item.file_name)),
+    );
+    preferredCover = pictures.some((item) => item.id === preferredCover) ? preferredCover : '';
+    thumbnail.value = preferredCover;
+    thumbnailControl.refresh();
+    renderCover();
+  }
+  thumbnail.addEventListener('change', () => {
+    preferredCover = thumbnail.value;
+    renderCover();
+  });
+  section.addEventListener('change', () => placement.setSection(section.value));
+  title.addEventListener('input', () => placement.setTitle(title.value));
   const uploader = AttachmentUploader({
     attachments,
     onChange: (value) => {
@@ -396,7 +504,7 @@ export async function PostEditorDrawer({
     whenReady: () => uploader.whenReady(),
   });
   // The uploader and both feedback regions follow the post fields inside the form.
-  form.append(uploader, error, draftStatus);
+  form.append(uploader, coverField, error, draftStatus);
   const saveDraftButton = button('Lưu bản nháp lên hệ thống', () => submit('draft'));
   const publish = el('button', { type: 'submit', class: 'button primary' }, 'Lưu bài đăng');
   const closeButton = button('×', requestClose, 'icon-button', {
@@ -463,12 +571,26 @@ export async function PostEditorDrawer({
       if (dialog.open) setBusy(false);
       return;
     }
+    const target = placement.read();
     const value = {
       ...read(),
       attachments: [...attachments],
       status: nextStatus,
       placeholder_kind: null,
     };
+    // Keep placement UI metadata in the local draft only, never in save_post.
+    delete value.placement_mode;
+    delete value.placement_index;
+    try {
+      value.sort_order =
+        post && !target.changed && post.section_id === value.section_id
+          ? post.sort_order
+          : saveSortOrder(target.peers, target.mode, target.index, post, value.section_id);
+    } catch (failure) {
+      error.textContent = failure.message;
+      setBusy(false);
+      return;
+    }
     if (!value.title) {
       error.textContent = 'Vui lòng nhập tiêu đề.';
       setBusy(false);
@@ -516,9 +638,23 @@ export async function PostEditorDrawer({
         progress,
         nextStatus === 'published' ? 'Đang xuất bản bài đăng…' : 'Đang lưu bài đăng…',
       );
-      await savePost(value, uploaded.attachments);
+      const savedPost = await savePost(value, uploaded.attachments);
       // The RPC may commit after SIGNED_OUT. Keep replaced paths before the cancellation exit.
       queueCleanup(unused);
+      // Saving is committed; a failed reorder must never trigger cleanup of the saved upload.
+      let placementWarning = '';
+      if (
+        canContinue() &&
+        target.changed &&
+        needsReorder(target.mode, target.index, target.peers.length)
+      ) {
+        try {
+          await reorderPosts(orderedPlacement(target.peers, savedPost, target.index));
+        } catch {
+          placementWarning =
+            'Bài đăng đã lưu, nhưng chưa sắp xếp được theo thứ tự chọn. Hãy tải lại và sắp xếp lại.';
+        }
+      }
       if (!canContinue()) {
         queueCleanup(uploaded.paths);
         return;
@@ -544,7 +680,9 @@ export async function PostEditorDrawer({
       dialog.close();
       await onSaved();
       ToastNotification(
-        nextStatus === 'published' ? 'Đã xuất bản bài đăng.' : 'Đã lưu bài đăng thành công.',
+        placementWarning ||
+          (nextStatus === 'published' ? 'Đã xuất bản bài đăng.' : 'Đã lưu bài đăng thành công.'),
+        Boolean(placementWarning),
       );
     } catch (e) {
       // A lost response cannot establish whether the RPC committed; later cleanup checks references.
@@ -618,6 +756,8 @@ export async function PostEditorDrawer({
   dialog.addEventListener(
     'close',
     () => {
+      coverGeneration++;
+      releaseCover();
       autosave.cancel();
       onDirty(false);
       // Clear private UI immediately, but let local file checks finish before destroying the queue.
@@ -662,10 +802,14 @@ export async function PostEditorDrawer({
       title.value = model.title || '';
       body.value = model.body || '';
       section.value = model.section_id;
-      order.value = model.sort_order;
+      section.closest('.ui-select')?.refresh();
+      placement.setSection(model.section_id);
+      placement.restore(saved);
       status.value = model.status === 'deleted' ? 'draft' : model.status;
+      status.closest('.ui-select')?.refresh();
       attachments = recovered;
       uploader.setAttachments(attachments);
+      preferredCover = model.thumbnail_id || '';
       renderThumbnail();
       recoveryReady = true;
       recoveryNotice.replaceChildren();
