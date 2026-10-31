@@ -62,6 +62,20 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core')
     assert.equal(await panel.evaluate((el) => el.inert), true);
     assert.equal(await result.getByRole('button', { name: 'Mở học liệu' }).count(), 0);
 
+    await mode.selectOption('board-many');
+    await ask('Website có các bài thông báo nào?');
+    const multi = page.locator('.assistant-result').last();
+    assert.equal(await multi.locator('.assistant-source').count(), 2);
+    assert.equal(await multi.locator('.assistant-sources-toggle').count(), 1);
+    assert.equal(
+      await multi.locator('.assistant-sources-toggle').getAttribute('aria-expanded'),
+      'false',
+    );
+    await multi.locator('.assistant-sources-toggle').click();
+    assert.equal(await multi.getByRole('button', { name: 'Mở học liệu' }).count(), 2);
+    await multi.locator('.assistant-sources-toggle').click();
+    assert.equal(await multi.locator('.assistant-sources-panel').getAttribute('aria-hidden'), 'true');
+
     await mode.selectOption('hybrid');
     await ask('Theo bài Lịch thi GK1, giải thích thêm cách ôn tập.');
     assert.equal(await page.locator('.assistant-answer-note').count(), 0);
