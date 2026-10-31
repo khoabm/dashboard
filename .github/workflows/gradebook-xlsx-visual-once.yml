@@ -52,3 +52,5 @@ jobs:
           path: synthetic-preview/*.xlsx
           if-no-files-found: error
           retention-days: 1
+
+# One-time rerender after Excel Text (numFmtId 49) hardening.
