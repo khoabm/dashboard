@@ -1,0 +1,61 @@
+name: One-time XLSX XML compatibility specimen
+on:
+  push:
+    branches: [feature/gradebook-full-export-sort-20261031]
+    paths: [.github/workflows/gradebook-xml-fix-specimen-once.yml]
+permissions:
+  contents: read
+jobs:
+  specimen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Generate fixed XLSX through shipping production encoder
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { writeFileSync, mkdirSync } from 'node:fs';
+          import { unzipSync, strFromU8 } from 'fflate';
+          import { exportRows } from './src/utils/gradebook-export.js';
+          import { styledXlsxBytes } from './src/utils/gradebook-xlsx.js';
+          const catalog = {
+            subjects: [['toan','Toán'],['van','Ngữ văn'],['anh','Ngoại ngữ'],['khtn','Khoa học tự nhiên'],
+              ['lsdl','Lịch sử và Địa lý'],['cn','Công nghệ'],['tin','Tin học'],['gdcd','GDCD']]
+              .map(([code,displayName])=>({code,displayName})),
+            scoreColumns: [['tx1','Thường xuyên 1'],['tx2','Thường xuyên 2'],['tx3','Thường xuyên 3'],
+              ['tx4','Thường xuyên 4'],['tiet','1 tiết'],['gk','Giữa kì'],['ck','Cuối kì']]
+              .map(([code,displayName])=>({code,displayName})),
+          };
+          const students = [
+            {id:'1',fullName:'Nguyễn Minh Anh',documentNumber:'001234567',birthDate:'2014-10-12',active:true,
+              scores1:[{subjectCode:'toan',columnCode:'tx1',rawScore:'8.12345'}],
+              scores2:[{subjectCode:'toan',columnCode:'tx2',rawScore:'0'}]},
+            {id:'2',fullName:'Trần Thị Bình',documentNumber:'001234568',birthDate:'2014-04-21',active:false,
+              scores1:[{subjectCode:'van',columnCode:'ck',rawScore:'9.5'}],
+              scores2:[{subjectCode:'khtn',columnCode:'gk',rawScore:'7.25'}]},
+          ];
+          mkdirSync('sample-xml-fixed',{recursive:true});
+          for(const kind of ['students','scores']){
+            const bytes=styledXlsxBytes(exportRows(kind,students,catalog),kind);
+            const parts=unzipSync(bytes);
+            for(const [name,value] of Object.entries(parts)){
+              if(!name.startsWith('xl/worksheets/')) continue;
+              const xml=strFromU8(value);
+              const filter=xml.indexOf('<autoFilter');
+              const merge=xml.indexOf('<mergeCells');
+              if(!(filter>=0 && merge>filter)) throw Error('Invalid SpreadsheetML element order: '+name);
+            }
+            writeFileSync('sample-xml-fixed/'+(kind==='scores'?'bang-diem-HKI-HKII-fixed.xlsx':'danh-sach-hoc-sinh-fixed.xlsx'),bytes);
+          }
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gradebook-xml-fixed-synthetic
+          path: sample-xml-fixed/*.xlsx
+          retention-days: 1
+          if-no-files-found: error
