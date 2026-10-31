@@ -14,7 +14,7 @@ import {
   debounce,
 } from '../utils/validation.js';
 import { savePost, reorderPosts } from '../services/board.js';
-import { uploadAttachments, cleanup, queueCleanup } from '../services/storage.js';
+import { uploadAttachments, cleanup, queueCleanup, attachmentUrl } from '../services/storage.js';
 import {
   draftKey,
   createDraftWriter,
@@ -398,6 +398,7 @@ export async function PostEditorDrawer({
   }
 
   let currentCoverUrl = null;
+  let coverGeneration = 0;
   let preferredCover = model.thumbnail_id || '';
   const originalCover =
     original.find((item) => item.id === post?.thumbnail_id && item.type === 'image') ||
@@ -408,8 +409,9 @@ export async function PostEditorDrawer({
     currentCoverUrl = null;
   }
 
-  /** Preview locally selected image bytes; never request private files solely for display. */
-  function renderCover() {
+  /** Preview local or stored cover using existing URL resolution with stale-response protection. */
+  async function renderCover() {
+    const generation = ++coverGeneration;
     releaseCover();
     const pictures = attachments.filter((item) => item.type === 'image');
     const selected = pictures.find((item) => item.id === thumbnail.value) || pictures[0];
@@ -421,36 +423,53 @@ export async function PostEditorDrawer({
       );
       return;
     }
-    let source = null;
-    if (selected.file) {
-      currentCoverUrl = URL.createObjectURL(selected.file);
-      source = currentCoverUrl;
-    } else if (originalCover?.id === selected.id && post?.thumbnail_url) {
-      source = post.thumbnail_url;
-    }
-    if (source) {
+
+    const name = el('span', { class: 'post-cover-name' }, selected.file_name || 'Ảnh đính kèm');
+    const fallback = (message) => {
+      coverPreview.replaceChildren(
+        el('span', { class: 'post-cover-empty', 'aria-hidden': 'true' }, '▧'),
+        el('span', {}, message),
+        name,
+      );
+    };
+    const display = (source) => {
       const photo = el('img', {
         src: source,
         alt: `Xem trước ảnh bìa: ${selected.file_name || 'Ảnh'}`,
       });
       photo.addEventListener(
         'error',
-        () =>
-          photo.replaceWith(
-            el('span', { class: 'post-cover-empty' }, 'Chưa tải được bản xem trước ảnh bìa.'),
-          ),
+        () => {
+          if (generation === coverGeneration)
+            fallback('Chưa tải được bản xem trước ảnh bìa.');
+        },
         { once: true },
       );
-      coverPreview.append(photo);
-    } else {
-      coverPreview.append(
-        el('span', { class: 'post-cover-empty', 'aria-hidden': 'true' }, '▧'),
-        el('span', {}, 'Ảnh đã lưu sẽ hiển thị trên thẻ bài đăng sau khi tải lại.'),
-      );
+      coverPreview.replaceChildren(photo, name);
+    };
+
+    if (selected.file) {
+      currentCoverUrl = URL.createObjectURL(selected.file);
+      display(currentCoverUrl);
+      return;
     }
-    coverPreview.append(
-      el('span', { class: 'post-cover-name' }, selected.file_name || 'Ảnh đính kèm'),
-    );
+    if (originalCover?.id === selected.id && post?.thumbnail_url) {
+      display(post.thumbnail_url);
+      return;
+    }
+    if (!selected.storage_path) {
+      fallback('Ảnh này chưa có bản xem trước khả dụng.');
+      return;
+    }
+    fallback('Đang tải ảnh xem trước…');
+    try {
+      const source = await attachmentUrl(selected);
+      if (generation !== coverGeneration || !canContinue()) return;
+      display(source);
+    } catch {
+      if (generation === coverGeneration && canContinue())
+        fallback('Chưa tải được ảnh bìa. Bạn vẫn có thể lưu bài đăng.');
+    }
   }
 
   /** Retain selected image across attachment changes; reset a removed image safely. */
@@ -738,6 +757,7 @@ export async function PostEditorDrawer({
   dialog.addEventListener(
     'close',
     () => {
+      coverGeneration++;
       releaseCover();
       autosave.cancel();
       onDirty(false);
