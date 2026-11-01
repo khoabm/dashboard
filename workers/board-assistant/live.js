@@ -16,6 +16,8 @@ import {
   matchPublishedTitle,
   localCalendarReply,
   directPublishedPostSummary,
+  recoverWebsiteClarification,
+  publicExamOverview,
 } from '../../src/utils/assistant-intent.js';
 export { AssistantBudget }; // Retains the historical DO class; live chat never reserves or stops it.
 
@@ -176,7 +178,9 @@ export async function liveFetch(request, env, { fetcher = fetch, now = () => new
       key: request.headers.get('CF-Connecting-IP') || 'unknown',
     });
     if (!rate.success) return reply(429, { error: 'rate_limit' }, { 'Retry-After': '10' });
-    const route = routeAssistantIntent(payload.query, payload.history);
+    const clarifiedQuestion = recoverWebsiteClarification(payload.query, payload.history);
+    const question = clarifiedQuestion || payload.query;
+    const route = routeAssistantIntent(question, payload.history);
     if (route.mode === 'calendar')
       return reply(200, {
         mode: 'ai', status: 'answered', answer: localCalendarReply(payload.query, now()),
@@ -187,8 +191,11 @@ export async function liveFetch(request, env, { fetcher = fetch, now = () => new
         mode: 'ai', status: 'clarify', answer: 'Em đang hỏi về bài viết hoặc hoạt động nào? Em nói rõ tên để mình tìm đúng nhé.',
         sources: [], knowledge: 'general',
       });
+    // A source-choice reply must reuse the original question, not search for "website".
+    // School exam summaries require public Board but no embedding or Qwen inference.
     // Resolve uncertain intent with text-only Qwen; never retrieve the Board just to classify it.
     let intent = route.mode;
+    if (clarifiedQuestion && intent !== 'exam-overview') intent = 'board';
     if (intent === 'uncertain') {
       models++;
       const classified = await env.AI.run(
@@ -215,12 +222,30 @@ export async function liveFetch(request, env, { fetcher = fetch, now = () => new
       }
     }
     const corpus = publicAssistantCorpus(snapshot);
+    if (intent === 'exam-overview') {
+      const exam = publicExamOverview(corpus.posts);
+      if (!exam)
+        return reply(200, {
+          mode: 'ai',
+          status: 'insufficient',
+          answer: 'Mình chưa tìm thấy bài đăng công khai nào về kiểm tra giữa kỳ trên website.',
+          sources: [],
+          knowledge: 'board',
+        });
+      return reply(200, {
+        mode: 'ai',
+        status: 'answered',
+        answer: publicChatText(exam.answer),
+        sources: exam.sources,
+        knowledge: 'board',
+      });
+    }
     // Strong publication-title matches are determined from the actual public catalog,
     // not from a guessing classifier or a threshold-based embedding shortlist.
-    const exactPost = matchPublishedTitle(payload.query, corpus.posts);
+    const exactPost = matchPublishedTitle(question, corpus.posts);
     if (intent === 'title-check') intent = exactPost ? 'board' : 'general';
     const directSummary = intent === 'board' && exactPost
-      ? directPublishedPostSummary(payload.query, exactPost)
+      ? directPublishedPostSummary(question, exactPost)
       : null;
     if (directSummary)
       return reply(200, {
@@ -235,7 +260,7 @@ export async function liveFetch(request, env, { fetcher = fetch, now = () => new
       .filter((t) => t.role === 'user')
       .slice(-1)
       .map((t) => t.content)
-      .join(' ')} ${payload.query}`.slice(-800);
+      .join(' ')} ${question}`.slice(-800);
     const scopedCorpus = exactPost ? { ...corpus, posts: [exactPost] } : corpus;
     const plan =
       intent === 'general'
@@ -264,8 +289,8 @@ export async function liveFetch(request, env, { fetcher = fetch, now = () => new
         : ranked.filter((post) => {
             const index = catalog.findIndex((p) => p.id === post.id);
             return (
-              normalizeAssistantText(payload.query).includes(normalizeAssistantText(post.title)) ||
-              lexicalAssistantScore(payload.query, post) >= 0.4 ||
+              normalizeAssistantText(question).includes(normalizeAssistantText(post.title)) ||
+              lexicalAssistantScore(question, post) >= 0.4 ||
               cosine(embedding.data[0], embedding.data[index + 1]) >= 0.5
             );
           });
@@ -290,7 +315,7 @@ export async function liveFetch(request, env, { fetcher = fetch, now = () => new
             .map(({ role, content }) => ({ role, content }))),
           {
             role: 'user',
-            content: JSON.stringify({ mode: intent, question: payload.query, sources: catalog }) + '\n/no_think',
+            content: JSON.stringify({ mode: intent, question, sources: catalog }) + '\n/no_think',
           },
         ],
         max_tokens: 2100,
@@ -307,7 +332,7 @@ export async function liveFetch(request, env, { fetcher = fetch, now = () => new
     if (
       intent === 'hybrid' &&
       !validateHybridRequestedTime(
-        payload.query,
+        question,
         answer.website,
         catalog.filter((post) => answer.ids.includes(post.id)),
       )
