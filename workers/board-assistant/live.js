@@ -15,6 +15,7 @@ import {
   decodeIntentRoute,
   matchPublishedTitle,
   localCalendarReply,
+  directPublishedPostSummary,
 } from '../../src/utils/assistant-intent.js';
 export { AssistantBudget }; // Retains the historical DO class; live chat never reserves or stops it.
 
@@ -218,6 +219,17 @@ export async function liveFetch(request, env, { fetcher = fetch, now = () => new
     // not from a guessing classifier or a threshold-based embedding shortlist.
     const exactPost = matchPublishedTitle(payload.query, corpus.posts);
     if (intent === 'title-check') intent = exactPost ? 'board' : 'general';
+    const directSummary = intent === 'board' && exactPost
+      ? directPublishedPostSummary(payload.query, exactPost)
+      : null;
+    if (directSummary)
+      return reply(200, {
+        mode: 'ai',
+        status: 'answered',
+        answer: publicChatText(directSummary),
+        sources: [{ id: exactPost.id, quote: exactPost.title }],
+        knowledge: 'board',
+      });
     const follows = intent !== 'general' && route.followup;
     const retrievalQuery = `${(follows ? payload.history : [])
       .filter((t) => t.role === 'user')
