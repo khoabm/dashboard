@@ -1,0 +1,38 @@
+name: AI V2 — bounded hosted evidence
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - '.github/workflows/assistant-v2-hosted-qa.yml'
+      - 'tests/assistant-v2-hosted-qa.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: assistant-v2-hosted-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  evidence:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'feature/ai-assistant-source-quality-v2-20261101'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Read-only hosted QA (max 4 requests, stop at first failure)
+        run: node tests/assistant-v2-hosted-qa.mjs
+      - name: Upload response evidence, even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: assistant-v2-hosted-response-log
+          path: tests/local/ai-v2-hosted/
+          if-no-files-found: warn
+          retention-days: 14
