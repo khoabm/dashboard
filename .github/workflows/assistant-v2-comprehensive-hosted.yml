@@ -1,12 +1,7 @@
+# Manual specialist only: prevent duplicate hosted requests on every PR synchronization.
 name: AI V2 — comprehensive specialist hosted QA
 
 on:
-  pull_request:
-    branches:
-      - develop
-    paths:
-      - '.github/workflows/assistant-v2-comprehensive-hosted.yml'
-      - 'tests/assistant-v2-comprehensive-hosted.mjs'
   workflow_dispatch:
 
 permissions:
@@ -14,7 +9,7 @@ permissions:
 
 jobs:
   responses:
-    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'feature/ai-assistant-source-quality-v2-20261101'
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 9
     steps:
