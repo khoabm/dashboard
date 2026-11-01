@@ -63,7 +63,10 @@ test('exact public movement title is answered entirely from the published body, 
   const summary = directPublishedPostSummary('Phong trào tháng 11', post);
   assert.match(summary, /Theo bài "Phong trào Tháng 11" trên website/);
   assert.match(summary, /Văn nghệ chào mừng 20\/11/);
-  assert.equal(directPublishedPostSummary('Phong trào tháng 11 trong lịch sử Việt Nam', post), null);
+  assert.equal(
+    directPublishedPostSummary('Phong trào tháng 11 trong lịch sử Việt Nam', post),
+    null,
+  );
   assert.equal(directPublishedPostSummary('Chỉ cách làm nón lá', post), null);
 });
 
@@ -71,7 +74,8 @@ test('a published title with only attachments is discoverable without inventing 
   const post = matchPublishedTitle('Đáp án GK1 môn Toán', corpus.posts);
   assert.equal(post.title, 'Đáp án GK1 môn Toán');
   assert.equal(post.body, '');
-  assert.match(directPublishedPostSummary('Đáp án GK1 môn Toán', post), /chưa đọc được/);
+  const summary = directPublishedPostSummary('Đáp án GK1 môn Toán', post);
+  assert.match(summary, /chưa đọc được/);
 });
 
 test('weekday and Vietnamese clock are answered locally without models', () => {
