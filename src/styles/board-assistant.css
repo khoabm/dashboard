@@ -753,9 +753,36 @@
 
 /* Generated text stays readable while preserving source paragraphs as plain text. */
 .assistant-learning-answer {
-  white-space: pre-wrap;
+  white-space: normal;
   font-size: 14px;
   line-height: 1.6;
+}
+.assistant-learning-answer p {
+  margin: 0 0 10px;
+  white-space: pre-wrap;
+}
+.assistant-learning-answer p:last-child,
+.assistant-learning-answer ul:last-child,
+.assistant-learning-answer ol:last-child {
+  margin-bottom: 0;
+}
+.assistant-learning-answer strong {
+  font-weight: 700;
+}
+.assistant-learning-answer h4 {
+  margin: 10px 0 6px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.assistant-learning-answer ul,
+.assistant-learning-answer ol {
+  margin: 6px 0 10px;
+  padding-left: 21px;
+}
+.assistant-learning-answer li {
+  padding-left: 2px;
+  margin: 3px 0;
+  overflow-wrap: anywhere;
 }
 .assistant-answer-note {
   color: #4e625a;
