@@ -1,12 +1,7 @@
-# One-shot specialist hosted QA: push only when a unique trigger marker is added.
+# Manual specialist hosted QA only; never run on ordinary PR sync or push.
 name: AI V2 — final targeted HTTP regression
 
 on:
-  push:
-    branches:
-      - feature/ai-assistant-source-quality-v2-20261101
-    paths:
-      - 'tests/qa-trigger-ai-v2-final-20261101.txt'
   workflow_dispatch:
 
 permissions:
