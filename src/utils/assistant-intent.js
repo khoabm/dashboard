@@ -17,6 +17,8 @@ const referring =
 const generalContext =
   /\b(?:trong lich su|lich su viet nam|tren the gioi|trong khoa hoc|ban chat|theo khoa hoc)\b/;
 const shortTopic = /^(?:[\p{L}\p{N}]+\s*){2,7}$/u;
+const conversationalOpening =
+  /^(?:em|toi|minh|ban|cho|xin|cam on|hay|giup|lam|sao|vi|noi|giai thich|huong dan|chi|cach|hom nay|bay gio|luc nao|vay|the|co the)\b/;
 
 /** Compare actual publication titles, never arbitrary overlapping words in a post body. */
 export function matchPublishedTitle(query, posts = []) {
@@ -117,13 +119,15 @@ export function routeAssistantIntent(query, history = []) {
     return { mode: 'general', followup: false };
   // Short subject replies often answer a Board-specific clarification, not a new question.
   if (lastBoard && text.startsWith('mon ')) return { mode: 'board', followup: true };
+  if (/^(?:em chua hieu|chua hieu|noi don gian|viet lai|cho vi du|cho em mot vi du)\b/.test(text))
+    return { mode: lastAssistant && lastBoard ? 'board' : lastAssistant ? 'general' : 'clarify', followup: Boolean(lastAssistant && lastBoard) };
   if (reference && lastAssistant)
     return { mode: lastBoard ? 'board' : 'general', followup: lastBoard };
   if (reference && !lastAssistant && /^(?:vay|the|con|the con|bai do|hoat dong do)\b/.test(text))
     return { mode: 'clarify', followup: false };
   if (ambiguousSignals.test(text)) return { mode: 'uncertain', followup: false };
   // Short noun-phrase queries may be exact published titles; check once before inference.
-  if (shortTopic.test(text) && !generalContext.test(text))
+  if (shortTopic.test(text) && !conversationalOpening.test(text) && !generalContext.test(text))
     return { mode: 'title-check', followup: false };
   return { mode: 'general', followup: false };
 }
