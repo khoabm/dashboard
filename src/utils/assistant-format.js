@@ -45,7 +45,8 @@ function appendInline(node, source) {
   const marker = /(\*\*[^*\n]+\*\*|__[^_\n]+__|\*[^*\n]+\*|_[^_\n]+_)/g;
   let offset = 0;
   for (const match of String(source).matchAll(marker)) {
-    if (match.index > offset) node.append(document.createTextNode(source.slice(offset, match.index)));
+    if (match.index > offset)
+      node.append(document.createTextNode(source.slice(offset, match.index)));
     const strong = match[0].startsWith('**') || match[0].startsWith('__');
     const width = strong ? 2 : 1;
     const element = document.createElement(strong ? 'strong' : 'em');
