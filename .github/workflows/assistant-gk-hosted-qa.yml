@@ -1,12 +1,7 @@
+# Manual specialist only: no automatic hosted traffic on PR synchronization.
 name: AI V2 — GK exam hosted regression
 
 on:
-  pull_request:
-    branches:
-      - develop
-    paths:
-      - '.github/workflows/assistant-gk-hosted-qa.yml'
-      - 'tests/assistant-gk-hosted-qa.mjs'
   workflow_dispatch:
 
 permissions:
@@ -18,7 +13,7 @@ concurrency:
 
 jobs:
   evidence:
-    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'feature/ai-assistant-source-quality-v2-20261101'
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
