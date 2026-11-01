@@ -1,0 +1,34 @@
+name: AI V2 — comprehensive specialist hosted QA
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - '.github/workflows/assistant-v2-comprehensive-hosted.yml'
+      - 'tests/assistant-v2-comprehensive-hosted.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  responses:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'feature/ai-assistant-source-quality-v2-20261101'
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Finite read-only Worker QA, no retries
+        run: node tests/assistant-v2-comprehensive-hosted.mjs
+      - name: Save expectations and raw responses on PASS or FAIL
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: assistant-v2-comprehensive-response-evidence
+          path: tests/local/assistant-v2-comprehensive-qa/
+          if-no-files-found: warn
+          retention-days: 14
