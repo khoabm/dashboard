@@ -1,3 +1,12 @@
+## 2026-11-01 — AI-SOURCE-V2-001 / P0 — Exact published titles ignored and science queries hijacked
+
+- **Owner repro:** “Phong trào tháng 11” was treated as general knowledge; even explicit website requests sometimes claimed no post. “Chỉ tôi cách thiết kế nón lá” was incorrectly answered with class work, while “Hôm nay thứ mấy?” could not be answered reliably.
+- **Root cause:** regex-first router had no actual Board title awareness; short noun phrases defaulted general. Relevant published posts could then be excluded by BGE/lexical thresholds. Unknown temporal queries lacked clock context; raw AI Markdown showed `**`.
+- **Fix:** `matchPublishedTitle`, short title-check intent, exact title scoped retrieval without BGE, deterministic public title summary, local Vietnam calendar, HTML-safe Markdown DOM and scoped CSS. Public posts remain sourced through existing anonymous published projection. New fixture is sanitized from one SELECT of ten published posts.
+- **Model finding:** Qwen initially returned `website:"c0"` rather than the requested exam time in a two-part reply; tightened explicit hybrid instruction and decoder refusal for raw `cN`. Re-test with full system prompt returned the grounded time 7g20 separately from general advice.
+- **Regression:** `tests/assistant-source-v2.test.js` in curated CI covers actual title corpus, explicit web, history/general separation, time and parser. Existing `tests/assistant-intent.test.js` covers hybrid invalid IDs. Hosted model 3 requests ~12.16 neurons; **direct model only, not Worker HTTP**. No retry on errors.
+- **Remaining:** specialist Worker E2E and actual browser QA of new endpoint **NOT RUN**, retained as acceptance gates. PR #40 Draft; source-only, no DB changes/production rollout.
+
 ## 2026-10-31 — BOARD-CSP-ICON-001 / P2 — Native select chevron blocked by CSP
 
 - **Observed:** Owner console reports `data:image/svg+xml` blocked by `img-src 'self' blob: ...` while opening a dialog. Browser identifies `primitives.js:96` because `showModal()` causes CSS to render; the offending resource is actually `src/styles/main.css` native select chevron.
