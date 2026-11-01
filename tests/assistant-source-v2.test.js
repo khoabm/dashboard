@@ -112,17 +112,3 @@ test('Markdown parser keeps bold, paragraphs and ordered/bullet lists as semanti
     '<img src=x onerror=alert(1)>',
   );
 });
-
-test('temporary exact Prettier output for hosted QA script', async () => {
-  const fs = await import('node:fs');
-  const prettier = await import('prettier');
-  const path = 'tests/assistant-v2-hosted-qa.mjs';
-  const original = fs.readFileSync(path, 'utf8');
-  const config = await prettier.resolveConfig(path);
-  const formatted = await prettier.format(original, { ...config, filepath: path });
-  if (original !== formatted) {
-    console.log('HOSTED_FORMAT_START', path);
-    console.log(formatted);
-    console.log('HOSTED_FORMAT_END', path);
-  }
-});
