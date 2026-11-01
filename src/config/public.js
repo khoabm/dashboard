@@ -18,11 +18,10 @@ export const config = {
     'sb_publishable_A0kgJlsUnLFL_wrtJpkvtQ_GyBAf0UY',
   bucket: 'learning-resources',
   signedUrlSeconds: 60,
-  assistantEndpoint:
-    (qaPreview
-      ? 'https://khtn8-assistant-v2-qa-20261101.joemckahn.workers.dev/chat'
-      : import.meta.env?.VITE_BOARD_ASSISTANT_ENDPOINT ||
-        'https://khtn8-board-assistant-mvp.joemckahn.workers.dev/chat'),
+  assistantEndpoint: qaPreview
+    ? 'https://khtn8-assistant-v2-qa-20261101.joemckahn.workers.dev/chat'
+    : import.meta.env?.VITE_BOARD_ASSISTANT_ENDPOINT ||
+      'https://khtn8-board-assistant-mvp.joemckahn.workers.dev/chat',
 };
 export const configured =
   config.url.startsWith('https://') && config.key.startsWith('sb_publishable_');
