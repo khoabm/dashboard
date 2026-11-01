@@ -77,3 +77,23 @@ test('Markdown parser keeps bold, paragraphs and ordered/bullet lists as semanti
   assert.deepEqual(blocks[1].items, ['Đọc bài', 'Làm bài']);
   assert.equal(parseAssistantMarkdown('<img src=x onerror=alert(1)>')[0].text, '<img src=x onerror=alert(1)>');
 });
+
+test('temporary pinned Prettier diagnostic for V2 files', async () => {
+  const fs = await import('node:fs');
+  const prettier = await import('prettier');
+  for (const path of [
+    'src/utils/assistant-format.js',
+    'src/utils/assistant-intent.js',
+    'tests/assistant-source-v2.test.js',
+    'tests/fixtures/assistant-published-20261101.js',
+  ]) {
+    const original = fs.readFileSync(path, 'utf8');
+    const config = await prettier.resolveConfig(path);
+    const formatted = await prettier.format(original, { ...config, filepath: path });
+    if (original !== formatted) {
+      console.log('V2_FORMAT_START', path);
+      console.log(formatted);
+      console.log('V2_FORMAT_END', path);
+    }
+  }
+});
