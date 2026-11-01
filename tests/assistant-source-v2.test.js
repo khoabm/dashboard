@@ -170,3 +170,20 @@ test('Markdown parser keeps bold, paragraphs and ordered/bullet lists as semanti
     '<img src=x onerror=alert(1)>',
   );
 });
+
+test('temporary GK QA formatter receipt', async () => {
+  const fs = await import('node:fs');
+  const prettier = await import('prettier');
+  for (const path of ['tests/assistant-gk-hosted-qa.mjs', 'src/utils/assistant-intent.js']) {
+    const original = fs.readFileSync(path, 'utf8');
+    const formatted = await prettier.format(original, {
+      ...(await prettier.resolveConfig(path)),
+      filepath: path,
+    });
+    if (original !== formatted) {
+      console.log('GK_FORMAT_START', path);
+      console.log(formatted);
+      console.log('GK_FORMAT_END', path);
+    }
+  }
+});
