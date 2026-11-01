@@ -2,7 +2,7 @@
 import { normalizeAssistantText } from './board-assistant.js';
 
 const boardSignals =
-  /\b(?:bai dang|thong bao|bang hoc lieu|website|web nay|trang nay|tren web|tren trang|trong bai|theo bai|bai cua co|co dang|co co dang|co thong bao|lop minh|lop em|lop chung minh|trong lop|lich thi|lich kiem tra|thoi khoa bieu)\b/;
+  /\b(?:bai dang|thong bao|bang hoc lieu|website|noi dung web|noi dung tren web|dung web|tu web|web nay|trang nay|tren web|tren trang|trong bai|theo bai|bai cua co|co dang|co co dang|co thong bao|lop minh|lop em|lop chung minh|trong lop|lich thi|lich kiem tra|thoi khoa bieu)\b/;
 const generalSignals =
   /^(?:tai sao|vi sao|do dau|nguyen nhan|dinh nghia|khai niem|the nao la|la gi|giai thich|phan biet|vi du ve|cho vi du ve|cong thuc|cach tinh)\b/;
 const explicitGeneral =
@@ -14,6 +14,42 @@ const hybridSignals =
   /\b(?:giai thich them|lien he thuc te|ung dung thuc te|theo khoa hoc|tai sao|vi sao)\b/;
 const referring =
   /^(?:vay|the|con|the con|noi them|giai thich them|noi ro|cho em biet them|chi tiet|can chuan bi|em can|bao gio|khi nao|may gio|o dau|ai tham gia)\b|\b(?:bai do|noi dung do|hoat dong do|thong bao do|lich do|mon do|viec do)\b/;
+const generalContext =
+  /\b(?:trong lich su|lich su viet nam|tren the gioi|trong khoa hoc|ban chat|theo khoa hoc)\b/;
+const shortTopic = /^(?:[\p{L}\p{N}]+\s*){2,7}$/u;
+
+/** Compare actual publication titles, never arbitrary overlapping words in a post body. */
+export function matchPublishedTitle(query, posts = []) {
+  const clean = (value) => normalizeAssistantText(value).replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
+  const text = clean(query);
+  if (!text || generalContext.test(text)) return null;
+  const matches = posts
+    .filter((post) => post.status === 'published')
+    .map((post) => ({ post, title: clean(post.title) }))
+    .filter(({ title }) => title.length >= 7 && (text === title || text.includes(title)))
+    .sort((a, b) => b.title.length - a.title.length);
+  return matches[0]?.post || null;
+}
+
+/** Reliable local-only calendar answer; no Board or model is needed. */
+export function localCalendarReply(query, now = new Date()) {
+  const text = normalizeAssistantText(query).trim();
+  const today = /\b(?:hom nay|ngay hom nay|bay gio|hien tai)\b/.test(text);
+  if (!today || /\b(?:trong (?:bai|web)|tren (?:web|website)|theo bai)\b/.test(text))
+    return null;
+  const day = /\b(?:thu may|thu gi|ngay may|ngay bao nhieu|ngay gi|ngay thang may|ngay thang nam)\b/.test(text);
+  const hour = /\b(?:may gio|gio may|bao nhieu gio|bay gio la)\b/.test(text);
+  if (!day && !hour) return null;
+  const date = new Intl.DateTimeFormat('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+  }).format(now);
+  const time = new Intl.DateTimeFormat('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).format(now);
+  return hour ? `Bây giờ là ${time}, ${date} (giờ Việt Nam).` : `Hôm nay là ${date}.`;
+}
+
 const ambiguousSignals =
   /\b(?:co|lop|bai hoc|hoc lieu|chu de|chuan bi|hoat dong|thong tin|lich|ngay mai|tuan nay|hom nay)\b/;
 
@@ -33,6 +69,7 @@ export function routeAssistantIntent(query, history = []) {
   const asksBoard = boardSignals.test(text);
   const asksGeneral = explicitGeneral.test(text);
   const clearScience = generalSignals.test(text);
+  if (localCalendarReply(query)) return { mode: 'calendar', followup: false };
   if (asksGeneral && !asksBoard) return { mode: 'general', followup: false };
   if (/^(?:vay|the) (?:tai sao|vi sao|sao|do dau|giai thich)\b/.test(text) && !asksBoard)
     return { mode: 'general', followup: false };
@@ -52,6 +89,9 @@ export function routeAssistantIntent(query, history = []) {
   if (reference && !lastAssistant && /^(?:vay|the|con|the con|bai do|hoat dong do)\b/.test(text))
     return { mode: 'clarify', followup: false };
   if (ambiguousSignals.test(text)) return { mode: 'uncertain', followup: false };
+  // Short noun-phrase queries may be exact published titles; check once before inference.
+  if (shortTopic.test(text) && !generalContext.test(text))
+    return { mode: 'title-check', followup: false };
   return { mode: 'general', followup: false };
 }
 
