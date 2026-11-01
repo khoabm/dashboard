@@ -85,10 +85,12 @@ try {
     if (json.knowledge !== item.mode) errors.push('knowledge=' + json.knowledge);
     if (actual.modelCalls !== item.calls) errors.push('modelCalls=' + actual.modelCalls);
     if (item.mode === 'board' && actual.sourceCount < 1) errors.push('missing Board source');
-    if (item.mode === 'general' && actual.sourceCount !== 0) errors.push('unexpected Board citation');
+    if (item.mode === 'general' && actual.sourceCount !== 0)
+      errors.push('unexpected Board citation');
     if (!item.expected.every((term) => actual.answer.toLowerCase().includes(term.toLowerCase())))
       errors.push('missing expected content');
-    if (item.forbidden.some((pattern) => pattern.test(actual.answer))) errors.push('unrelated article/general content');
+    if (item.forbidden.some((pattern) => pattern.test(actual.answer)))
+      errors.push('unrelated article/general content');
     if (item.id === 'P1-DATE') {
       const localDate = new Intl.DateTimeFormat('vi-VN', {
         timeZone: 'Asia/Ho_Chi_Minh',
@@ -103,7 +105,16 @@ try {
     actual.errors = errors;
     // Output is only the four owner-selected, anonymous public/general QA prompts.
     console.log('\n### ' + item.id + '\nQuestion: ' + item.query);
-    console.log('HTTP: ' + actual.httpStatus + ', route: ' + actual.knowledge + ', models: ' + actual.modelCalls + ', source count: ' + actual.sourceCount);
+    console.log(
+      'HTTP: ' +
+        actual.httpStatus +
+        ', route: ' +
+        actual.knowledge +
+        ', models: ' +
+        actual.modelCalls +
+        ', source count: ' +
+        actual.sourceCount,
+    );
     console.log('Answer: ' + actual.answer);
     console.log('Outcome: ' + (actual.passed ? 'PASS' : 'FAIL (' + errors.join('; ') + ')'));
     log.push(actual.passed ? 'PASS ' + item.id : 'FAIL ' + item.id + ': ' + errors.join('; '));
@@ -117,5 +128,7 @@ try {
   await writeFile('tests/local/ai-v2-hosted/report.txt', log.join('\n') + '\n');
 }
 const success = summary.cases.length === cases.length && summary.cases.every((test) => test.passed);
-console.log('TOTAL: ' + summary.cases.length + '/' + cases.length + ', ' + (success ? 'PASS' : 'FAIL'));
+console.log(
+  'TOTAL: ' + summary.cases.length + '/' + cases.length + ', ' + (success ? 'PASS' : 'FAIL'),
+);
 if (!success) process.exitCode = 1;
