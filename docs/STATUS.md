@@ -10,6 +10,9 @@ from `develop@626dc42`; [Draft PR #40](https://github.com/khoabm/dashboard/pull/
 - Qwen hybrid response must contain a natural website fact rather than a citation ID. Missing/unfinished responses rejected; prompts refined.
 - Three **direct Cloudflare Workers AI API model requests** were executed, totaling approx **12.16 neurons** (small Qwen prompts, no batch retries). General explanation returned a completed answer with example; initial hybrid produced `website:"c0"` (FAIL); revised full hybrid prompt returned `website:"...7g20"` with separate advice (PASS). This is **model behavior only**, not a deployed new Worker E2E.
 - Curated CI unit/build/syntax/format receipt at latest code HEAD: verify separately. **Actual new Worker HTTP, browser E2E, mobile real devices NOT RUN**. Preview frontend might still target the old Worker, so do not claim hosted source routing accepted.
+- QA-only Cloudflare Worker `khtn8-assistant-v2-qa-20261101` deployed separately on Workers Free, version `748ef373-589c-4f8e-83eb-eef55919aa48`. QA Pages preview at code SHA `edabfe5` (CI #41268104217 **214/214 curated unit PASS**, syntax, build and format PASS) uses `?ai-v2=1` to call the isolated Worker; production default remains unchanged.
+- Browser/Worker HTTP QA from tool environment is **BLOCKED**: direct HTTP to QA Worker hostname returns network policy 403; actual hosted Worker answer routing therefore NOT RUN here. Direct Cloudflare Workers AI model API tested 3 finite requests ~12.16 neurons; do not mislabel these as Worker E2E. Owner Browser QA is remaining gate.
+- **Remove the temporary `src/config/public.js` QA URL override and `index.html` QA CSP allowlist before merge.** Verify the final source commit and CI again after removal.
 - Zero migrations, no schema/RLS/Auth/Gradebook change, no Supabase write, no paid resource, no production deploy or merge.
 
 ---
