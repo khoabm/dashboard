@@ -70,6 +70,7 @@ export function routeAssistantIntent(query, history = []) {
   const asksGeneral = explicitGeneral.test(text);
   const clearScience = generalSignals.test(text);
   if (localCalendarReply(query)) return { mode: 'calendar', followup: false };
+  if (generalContext.test(text) && !asksBoard) return { mode: 'general', followup: false };
   if (asksGeneral && !asksBoard) return { mode: 'general', followup: false };
   if (/^(?:vay|the) (?:tai sao|vi sao|sao|do dau|giai thich)\b/.test(text) && !asksBoard)
     return { mode: 'general', followup: false };
