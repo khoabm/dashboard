@@ -37,7 +37,7 @@ const cases = [
     id: 'P1-DATE',
     query: 'Hôm nay thứ mấy?',
     mode: 'general',
-    expected: ['thứ', 'ngày'],
+    expected: [],
     forbidden: [],
     calls: 0,
   },
@@ -89,6 +89,16 @@ try {
     if (!item.expected.every((term) => actual.answer.toLowerCase().includes(term.toLowerCase())))
       errors.push('missing expected content');
     if (item.forbidden.some((pattern) => pattern.test(actual.answer))) errors.push('unrelated article/general content');
+    if (item.id === 'P1-DATE') {
+      const localDate = new Intl.DateTimeFormat('vi-VN', {
+        timeZone: 'Asia/Ho_Chi_Minh',
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }).format(new Date());
+      if (!actual.answer.includes(localDate)) errors.push('wrong current Vietnamese day/date');
+    }
     actual.passed = errors.length === 0;
     actual.errors = errors;
     // Output is only the four owner-selected, anonymous public/general QA prompts.
