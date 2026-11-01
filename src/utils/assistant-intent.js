@@ -92,7 +92,16 @@ const examDefinition = /\b(?:la gi|dinh nghia|khai niem|nghia la gi|nhu the nao)
 /** Recognizes casual questions about actual published school midterms. */
 export function isClassroomExamQuestion(query) {
   const text = normalizeAssistantText(query).replace(/\s+/g, ' ').trim();
-  return examTopic.test(text) && schoolExam.test(text) && !examDefinition.test(text);
+  const specificPublication =
+    /\b(?:co dang|co thong bao|trong bai|theo bai|mon van|mon toan|mon anh|mon tieng anh)\b/.test(
+      text,
+    );
+  return (
+    examTopic.test(text) &&
+    schoolExam.test(text) &&
+    !examDefinition.test(text) &&
+    !specificPublication
+  );
 }
 
 /** Only recover previous intent when a user is answering our explicit source-choice prompt. */
