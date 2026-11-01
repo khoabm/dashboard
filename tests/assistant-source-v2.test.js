@@ -44,6 +44,17 @@ test('explicit requests for website use Board even in natural phrasing', () => {
   }
 });
 
+test('short conversational messages do not trigger unnecessary Board title reads', () => {
+  const history = [
+    { role: 'user', content: 'Vì sao bầu trời xanh?' },
+    { role: 'assistant', content: 'Do ánh sáng xanh tán xạ.', sourceIds: [] },
+  ];
+  assert.equal(routeAssistantIntent('Em chưa hiểu lắm', history).mode, 'general');
+  assert.equal(routeAssistantIntent('Cảm ơn bạn', history).mode, 'general');
+  assert.equal(routeAssistantIntent('Cho mình một ví dụ', history).mode, 'general');
+  assert.equal(routeAssistantIntent('Em chưa hiểu lắm').mode, 'clarify');
+});
+
 test('general knowledge and practical instructions never become a matching school post', () => {
   for (const question of [
     'Chỉ tôi cách thiết kế nón lá đi',
