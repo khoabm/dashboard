@@ -696,3 +696,32 @@ Tôi không có điểm cá nhân vì tôi là trợ lý AI. Bạn có thể h�
 [Offline CI #41283585733](https://github.com/khoabm/dashboard/actions/runs/41283585733): 281/281 tests, static/syntax, production build, pinned Prettier PASS at code commit `47568a8`. The source changes after that SHA must have their own final CI receipt before merge.
 
 **Status:** Real hosted audit completed for the earlier Worker version; **not final end-to-end production acceptance**. Keep PR Draft and do not merge/release production until remaining gates.
+
+---
+
+## 6. Final focused re-verification on corrected QA Worker — 5/5 PASS
+
+**Run:** [#41284070832](https://github.com/khoabm/dashboard/actions/runs/41284070832) — [exact response JSON and Markdown artifact](https://github.com/khoabm/dashboard/actions/runs/41284070832/artifacts/13074249046).
+
+This was a **new** finite five-request HTTP run after deploying the corrected ten-module source to the **isolated** QA Worker; it is not a reinterpretation of the older 25-response audit. Each case had predeclared expected route/status/source count/model budget and verified content.
+
+| ID | Original concern | Expected | Actual HTTP / source / model calls | Result |
+| --- | --- | --- | --- | --- |
+| W05-FIX | `Văn nghê chào mừng 20/11` incorrectly routed to general writing | Correct published post, schedule and costume | 200 / board, 1 source / 0 calls | **PASS** |
+| W06-FIX | `Viết văn tri ân thầy cô` incorrectly routed to writing guidance | Correct class activity and paper purchase | 200 / board, 1 source / 0 calls | **PASS** |
+| W08-FIX | `Lịch thi GK1` could return an overview instead of exact post | Exam paper including 7g20 and 11g10 | 200 / board, 1 source / 0 calls | **PASS** |
+| W09-FIX | `Kiểm tra GK môn LS-ĐL` could be confused with the GK overview | LS-ĐL scheduled period and study guidance | 200 / board, 1 source / 0 calls | **PASS** |
+| P01-FIX | Student's personal score interpreted as AI's own grade | No private record; link-by-name to student verification flow | 200 / general, 0 sources / 0 calls | **PASS** |
+
+### Exact excerpt from the new responses
+
+- **W05:** `Theo bài "Văn nghê chào mừng 20/11" trên website:` followed by published rehearsal sessions, choreography hiring and costume arrangements. The full exact text is in the artifact. The report omits the name of a referenced person.
+- **W06:** `Theo bài "Viết văn tri ân thầy cô" trên website:` followed by `Chọn HS thi [ẩn danh sách cá nhân]`, `Mua giấy` and `Trang trí`.
+- **W08:** `Theo bài "Lịch thi GK1" trên website:` with Văn 7g20, Toán 9g20, Anh 10g25 and students returning 11g10.
+- **W09:** `Theo bài "Kiểm tra GK môn LS-ĐL" trên website:` with `Ôn kĩ đề cương thầy phát` and `Thời gian: Tiết 1-2 chiều thứ 6`.
+- **P01 exact:** `Trợ lý học liệu không thể xem điểm cá nhân của em. Em hãy mở mục Bảng điểm cá nhân và thực hiện xác minh để xem điểm của mình nhé.`
+
+**Limits:** this post-fix pass proves these five exact Worker requests at the recorded time, not universal response correctness or browser rendering. Open-ended answers in the original 25-test campaign remain subject to human semantic review, particularly C02's repetitive example. The older two FAILs are preserved above as genuine historical regressions. No private Gradebook/Auth query was made.
+
+**Resource evidence:** post-fix round = five HTTP requests, **zero model invocations**; model invocation counts are not a measurement of neuron usage. Production Worker, Supabase data, Auth/Gradebook schemas and `main` remain untouched.
+
