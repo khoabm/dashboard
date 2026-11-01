@@ -84,6 +84,69 @@ export function localCalendarReply(query, now = new Date()) {
   return hour ? `Bây giờ là ${time}, ${date} (giờ Việt Nam).` : `Hôm nay là ${date}.`;
 }
 
+// Classroom exam shorthand is topic-specific, not ordinary ambiguous vocabulary.
+const examTopic = /\b(?:gk\d?|giua ki|giua ky|giua hoc ki|giua hoc ky)\b/;
+const schoolExam = /\b(?:thi|kiem tra|lich|de cuong|dap an|mon)\b/;
+const examDefinition = /\b(?:la gi|dinh nghia|khai niem|nghia la gi|nhu the nao)\b/;
+
+/** Recognizes casual questions about actual published school midterms. */
+export function isClassroomExamQuestion(query) {
+  const text = normalizeAssistantText(query).replace(/\s+/g, ' ').trim();
+  return examTopic.test(text) && schoolExam.test(text) && !examDefinition.test(text);
+}
+
+/** Only recover previous intent when a user is answering our explicit source-choice prompt. */
+export function recoverWebsiteClarification(query, history = []) {
+  const selection = normalizeAssistantText(query).replace(/\s+/g, ' ').trim();
+  if (
+    !/^(?:kien thuc|thong tin|noi dung) (?:tren |tu )?(?:website|web)|^(?:website|web|tren web|theo web|noi dung website)$/.test(
+      selection,
+    )
+  )
+    return null;
+  const last = history.at(-1);
+  const previousUser = [...history].reverse().find((turn) => turn.role === 'user');
+  if (
+    last?.role !== 'assistant' ||
+    !/\b(?:kien thuc chung hay tim thong tin|kien thuc chung hay tim|website hay kien thuc chung)\b/.test(
+      normalizeAssistantText(last.content),
+    ) ||
+    !previousUser
+  )
+    return null;
+  return previousUser.content;
+}
+
+const publicExamPost = /\b(?:gk\d?|giua ki|giua ky|giua hoc ki|giua hoc ky)\b/;
+
+/** Summarizes only confirmed published exam posts, with up to three real citations. */
+export function publicExamOverview(posts = []) {
+  const matches = posts
+    .filter((post) => post.status === undefined || post.status === 'published')
+    .filter((post) => publicExamPost.test(normalizeAssistantText(post.title)))
+    .sort((a, b) => {
+      const priority = (post) =>
+        /^lich thi/.test(normalizeAssistantText(post.title))
+          ? 0
+          : /^kiem tra/.test(normalizeAssistantText(post.title))
+            ? 1
+            : 2;
+      return priority(a) - priority(b) || a.title.localeCompare(b.title, 'vi');
+    })
+    .slice(0, 3);
+  if (!matches.length) return null;
+  const text = matches.map((post) => {
+    const body = String(post.body || '').trim();
+    return body
+      ? `- **${post.title}**: ${body}`
+      : `- **${post.title}**: Bài đăng có trên website; chưa có nội dung văn bản để trích dẫn.`;
+  });
+  return {
+    answer: `Website đang có ${matches.length} bài đăng công khai liên quan đến kiểm tra giữa kỳ:\n\n${text.join('\n\n')}`,
+    sources: matches.map((post) => ({ id: post.id, quote: post.title })),
+  };
+}
+
 const ambiguousSignals =
   /\b(?:co|lop|bai hoc|hoc lieu|chu de|chuan bi|hoat dong|thong tin|lich|ngay mai|tuan nay|hom nay)\b/;
 
@@ -103,6 +166,7 @@ export function routeAssistantIntent(query, history = []) {
   const asksBoard = boardSignals.test(text);
   const asksGeneral = explicitGeneral.test(text);
   const clearScience = generalSignals.test(text);
+  if (isClassroomExamQuestion(query)) return { mode: 'exam-overview', followup: false };
   if (localCalendarReply(query)) return { mode: 'calendar', followup: false };
   if (generalContext.test(text) && !asksBoard) return { mode: 'general', followup: false };
   if (asksGeneral && !asksBoard) return { mode: 'general', followup: false };
