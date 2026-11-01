@@ -35,6 +35,26 @@ export function matchPublishedTitle(query, posts = []) {
   return matches[0]?.post || null;
 }
 
+/** Reads an explicitly named public post without inventing details or spending AI tokens. */
+export function directPublishedPostSummary(query, post) {
+  if (!post) return null;
+  const clean = (value) =>
+    normalizeAssistantText(value)
+      .replace(/[^\p{L}\p{N}]+/gu, ' ')
+      .trim()
+      .replace(/\s+/g, ' ');
+  const question = clean(query);
+  const title = clean(post.title);
+  const summaryRequest = /\b(?:co gi|gom nhung gi|bao gom nhung gi|nhung hoat dong nao)\b/.test(
+    question,
+  );
+  if (question !== title && !summaryRequest) return null;
+  const body = String(post.body || '').trim();
+  if (!body)
+    return `Website có bài "${post.title}", nhưng nội dung văn bản chưa có. Nếu bài có tệp đính kèm, mình chưa đọc được nội dung tệp đó.`;
+  return `Theo bài "${post.title}" trên website:\n${body}`;
+}
+
 /** Reliable local-only calendar answer; no Board or model is needed. */
 export function localCalendarReply(query, now = new Date()) {
   const text = normalizeAssistantText(query).trim();
