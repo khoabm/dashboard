@@ -13,7 +13,7 @@ const cases = [
     id: 'P0-EXACT-TITLE',
     query: 'Phong trào tháng 11',
     mode: 'board',
-    expected: ['Phong trào Tháng 11', 'Trang trí nón lá', 'Văn nghệ'],
+    expected: ['Phong trào Tháng 11', 'Trang trí nón lá', '20/11'],
     forbidden: [/1940/i, /kháng chiến/i],
     calls: 0,
   },
