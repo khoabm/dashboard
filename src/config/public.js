@@ -3,13 +3,12 @@
  * Secret or service-role keys must never be stored here.
  */
 
-// Temporary QA-only override. Remove before merging this branch into develop.
-// It cannot activate on the stable Pages hostname or outside this Pages project.
+// Temporary QA-only preview routing; never relies on a query parameter, which
+// may disappear during app navigation. Remove before merging into develop.
 const previewHost = globalThis.location?.hostname || '';
 const qaPreview =
   previewHost.endsWith('.student-dashboard-bcy.pages.dev') &&
-  previewHost !== 'student-dashboard-bcy.pages.dev' &&
-  new URLSearchParams(globalThis.location?.search || '').get('ai-v2') === '1';
+  previewHost !== 'student-dashboard-bcy.pages.dev';
 
 export const config = {
   url: import.meta.env?.VITE_SUPABASE_URL || 'https://vgciiqtwmxcdqppntgnt.supabase.co',
