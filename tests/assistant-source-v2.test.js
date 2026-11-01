@@ -63,12 +63,13 @@ test('school GK shorthand routes to public exam summary, not general or uncertai
     'Thi GK có gì?',
     'Thi giữa kì có gì?',
     'Thi giữa kỳ có gì vậy?',
-    'Lịch thi GK1 của lớp',
-    'Kiểm tra GK môn LS-ĐL',
   ]) {
     assert.equal(isClassroomExamQuestion(q), true, q);
     assert.equal(routeAssistantIntent(q).mode, 'exam-overview', q);
   }
+  // Specific named publications should NOT be expanded into an unrelated exam overview.
+  assert.equal(routeAssistantIntent('Lịch thi GK1 của lớp').mode, 'board');
+  assert.equal(routeAssistantIntent('Kiểm tra GK môn LS-ĐL').mode, 'title-check');
   assert.equal(routeAssistantIntent('Thi giữa kỳ là gì?').mode, 'general');
   assert.equal(routeAssistantIntent('Tại sao có giữa kỳ?').mode, 'general');
   assert.equal(routeAssistantIntent('Định nghĩa kỳ thi là gì?').mode, 'general');
