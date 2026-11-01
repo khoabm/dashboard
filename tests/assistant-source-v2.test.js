@@ -6,6 +6,9 @@ import {
   matchPublishedTitle,
   localCalendarReply,
   directPublishedPostSummary,
+  isClassroomExamQuestion,
+  recoverWebsiteClarification,
+  publicExamOverview,
 } from '../src/utils/assistant-intent.js';
 import { parseAssistantMarkdown } from '../src/utils/assistant-format.js';
 import { publicAssistantCorpus, retrievePublicContent } from '../src/utils/public-retrieval.js';
@@ -53,6 +56,61 @@ test('short conversational messages do not trigger unnecessary Board title reads
   assert.equal(routeAssistantIntent('Cảm ơn bạn', history).mode, 'general');
   assert.equal(routeAssistantIntent('Cho mình một ví dụ', history).mode, 'general');
   assert.equal(routeAssistantIntent('Em chưa hiểu lắm').mode, 'clarify');
+});
+
+test('school GK shorthand routes to public exam summary, not general or uncertain', () => {
+  for (const q of [
+    'Thi GK có gì?',
+    'Thi giữa kì có gì?',
+    'Thi giữa kỳ có gì vậy?',
+    'Lịch thi GK1 của lớp',
+    'Kiểm tra GK môn LS-ĐL',
+  ]) {
+    assert.equal(isClassroomExamQuestion(q), true, q);
+    assert.equal(routeAssistantIntent(q).mode, 'exam-overview', q);
+  }
+  assert.equal(routeAssistantIntent('Thi giữa kỳ là gì?').mode, 'general');
+  assert.equal(routeAssistantIntent('Tại sao có giữa kỳ?').mode, 'general');
+  assert.equal(routeAssistantIntent('Định nghĩa kỳ thi là gì?').mode, 'general');
+});
+
+test('published GK overview contains only the three real exam posts and cites them', () => {
+  const result = publicExamOverview(corpus.posts);
+  assert.equal(result.sources.length, 3);
+  assert.deepEqual(
+    result.sources.map((item) => item.id),
+    ['post-exam', 'post-history', 'post-answers'],
+  );
+  assert.match(result.answer, /7g20 Kiểm tra môn Văn/);
+  assert.match(result.answer, /Tiết 1-2 chiều thứ 6/);
+  assert.match(result.answer, /Đáp án GK1 môn Toán/);
+  assert.match(result.answer, /chưa có nội dung văn bản/);
+  assert.doesNotMatch(result.answer, /Trang trí nón lá/);
+  assert.equal(publicExamOverview([publishedBoardFixture[6]]), null);
+});
+
+test('website-selection follow-up recovers the exact prior classroom exam question', () => {
+  const previous = 'Thi GK có gì?';
+  const history = [
+    { role: 'user', content: previous },
+    {
+      role: 'assistant',
+      content: 'Em muốn hỏi kiến thức chung hay tìm thông tin từ bài đăng trên website?',
+    },
+  ];
+  for (const reply of ['kiến thức website', 'nội dung web', 'website']) {
+    const query = recoverWebsiteClarification(reply, history);
+    assert.equal(query, previous);
+    assert.equal(routeAssistantIntent(query, history).mode, 'exam-overview');
+  }
+  assert.equal(recoverWebsiteClarification('kiến thức website', []), null);
+  assert.equal(
+    recoverWebsiteClarification('kiến thức website', [
+      { role: 'user', content: 'Cầu vồng là gì?' },
+      { role: 'assistant', content: 'Đây là hiện tượng ánh sáng.' },
+    ]),
+    null,
+  );
 });
 
 test('general knowledge and practical instructions never become a matching school post', () => {
