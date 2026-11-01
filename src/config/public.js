@@ -3,13 +3,6 @@
  * Secret or service-role keys must never be stored here.
  */
 
-// Temporary QA-only preview routing; never relies on a query parameter, which
-// may disappear during app navigation. Remove before merging into develop.
-const previewHost = globalThis.location?.hostname || '';
-const qaPreview =
-  previewHost.endsWith('.student-dashboard-bcy.pages.dev') &&
-  previewHost !== 'student-dashboard-bcy.pages.dev';
-
 export const config = {
   url: import.meta.env?.VITE_SUPABASE_URL || 'https://vgciiqtwmxcdqppntgnt.supabase.co',
   key:
@@ -17,10 +10,9 @@ export const config = {
     'sb_publishable_A0kgJlsUnLFL_wrtJpkvtQ_GyBAf0UY',
   bucket: 'learning-resources',
   signedUrlSeconds: 60,
-  assistantEndpoint: qaPreview
-    ? 'https://khtn8-assistant-v2-qa-20261101.joemckahn.workers.dev/chat'
-    : import.meta.env?.VITE_BOARD_ASSISTANT_ENDPOINT ||
-      'https://khtn8-board-assistant-mvp.joemckahn.workers.dev/chat',
+  assistantEndpoint:
+    import.meta.env?.VITE_BOARD_ASSISTANT_ENDPOINT ||
+    'https://khtn8-board-assistant-mvp.joemckahn.workers.dev/chat',
 };
 export const configured =
   config.url.startsWith('https://') && config.key.startsWith('sb_publishable_');
