@@ -95,7 +95,7 @@ export function isClassroomExamQuestion(query) {
   const specificPublication =
     /\b(?:co dang|co thong bao|trong bai|theo bai|mon van|mon toan|mon anh|mon tieng anh)\b/.test(
       text,
-    );
+    ) || /^(?:lich thi|kiem tra gk mon)\b/.test(text);
   return (
     examTopic.test(text) &&
     schoolExam.test(text) &&
@@ -202,10 +202,17 @@ export function routeAssistantIntent(query, history = []) {
     return { mode: lastBoard ? 'board' : 'general', followup: lastBoard };
   if (reference && !lastAssistant && /^(?:vay|the|con|the con|bai do|hoat dong do)\b/.test(text))
     return { mode: 'clarify', followup: false };
-  if (ambiguousSignals.test(text)) return { mode: 'uncertain', followup: false };
-  // Short noun-phrase queries may be exact published titles; check once before inference.
-  if (shortTopic.test(text) && !conversationalOpening.test(text) && !generalContext.test(text))
+  // Real post titles may contain separators (20/11, LS-ĐL) and words like "cô".
+  // Check short noun phrases before sending an ambiguous request to a model.
+  const titleWords = text.replace(/[-/]+/g, ' ');
+  if (
+    !/[?!]/.test(query) &&
+    shortTopic.test(titleWords) &&
+    !conversationalOpening.test(text) &&
+    !generalContext.test(text)
+  )
     return { mode: 'title-check', followup: false };
+  if (ambiguousSignals.test(text)) return { mode: 'uncertain', followup: false };
   return { mode: 'general', followup: false };
 }
 
