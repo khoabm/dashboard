@@ -9,6 +9,7 @@ import {
   recoverWebsiteClarification,
   publicExamOverview,
   localCalendarReply,
+  personalGradeReply,
   generalConversationHistory,
   decodeIntentRoute,
 } from '../src/utils/assistant-intent.js';
@@ -307,6 +308,22 @@ test('P11 published title resolution rejects history-based hallucinations', () =
     matchPublishedTitle('Phong trào tháng 11 trong lịch sử Việt Nam là gì?', corpus.posts),
     null,
   );
+});
+
+test('P13 personal scores are not simulated by the AI assistant', () => {
+  for (const query of [
+    'Điểm cá nhân của em là bao nhiêu?',
+    'Em muốn xem điểm của em',
+    'Bảng điểm của em có gì?',
+  ]) {
+    assert.equal(routeAssistantIntent(query).mode, 'gradebook-help');
+    const message = personalGradeReply(query);
+    assert.match(message, /Bảng điểm cá nhân/);
+    assert.match(message, /xác minh/);
+    assert.doesNotMatch(message, /\b\d+(?:[.,]\d+)?\s*điểm/);
+  }
+  assert.equal(personalGradeReply('Cách tính điểm trung bình'), null);
+  assert.equal(routeAssistantIntent('Cách tính điểm trung bình').mode, 'general');
 });
 
 test('P12 explicit website post summary cannot become a general craft guide', () => {
