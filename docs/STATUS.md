@@ -1,3 +1,15 @@
+## 2026-11-01 — AI Assistant V2 comprehensive QA — latest acceptance evidence
+
+Draft PR #40 `feature/ai-assistant-source-quality-v2-20261101` (no merge to develop/main). [Detailed plan](features/board-assistant/AI_V2_COMPREHENSIVE_QA_PLAN_20261101.md) and [exact expected-vs-actual report](features/board-assistant/AI_V2_COMPREHENSIVE_QA_REPORT_20261101.md).
+
+- Read-only public Supabase verified 10 published posts; single sanitized fixture reused, no secret/student-score/attachment data copied, no database writes.
+- Earlier bounded **25** actual Worker QA questions: **23** automatically accepted, including **10** with remaining human semantic-review qualification; **2 FAIL** named-title routing; C02 and personal-grade intention identified as additional human quality findings.
+- Corrected routing + private Gradebook help; **5/5 actual post-fix HTTP verification PASS** ([run #41284070832](https://github.com/khoabm/dashboard/actions/runs/41284070832), [exact response artifact](https://github.com/khoabm/dashboard/actions/runs/41284070832/artifacts/13074249046)), zero inference calls on these five. Earlier 25-case responses and FAILs retained.
+- **281 curated offline tests PASS**, build, static checks and format PASS ([run #41284280160](https://github.com/khoabm/dashboard/actions/runs/41284280160)); final documentation commit check to be verified. Hosted workflows are manual-only after accidental duplication; model-call counters are not neuron accounting.
+- **Owner Browser QA NOT RUN; C02 pedagogy OPEN.** QA-only frontend override/CSP/workflows need removal before merge. Main, develop, production Worker, Auth/Gradebook/RLS unchanged.
+
+---
+
 ## F04 — Owner finding: “Thi GK có gì?” and the follow-up “kiến thức website” (2026-11-01)
 
 **Observed from owner screenshot:** Assistant asked the student to select website vs general knowledge after “Thi GK có gì?”, then searched for the literal reply “kiến thức website” and falsely reported no source even though published Board includes exam posts.
