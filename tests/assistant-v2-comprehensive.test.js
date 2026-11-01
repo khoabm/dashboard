@@ -331,3 +331,19 @@ test('P12 explicit website post summary cannot become a general craft guide', ()
   assert.equal(directPublishedPostSummary('Chỉ tôi cách thiết kế nón lá', post), null);
   assert.match(directPublishedPostSummary('Trang trí nón lá', post), /Đặt mua 2 nón/);
 });
+
+test('temporary pinned formatter receipt for final hosted QA', async () => {
+  const fs = await import('node:fs');
+  const prettier = await import('prettier');
+  const path = 'tests/assistant-v2-final-fix-qa.mjs';
+  const original = fs.readFileSync(path, 'utf8');
+  const formatted = await prettier.format(original, {
+    ...(await prettier.resolveConfig(path)),
+    filepath: path,
+  });
+  if (original !== formatted) {
+    console.log('FINAL_FIX_FORMAT_START', path);
+    console.log(formatted);
+    console.log('FINAL_FIX_FORMAT_END', path);
+  }
+});
