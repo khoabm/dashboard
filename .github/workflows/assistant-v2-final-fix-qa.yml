@@ -1,0 +1,28 @@
+# Manual specialist hosted QA only; never run on ordinary PR sync or push.
+name: AI V2 — final targeted HTTP regression
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Five bounded read-only POSTs after QA Worker deploy
+        run: node tests/assistant-v2-final-fix-qa.mjs
+      - name: Save exact results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-v2-final-fix-responses
+          path: tests/local/assistant-v2-final-fix-qa/
+          retention-days: 14
+          if-no-files-found: warn

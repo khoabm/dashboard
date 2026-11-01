@@ -1,5 +1,6 @@
 /** Renders a memory-only, source-grounded chatbot panel with explicit read-only Board controls. */
 import { el, button } from '../utils/dom.js';
+import { renderAssistantMarkdown } from '../utils/assistant-format.js';
 import {
   assistantLimits,
   validAssistantQuery,
@@ -526,7 +527,9 @@ export function BoardAssistant({ snapshot, request, perform, hosted = false, liv
         );
       }
       if (result.answer) {
-        content.append(el('p', { class: 'assistant-learning-answer' }, result.answer));
+        content.append(
+          el('div', { class: 'assistant-learning-answer' }, renderAssistantMarkdown(result.answer)),
+        );
       }
       if (!live && result.sources.length) {
         content.append(

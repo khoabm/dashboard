@@ -1,3 +1,50 @@
+## 2026-11-01 — AI Assistant V2 comprehensive QA — latest acceptance evidence
+
+Draft PR #40 `feature/ai-assistant-source-quality-v2-20261101` (no merge to develop/main). [Detailed plan](features/board-assistant/AI_V2_COMPREHENSIVE_QA_PLAN_20261101.md) and [exact expected-vs-actual report](features/board-assistant/AI_V2_COMPREHENSIVE_QA_REPORT_20261101.md).
+
+- Read-only public Supabase verified 10 published posts; single sanitized fixture reused, no secret/student-score/attachment data copied, no database writes.
+- Earlier bounded **25** actual Worker QA questions: **23** automatically accepted, including **10** with remaining human semantic-review qualification; **2 FAIL** named-title routing; C02 and personal-grade intention identified as additional human quality findings.
+- Corrected routing + private Gradebook help; **5/5 actual post-fix HTTP verification PASS** ([run #41284070832](https://github.com/khoabm/dashboard/actions/runs/41284070832), [exact response artifact](https://github.com/khoabm/dashboard/actions/runs/41284070832/artifacts/13074249046)), zero inference calls on these five. Earlier 25-case responses and FAILs retained.
+- **281 curated offline tests PASS**, build, static checks and format PASS ([run #41284280160](https://github.com/khoabm/dashboard/actions/runs/41284280160)); final documentation commit check to be verified. Hosted workflows are manual-only after accidental duplication; model-call counters are not neuron accounting.
+- **Owner Browser QA NOT RUN; C02 pedagogy OPEN.** QA-only frontend override/CSP/workflows need removal before merge. Main, develop, production Worker, Auth/Gradebook/RLS unchanged.
+
+---
+
+## F04 — Owner finding: “Thi GK có gì?” and the follow-up “kiến thức website” (2026-11-01)
+
+**Observed from owner screenshot:** Assistant asked the student to select website vs general knowledge after “Thi GK có gì?”, then searched for the literal reply “kiến thức website” and falsely reported no source even though published Board includes exam posts.
+
+**Verified cause:** The original router classified school-exam shorthand as ambiguous; the worker searched the follow-up as a new question instead of recovering the original exam question. Embedding could also exclude posts without an exact title substring.
+
+**Fix in the same PR #40 branch:** `src/utils/assistant-intent.js` now identifies `GK/GK1/giữa kì/giữa kỳ` exam-overview questions; `recoverWebsiteClarification` recovers a prior question only when the immediate assistant response explicitly asked to choose website vs general knowledge. `publicExamOverview` selects up to three **currently published** exam-titled posts and returns a grounded summary with native source citations. `workers/board-assistant/live.js` calls this path before BGE/Qwen. Specific subject/post queries continue through regular retrieval, general definitions remain general.
+
+**Actual QA Worker HTTP evidence:** [GitHub Actions GK run #41281493983](https://github.com/khoabm/dashboard/actions/runs/41281493983) [raw JSON + exact responses](https://github.com/khoabm/dashboard/actions/runs/41281493983/artifacts/13073218670). Three bounded POST requests all **PASS**: `Thi GK có gì?`, `Thi giữa kì có gì?`, and the two-turn question followed by `kiến thức website`. All: HTTP 200, knowledge `board`, three current published sources, **zero Qwen/BGE model calls**. The sources are `Lịch thi GK1`, `Kiểm tra GK môn LS-ĐL`, `Đáp án GK1 môn Toán`; the latter has no public body text and is not presented as read attachment content.
+
+**Offline CI:** [run #41281564529](https://github.com/khoabm/dashboard/actions/runs/41281564529) **PASS** at cleaned code commit `aae6720`: syntax, curated unit, Vite production build and Prettier.
+
+**Remaining gates:** No interactive browser automation in this Chat session; owner should verify source-card expansion and visual Markdown rendering on localhost configured for the QA Worker. QA Worker was updated in isolation; **production Worker, `main`, `develop`, Supabase data/Auth/RLS remain unchanged**. The temporary QA endpoint override and CSP exception still require removal before merging.
+
+---
+
+## 2026-11-01 — AI-SOURCE-V2 / Draft PR #40 (source and bounded model testing)
+
+Owner approved source-quality remediation. Work branch `feature/ai-assistant-source-quality-v2-20261101`
+from `develop@626dc42`; [Draft PR #40](https://github.com/khoabm/dashboard/pull/40).
+
+- Saved sanitized ten-published-post fixture (single read-only Supabase SELECT), excluding names, attachments and private tables. Real backend data **unchanged**.
+- Router recognizes website-content phrasing, checks short natural queries against actual published titles, prioritizes exact title retrieval before BGE, and keeps generic science/history/how-to outside Board. Direct published-title summaries do not spend inference.
+- Deterministic date/weekday/time uses `Asia/Ho_Chi_Minh`; no model/Board call.
+- Safe dependency-free DOM markdown rendering now displays bold/emphasis/lists without innerHTML.
+- Qwen hybrid response must contain a natural website fact rather than a citation ID. Missing/unfinished responses rejected; prompts refined.
+- Three **direct Cloudflare Workers AI API model requests** were executed, totaling approx **12.16 neurons** (small Qwen prompts, no batch retries). General explanation returned a completed answer with example; initial hybrid produced `website:"c0"` (FAIL); revised full hybrid prompt returned `website:"...7g20"` with separate advice (PASS). This is **model behavior only**, not a deployed new Worker E2E.
+- Curated CI unit/build/syntax/format receipt at latest code HEAD: verify separately. **Actual new Worker HTTP, browser E2E, mobile real devices NOT RUN**. Preview frontend might still target the old Worker, so do not claim hosted source routing accepted.
+- QA-only Cloudflare Worker `khtn8-assistant-v2-qa-20261101` deployed separately on Workers Free, version `748ef373-589c-4f8e-83eb-eef55919aa48`. QA Pages preview at code SHA `edabfe5` (CI #41268104217 **214/214 curated unit PASS**, syntax, build and format PASS) uses `?ai-v2=1` to call the isolated Worker; production default remains unchanged.
+- Browser/Worker HTTP QA from tool environment is **BLOCKED**: direct HTTP to QA Worker hostname returns network policy 403; actual hosted Worker answer routing therefore NOT RUN here. Direct Cloudflare Workers AI model API tested 3 finite requests ~12.16 neurons; do not mislabel these as Worker E2E. Owner Browser QA is remaining gate.
+- **Remove the temporary `src/config/public.js` QA URL override and `index.html` QA CSP allowlist before merge.** Verify the final source commit and CI again after removal.
+- Zero migrations, no schema/RLS/Auth/Gradebook change, no Supabase write, no paid resource, no production deploy or merge.
+
+---
+
 ## 2026-10-31 — Reusable upload switch UI fix (Draft PR #38)
 
 Fixed thumb overflow from overlapping legacy upload checkbox CSS. Added shared
