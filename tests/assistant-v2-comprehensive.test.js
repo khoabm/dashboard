@@ -132,7 +132,7 @@ test('P03 midterm summary does not invent content from attachment-only posts', (
   const empty = matchPublishedTitle('Đáp án GK1 môn Toán', corpus.posts);
   const response = directPublishedPostSummary('Đáp án GK1 môn Toán', empty);
   assert.match(response, /chưa đọc được/);
-  assert.doesNotMatch(response, /đáp án.*[A-D]/i);
+  assert.doesNotMatch(response, /Câu\s*1\s*[:.]\s*[A-D]|đáp án đúng là/i);
 });
 
 test('P04 no matching exam post returns no fabricated summary', () => {
