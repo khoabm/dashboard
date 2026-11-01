@@ -1,0 +1,38 @@
+name: AI V2 — GK exam hosted regression
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - '.github/workflows/assistant-gk-hosted-qa.yml'
+      - 'tests/assistant-gk-hosted-qa.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: assistant-gk-hosted-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  evidence:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'feature/ai-assistant-source-quality-v2-20261101'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run three bounded public-only HTTP requests
+        run: node tests/assistant-gk-hosted-qa.mjs
+      - name: Upload exact responses even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: assistant-gk-hosted-response-log
+          path: tests/local/assistant-gk-qa/
+          if-no-files-found: warn
+          retention-days: 14
