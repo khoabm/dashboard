@@ -24,7 +24,7 @@ export function matchPublishedTitle(query, posts = []) {
   const text = clean(query);
   if (!text || generalContext.test(text)) return null;
   const matches = posts
-    .filter((post) => post.status === 'published')
+    .filter((post) => post.status === undefined || post.status === 'published')
     .map((post) => ({ post, title: clean(post.title) }))
     .filter(({ title }) => title.length >= 7 && (text === title || text.includes(title)))
     .sort((a, b) => b.title.length - a.title.length);
