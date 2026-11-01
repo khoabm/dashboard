@@ -18,6 +18,7 @@ import {
   directPublishedPostSummary,
   recoverWebsiteClarification,
   publicExamOverview,
+  personalGradeReply,
 } from '../../src/utils/assistant-intent.js';
 export { AssistantBudget }; // Retains the historical DO class; live chat never reserves or stops it.
 
@@ -181,6 +182,14 @@ export async function liveFetch(request, env, { fetcher = fetch, now = () => new
     const clarifiedQuestion = recoverWebsiteClarification(payload.query, payload.history);
     const question = clarifiedQuestion || payload.query;
     const route = routeAssistantIntent(question, payload.history);
+    if (route.mode === 'gradebook-help')
+      return reply(200, {
+        mode: 'ai',
+        status: 'answered',
+        answer: personalGradeReply(question),
+        sources: [],
+        knowledge: 'general',
+      });
     if (route.mode === 'calendar')
       return reply(200, {
         mode: 'ai', status: 'answered', answer: localCalendarReply(payload.query, now()),
