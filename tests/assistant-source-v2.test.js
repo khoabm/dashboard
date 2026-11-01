@@ -5,6 +5,7 @@ import {
   routeAssistantIntent,
   matchPublishedTitle,
   localCalendarReply,
+  directPublishedPostSummary,
 } from '../src/utils/assistant-intent.js';
 import { parseAssistantMarkdown } from '../src/utils/assistant-format.js';
 import { publicAssistantCorpus, retrievePublicContent } from '../src/utils/public-retrieval.js';
@@ -57,10 +58,20 @@ test('general knowledge and practical instructions never become a matching schoo
   );
 });
 
+test('exact public movement title is answered entirely from the published body, no model', () => {
+  const post = matchPublishedTitle('Phong trào tháng 11', corpus.posts);
+  const summary = directPublishedPostSummary('Phong trào tháng 11', post);
+  assert.match(summary, /Theo bài "Phong trào Tháng 11" trên website/);
+  assert.match(summary, /Văn nghệ chào mừng 20\/11/);
+  assert.equal(directPublishedPostSummary('Phong trào tháng 11 trong lịch sử Việt Nam', post), null);
+  assert.equal(directPublishedPostSummary('Chỉ cách làm nón lá', post), null);
+});
+
 test('a published title with only attachments is discoverable without inventing PDF content', () => {
   const post = matchPublishedTitle('Đáp án GK1 môn Toán', corpus.posts);
   assert.equal(post.title, 'Đáp án GK1 môn Toán');
   assert.equal(post.body, '');
+  assert.match(directPublishedPostSummary('Đáp án GK1 môn Toán', post), /chưa đọc được/);
 });
 
 test('weekday and Vietnamese clock are answered locally without models', () => {
