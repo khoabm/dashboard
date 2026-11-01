@@ -120,9 +120,7 @@ export function routeAssistantIntent(query, history = []) {
   // Short subject replies often answer a Board-specific clarification, not a new question.
   if (lastBoard && text.startsWith('mon ')) return { mode: 'board', followup: true };
   const explanationFollowup =
-    /^(?:em chua hieu|chua hieu|noi don gian|viet lai|cho vi du|cho em mot vi du)\b/.test(
-      text,
-    );
+    /^(?:em chua hieu|chua hieu|noi don gian|viet lai|cho vi du|cho em mot vi du)\b/.test(text);
   if (explanationFollowup) {
     if (!lastAssistant) return { mode: 'clarify', followup: false };
     return { mode: lastBoard ? 'board' : 'general', followup: lastBoard };
