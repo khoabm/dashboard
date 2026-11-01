@@ -54,7 +54,8 @@ try {
     if (response.status !== 200) result.failures.push('HTTP ' + response.status);
     if (json.status !== 'answered') result.failures.push('answer status=' + json.status);
     if (json.knowledge !== 'board') result.failures.push('route=' + json.knowledge);
-    if (result.modelCalls !== 0) result.failures.push('unexpected model calls=' + result.modelCalls);
+    if (result.modelCalls !== 0)
+      result.failures.push('unexpected model calls=' + result.modelCalls);
     if (result.sources.length !== 3) result.failures.push('expected 3 cited public posts');
     for (const phrase of [
       'Lịch thi GK1',
@@ -83,13 +84,17 @@ try {
   await writeFile(output + '/results.json', JSON.stringify(report, null, 2));
   await writeFile(
     output + '/report.txt',
-    report.cases.map((item) => [
-      item.id + ' — ' + (item.passed ? 'PASS' : 'FAIL'),
-      'Question: ' + item.query,
-      'Route: ' + item.knowledge,
-      'Answer:\n' + item.answer,
-      'Failures: ' + item.failures.join(', '),
-    ].join('\n')).join('\n\n'),
+    report.cases
+      .map((item) =>
+        [
+          item.id + ' — ' + (item.passed ? 'PASS' : 'FAIL'),
+          'Question: ' + item.query,
+          'Route: ' + item.knowledge,
+          'Answer:\n' + item.answer,
+          'Failures: ' + item.failures.join(', '),
+        ].join('\n'),
+      )
+      .join('\n\n'),
   );
 }
 const success = report.cases.length === scenarios.length && report.cases.every((c) => c.passed);
