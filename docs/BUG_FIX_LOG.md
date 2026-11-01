@@ -1,3 +1,15 @@
+## 2026-11-01 — AI-SOURCE-V2-F05 — Broad audit revealed title-routing and private-score answer errors
+
+- Baseline: `feature/ai-assistant-source-quality-v2-20261101`, Draft PR #40, against 10 currently published Board posts and an anonymous offline fixture.
+- Predeclared 25-case actual Worker audit at [run #41282985681](https://github.com/khoabm/dashboard/actions/runs/41282985681): **23 automated criteria passes, two real FAILs**. W05 “Văn nghê chào mừng 20/11” answered with a generic 20/11 essay, W06 “Viết văn tri ân thầy cô” answered with a generic essay explanation. Ten other cases are labelled AUTO_PASS_REVIEW (semantic assessment limited). P01 also passed weak automated source checks but wrongly answered about the AI's own personal grades; C02's example remained repetitive. The 25 exact responses are preserved in the comprehensive QA report/artifact, including the failures.
+- Corrected `src/utils/assistant-intent.js` to recognize short published titles with slashes/hyphens and prioritize exact named GK notices without confusing GK overviews; `workers/board-assistant/live.js` handles personal score questions with a deterministic, private-data-safe redirect to verified Bảng điểm cá nhân, without a Qwen call.
+- Post-fix **five real HTTP cases PASS** at [run #41284070832](https://github.com/khoabm/dashboard/actions/runs/41284070832), [exact responses](https://github.com/khoabm/dashboard/actions/runs/41284070832/artifacts/13074249046): W05, W06, W08, W09, P01; all 200, expected route/source count, zero AI model calls. The historical two failures are *not deleted*.
+- **281/281 curated pure tests plus build/Prettier PASS** at [run #41284280160](https://github.com/khoabm/dashboard/actions/runs/41284280160) for functionally equivalent pre-report SHA. Final doc-only commit CI receipt to be confirmed separately.
+- Three older hosted workflows now require `workflow_dispatch`, preventing repeated model calls on unrelated PR commits. The final focused check used a one-shot push trigger; no stress/load/automatic retries. Neuron use is **not directly measured**, and extra duplicate model-test runs earlier in the campaign are documented; never equate model calls with neurons.
+- **Remaining:** owner interactive Browser QA (NOT RUN in this Chat), qualitative pedagogy C02 (OPEN), QA-only Worker CSP/endpoint and temporary workflow/trigger cleanup before any merge. Supabase was read-only, and main/develop/production Worker were not changed.
+
+---
+
 ## F04 — Owner finding: “Thi GK có gì?” and the follow-up “kiến thức website” (2026-11-01)
 
 **Observed from owner screenshot:** Assistant asked the student to select website vs general knowledge after “Thi GK có gì?”, then searched for the literal reply “kiến thức website” and falsely reported no source even though published Board includes exam posts.
