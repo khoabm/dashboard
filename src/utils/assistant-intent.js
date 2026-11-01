@@ -20,7 +20,11 @@ const shortTopic = /^(?:[\p{L}\p{N}]+\s*){2,7}$/u;
 
 /** Compare actual publication titles, never arbitrary overlapping words in a post body. */
 export function matchPublishedTitle(query, posts = []) {
-  const clean = (value) => normalizeAssistantText(value).replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
+  const clean = (value) =>
+    normalizeAssistantText(value)
+      .replace(/[^\p{L}\p{N}]+/gu, ' ')
+      .trim()
+      .replace(/\s+/g, ' ');
   const text = clean(query);
   if (!text || generalContext.test(text)) return null;
   const matches = posts
@@ -35,17 +39,25 @@ export function matchPublishedTitle(query, posts = []) {
 export function localCalendarReply(query, now = new Date()) {
   const text = normalizeAssistantText(query).trim();
   const today = /\b(?:hom nay|ngay hom nay|bay gio|hien tai)\b/.test(text);
-  if (!today || /\b(?:trong (?:bai|web)|tren (?:web|website)|theo bai)\b/.test(text))
-    return null;
-  const day = /\b(?:thu may|thu gi|ngay may|ngay bao nhieu|ngay gi|ngay thang may|ngay thang nam)\b/.test(text);
+  if (!today || /\b(?:trong (?:bai|web)|tren (?:web|website)|theo bai)\b/.test(text)) return null;
+  const day =
+    /\b(?:thu may|thu gi|ngay may|ngay bao nhieu|ngay gi|ngay thang may|ngay thang nam)\b/.test(
+      text,
+    );
   const hour = /\b(?:may gio|gio may|bao nhieu gio|bay gio la)\b/.test(text);
   if (!day && !hour) return null;
   const date = new Intl.DateTimeFormat('vi-VN', {
     timeZone: 'Asia/Ho_Chi_Minh',
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
   }).format(now);
   const time = new Intl.DateTimeFormat('vi-VN', {
-    timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', hour12: false,
+    timeZone: 'Asia/Ho_Chi_Minh',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
   }).format(now);
   return hour ? `Bây giờ là ${time}, ${date} (giờ Việt Nam).` : `Hôm nay là ${date}.`;
 }
