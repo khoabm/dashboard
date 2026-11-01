@@ -59,11 +59,7 @@ test('short conversational messages do not trigger unnecessary Board title reads
 });
 
 test('school GK shorthand routes to public exam summary, not general or uncertain', () => {
-  for (const q of [
-    'Thi GK có gì?',
-    'Thi giữa kì có gì?',
-    'Thi giữa kỳ có gì vậy?',
-  ]) {
+  for (const q of ['Thi GK có gì?', 'Thi giữa kì có gì?', 'Thi giữa kỳ có gì vậy?']) {
     assert.equal(isClassroomExamQuestion(q), true, q);
     assert.equal(routeAssistantIntent(q).mode, 'exam-overview', q);
   }
