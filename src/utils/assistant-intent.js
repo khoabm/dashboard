@@ -156,6 +156,18 @@ export function publicExamOverview(posts = []) {
   };
 }
 
+/** Route private-grade requests to the existing verification UI, never the chatbot model. */
+export function personalGradeReply(query) {
+  const text = normalizeAssistantText(query);
+  if (
+    !/\b(?:diem ca nhan|diem cua em|diem cua toi|diem cua minh|xem diem cua em|bang diem cua em)\b/.test(
+      text,
+    )
+  )
+    return null;
+  return 'Trợ lý học liệu không thể xem điểm cá nhân của em. Em hãy mở mục Bảng điểm cá nhân và thực hiện xác minh để xem điểm của mình nhé.';
+}
+
 const ambiguousSignals =
   /\b(?:co|lop|bai hoc|hoc lieu|chu de|chuan bi|hoat dong|thong tin|lich|ngay mai|tuan nay|hom nay)\b/;
 
@@ -175,6 +187,7 @@ export function routeAssistantIntent(query, history = []) {
   const asksBoard = boardSignals.test(text);
   const asksGeneral = explicitGeneral.test(text);
   const clearScience = generalSignals.test(text);
+  if (personalGradeReply(query)) return { mode: 'gradebook-help', followup: false };
   if (isClassroomExamQuestion(query)) return { mode: 'exam-overview', followup: false };
   if (localCalendarReply(query)) return { mode: 'calendar', followup: false };
   if (generalContext.test(text) && !asksBoard) return { mode: 'general', followup: false };
