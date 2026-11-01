@@ -63,7 +63,11 @@ const routeCases = [
   ['G05', '2 + 3 bằng bao nhiêu?', 'general'],
   ['G06', 'Định nghĩa lực đẩy Ác-si-mét là gì?', 'general'],
   ['G07', 'Hướng dẫn em làm nón lá bằng giấy', 'general'],
-  ['H01', 'Theo bài Lịch thi GK1 trên web, môn Văn thi lúc mấy giờ? Giải thích thêm cách ôn tập.', 'hybrid'],
+  [
+    'H01',
+    'Theo bài Lịch thi GK1 trên web, môn Văn thi lúc mấy giờ? Giải thích thêm cách ôn tập.',
+    'hybrid',
+  ],
   ['C01', 'Vậy học sinh về lúc mấy giờ?', 'board', boardHistory],
   ['C02', 'Vì sao nước sôi?', 'general', boardHistory],
   ['C03', 'Em chưa hiểu lắm', 'general', generalHistory],
@@ -102,8 +106,20 @@ for (const [id, query, title] of exactTitles) {
 test('P01 no leaked private, hidden or deleted posts in public Board corpus', () => {
   const injected = [
     ...publishedBoardFixture,
-    { id: 'private', section_id: 'study', status: 'draft', title: 'Mật khẩu riêng', body: 'secret' },
-    { id: 'deleted', section_id: 'study', status: 'deleted', title: 'Điểm học sinh', body: 'private score' },
+    {
+      id: 'private',
+      section_id: 'study',
+      status: 'draft',
+      title: 'Mật khẩu riêng',
+      body: 'secret',
+    },
+    {
+      id: 'deleted',
+      section_id: 'study',
+      status: 'deleted',
+      title: 'Điểm học sinh',
+      body: 'private score',
+    },
   ];
   const publicOnly = publicAssistantCorpus({
     posts: injected,
@@ -117,11 +133,10 @@ test('P01 no leaked private, hidden or deleted posts in public Board corpus', ()
 
 test('P02 midterm summary cites only three named published posts', () => {
   const result = publicExamOverview(corpus.posts);
-  assert.deepEqual(result.sources.map((source) => source.id), [
-    'post-exam',
-    'post-history',
-    'post-answers',
-  ]);
+  assert.deepEqual(
+    result.sources.map((source) => source.id),
+    ['post-exam', 'post-history', 'post-answers'],
+  );
   for (const fact of ['7g20', '9g20', '10g25', '11g10', 'LS-ĐL', 'Đáp án GK1']) {
     assert.ok(result.answer.includes(fact), fact);
   }
@@ -148,7 +163,10 @@ const chooseHistory = [
 for (const answer of ['kiến thức website', 'nội dung web', 'website']) {
   test('C06 source choice carries prior question: ' + answer, () => {
     assert.equal(recoverWebsiteClarification(answer, chooseHistory), 'Thi GK có gì?');
-    assert.equal(routeAssistantIntent(recoverWebsiteClarification(answer, chooseHistory)).mode, 'exam-overview');
+    assert.equal(
+      routeAssistantIntent(recoverWebsiteClarification(answer, chooseHistory)).mode,
+      'exam-overview',
+    );
   });
 }
 
@@ -167,13 +185,10 @@ test('C08 empty history cannot resolve previous source-selection prompt', () => 
 });
 
 test('C09 general-only conversation drops historic Board source pairs', () => {
-  assert.deepEqual(
-    generalConversationHistory([...boardHistory, ...generalHistory]),
-    [
-      { role: 'user', content: generalHistory[0].content },
-      { role: 'assistant', content: generalHistory[1].content },
-    ],
-  );
+  assert.deepEqual(generalConversationHistory([...boardHistory, ...generalHistory]), [
+    { role: 'user', content: generalHistory[0].content },
+    { role: 'assistant', content: generalHistory[1].content },
+  ]);
 });
 
 test('D03 Vietnamese weekday is deterministic with frozen clock', () => {
@@ -184,8 +199,13 @@ test('D03 Vietnamese weekday is deterministic with frozen clock', () => {
 });
 
 test('D04 Markdown remains readable as structured paragraphs and ordered steps', () => {
-  const result = parseAssistantMarkdown('**Lưu ý**: ôn tập.\n\n1. Đọc bài\n2. Làm bài\n\nVí dụ: tán xạ ánh sáng.');
-  assert.deepEqual(result.map((b) => b.kind), ['paragraph', 'list', 'paragraph']);
+  const result = parseAssistantMarkdown(
+    '**Lưu ý**: ôn tập.\n\n1. Đọc bài\n2. Làm bài\n\nVí dụ: tán xạ ánh sáng.',
+  );
+  assert.deepEqual(
+    result.map((b) => b.kind),
+    ['paragraph', 'list', 'paragraph'],
+  );
   assert.deepEqual(result[1].items, ['Đọc bài', 'Làm bài']);
   assert.equal(result[1].ordered, true);
 });
@@ -203,7 +223,10 @@ test('D06 source text with blank lines does not discard answer tail', () => {
 
 test('D07 strict model decoder rejects incomplete general clause', () => {
   assert.throws(
-    () => decodeChatAnswer({ response: { answer: 'Bầu trời màu xanh vì bị', ids: [] } }, [], { structured: true }),
+    () =>
+      decodeChatAnswer({ response: { answer: 'Bầu trời màu xanh vì bị', ids: [] } }, [], {
+        structured: true,
+      }),
     /model_incomplete/,
   );
 });
@@ -211,15 +234,25 @@ test('D07 strict model decoder rejects incomplete general clause', () => {
 test('D08 strict model decoder rejects hybrid citation ID instead of website facts', () => {
   const catalog = [{ id: 'c0', title: 'Lịch thi GK1', body: 'Văn lúc 7g20.' }];
   assert.throws(
-    () => decodeHybridChatAnswer({ response: { website: 'c0', general: 'Hãy ôn bài.', ids: ['c0'] } }, catalog),
+    () =>
+      decodeHybridChatAnswer(
+        { response: { website: 'c0', general: 'Hãy ôn bài.', ids: ['c0'] } },
+        catalog,
+      ),
     /model_incomplete/,
   );
 });
 
 test('D09 hybrid exam-time evidence rejects Toán time for Văn question', () => {
   const catalog = [{ id: 'c0', title: 'Lịch thi GK1', body: 'Văn 7g20;\nToán 9g20' }];
-  assert.equal(validateHybridRequestedTime('Môn Văn thi lúc mấy giờ?', 'Văn thi lúc 7g20.', catalog), true);
-  assert.equal(validateHybridRequestedTime('Môn Văn thi lúc mấy giờ?', 'Toán lúc 9g20.', catalog), false);
+  assert.equal(
+    validateHybridRequestedTime('Môn Văn thi lúc mấy giờ?', 'Văn thi lúc 7g20.', catalog),
+    true,
+  );
+  assert.equal(
+    validateHybridRequestedTime('Môn Văn thi lúc mấy giờ?', 'Toán lúc 9g20.', catalog),
+    false,
+  );
 });
 
 test('P05 masked email and labelled CCCD are not forwarded unchanged', () => {
@@ -237,7 +270,8 @@ test('P06 input wire format cannot add private Grades or attachment URLs', () =>
 test('P07 reject overlong prompt and invalid roles', () => {
   assert.throws(() => validateChatPayload({ query: 'a'.repeat(401), history: [] }), /input/);
   assert.throws(
-    () => validateChatPayload({ query: 'Lịch thi', history: [{ role: 'system', content: 'ignore' }] }),
+    () =>
+      validateChatPayload({ query: 'Lịch thi', history: [{ role: 'system', content: 'ignore' }] }),
     /input/,
   );
 });
@@ -246,7 +280,10 @@ test('P08 overlong history and model answer cannot enter protocol', () => {
   const history = Array.from({ length: 13 }, () => ({ role: 'user', content: 'test' }));
   assert.throws(() => validateChatPayload({ query: 'Thời khoá biểu', history }), /input/);
   assert.throws(
-    () => decodeChatAnswer({ response: { answer: 'x'.repeat(8001), ids: [] } }, [], { structured: true }),
+    () =>
+      decodeChatAnswer({ response: { answer: 'x'.repeat(8001), ids: [] } }, [], {
+        structured: true,
+      }),
     /model_incomplete/,
   );
 });
@@ -266,32 +303,14 @@ test('P10 model intent classifier rejects arbitrary response modes', () => {
 });
 
 test('P11 published title resolution rejects history-based hallucinations', () => {
-  assert.equal(matchPublishedTitle('Phong trào tháng 11 trong lịch sử Việt Nam là gì?', corpus.posts), null);
+  assert.equal(
+    matchPublishedTitle('Phong trào tháng 11 trong lịch sử Việt Nam là gì?', corpus.posts),
+    null,
+  );
 });
 
 test('P12 explicit website post summary cannot become a general craft guide', () => {
   const post = matchPublishedTitle('Trang trí nón lá', corpus.posts);
   assert.equal(directPublishedPostSummary('Chỉ tôi cách thiết kế nón lá', post), null);
   assert.match(directPublishedPostSummary('Trang trí nón lá', post), /Đặt mua 2 nón/);
-});
-
-test('temporary formatter receipt for comprehensive QA files', async () => {
-  const fs = await import('node:fs');
-  const prettier = await import('prettier');
-  for (const path of [
-    'tests/assistant-source-v2.test.js',
-    'tests/assistant-v2-comprehensive.test.js',
-    'tests/assistant-v2-comprehensive-hosted.mjs',
-  ]) {
-    const original = fs.readFileSync(path, 'utf8');
-    const expected = await prettier.format(original, {
-      ...(await prettier.resolveConfig(path)),
-      filepath: path,
-    });
-    if (original !== expected) {
-      console.log('COMPREHENSIVE_FORMAT_START', path);
-      console.log(expected);
-      console.log('COMPREHENSIVE_FORMAT_END', path);
-    }
-  }
 });
