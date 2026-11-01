@@ -13,6 +13,19 @@ Các nhóm R01–R28 gốc mô tả ứng dụng Bảng học liệu (tên lịc
 toàn web ở một môn/lớp. Gradebook và trợ lý có hợp đồng/gate riêng; không suy thêm tính năng hay
 quyền truy cập từ định hướng sản phẩm. Tài liệu/bằng chứng lịch sử vẫn giữ đúng scope đã thực hiện.
 
+**AI Assistant V2 owner extension (2026-11-01, Draft PR #40):** Primary priority is to
+separate website-backed answers from ordinary general knowledge using the actual
+published-post title/topic catalog, not lexical similarity alone. Exact matching
+website titles must be discoverable in natural short queries and explicit references
+must win over generic routing. Outside science/history/instructional questions
+must not inherit an irrelevant school post. Require natural, complete answers,
+conservative refusal of incomplete/hallucinated Board facts, and readable bold,
+paragraphs and lists without raw Markdown markers or unsafe HTML. Local everyday
+calendar queries must be answered in Vietnam timezone without model inference.
+Keep source cards collapsed unless opened; preserve anonymous read-only published
+projection, no confidential grades, zero new paid resources and no production
+deployment without owner QA.
+
 **Reference UI của ứng dụng Bảng học liệu (gốc):** https://padlet.com/nguyquynh01/khoa-hoc-tu-nhien-k8-kdv5ggxf7schpqyb
 
 ---

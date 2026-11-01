@@ -2,6 +2,13 @@
 
 Hợp đồng: SPEC R03, R06, R09, R12–17, R20. Quy ước và code map dưới đây áp dụng cho implementation của branch đang đọc; nghiệm thu runtime xem STATUS/QA_REPORT.
 
+## Assistant V2 source routing extension (Draft PR #40, 2026-11-01)
+
+- `src/utils/assistant-intent.js`: pure question routing and deterministic Asia/Ho_Chi_Minh weekday/time; exact published-title lookup and direct post summary. Does not mutate Board or save history.
+- `workers/board-assistant/live.js`: unchanged public-only Supabase REST boundary. For title-check reads current published Board, exact title bypasses embedding; exact title-only summary bypasses Qwen. General/science questions bypass Board; nontrivial Board/hybrid prompts still use bounded model inference.
+- `src/utils/assistant-format.js`: constrained, safe Markdown subset in DOM (`strong`, `em`, paragraphs, headings, lists), no innerHTML, scripts, HTML parser, or additional package.
+- Data contract and source actions remain as before: no Gradebook/Admin/Auth/private attachments; production Worker version and bind names unchanged until separately approved acceptance.
+
 ## Sơ đồ mô hình sản phẩm
 
 **Vui học cùng cô Quỳnh** là website tổng thể. **KHTN8 Board** chỉ là tên lịch sử của

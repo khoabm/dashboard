@@ -109,6 +109,7 @@ export function decodeHybridChatAnswer(generated, catalog) {
     !value ||
     typeof value.website !== 'string' ||
     !value.website.trim() ||
+    /^c\d+$/i.test(value.website.trim()) ||
     value.website.length > 3000 ||
     incompleteChatSentence(value.website) ||
     typeof value.general !== 'string' ||

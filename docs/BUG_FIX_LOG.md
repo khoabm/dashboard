@@ -1,3 +1,40 @@
+## 2026-11-01 — AI-SOURCE-V2-F05 — Broad audit revealed title-routing and private-score answer errors
+
+- Baseline: `feature/ai-assistant-source-quality-v2-20261101`, Draft PR #40, against 10 currently published Board posts and an anonymous offline fixture.
+- Predeclared 25-case actual Worker audit at [run #41282985681](https://github.com/khoabm/dashboard/actions/runs/41282985681): **23 automated criteria passes, two real FAILs**. W05 “Văn nghê chào mừng 20/11” answered with a generic 20/11 essay, W06 “Viết văn tri ân thầy cô” answered with a generic essay explanation. Ten other cases are labelled AUTO_PASS_REVIEW (semantic assessment limited). P01 also passed weak automated source checks but wrongly answered about the AI's own personal grades; C02's example remained repetitive. The 25 exact responses are preserved in the comprehensive QA report/artifact, including the failures.
+- Corrected `src/utils/assistant-intent.js` to recognize short published titles with slashes/hyphens and prioritize exact named GK notices without confusing GK overviews; `workers/board-assistant/live.js` handles personal score questions with a deterministic, private-data-safe redirect to verified Bảng điểm cá nhân, without a Qwen call.
+- Post-fix **five real HTTP cases PASS** at [run #41284070832](https://github.com/khoabm/dashboard/actions/runs/41284070832), [exact responses](https://github.com/khoabm/dashboard/actions/runs/41284070832/artifacts/13074249046): W05, W06, W08, W09, P01; all 200, expected route/source count, zero AI model calls. The historical two failures are *not deleted*.
+- **281/281 curated pure tests plus build/Prettier PASS** at [run #41284280160](https://github.com/khoabm/dashboard/actions/runs/41284280160) for functionally equivalent pre-report SHA. Final doc-only commit CI receipt to be confirmed separately.
+- Three older hosted workflows now require `workflow_dispatch`, preventing repeated model calls on unrelated PR commits. The final focused check used a one-shot push trigger; no stress/load/automatic retries. Neuron use is **not directly measured**, and extra duplicate model-test runs earlier in the campaign are documented; never equate model calls with neurons.
+- **Remaining:** owner interactive Browser QA (NOT RUN in this Chat), qualitative pedagogy C02 (OPEN), QA-only Worker CSP/endpoint and temporary workflow/trigger cleanup before any merge. Supabase was read-only, and main/develop/production Worker were not changed.
+
+---
+
+## F04 — Owner finding: “Thi GK có gì?” and the follow-up “kiến thức website” (2026-11-01)
+
+**Observed from owner screenshot:** Assistant asked the student to select website vs general knowledge after “Thi GK có gì?”, then searched for the literal reply “kiến thức website” and falsely reported no source even though published Board includes exam posts.
+
+**Verified cause:** The original router classified school-exam shorthand as ambiguous; the worker searched the follow-up as a new question instead of recovering the original exam question. Embedding could also exclude posts without an exact title substring.
+
+**Fix in the same PR #40 branch:** `src/utils/assistant-intent.js` now identifies `GK/GK1/giữa kì/giữa kỳ` exam-overview questions; `recoverWebsiteClarification` recovers a prior question only when the immediate assistant response explicitly asked to choose website vs general knowledge. `publicExamOverview` selects up to three **currently published** exam-titled posts and returns a grounded summary with native source citations. `workers/board-assistant/live.js` calls this path before BGE/Qwen. Specific subject/post queries continue through regular retrieval, general definitions remain general.
+
+**Actual QA Worker HTTP evidence:** [GitHub Actions GK run #41281493983](https://github.com/khoabm/dashboard/actions/runs/41281493983) [raw JSON + exact responses](https://github.com/khoabm/dashboard/actions/runs/41281493983/artifacts/13073218670). Three bounded POST requests all **PASS**: `Thi GK có gì?`, `Thi giữa kì có gì?`, and the two-turn question followed by `kiến thức website`. All: HTTP 200, knowledge `board`, three current published sources, **zero Qwen/BGE model calls**. The sources are `Lịch thi GK1`, `Kiểm tra GK môn LS-ĐL`, `Đáp án GK1 môn Toán`; the latter has no public body text and is not presented as read attachment content.
+
+**Offline CI:** [run #41281564529](https://github.com/khoabm/dashboard/actions/runs/41281564529) **PASS** at cleaned code commit `aae6720`: syntax, curated unit, Vite production build and Prettier.
+
+**Remaining gates:** No interactive browser automation in this Chat session; owner should verify source-card expansion and visual Markdown rendering on localhost configured for the QA Worker. QA Worker was updated in isolation; **production Worker, `main`, `develop`, Supabase data/Auth/RLS remain unchanged**. The temporary QA endpoint override and CSP exception still require removal before merging.
+
+---
+
+## 2026-11-01 — AI-SOURCE-V2-001 / P0 — Exact published titles ignored and science queries hijacked
+
+- **Owner repro:** “Phong trào tháng 11” was treated as general knowledge; even explicit website requests sometimes claimed no post. “Chỉ tôi cách thiết kế nón lá” was incorrectly answered with class work, while “Hôm nay thứ mấy?” could not be answered reliably.
+- **Root cause:** regex-first router had no actual Board title awareness; short noun phrases defaulted general. Relevant published posts could then be excluded by BGE/lexical thresholds. Unknown temporal queries lacked clock context; raw AI Markdown showed `**`.
+- **Fix:** `matchPublishedTitle`, short title-check intent, exact title scoped retrieval without BGE, deterministic public title summary, local Vietnam calendar, HTML-safe Markdown DOM and scoped CSS. Public posts remain sourced through existing anonymous published projection. New fixture is sanitized from one SELECT of ten published posts.
+- **Model finding:** Qwen initially returned `website:"c0"` rather than the requested exam time in a two-part reply; tightened explicit hybrid instruction and decoder refusal for raw `cN`. Re-test with full system prompt returned the grounded time 7g20 separately from general advice.
+- **Regression:** `tests/assistant-source-v2.test.js` in curated CI covers actual title corpus, explicit web, history/general separation, time and parser. Existing `tests/assistant-intent.test.js` covers hybrid invalid IDs. Hosted model 3 requests ~12.16 neurons; **direct model only, not Worker HTTP**. No retry on errors.
+- **Remaining:** specialist Worker E2E and actual browser QA of new endpoint **NOT RUN**, retained as acceptance gates. PR #40 Draft; source-only, no DB changes/production rollout.
+
 ## 2026-10-31 — BOARD-CSP-ICON-001 / P2 — Native select chevron blocked by CSP
 
 - **Observed:** Owner console reports `data:image/svg+xml` blocked by `img-src 'self' blob: ...` while opening a dialog. Browser identifies `primitives.js:96` because `showModal()` causes CSS to render; the offending resource is actually `src/styles/main.css` native select chevron.
