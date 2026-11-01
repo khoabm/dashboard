@@ -1,3 +1,19 @@
+## 2026-11-01 — AI-SOURCE-V2 / Draft PR #40 (source and bounded model testing)
+
+Owner approved source-quality remediation. Work branch `feature/ai-assistant-source-quality-v2-20261101`
+from `develop@626dc42`; [Draft PR #40](https://github.com/khoabm/dashboard/pull/40).
+
+- Saved sanitized ten-published-post fixture (single read-only Supabase SELECT), excluding names, attachments and private tables. Real backend data **unchanged**.
+- Router recognizes website-content phrasing, checks short natural queries against actual published titles, prioritizes exact title retrieval before BGE, and keeps generic science/history/how-to outside Board. Direct published-title summaries do not spend inference.
+- Deterministic date/weekday/time uses `Asia/Ho_Chi_Minh`; no model/Board call.
+- Safe dependency-free DOM markdown rendering now displays bold/emphasis/lists without innerHTML.
+- Qwen hybrid response must contain a natural website fact rather than a citation ID. Missing/unfinished responses rejected; prompts refined.
+- Three **direct Cloudflare Workers AI API model requests** were executed, totaling approx **12.16 neurons** (small Qwen prompts, no batch retries). General explanation returned a completed answer with example; initial hybrid produced `website:"c0"` (FAIL); revised full hybrid prompt returned `website:"...7g20"` with separate advice (PASS). This is **model behavior only**, not a deployed new Worker E2E.
+- Curated CI unit/build/syntax/format receipt at latest code HEAD: verify separately. **Actual new Worker HTTP, browser E2E, mobile real devices NOT RUN**. Preview frontend might still target the old Worker, so do not claim hosted source routing accepted.
+- Zero migrations, no schema/RLS/Auth/Gradebook change, no Supabase write, no paid resource, no production deploy or merge.
+
+---
+
 ## 2026-10-31 — Reusable upload switch UI fix (Draft PR #38)
 
 Fixed thumb overflow from overlapping legacy upload checkbox CSS. Added shared
