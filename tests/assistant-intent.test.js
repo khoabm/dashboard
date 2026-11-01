@@ -125,10 +125,11 @@ test('hybrid answer requires factual website part and separate explanation', () 
   assert.match(answer.answer, /Theo bài đăng:\nMôn Văn thi lúc 7g20/);
   assert.match(answer.answer, /Giải thích thêm:\nEm nên chia thời gian/);
   assert.deepEqual(answer.ids, ['c0']);
+  const idOnly = { response: { website: 'c0', general: 'Ôn bài.', ids: ['c0'] } };
   const omitted = { response: { answer: 'Em hãy ôn tập đều.', ids: ['c0'] } };
   const blank = { response: { website: 'Văn 7g20.', general: '', ids: ['c0'] } };
   const fabricated = { response: { website: 'Văn 7g20.', general: 'Ôn bài.', ids: ['fake'] } };
-  for (const generated of [omitted, blank])
+  for (const generated of [omitted, blank, idOnly])
     assert.throws(() => decodeHybridChatAnswer(generated, catalog), /model_incomplete/);
   assert.throws(() => decodeHybridChatAnswer(fabricated, catalog), /model/);
 });
